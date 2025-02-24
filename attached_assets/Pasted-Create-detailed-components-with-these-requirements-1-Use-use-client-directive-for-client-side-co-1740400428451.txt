@@ -1,0 +1,147 @@
+Create detailed components with these requirements:
+1. Use 'use client' directive for client-side components
+2. Style with Tailwind CSS utility classes for responsive design
+3. Use Lucide React for icons (from lucide-react package). Do NOT use other UI libraries unless requested
+4. Use stock photos from picsum.photos where appropriate, only valid URLs you know exist
+5. Configure next.config.js image remotePatterns to enable stock photos from picsum.photos
+6. Create root layout.tsx page that wraps necessary navigation items to all pages
+7. MUST implement the navigation elements items in their rightful place i.e. Left sidebar, Top header
+8. Accurately implement necessary grid layouts
+9. Follow proper import practices:
+   - Use @/ path aliases
+   - Keep component imports organized
+   - Update current src/app/page.tsx with new comprehensive code
+   - Don't forget root route (page.tsx) handling
+   - You MUST complete the entire prompt before stopping
+
+Order Management System Interface with Detailed Order View
+</summary_title>
+
+<image_analysis>
+
+1. Navigation Elements:
+- Left sidebar with: Home, Associates, Non-Associates, Collections, Consultations, Quality Guarantee, etc.
+- Top bar with: Search, Notifications, Cart, User Profile
+- Order navigation breadcrumb showing order number and client
+
+
+2. Layout Components:
+- Left sidebar: 200px width, dark background
+- Main content area: Flexible width (~1000px+)
+- Top header: 60px height
+- Order details section: 3-column layout
+- Content padding: 20px standard spacing
+
+
+3. Content Sections:
+- Order header with customer details
+- Order status timeline
+- Financial details panel
+- Order items list
+- Order history section
+- Action buttons panel
+
+
+4. Interactive Controls:
+- Search bar with filters
+- Action buttons: Print, Details, Email, Cancel
+- Status update controls
+- Order item management controls
+- Payment verification buttons
+
+
+5. Colors:
+- Primary blue: #007bff
+- Background gray: #f8f9fa
+- Text dark: #212529
+- Success green: #28a745
+- Danger red: #dc3545
+- Border gray: #dee2e6
+
+
+6. Grid/Layout Structure:
+- 12-column grid system
+- Responsive breakpoints at 768px, 992px, 1200px
+- Fixed sidebar with scrollable main content
+- Nested grid for order details sections
+</image_analysis>
+
+<development_planning>
+
+1. Project Structure:
+```
+src/
+├── components/
+│   ├── layout/
+│   │   ├── Sidebar
+│   │   ├── Header
+│   │   └── OrderLayout
+│   ├── features/
+│   │   ├── OrderDetails
+│   │   ├── OrderHistory
+│   │   └── PaymentInfo
+│   └── shared/
+├── assets/
+├── styles/
+├── hooks/
+└── utils/
+```
+
+
+2. Key Features:
+- Order status management
+- Payment processing
+- Document generation
+- Email notifications
+- Order history tracking
+
+
+3. State Management:
+```typescript
+interface OrderState {
+├── orderDetails: {
+│   ├── orderId: string
+│   ├── customerInfo: CustomerInfo
+│   ├── status: OrderStatus
+│   ├── items: OrderItem[]
+│   └── payment: PaymentDetails
+├── }
+├── ui: {
+│   ├── loading: boolean
+│   ├── activeTab: string
+│   └── errors: Error[]
+├── }
+}
+```
+
+
+4. Routes:
+```typescript
+const routes = [
+├── '/orders',
+├── '/orders/:id',
+├── '/orders/:id/payment',
+└── '/orders/:id/history'
+]
+```
+
+
+5. Component Architecture:
+- OrderContainer (parent)
+- OrderHeader
+- OrderDetails
+- PaymentPanel
+- StatusTimeline
+- ActionButtons
+
+
+6. Responsive Breakpoints:
+```scss
+$breakpoints: (
+├── 'sm': '576px',
+├── 'md': '768px',
+├── 'lg': '992px',
+└── 'xl': '1200px'
+);
+```
+</development_planning>
