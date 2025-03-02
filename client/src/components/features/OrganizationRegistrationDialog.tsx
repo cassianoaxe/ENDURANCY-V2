@@ -133,50 +133,18 @@ export default function OrganizationRegistrationDialog({
 
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="adminName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome da Organização*</FormLabel>
+                      <FormLabel>Nome do Administrador*</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="cnpj"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CNPJ*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="37.206.081/0001-24" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://www.exemplo.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -184,7 +152,7 @@ export default function OrganizationRegistrationDialog({
                     <FormItem>
                       <FormLabel>Email do Administrador*</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" />
+                        <Input {...field} type="email" placeholder="cassianoaxe@gmail.com" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -221,12 +189,72 @@ export default function OrganizationRegistrationDialog({
 
                 <FormField
                   control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Senha*</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Organização*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cnpj"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CNPJ*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="37.206.081/0001-24" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://www.exemplo.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Telefone*</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="(83) 981321486" />
+                        <Input {...field} placeholder="83981321486" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -281,30 +309,6 @@ export default function OrganizationRegistrationDialog({
 
             {step === 3 && (
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Documentação</h3>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="hidden"
-                      id="document-upload"
-                      accept=".pdf,.doc,.docx"
-                    />
-                    <label
-                      htmlFor="document-upload"
-                      className="cursor-pointer text-blue-600 hover:text-blue-800"
-                    >
-                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
-                    </label>
-                    {selectedFile && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        Arquivo selecionado: {selectedFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 <FormField
                   control={form.control}
                   name="plan"
@@ -331,6 +335,30 @@ export default function OrganizationRegistrationDialog({
                   )}
                 />
 
+                <div>
+                  <h3 className="text-lg font-medium mb-4">Documentação</h3>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                      id="document-upload"
+                      accept=".pdf,.doc,.docx"
+                    />
+                    <label
+                      htmlFor="document-upload"
+                      className="cursor-pointer text-blue-600 hover:text-blue-800"
+                    >
+                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
+                    </label>
+                    {selectedFile && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        Arquivo selecionado: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Dados Bancários</h3>
                   <FormField
@@ -340,7 +368,7 @@ export default function OrganizationRegistrationDialog({
                       <FormItem>
                         <FormLabel>Nome do Banco*</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Nome do Banco" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -353,7 +381,7 @@ export default function OrganizationRegistrationDialog({
                       <FormItem>
                         <FormLabel>Agência*</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Número da Agência" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -366,7 +394,7 @@ export default function OrganizationRegistrationDialog({
                       <FormItem>
                         <FormLabel>Conta*</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Número da Conta" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
