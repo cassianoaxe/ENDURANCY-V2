@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Building2, Users, ArrowUpRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import type { Organization } from "@shared/schema";
-import OrganizationRegistrationDialog from "@/components/features/OrganizationRegistrationDialog";
 
 export default function Organizations() {
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations']
   });
@@ -21,7 +21,7 @@ export default function Organizations() {
           <h1 className="text-2xl font-bold mb-2">Organizações</h1>
           <p className="text-gray-600">Gerencie todas as organizações da plataforma.</p>
         </div>
-        <Button onClick={() => setIsRegistrationOpen(true)}>
+        <Button onClick={() => setLocation('/organization-registration')}>
           Adicionar Organização
         </Button>
       </div>
@@ -127,11 +127,6 @@ export default function Organizations() {
           </div>
         </CardContent>
       </Card>
-
-      <OrganizationRegistrationDialog
-        open={isRegistrationOpen}
-        onClose={() => setIsRegistrationOpen(false)}
-      />
     </div>
   );
 }
