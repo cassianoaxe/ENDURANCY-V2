@@ -133,12 +133,40 @@ export default function OrganizationRegistrationDialog({
 
                 <FormField
                   control={form.control}
-                  name="adminName"
+                  name="cnpj"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome do Administrador*</FormLabel>
+                      <FormLabel>CNPJ*</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
+                        <Input {...field} placeholder="37.206.081/0001-24" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://www.exemplo.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="83981321486" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,48 +241,6 @@ export default function OrganizationRegistrationDialog({
                       <FormLabel>Nome da Organização*</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cnpj"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CNPJ*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="37.206.081/0001-24" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://www.exemplo.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="83981321486" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
