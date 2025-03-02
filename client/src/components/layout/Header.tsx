@@ -1,31 +1,42 @@
 "use client";
-import { Search, Bell, ShoppingCart, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Bell, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 export default function Header() {
+  const [location] = useLocation();
+
+  const getBreadcrumbs = () => {
+    const parts = location.split('/').filter(Boolean);
+    return ['Início', ...parts].map((part) => 
+      part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ')
+    );
+  };
+
   return (
-    <header className="h-[60px] fixed top-0 right-0 left-[200px] bg-white border-b z-10">
+    <header className="h-16 fixed top-0 right-0 left-[240px] bg-white border-b z-10">
       <div className="flex items-center justify-between h-full px-6">
-        <div className="flex-1 max-w-xl">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <Input 
-              placeholder="Search orders..." 
-              className="pl-10 w-full"
-            />
-          </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          {getBreadcrumbs().map((crumb, index, array) => (
+            <div key={index} className="flex items-center">
+              <span>{crumb}</span>
+              {index < array.length - 1 && (
+                <span className="mx-2">/</span>
+              )}
+            </div>
+          ))}
         </div>
-        
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon">
-            <Bell size={20} />
+            <Sun className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
           </Button>
           <Button variant="ghost" size="icon">
-            <ShoppingCart size={20} />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <User size={20} />
+            <User className="h-5 w-5" />
           </Button>
         </div>
       </div>
