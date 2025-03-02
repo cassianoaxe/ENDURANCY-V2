@@ -1,0 +1,140 @@
+Next.js route structure based on navigation menu items (excluding main route). Make sure to wrap all routes with the component:
+
+Routes:
+- /dashboard
+- /analytics
+- /registro-de-atividades
+- /backups
+- /emergencias
+- /planos
+- /organizacoes
+- /solicitacoes
+- /financeiro
+- /templates-de-email
+- /administradores
+- /configuracoes
+- /inicio-super-admin-configuracoes
+- /geral
+- /seguranca
+- /notificacoes
+- /api
+
+Page Implementations:
+/dashboard:
+Core Purpose: Main control center showing key metrics and system status
+Key Components
+- Status cards with key metrics
+- Recent activity feed
+- Quick action buttons
+- System health indicators
+Layout Structure
+- Grid layout with responsive cards
+- Sidebar navigation
+- Top header with search and user menu
+
+/analytics:
+Core Purpose: Data visualization and reporting
+Key Components
+- Interactive charts and graphs
+- Date range selectors
+- Export functionality
+- Filtering options
+Layout Structure
+- Full-width charts
+- Control panel at top
+- Responsive grid for multiple visualizations
+
+/registro-de-atividades:
+Core Purpose: Activity logging and audit trail
+Key Components
+- Activity table with filtering
+- Timeline view
+- Search functionality
+- Export options
+Layout Structure
+- Table-based layout
+- Filter sidebar
+- Pagination controls
+
+/backups:
+Core Purpose: Backup management and restoration
+Key Components
+- Backup schedule manager
+- Restore interface
+- Storage status
+- Backup history
+Layout Structure
+- List view of backups
+- Action panel
+- Status indicators
+
+/emergencias:
+Core Purpose: Emergency response management
+Key Components
+- Alert system
+- Emergency contact list
+- Response protocols
+- Status dashboard
+Layout Structure
+- Priority-based layout
+- Quick action buttons
+- Emergency protocols display
+
+/planos:
+Core Purpose: Subscription and service plan management
+Key Components
+- Plan comparison table
+- Pricing calculator
+- Feature matrix
+- Subscription management
+Layout Structure
+- Card-based plan display
+- Feature comparison grid
+- Action buttons
+
+Layouts:
+AdminLayout:
+Applicable routes
+- All administrative routes
+Core components
+- Navigation sidebar
+- Top header
+- User profile menu
+- Breadcrumbs
+Responsive behavior
+- Collapsible sidebar on mobile
+- Responsive navigation menu
+- Adaptive content area
+
+DashboardLayout
+Applicable routes
+- /dashboard
+- /analytics
+Core components
+- Quick stats header
+- Main content area
+- Widget grid
+Responsive behavior
+- Reflow of widgets on smaller screens
+- Collapsible sections
+- Mobile-optimized charts
+
+ConfigurationLayout
+Applicable routes
+- /configuracoes
+- /geral
+- /seguranca
+Core components
+- Settings sidebar
+- Configuration forms
+- Save/cancel actions
+Responsive behavior
+- Full-width forms on mobile
+- Sticky save buttons
+- Collapsible sections
+
+Note: Due to space limitations, I've provided detailed implementations for the most critical routes. The remaining routes would follow similar patterns adapted to their specific purposes, with appropriate components and layouts based on their functionality.
+
+Generate Page Structure
+
+Cursor EditorCopy For C

@@ -1,0 +1,149 @@
+Create detailed components with these requirements:
+1. Use 'use client' directive for client-side components
+2. Style with Tailwind CSS utility classes for responsive design
+3. Use Lucide React for icons (from lucide-react package). Do NOT use other UI libraries unless requested
+4. Use stock photos from picsum.photos where appropriate, only valid URLs you know exist
+5. Configure next.config.js image remotePatterns to enable stock photos from picsum.photos
+6. Create root layout.tsx page that wraps necessary navigation items to all pages
+7. MUST implement the navigation elements items in their rightful place i.e. Left sidebar, Top header
+8. Accurately implement necessary grid layouts
+9. Follow proper import practices:
+   - Use @/ path aliases
+   - Keep component imports organized
+   - Update current src/app/page.tsx with new comprehensive code
+   - Don't forget root route (page.tsx) handling
+   - You MUST complete the entire prompt before stopping
+
+Platform Configuration Dashboard - Administrative Settings Interface
+</summary_title>
+
+<image_analysis>
+
+1. Navigation Elements:
+- Left sidebar with: Dashboard, Analytics, Registro de Atividades, Backups, Emergências, Planos, Organizações, Solicitações, Financeiro, Templates de Email, Administradores, Configurações
+- Top breadcrumb with: Início / Super-admin / Configurações
+- Tab navigation with: Geral, Segurança, Notificações, API
+
+
+2. Layout Components:
+- Left sidebar: ~240px width
+- Main content area: Flexible width (~1000px+)
+- Form fields: Full width with consistent padding
+- Top header: ~64px height
+- Content padding: 24px
+
+
+3. Content Sections:
+- Informações da Plataforma section
+- Configurações Regionais section
+- Form fields organized in 2-column layout
+- Descriptive text under section headers
+
+
+4. Interactive Controls:
+- "Salvar Alterações" primary button (top-right)
+- Text input fields for platform information
+- Dropdown selectors for regional settings
+- Theme toggle and notification icons in header
+
+
+5. Colors:
+- Primary: #0F9D58 (green save button)
+- Background: #FFFFFF (white)
+- Text: #1A1A1A (dark gray)
+- Sidebar active: #F8F9FA (light gray)
+- Accent: #2196F3 (blue links)
+
+
+6. Grid/Layout Structure:
+- 12-column grid system
+- 2-column form layout
+- Responsive breakpoints at 768px, 1024px, 1280px
+- Consistent 24px gutters
+</image_analysis>
+
+<development_planning>
+
+1. Project Structure:
+```
+src/
+├── components/
+│   ├── layout/
+│   │   ├── Sidebar
+│   │   ├── Header
+│   │   └── TabNavigation
+│   ├── features/
+│   │   ├── PlatformInfo
+│   │   └── RegionalSettings
+│   └── shared/
+│       ├── Button
+│       ├── Input
+│       └── Dropdown
+├── assets/
+├── styles/
+├── hooks/
+└── utils/
+```
+
+
+2. Key Features:
+- Platform information management
+- Regional settings configuration
+- Form validation and submission
+- Theme switching
+- Notifications system
+
+
+3. State Management:
+```typescript
+interface ConfigState {
+├── platformInfo: {
+│   ├── name: string
+│   ├── url: string
+│   ├── email: string
+│   └── phone: string
+├── regionalSettings: {
+│   ├── timezone: string
+│   ├── dateFormat: string
+│   ├── currency: string
+│   └── language: string
+├── ui: {
+│   ├── theme: 'light' | 'dark'
+│   ├── activeTab: string
+│   └── notifications: Notification[]
+└── }
+}
+```
+
+
+4. Routes:
+```typescript
+const routes = [
+├── '/dashboard',
+├── '/settings/*',
+├── '/settings/general',
+├── '/settings/security',
+├── '/settings/notifications',
+└── '/settings/api'
+]
+```
+
+
+5. Component Architecture:
+- ConfigurationLayout (parent)
+- PlatformInfoForm (child)
+- RegionalSettingsForm (child)
+- SharedComponents (inputs, buttons)
+- ValidationHandlers
+
+
+6. Responsive Breakpoints:
+```scss
+$breakpoints: (
+├── 'sm': '768px',
+├── 'md': '1024px',
+├── 'lg': '1280px',
+└── 'xl': '1440px'
+);
+```
+</development_planning>
