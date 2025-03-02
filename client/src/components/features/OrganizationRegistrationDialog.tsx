@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { insertOrganizationSchema, type InsertOrganization } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-//import { apiRequest } from "@/lib/queryClient"; // Removed as apiRequest is not used in the corrected code
 
 interface OrganizationRegistrationDialogProps {
   open: boolean;
@@ -75,7 +74,8 @@ export default function OrganizationRegistrationDialog({
   });
 
   const nextStep = () => {
-    if (step < 3) setStep(step + 1);
+    const currentStepValid = form.trigger();
+    if (currentStepValid && step < 4) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -111,7 +111,7 @@ export default function OrganizationRegistrationDialog({
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Organização</FormLabel>
+                      <FormLabel>Tipo de Organização*</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -136,9 +136,83 @@ export default function OrganizationRegistrationDialog({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome da Organização</FormLabel>
+                      <FormLabel>Nome da Organização*</FormLabel>
                       <FormControl>
                         <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cnpj"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CNPJ*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="37.206.081/0001-24" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="url" placeholder="https://www.exemplo.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email do Administrador*</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="(83) 981321486" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Rua joaquim martins da silva" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -148,12 +222,12 @@ export default function OrganizationRegistrationDialog({
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Cidade*</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" />
+                          <Input {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -162,10 +236,10 @@ export default function OrganizationRegistrationDialog({
 
                   <FormField
                     control={form.control}
-                    name="phone"
+                    name="state"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel>Estado*</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -177,7 +251,7 @@ export default function OrganizationRegistrationDialog({
               </div>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium mb-4">Documentação</h3>
@@ -193,7 +267,7 @@ export default function OrganizationRegistrationDialog({
                       htmlFor="document-upload"
                       className="cursor-pointer text-blue-600 hover:text-blue-800"
                     >
-                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social' : 'Upload do Estatuto'}
+                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
                     </label>
                     {selectedFile && (
                       <p className="mt-2 text-sm text-gray-600">
@@ -208,7 +282,7 @@ export default function OrganizationRegistrationDialog({
                   name="plan"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Plano</FormLabel>
+                      <FormLabel>Plano*</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
@@ -228,13 +302,56 @@ export default function OrganizationRegistrationDialog({
                     </FormItem>
                   )}
                 />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Dados Bancários</h3>
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Banco*</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bankBranch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Agência*</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bankAccount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Conta*</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div className="space-y-4">
                 <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-2">Termos de Uso</h4>
+                  <h4 className="font-medium mb-2">Termos de Uso*</h4>
                   <div className="h-40 overflow-y-auto text-sm text-gray-600 mb-4">
                     {/* Add terms of use text here */}
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit...
@@ -251,7 +368,7 @@ export default function OrganizationRegistrationDialog({
                           />
                         </FormControl>
                         <FormLabel className="text-sm">
-                          Li e aceito os termos de uso
+                          Li e aceito os termos de uso*
                         </FormLabel>
                         <FormMessage />
                       </FormItem>
@@ -267,7 +384,7 @@ export default function OrganizationRegistrationDialog({
                   Anterior
                 </Button>
               )}
-              {step < 3 ? (
+              {step < 4 ? (
                 <Button type="button" onClick={nextStep}>
                   Próximo
                 </Button>
