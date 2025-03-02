@@ -28,6 +28,8 @@ export const organizations = pgTable("organizations", {
   plan: text("plan").notNull(),
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
   email: text("email").notNull(),
+  adminCpf: text("admin_cpf").notNull(),
+  password: text("password").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),
@@ -84,6 +86,8 @@ export const insertOrganizationSchema = createInsertSchema(organizations).pick({
   plan: true,
   status: true,
   email: true,
+  adminCpf: true,
+  password: true,
   phone: true,
   address: true,
   city: true,

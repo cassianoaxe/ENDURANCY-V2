@@ -73,8 +73,8 @@ export default function OrganizationRegistrationDialog({
     },
   });
 
-  const nextStep = () => {
-    const currentStepValid = form.trigger();
+  const nextStep = async () => {
+    const currentStepValid = await form.trigger();
     if (currentStepValid && step < 4) setStep(step + 1);
   };
 
@@ -166,7 +166,7 @@ export default function OrganizationRegistrationDialog({
                     <FormItem>
                       <FormLabel>Website</FormLabel>
                       <FormControl>
-                        <Input {...field} type="url" placeholder="https://www.exemplo.com" />
+                        <Input {...field} placeholder="https://www.exemplo.com" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -185,6 +185,34 @@ export default function OrganizationRegistrationDialog({
                       <FormLabel>Email do Administrador*</FormLabel>
                       <FormControl>
                         <Input {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="adminCpf"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CPF do Administrador*</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="XXX.XXX.XXX-XX" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha*</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
