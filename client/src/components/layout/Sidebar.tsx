@@ -12,7 +12,8 @@ import {
   Wallet,
   Mail,
   Users,
-  Settings
+  Settings,
+  Leaf
 } from "lucide-react";
 
 const menuItems = [
@@ -34,8 +35,14 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className="w-[240px] h-screen bg-white border-r fixed left-0 top-0 pt-16">
-      <nav className="flex flex-col p-4 gap-1">
+    <div className="w-[240px] h-screen bg-white border-r fixed left-0 top-0">
+      <div className="p-4 border-b">
+        <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
+          <Leaf className="h-6 w-6 text-green-600" />
+          <span>Endurancy</span>
+        </Link>
+      </div>
+      <nav className="flex flex-col p-4 gap-1 mt-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.path;
