@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { insertOrganizationSchema, type InsertOrganization } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+//import { apiRequest } from "@/lib/queryClient"; // Removed as apiRequest is not used in the corrected code
 
 interface OrganizationRegistrationDialogProps {
   open: boolean;
@@ -45,11 +45,17 @@ export default function OrganizationRegistrationDialog({
           formData.append(key, String(value));
         }
       });
-      
-      return apiRequest('/api/organizations', {
+
+      const response = await fetch('/api/organizations', {
         method: 'POST',
         body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to create organization');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
@@ -266,7 +272,7 @@ export default function OrganizationRegistrationDialog({
                   Próximo
                 </Button>
               ) : (
-                <Button 
+                <Button
                   type="submit"
                   disabled={!form.watch('termsAccepted') || createOrganization.isPending}
                 >
