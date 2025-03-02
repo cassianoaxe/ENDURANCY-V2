@@ -22,6 +22,7 @@ export const plans = pgTable("plans", {
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  adminName: text("admin_name").notNull(),
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
   website: text("website"),
@@ -30,6 +31,7 @@ export const organizations = pgTable("organizations", {
   email: text("email").notNull(),
   adminCpf: text("admin_cpf").notNull(),
   password: text("password").notNull(),
+  confirmPassword: text("confirm_password").notNull(),
   phone: text("phone").notNull(),
   address: text("address").notNull(),
   city: text("city").notNull(),
@@ -78,25 +80,35 @@ export const insertPlanSchema = createInsertSchema(plans).pick({
   features: true,
 });
 
-export const insertOrganizationSchema = createInsertSchema(organizations).pick({
-  name: true,
-  type: true,
-  cnpj: true,
-  website: true,
-  plan: true,
-  status: true,
-  email: true,
-  adminCpf: true,
-  password: true,
-  phone: true,
-  address: true,
-  city: true,
-  state: true,
-  bankName: true,
-  bankBranch: true,
-  bankAccount: true,
-  termsAccepted: true,
-});
+export const insertOrganizationSchema = createInsertSchema(organizations)
+  .pick({
+    name: true,
+    adminName: true,
+    type: true,
+    cnpj: true,
+    website: true,
+    plan: true,
+    status: true,
+    email: true,
+    adminCpf: true,
+    password: true,
+    confirmPassword: true,
+    phone: true,
+    address: true,
+    city: true,
+    state: true,
+    bankName: true,
+    bankBranch: true,
+    bankAccount: true,
+    termsAccepted: true,
+  })
+  .extend({
+    confirmPassword: z.string()
+      .min(1, "Confirmação de senha é obrigatória")
+      .refine((data) => data === this.password, {
+        message: "As senhas não coincidem",
+      }),
+  });
 
 export const insertOrganizationDocumentSchema = createInsertSchema(organizationDocuments).pick({
   organizationId: true,
