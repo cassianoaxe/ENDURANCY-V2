@@ -23,6 +23,8 @@ export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(), // 'Empresa' or 'Associação'
+  cnpj: text("cnpj").notNull(),
+  website: text("website"),
   plan: text("plan").notNull(),
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
   email: text("email").notNull(),
@@ -30,6 +32,9 @@ export const organizations = pgTable("organizations", {
   address: text("address").notNull(),
   city: text("city").notNull(),
   state: text("state").notNull(),
+  bankName: text("bank_name").notNull(),
+  bankBranch: text("bank_branch").notNull(),
+  bankAccount: text("bank_account").notNull(),
   termsAccepted: boolean("terms_accepted").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -74,6 +79,8 @@ export const insertPlanSchema = createInsertSchema(plans).pick({
 export const insertOrganizationSchema = createInsertSchema(organizations).pick({
   name: true,
   type: true,
+  cnpj: true,
+  website: true,
   plan: true,
   status: true,
   email: true,
@@ -81,6 +88,9 @@ export const insertOrganizationSchema = createInsertSchema(organizations).pick({
   address: true,
   city: true,
   state: true,
+  bankName: true,
+  bankBranch: true,
+  bankAccount: true,
   termsAccepted: true,
 });
 
