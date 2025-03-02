@@ -4,15 +4,13 @@ import { storage } from "./storage";
 import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Rota de teste para o banco de dados
-  app.get("/api/test-db", async (_req, res) => {
+  app.get("/api/organizations", async (_req, res) => {
     try {
-      // Tenta fazer uma consulta simples
-      const result = await db.query.users.findMany();
-      res.json({ success: true, message: "Conexão com o banco de dados funcionando!", users: result });
+      const organizations = await db.query.organizations.findMany();
+      res.json(organizations);
     } catch (error) {
-      console.error("Erro ao conectar com o banco de dados:", error);
-      res.status(500).json({ success: false, message: "Erro ao conectar com o banco de dados", error: String(error) });
+      console.error("Error fetching organizations:", error);
+      res.status(500).json({ message: "Failed to fetch organizations" });
     }
   });
 
