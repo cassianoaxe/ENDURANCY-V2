@@ -228,6 +228,30 @@ export default function OrganizationRegistrationDialog({
                     </FormItem>
                   )}
                 />
+
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Documentação*</h3>
+                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                      id="document-upload"
+                      accept=".pdf,.doc,.docx"
+                    />
+                    <label
+                      htmlFor="document-upload"
+                      className="cursor-pointer text-blue-600 hover:text-blue-800"
+                    >
+                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
+                    </label>
+                    {selectedFile && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        Arquivo selecionado: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -320,30 +344,6 @@ export default function OrganizationRegistrationDialog({
                     </FormItem>
                   )}
                 />
-
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Documentação</h3>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="hidden"
-                      id="document-upload"
-                      accept=".pdf,.doc,.docx"
-                    />
-                    <label
-                      htmlFor="document-upload"
-                      className="cursor-pointer text-blue-600 hover:text-blue-800"
-                    >
-                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
-                    </label>
-                    {selectedFile && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        Arquivo selecionado: {selectedFile.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Dados Bancários</h3>
