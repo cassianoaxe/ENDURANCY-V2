@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, ArrowUpRight } from "lucide-react";
+import { Search, Building2, Users, ArrowUpRight, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import type { Organization } from "@shared/schema";
 
 export default function Organizations() {
@@ -13,9 +14,23 @@ export default function Organizations() {
     window.dispatchEvent(new Event('popstate'));
   };
   
+  const { toast } = useToast();
+  const [copiedOrgCode, setCopiedOrgCode] = useState<string | null>(null);
+  
   const { data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations']
   });
+  
+  // Função para copiar o link de acesso
+  const copyAccessLink = (orgCode: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}/login/${orgCode}`);
+    setCopiedOrgCode(orgCode);
+    toast({
+      title: 'Link copiado!',
+      description: `URL de acesso para ${orgCode} foi copiado para a área de transferência.`,
+    });
+    setTimeout(() => setCopiedOrgCode(null), 3000);
+  };
 
   return (
     <div className="p-6">
@@ -100,6 +115,7 @@ export default function Organizations() {
                     <th className="px-6 py-3">Tipo</th>
                     <th className="px-6 py-3">Plano</th>
                     <th className="px-6 py-3">Status</th>
+                    <th className="px-6 py-3">Código</th>
                     <th className="px-6 py-3">Criada em</th>
                     <th className="px-6 py-3">Ações</th>
                   </tr>
@@ -118,6 +134,29 @@ export default function Organizations() {
                         }`}>
                           {org.status}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {org.orgCode ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs bg-gray-100 py-1 px-2 rounded">{org.orgCode}</span>
+                            <button 
+                              onClick={() => copyAccessLink(org.orgCode!)}
+                              className="flex items-center gap-1 text-xs rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 px-2 py-1"
+                            >
+                              {copiedOrgCode === org.orgCode ? (
+                                <>
+                                  <Check className="h-3 w-3" /> Copiado
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-3 w-3" /> Copiar URL
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Não disponível</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : 'N/A'}

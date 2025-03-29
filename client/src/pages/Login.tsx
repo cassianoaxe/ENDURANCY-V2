@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,16 +8,26 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, User, Eye, Info, ArrowRight } from 'lucide-react';
+import { Loader2, User, Eye, Info, ArrowRight, Building, Code } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
+import { useLocation } from 'wouter';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O email é obrigatório'),
   password: z.string().min(1, 'A senha é obrigatória'),
+  orgCode: z.string().optional(),
+});
+
+// Esquema para login direto em organização específica
+const orgLoginSchema = z.object({
+  username: z.string().min(1, 'O email é obrigatório'),
+  password: z.string().min(1, 'A senha é obrigatória'),
+  orgCode: z.string().min(1, 'O código da organização é obrigatório'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
 type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient';
 
 export default function Login() {
@@ -26,6 +36,20 @@ export default function Login() {
   const { toast } = useToast();
   const [userType, setUserType] = useState<UserRole>('admin');
   const [showPassword, setShowPassword] = useState(false);
+  const [orgCode, setOrgCode] = useState<string | null>(null);
+  const [isOrgLogin, setIsOrgLogin] = useState(false);
+  const [location] = useLocation();
+  
+  // Extrair código da organização da URL, se houver
+  useEffect(() => {
+    // Verifica se URL está no formato /login/ORG-123-ABC
+    const matches = location.match(/\/login\/([^/]+)/);
+    if (matches && matches[1]) {
+      setOrgCode(matches[1]);
+      setIsOrgLogin(true);
+      setUserType('org_admin'); // Se tiver um código de organização, presumimos login como administrador da organização
+    }
+  }, [location]);
 
   // Mapping de tipos de usuário para rótulos em português
   const userTypeLabels = {
@@ -36,18 +60,32 @@ export default function Login() {
   };
 
   const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(isOrgLogin ? orgLoginSchema : loginSchema),
     defaultValues: {
       username: '',
       password: '',
+      ...(orgCode ? { orgCode } : {}), // Incluir orgCode nos valores padrão se disponível
     },
   });
+  
+  // Atualizar o formulário quando o código da organização mudar
+  useEffect(() => {
+    if (orgCode) {
+      form.setValue('orgCode', orgCode);
+    }
+  }, [orgCode, form]);
 
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
-      // Incluir o tipo de usuário no login
-      await login(data.username, data.password, userType);
+      // Se é um login específico para organização, incluir o código no login
+      if (isOrgLogin && orgCode) {
+        await login(data.username, data.password, userType, orgCode);
+      } else {
+        // Login normal
+        await login(data.username, data.password, userType);
+      }
+      
       toast({
         title: 'Login bem-sucedido',
         description: 'Bem-vindo de volta!',
@@ -103,50 +141,66 @@ export default function Login() {
       <Card className="w-full max-w-md shadow-lg border-0">
         <div className="text-center p-6 pb-2">
           <h2 className="text-xl font-bold text-gray-800">Acesso ao Sistema</h2>
-          <p className="text-gray-500 text-sm mt-1">Faça login para acessar a plataforma</p>
+          {isOrgLogin && orgCode ? (
+            <div className="mt-2">
+              <p className="text-gray-500 text-sm">Faça login na organização</p>
+              <div className="mt-2 px-4 py-2 bg-gray-100 rounded-md flex items-center justify-center gap-2">
+                <Building className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-semibold text-gray-700">{orgCode}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-sm mt-1">Faça login para acessar a plataforma</p>
+          )}
         </div>
         
-        <Tabs defaultValue="admin" className="w-full" onValueChange={(value) => setUserType(value as UserRole)}>
-          <div className="px-6">
-            <TabsList className="grid grid-cols-4 h-12 rounded-md bg-gray-100">
-              <TabsTrigger 
-                value="admin" 
-                className={cn(
-                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
-                  "data-[state=active]:shadow-sm font-medium"
-                )}
-              >
-                Comply
-              </TabsTrigger>
-              <TabsTrigger 
-                value="org_admin" 
-                className={cn(
-                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
-                  "data-[state=active]:shadow-sm font-medium"
-                )}
-              >
-                Organização
-              </TabsTrigger>
-              <TabsTrigger 
-                value="doctor" 
-                className={cn(
-                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
-                  "data-[state=active]:shadow-sm font-medium"
-                )}
-              >
-                Médico
-              </TabsTrigger>
-              <TabsTrigger 
-                value="patient" 
-                className={cn(
-                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
-                  "data-[state=active]:shadow-sm font-medium"
-                )}
-              >
-                Paciente
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        <Tabs 
+          defaultValue={isOrgLogin ? "org_admin" : "admin"} 
+          className="w-full" 
+          onValueChange={(value) => setUserType(value as UserRole)}
+        >
+          {!isOrgLogin && (
+            <div className="px-6">
+              <TabsList className="grid grid-cols-4 h-12 rounded-md bg-gray-100">
+                <TabsTrigger 
+                  value="admin" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Comply
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="org_admin" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Organização
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="doctor" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Médico
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="patient" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Paciente
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
           
           {Object.entries(userTypeLabels).map(([role, label]) => (
             <TabsContent key={role} value={role} className="mt-6">
