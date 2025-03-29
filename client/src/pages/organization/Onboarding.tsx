@@ -20,7 +20,7 @@ const OnboardingOverview = () => {
       icon: GraduationCap,
       duration: "10 min",
       progress: 0,
-      path: "/organization/onboarding/getting-started"
+      path: "/organization/onboarding/GettingStarted"
     },
     {
       title: "Módulo Cultivo",
@@ -28,7 +28,7 @@ const OnboardingOverview = () => {
       icon: Leaf,
       duration: "25 min",
       progress: 0,
-      path: "/organization/onboarding/cultivation"
+      path: "/organization/onboarding/Cultivation"
     },
     {
       title: "Módulo Produção",
@@ -36,47 +36,42 @@ const OnboardingOverview = () => {
       icon: PackageSearch,
       duration: "30 min",
       progress: 0,
-      path: "/organization/onboarding/production"
+      path: "/organization/onboarding/Production"
     },
     {
       title: "Dispensário",
       description: "Gerenciamento de dispensário e ponto de venda",
       icon: PackageSearch,
       duration: "20 min",
-      progress: 0,
-      path: "/organization/onboarding/dispensary"
+      progress: 0
     },
     {
       title: "Gestão de Pacientes/Associados",
       description: "Administração de pacientes, clientes ou associados",
       icon: Users,
       duration: "15 min",
-      progress: 0,
-      path: "/organization/onboarding/patients"
+      progress: 0
     },
     {
       title: "Módulo Financeiro",
       description: "Controle financeiro e gestão contábil",
       icon: DollarSign,
       duration: "25 min",
-      progress: 0,
-      path: "/organization/onboarding/financial"
+      progress: 0
     },
     {
       title: "Módulo Jurídico",
       description: "Gerenciamento legal e compliance",
       icon: Scale,
       duration: "20 min",
-      progress: 0,
-      path: "/organization/onboarding/legal"
+      progress: 0
     },
     {
       title: "Gestão de Tarefas",
       description: "Organização e acompanhamento de tarefas",
       icon: ClipboardList,
       duration: "15 min",
-      progress: 0,
-      path: "/organization/onboarding/tasks"
+      progress: 0
     },
   ];
 
@@ -127,7 +122,9 @@ const OnboardingOverview = () => {
               <Button 
                 variant="ghost" 
                 className="w-full rounded-none h-12 text-gray-600 hover:text-gray-900 flex items-center justify-center gap-2"
-                onClick={() => window.location.href = module.path}
+                onClick={() => {
+                  if (module.path) window.location.href = module.path;
+                }}
               >
                 Começar <ArrowRight size={16} />
               </Button>
