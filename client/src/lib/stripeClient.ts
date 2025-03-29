@@ -1,7 +1,12 @@
 import { loadStripe } from '@stripe/stripe-js';
 
-// Initialize Stripe with the publishable key
-export const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Initialize Stripe with the publishable key if available
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+
+// Create a dummy Promise that resolves to null if no key is provided
+export const stripePromise = stripeKey 
+  ? loadStripe(stripeKey)
+  : Promise.resolve(null);
 
 /**
  * Creates a payment intent for the given plan
