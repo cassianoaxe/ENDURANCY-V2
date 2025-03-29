@@ -1,8 +1,6 @@
-"use client";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocation } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,9 +17,13 @@ import { PaymentFormWrapper } from "@/components/features/PaymentForm";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Navigation function to replace wouter
+  const setLocation = (path: string) => {
+    window.location.href = path;
+  };
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function OrganizationRegistration() {
         title: "Organização criada com sucesso!",
         description: "Aguarde a aprovação da administração.",
       });
-      setLocation('/organizations');
+      window.location.href = '/organizations';
     },
     onError: (error) => {
       console.error("Error creating organization:", error);
@@ -119,7 +121,7 @@ export default function OrganizationRegistration() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" onClick={() => setLocation('/organizations')}>
+        <Button variant="ghost" onClick={() => window.location.href = '/organizations'}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>

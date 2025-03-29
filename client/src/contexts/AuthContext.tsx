@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
 
 interface User {
   id: number;
@@ -20,7 +19,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [, setLocation] = useLocation();
 
   // Check if user is already authenticated on mount
   useEffect(() => {
@@ -58,7 +56,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const userData = await response.json();
       setUser(userData);
-      setLocation('/dashboard');
+      
+      // Use window.history instead of wouter
+      window.history.pushState({}, '', '/dashboard');
+      // Dispatch a custom event to notify about path change
+      window.dispatchEvent(new Event('popstate'));
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -74,7 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
       });
       setUser(null);
-      setLocation('/login');
+      
+      // Use window.history instead of wouter
+      window.history.pushState({}, '', '/login');
+      // Dispatch a custom event to notify about path change
+      window.dispatchEvent(new Event('popstate'));
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
