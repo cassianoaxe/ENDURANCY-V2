@@ -12,6 +12,13 @@ import EmailTemplates from "@/pages/EmailTemplates";
 import Settings from "@/pages/Settings";
 import OrderView from "@/pages/OrderView";
 import Login from "@/pages/Login";
+import ActivityLog from "@/pages/ActivityLog";
+import Backups from "@/pages/Backups";
+import Emergencies from "@/pages/Emergencies";
+import Plans from "@/pages/Plans";
+import Requests from "@/pages/Requests";
+import Financial from "@/pages/Financial";
+import Administrators from "@/pages/Administrators";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -75,12 +82,26 @@ function AppContent() {
         return <Dashboard />;
       case '/analytics':
         return <Analytics />;
+      case '/activity-log':
+        return <ActivityLog />;
+      case '/backups':
+        return <Backups />;
+      case '/emergencies':
+        return <Emergencies />;
+      case '/plans':
+        return <Plans />;
       case '/organizations':
         return <Organizations />;
       case '/organization-registration':
         return <OrganizationRegistration />;
+      case '/requests':
+        return <Requests />;
+      case '/financial':
+        return <Financial />;
       case '/email-templates':
         return <EmailTemplates />;
+      case '/administrators':
+        return <Administrators />;
       case '/settings':
         return <Settings />;
       default:
