@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { SpotlightTour } from 'react-spotlight-tour';
 import { Button } from '@/components/ui/button';
 // Custom hooks
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { X, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 // Define the tour steps with the type derived from the package
 type SpotlightStep = {
@@ -113,44 +112,21 @@ export default function TourGuide({
         Tour Guiado
       </Button>
 
-      {/* Spotlight Tour */}
-      {/* @ts-ignore - types might not match exactly with SpotlightTour props */}
-      <SpotlightTour
-        steps={steps}
-        isOpen={isTourOpen}
-        onRequestClose={handleClose}
-        onComplete={handleClose}
-        closeWithEscape={true}
-        closeButton={<X size={16} />}
-        spotlightPadding={10}
-        scrollSmooth={true}
-        styles={{
-          spotlight: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          tooltipContainer: {
-            backgroundColor: 'white',
-            borderRadius: '0.5rem',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            padding: '1rem',
-            maxWidth: '20rem',
-          },
-          tooltipTitle: {
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            marginBottom: '0.5rem',
-          },
-          tooltipContent: {
-            fontSize: '0.875rem',
-            color: '#4B5563',
-            marginBottom: '1rem',
-          },
-          tooltipFooter: {
-            display: 'flex',
-            justifyContent: 'space-between',
-          },
-        }}
-      />
+      {/* Simplified version without actual tour rendering for now */}
+      {isTourOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md">
+            <h3 className="text-lg font-semibold mb-2">Tour Guiado</h3>
+            <p className="text-gray-600 mb-4">
+              Um passeio guiado pelos principais recursos estará disponível em breve.
+              Esta é uma prévia do recurso.
+            </p>
+            <div className="flex justify-end">
+              <Button onClick={handleClose}>Fechar</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
