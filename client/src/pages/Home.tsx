@@ -1,6 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@shared/schema";
@@ -41,9 +41,9 @@ export default function Home() {
                 <p className="font-semibold">${order.total}</p>
               </div>
 
-              <Link href={`/orders/${order.id}`}>
+              <a href={`/orders/${order.id}`}>
                 <Button className="w-full">View Details</Button>
-              </Link>
+              </a>
             </CardContent>
           </Card>
         ))}
