@@ -1,13 +1,22 @@
-"use client";
+import React from "react";
 import { Bell, Sun, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "wouter";
 
 export default function Header() {
-  const [location] = useLocation();
+  const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
+
+  // Update current path when URL changes
+  React.useEffect(() => {
+    const handleNavigation = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handleNavigation);
+    return () => window.removeEventListener('popstate', handleNavigation);
+  }, []);
 
   const getBreadcrumbs = () => {
-    const parts = location.split('/').filter(Boolean);
+    const parts = currentPath.split('/').filter(Boolean);
     return ['Início', ...parts].map((part) => 
       part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ')
     );

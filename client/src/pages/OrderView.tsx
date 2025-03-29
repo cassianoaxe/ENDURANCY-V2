@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "wouter";
+// Using URL path parsing instead of wouter
 import { useQuery } from "@tanstack/react-query";
 import { 
   Card, CardContent, CardHeader, 
@@ -13,7 +13,8 @@ import OrderItems from "@/components/features/OrderItems";
 import type { Order } from "@shared/schema";
 
 export default function OrderView() {
-  const { id } = useParams();
+  // Extract ID from the URL path
+  const id = parseInt(window.location.pathname.split('/').pop() || '0');
   const { data: order, isLoading } = useQuery<Order>({ 
     queryKey: ['/api/orders', id]
   });
