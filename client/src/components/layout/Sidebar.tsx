@@ -65,7 +65,7 @@ export default function Sidebar() {
           <span>Endurancy</span>
         </a>
       </div>
-      <nav className="flex flex-col p-4 gap-1 mt-2">
+      <nav className="flex flex-col p-4 gap-1 mt-2 sidebar-nav">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPath === item.path;
