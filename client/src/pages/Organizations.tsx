@@ -24,7 +24,10 @@ export default function Organizations() {
           <h1 className="text-2xl font-bold mb-2">Organizações</h1>
           <p className="text-gray-600">Gerencie todas as organizações da plataforma.</p>
         </div>
-        <Button onClick={() => navigate('/organization-registration')}>
+        <Button 
+          onClick={() => navigate('/organization-registration')}
+          className="add-organization-button"
+        >
           Adicionar Organização
         </Button>
       </div>
@@ -90,7 +93,7 @@ export default function Organizations() {
             {isLoading ? (
               <p className="text-center py-4">Carregando...</p>
             ) : (
-              <table className="w-full text-sm text-left">
+              <table className="w-full text-sm text-left organizations-table">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                   <tr>
                     <th className="px-6 py-3">Nome</th>
