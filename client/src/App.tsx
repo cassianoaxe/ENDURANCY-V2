@@ -30,6 +30,7 @@ import OrgAdminDashboard from "@/pages/dashboards/OrgAdminDashboard";
 import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
+import Onboarding from "@/pages/organization/Onboarding";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -134,6 +135,10 @@ function AppContent() {
     
     if (currentPath === '/organization/dashboard') {
       return <OrganizationDashboard />;
+    }
+    
+    if (currentPath === '/organization/onboarding') {
+      return <Onboarding />;
     }
     
     return <NotFound />;
