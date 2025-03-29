@@ -1,5 +1,4 @@
-import React from "react";
-import { Route, Router } from "wouter";
+import React, { useState, useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,10 +14,33 @@ import Login from "@/pages/Login";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
-// Wrapper component that handles authentication for protected pages
-const ProtectedPage = ({ component: Component }: { component: React.ComponentType }) => {
+// Simple AppContent component with no external routing library
+function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
-  
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  // Listen for path changes
+  useEffect(() => {
+    const handlePathChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handlePathChange);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePathChange);
+    };
+  }, []);
+
+  // Check if user is authenticated - redirect to login if not
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && currentPath !== '/login') {
+      window.history.pushState({}, '', '/login');
+      setCurrentPath('/login');
+    }
+  }, [isLoading, isAuthenticated, currentPath]);
+
+  // Render loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -26,42 +48,52 @@ const ProtectedPage = ({ component: Component }: { component: React.ComponentTyp
       </div>
     );
   }
-  
+
+  // If not authenticated, only show login page
   if (!isAuthenticated) {
-    window.location.href = "/login";
-    return null;
+    return <Login />;
   }
-  
+
+  // If authenticated and trying to access login, redirect to dashboard
+  if (isAuthenticated && currentPath === '/login') {
+    window.history.pushState({}, '', '/');
+    setCurrentPath('/');
+  }
+
+  // Render the appropriate component based on the current path
+  const renderContent = () => {
+    switch (currentPath) {
+      case '/':
+      case '/dashboard':
+        return <Dashboard />;
+      case '/analytics':
+        return <Analytics />;
+      case '/organizations':
+        return <Organizations />;
+      case '/organization-registration':
+        return <OrganizationRegistration />;
+      case '/email-templates':
+        return <EmailTemplates />;
+      case '/settings':
+        return <Settings />;
+      default:
+        return <NotFound />;
+    }
+  };
+
   return (
     <Layout>
-      <Component />
+      {renderContent()}
     </Layout>
   );
-};
-
-// Simple router
-const simpleRoutes = {
-  "/": () => <ProtectedPage component={Dashboard} />,
-  "/dashboard": () => <ProtectedPage component={Dashboard} />,
-  "/analytics": () => <ProtectedPage component={Analytics} />,
-  "/organizacoes": () => <ProtectedPage component={Organizations} />,
-  "/organization-registration": () => <ProtectedPage component={OrganizationRegistration} />,
-  "/templates-de-email": () => <ProtectedPage component={EmailTemplates} />,
-  "/configuracoes": () => <ProtectedPage component={Settings} />,
-  "/login": () => <Login />,
-  "/:rest*": () => <NotFound />
-};
+}
 
 function App() {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Router>
-            {Object.entries(simpleRoutes).map(([path, Component]) => (
-              <Route key={path} path={path} component={Component} />
-            ))}
-          </Router>
+          <AppContent />
           <Toaster />
         </AuthProvider>
       </QueryClientProvider>

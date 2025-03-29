@@ -1,5 +1,4 @@
 import React from 'react';
-import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -9,13 +8,15 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      setLocation('/login');
+      // Use window.history instead of wouter
+      window.history.pushState({}, '', '/login');
+      // Dispatch a custom event to notify about the path change
+      window.dispatchEvent(new Event('popstate'));
     }
-  }, [isLoading, isAuthenticated, setLocation]);
+  }, [isLoading, isAuthenticated]);
 
   if (isLoading) {
     return (

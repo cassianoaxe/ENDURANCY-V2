@@ -1,15 +1,18 @@
-"use client";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Building2, Users, ArrowUpRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
 import type { Organization } from "@shared/schema";
 
 export default function Organizations() {
-  const [, setLocation] = useLocation();
+  // Navigation function to replace wouter
+  const navigate = (path: string) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new Event('popstate'));
+  };
+  
   const { data: organizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations']
   });
@@ -21,7 +24,7 @@ export default function Organizations() {
           <h1 className="text-2xl font-bold mb-2">Organizações</h1>
           <p className="text-gray-600">Gerencie todas as organizações da plataforma.</p>
         </div>
-        <Button onClick={() => setLocation('/organization-registration')}>
+        <Button onClick={() => navigate('/organization-registration')}>
           Adicionar Organização
         </Button>
       </div>
