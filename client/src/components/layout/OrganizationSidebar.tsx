@@ -20,105 +20,108 @@ export default function OrganizationSidebar() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Menu items structure
+  // Menu items structure (from the screenshot)
   const menuItems = [
     {
-      title: "Principal",
-      items: [
-        {
-          name: "Dashboard",
-          icon: LayoutDashboard,
-          path: "/organization/dashboard",
-          active: currentPath === "/organization/dashboard"
-        },
-        {
-          name: "Pacientes",
-          icon: Users,
-          path: "/organization/patients",
-          active: currentPath === "/organization/patients"
-        },
-        {
-          name: "Produtos",
-          icon: Package,
-          path: "/organization/products",
-          active: currentPath === "/organization/products"
-        }
-      ]
+      title: "ONBOARDING",
+      path: "/organization/onboarding",
+      active: currentPath === "/organization/onboarding"
     },
     {
-      title: "Gestão",
-      items: [
-        {
-          name: "Prescrições",
-          icon: ClipboardList,
-          path: "/organization/prescriptions",
-          active: currentPath === "/organization/prescriptions"
-        },
-        {
-          name: "Pedidos",
-          icon: Receipt,
-          path: "/organization/orders",
-          active: currentPath === "/organization/orders"
-        },
-        {
-          name: "Agenda",
-          icon: CalendarDays,
-          path: "/organization/calendar",
-          active: currentPath === "/organization/calendar"
-        }
-      ]
+      title: "VISÃO GERAL",
+      path: "/organization/dashboard",
+      active: currentPath === "/organization/dashboard",
+      isActive: true
     },
     {
-      title: "Comunicação",
-      items: [
-        {
-          name: "Mensagens",
-          icon: MessageSquare,
-          path: "/organization/messages",
-          active: currentPath === "/organization/messages"
-        },
-        {
-          name: "Notificações",
-          icon: BellRing,
-          path: "/organization/notifications",
-          active: currentPath === "/organization/notifications",
-          badge: 3
-        }
-      ]
+      title: "TAREFAS",
+      path: "/organization/tasks",
+      active: currentPath === "/organization/tasks"
     },
     {
-      title: "Documentação",
-      items: [
-        {
-          name: "Documentos",
-          icon: FileText,
-          path: "/organization/documents",
-          active: currentPath === "/organization/documents"
-        },
-        {
-          name: "Biblioteca",
-          icon: BookOpen,
-          path: "/organization/library",
-          active: currentPath === "/organization/library"
-        }
-      ]
+      title: "ASSOCIADOS",
+      path: "/organization/associates",
+      active: currentPath === "/organization/associates"
     },
     {
-      title: "Suporte",
-      items: [
-        {
-          name: "Ajuda",
-          icon: HelpCircle,
-          path: "/organization/help",
-          active: currentPath === "/organization/help"
-        },
-        {
-          name: "Configurações",
-          icon: Settings,
-          path: "/organization/settings",
-          active: currentPath === "/organization/settings"
-        }
-      ]
+      title: "SOCIAL",
+      path: "/organization/social",
+      active: currentPath === "/organization/social"
+    },
+    {
+      title: "CULTIVO",
+      path: "/organization/cultivation",
+      active: currentPath === "/organization/cultivation"
+    },
+    {
+      title: "PRODUÇÃO",
+      path: "/organization/production",
+      active: currentPath === "/organization/production"
+    },
+    {
+      title: "EDUCAÇÃO DO PACIENTE",
+      path: "/organization/patient-education",
+      active: currentPath === "/organization/patient-education"
+    },
+    {
+      title: "FINANCEIRO",
+      path: "/organization/financial",
+      active: currentPath === "/organization/financial"
+    },
+    {
+      title: "COMPLYPAY",
+      path: "/organization/complypay",
+      active: currentPath === "/organization/complypay"
+    },
+    {
+      title: "COMUNICAÇÃO",
+      path: "/organization/communication",
+      active: currentPath === "/organization/communication"
+    },
+    {
+      title: "COMPRAS E ESTOQUE",
+      path: "/organization/purchases-inventory",
+      active: currentPath === "/organization/purchases-inventory"
+    },
+    {
+      title: "VENDAS",
+      path: "/organization/sales",
+      active: currentPath === "/organization/sales"
+    },
+    {
+      title: "EXPEDIÇÃO",
+      path: "/organization/expedition",
+      active: currentPath === "/organization/expedition"
+    },
+    {
+      title: "DISPENSÁRIO",
+      path: "/organization/dispensary",
+      active: currentPath === "/organization/dispensary"
+    },
+    {
+      title: "JURÍDICO",
+      path: "/organization/legal",
+      active: currentPath === "/organization/legal"
+    },
+    {
+      title: "TRANSPARÊNCIA",
+      path: "/organization/transparency",
+      active: currentPath === "/organization/transparency"
+    },
+    {
+      title: "RH",
+      path: "/organization/hr",
+      active: currentPath === "/organization/hr"
+    },
+    {
+      title: "PATRIMÔNIO",
+      path: "/organization/assets",
+      active: currentPath === "/organization/assets"
+    },
+    {
+      title: "PESQUISA CIENTÍFICA",
+      path: "/organization/research",
+      active: currentPath === "/organization/research"
     }
   ];
 
@@ -185,44 +188,48 @@ export default function OrganizationSidebar() {
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="px-2 space-y-6">
-          {menuItems.map((section, index) => (
-            <div key={index}>
+      <div className="flex-1 overflow-y-auto py-2">
+        <nav className="space-y-1">
+          {menuItems.map((item, index) => (
+            <div key={index} className={cn(
+              "relative",
+              item.isActive && "bg-green-50"
+            )}>
               {!collapsed && (
-                <h3 className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                  {section.title}
-                </h3>
+                <div 
+                  className={cn(
+                    "flex items-center justify-between px-4 py-3 cursor-pointer group",
+                    item.isActive ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                >
+                  <span className={cn(
+                    "text-sm",
+                    item.isActive && "font-semibold"
+                  )}>
+                    {item.title}
+                  </span>
+                  <ChevronLeft 
+                    size={16} 
+                    className={cn(
+                      "transform transition-transform duration-200",
+                      item.isActive ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                    )} 
+                  />
+                </div>
               )}
-              <ul className="space-y-1">
-                {section.items.map((item, itemIndex) => (
-                  <li key={itemIndex}>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start font-normal text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-                        item.active && "bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800",
-                        collapsed ? "h-10 w-10 p-0 mx-auto" : "h-10 px-3"
-                      )}
-                      onClick={() => navigateTo(item.path)}
-                    >
-                      <item.icon size={20} className={cn(
-                        collapsed ? "mx-auto" : "mr-3"
-                      )} />
-                      {!collapsed && (
-                        <span className="flex-1 text-left">
-                          {item.name}
-                        </span>
-                      )}
-                      {!collapsed && item.badge && (
-                        <span className="ml-auto bg-green-100 text-green-800 text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+              {collapsed && (
+                <div 
+                  className={cn(
+                    "flex items-center justify-center p-2 cursor-pointer",
+                    item.isActive ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                  title={item.title}
+                >
+                  <LayoutDashboard size={18} />
+                </div>
+              )}
             </div>
           ))}
         </nav>
