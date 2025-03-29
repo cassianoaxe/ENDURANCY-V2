@@ -103,11 +103,13 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     termsAccepted: true,
   })
   .extend({
+    // Custom validation to ensure passwords match
     confirmPassword: z.string()
-      .min(1, "Confirmação de senha é obrigatória")
-      .refine((data) => data === this.password, {
-        message: "As senhas não coincidem",
-      }),
+      .min(1, "Confirmação de senha é obrigatória"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
   });
 
 export const insertOrganizationDocumentSchema = createInsertSchema(organizationDocuments).pick({
