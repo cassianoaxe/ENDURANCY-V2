@@ -47,6 +47,7 @@ export const organizations = pgTable("organizations", {
   bankAccount: text("bank_account").notNull(),
   termsAccepted: boolean("terms_accepted").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const organizationDocuments = pgTable("organization_documents", {
