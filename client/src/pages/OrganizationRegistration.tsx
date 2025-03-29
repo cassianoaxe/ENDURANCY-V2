@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocation } from "wouter";
@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { insertOrganizationSchema, type InsertOrganization } from "@shared/schema";
+import { insertOrganizationSchema, type InsertOrganization, type Plan } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard } from "lucide-react";
 import { z } from "zod";
+import PlanSelection from "@/components/features/PlanSelection";
+import { PaymentFormWrapper } from "@/components/features/PaymentForm";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
@@ -21,6 +23,10 @@ export default function OrganizationRegistration() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [showPlanSelection, setShowPlanSelection] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   const form = useForm<InsertOrganization>({
     resolver: zodResolver(insertOrganizationSchema),
@@ -75,11 +81,11 @@ export default function OrganizationRegistration() {
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
     const currentStepValid = await form.trigger(fields);
-    if (currentStepValid && step < 4) setStep(step + 1);
+    if (currentStepValid && step < 4) setStep((prevStep) => prevStep + 1);
   };
 
   const prevStep = () => {
-    if (step > 1) setStep(step - 1);
+    if (step > 1) setStep((prevStep) => prevStep - 1);
   };
 
   const onSubmit = async (data: InsertOrganization) => {
@@ -142,7 +148,7 @@ export default function OrganizationRegistration() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {step === 1 && (
+          {Number(step) === 1 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
@@ -319,9 +325,9 @@ export default function OrganizationRegistration() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
-          {step === 2 && (
+          {Number(step) === 2 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Dados da Organização</CardTitle>
@@ -387,93 +393,152 @@ export default function OrganizationRegistration() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
 
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Plano e Dados Bancários</CardTitle>
-                <CardDescription>Escolha um plano e informe os dados bancários</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="plan"
-                    render={({ field }) => (
-                      <FormItem className="col-span-1 md:col-span-2">
-                        <FormLabel>Plano*</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o plano" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="basic">Básico - R$ 99/mês</SelectItem>
-                            <SelectItem value="pro">Pro - R$ 199/mês</SelectItem>
-                            <SelectItem value="enterprise">Enterprise - R$ 499/mês</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="col-span-1 md:col-span-2 mt-4">
-                    <h3 className="text-lg font-medium mb-3">Dados Bancários</h3>
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="bankName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome do Banco*</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Nome do Banco" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="bankBranch"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Agência*</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Número da Agência" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="bankAccount"
-                    render={({ field }) => (
-                      <FormItem className="col-span-1 md:col-span-2">
-                        <FormLabel>Conta*</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Número da Conta" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+          {Number(step) === 3 ? (
+            <div>
+              {/* Show plan selection first */}
+              {!showPlanSelection && !showPaymentForm && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Plano e Pagamento</CardTitle>
+                    <CardDescription>Escolha um plano e realize o pagamento</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-4 items-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPlanSelection(true)}
+                        className="w-full max-w-md flex items-center justify-center gap-2"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        Selecionar Plano e Pagar
+                      </Button>
+                      
+                      {paymentIntentId && (
+                        <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded w-full max-w-md">
+                          <Check className="h-4 w-4" />
+                          <span className="text-sm">Pagamento confirmado!</span>
+                        </div>
+                      )}
+                      
+                      {/* Hidden form field to store the plan value */}
+                      <FormField
+                        control={form.control}
+                        name="plan"
+                        render={({ field }) => (
+                          <FormItem className="hidden">
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {/* No planId field needed */}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Plan Selection Component */}
+              {showPlanSelection && !showPaymentForm && (
+                <div>
+                  <PlanSelection 
+                    onPlanSelected={(plan) => {
+                      setSelectedPlan(plan);
+                      // Update the form with the selected plan info
+                      form.setValue('plan', plan.name);
+                      setShowPlanSelection(false);
+                      setShowPaymentForm(true);
+                    }}
+                    onBack={() => setShowPlanSelection(false)}
                   />
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+              
+              {/* Payment Form */}
+              {showPaymentForm && selectedPlan && (
+                <div>
+                  <PaymentFormWrapper
+                    planId={selectedPlan.id}
+                    selectedPlan={selectedPlan}
+                    onPaymentSuccess={(paymentId) => {
+                      setPaymentIntentId(paymentId);
+                      form.setValue('paymentIntentId', paymentId);
+                      form.setValue('paymentStatus', 'paid');
+                      setShowPaymentForm(false);
+                      toast({
+                        title: "Pagamento confirmado!",
+                        description: "Seu pagamento foi processado com sucesso.",
+                      });
+                    }}
+                    onBack={() => {
+                      setShowPaymentForm(false);
+                      setShowPlanSelection(true);
+                    }}
+                  />
+                </div>
+              )}
+              
+              {/* Banking information - Show only if not selecting a plan or making a payment */}
+              {!showPlanSelection && !showPaymentForm && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Dados Bancários</CardTitle>
+                    <CardDescription>Informações para reembolso/estorno quando necessário</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="bankName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Banco*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nome do Banco" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-          {step === 4 && (
+                      <FormField
+                        control={form.control}
+                        name="bankBranch"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Agência*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Número da Agência" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="bankAccount"
+                        render={({ field }) => (
+                          <FormItem className="col-span-1 md:col-span-2">
+                            <FormLabel>Conta*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Número da Conta" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : null}
+          
+          {Number(step) === 4 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Termos de Uso</CardTitle>
@@ -514,7 +579,7 @@ export default function OrganizationRegistration() {
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : null}
           
           <div className="flex justify-between mt-6">
             {step > 1 && (
@@ -559,12 +624,12 @@ export default function OrganizationRegistration() {
             )}
           </div>
           
-          {selectedFile === null && step === 1 && (
+          {selectedFile === null && Number(step) === 1 ? (
             <div className="flex items-center gap-2 text-amber-600 mt-4 p-2 bg-amber-50 rounded border border-amber-200">
               <AlertCircle className="h-4 w-4" />
               <span className="text-sm">Lembre-se de fazer o upload do documento da organização.</span>
             </div>
-          )}
+          ) : null}
         </form>
       </Form>
     </div>
