@@ -66,8 +66,28 @@ export default function Login() {
   }
 
   function fillDemoCredentials() {
-    form.setValue('username', 'admin@comply.com');
-    form.setValue('password', 'admin123');
+    // Definir credenciais específicas conforme o tipo de usuário selecionado
+    switch (userType) {
+      case 'admin':
+        form.setValue('username', 'admin@comply.com');
+        form.setValue('password', 'admin123');
+        break;
+      case 'org_admin':
+        form.setValue('username', 'admin@organizacao.com');
+        form.setValue('password', 'org123');
+        break;
+      case 'doctor':
+        form.setValue('username', 'medico@endurancy.com');
+        form.setValue('password', 'medico123');
+        break;
+      case 'patient':
+        form.setValue('username', 'paciente@email.com');
+        form.setValue('password', 'paciente123');
+        break;
+      default:
+        form.setValue('username', 'admin@comply.com');
+        form.setValue('password', 'admin123');
+    }
   }
 
   return (
@@ -143,7 +163,12 @@ export default function Login() {
                             <div className="relative">
                               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                               <Input 
-                                placeholder={`admin@${role}.com`} 
+                                placeholder={
+                                  role === 'admin' ? 'admin@comply.com' :
+                                  role === 'org_admin' ? 'admin@organizacao.com' :
+                                  role === 'doctor' ? 'medico@endurancy.com' :
+                                  'paciente@email.com'
+                                } 
                                 className="pl-10 h-12 bg-white" 
                                 {...field} 
                               />
@@ -200,8 +225,30 @@ export default function Login() {
                     <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-blue-800">Credenciais de demonstração:</p>
-                      <p className="text-xs text-blue-600 mt-1">Email: admin@comply.com</p>
-                      <p className="text-xs text-blue-600">Senha: admin123</p>
+                      {role === 'admin' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: admin@comply.com</p>
+                          <p className="text-xs text-blue-600">Senha: admin123</p>
+                        </>
+                      )}
+                      {role === 'org_admin' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: admin@organizacao.com</p>
+                          <p className="text-xs text-blue-600">Senha: org123</p>
+                        </>
+                      )}
+                      {role === 'doctor' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: medico@endurancy.com</p>
+                          <p className="text-xs text-blue-600">Senha: medico123</p>
+                        </>
+                      )}
+                      {role === 'patient' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: paciente@email.com</p>
+                          <p className="text-xs text-blue-600">Senha: paciente123</p>
+                        </>
+                      )}
                       <Button 
                         type="button" 
                         variant="outline"
