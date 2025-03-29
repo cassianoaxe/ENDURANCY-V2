@@ -85,7 +85,8 @@ export default function OrganizationRegistration() {
           title: "Organização criada com sucesso!",
           description: "Aguarde a aprovação da administração.",
         });
-        navigate('/organizations');
+        // Redirect to the confirmation page
+        navigate('/organization-confirmation');
       }
     },
     onError: (error) => {
@@ -108,7 +109,7 @@ export default function OrganizationRegistration() {
         title: "Pagamento confirmado!",
         description: "Sua organização foi ativada com sucesso.",
       });
-      navigate('/organizations');
+      navigate('/organization-confirmation');
     },
     onError: () => {
       toast({
