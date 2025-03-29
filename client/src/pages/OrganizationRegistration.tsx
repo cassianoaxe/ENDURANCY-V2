@@ -9,26 +9,36 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { insertOrganizationSchema, type InsertOrganization, type Plan } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard } from "lucide-react";
 import { z } from "zod";
 import PlanSelection from "@/components/features/PlanSelection";
 import { PaymentFormWrapper } from "@/components/features/PaymentForm";
+import { confirmPayment } from "@/lib/stripeClient";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Navigation function to replace wouter
-  const setLocation = (path: string) => {
+  // Navigation function
+  const navigate = (path: string) => {
     window.location.href = path;
   };
+  
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+
+  // Fetch available plans
+  const { data: plans } = useQuery<Plan[]>({
+    queryKey: ['/api/plans'],
+    refetchOnWindowFocus: false,
+  });
 
   const form = useForm<InsertOrganization>({
     resolver: zodResolver(insertOrganizationSchema),
@@ -38,6 +48,7 @@ export default function OrganizationRegistration() {
       termsAccepted: false,
       adminName: '',
       website: '',
+      plan: '',
     }
   });
 
@@ -62,13 +73,20 @@ export default function OrganizationRegistration() {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      toast({
-        title: "Organização criada com sucesso!",
-        description: "Aguarde a aprovação da administração.",
-      });
-      window.location.href = '/organizations';
+      setOrganizationId(data.id);
+      
+      // If registrationComplete is true, it means the user has already paid
+      if (paymentIntentId && registrationComplete) {
+        confirmPaymentAndFinish(paymentIntentId, data.id);
+      } else {
+        toast({
+          title: "Organização criada com sucesso!",
+          description: "Aguarde a aprovação da administração.",
+        });
+        navigate('/organizations');
+      }
     },
     onError: (error) => {
       console.error("Error creating organization:", error);
@@ -80,17 +98,70 @@ export default function OrganizationRegistration() {
     },
   });
 
+  // Mutation for confirming payment
+  const confirmPaymentMutation = useMutation({
+    mutationFn: async ({ paymentIntentId, organizationId }: { paymentIntentId: string; organizationId: number }) => {
+      return confirmPayment(paymentIntentId, organizationId);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pagamento confirmado!",
+        description: "Sua organização foi ativada com sucesso.",
+      });
+      navigate('/organizations');
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao confirmar pagamento",
+        description: "Por favor, entre em contato com o suporte.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const confirmPaymentAndFinish = (paymentIntentId: string, organizationId: number) => {
+    confirmPaymentMutation.mutate({ paymentIntentId, organizationId });
+  };
+
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    setPaymentIntentId(paymentIntentId);
+    setRegistrationComplete(true);
+    setShowPaymentForm(false);
+    
+    // If the organization has already been created, confirm the payment
+    if (organizationId) {
+      confirmPaymentAndFinish(paymentIntentId, organizationId);
+    } else {
+      // Otherwise, we'll need to create the organization first, and then confirm the payment
+      // This will be handled in the onSuccess of createOrganization
+      submitOrganization();
+    }
+  };
+
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
     const currentStepValid = await form.trigger(fields);
-    if (currentStepValid && step < 4) setStep((prevStep) => prevStep + 1);
+    if (currentStepValid && step < 4) setStep(prev => prev + 1);
   };
 
   const prevStep = () => {
-    if (step > 1) setStep((prevStep) => prevStep - 1);
+    if (step > 1) setStep(prev => prev - 1);
+    
+    // Reset plan selection and payment form state when going back from step 3
+    if (step === 3) {
+      setShowPlanSelection(false);
+      setShowPaymentForm(false);
+    }
   };
 
-  const onSubmit = async (data: InsertOrganization) => {
+  const handlePlanSelect = (plan: Plan) => {
+    setSelectedPlan(plan);
+    form.setValue('plan', plan.name); // Set the plan name in the form
+    setShowPlanSelection(false);
+    setShowPaymentForm(true);
+  };
+
+  const submitOrganization = () => {
     if (!selectedFile) {
       toast({
         title: "Erro",
@@ -100,7 +171,20 @@ export default function OrganizationRegistration() {
       return;
     }
 
-    createOrganization.mutate({ ...data, document: selectedFile });
+    if (!form.getValues('termsAccepted')) {
+      toast({
+        title: "Erro",
+        description: "Você precisa aceitar os termos de uso.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createOrganization.mutate({ ...form.getValues(), document: selectedFile });
+  };
+
+  const onSubmit = async (data: InsertOrganization) => {
+    submitOrganization();
   };
 
   const getFieldsForStep = (step: number): (keyof InsertOrganization)[] => {
@@ -403,11 +487,59 @@ export default function OrganizationRegistration() {
               {!showPlanSelection && !showPaymentForm && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Plano e Pagamento</CardTitle>
-                    <CardDescription>Escolha um plano e realize o pagamento</CardDescription>
+                    <CardTitle>Plano e Dados Bancários</CardTitle>
+                    <CardDescription>Informe os dados bancários e selecione um plano</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col gap-4 items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="col-span-1 md:col-span-2">
+                        <h3 className="text-lg font-medium mb-4">Dados Bancários</h3>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="bankName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Banco*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Banco do Brasil" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="bankBranch"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Agência*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="0001" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="bankAccount"
+                        render={({ field }) => (
+                          <FormItem className="col-span-1 md:col-span-2">
+                            <FormLabel>Conta*</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="123456-7" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-4 items-center mt-8">
                       <Button
                         variant="outline"
                         onClick={() => setShowPlanSelection(true)}
