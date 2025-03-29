@@ -29,11 +29,13 @@ import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import OrgAdminDashboard from "@/pages/dashboards/OrgAdminDashboard";
 import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
+import OrganizationDashboard from "@/pages/organization/Dashboard";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const userRole = user?.role;
 
   // Listen for path changes
   useEffect(() => {
@@ -76,98 +78,193 @@ function AppContent() {
     setCurrentPath('/');
   }
 
-  // Render the appropriate component based on the current path and user role
-  const renderContent = () => {
-    const { user } = useAuth();
-    const userRole = user?.role;
-
-    // Check if the path matches an order view pattern (/orders/123)
-    if (currentPath.startsWith('/orders/')) {
-      return <OrderView />;
-    }
-    
-    // Role-specific dashboards
-    if (currentPath === '/dashboard' || currentPath === '/') {
-      if (userRole === 'admin') {
-        return <AdminDashboard />;
-      } else if (userRole === 'org_admin') {
-        return <OrgAdminDashboard />;
-      } else if (userRole === 'doctor') {
-        return <DoctorDashboard />;
-      } else if (userRole === 'patient') {
-        return <PatientDashboard />;
-      }
-      // Fallback to the original dashboard if role isn't recognized
-      return <Dashboard />;
-    }
-    
-    // Handle organization-specific routes
-    if (currentPath.startsWith('/organization/')) {
-      return (
-        <ProtectedRoute allowedRoles={['org_admin']}>
-          {currentPath === '/organization/dashboard' ? <OrgAdminDashboard /> : <NotFound />}
-        </ProtectedRoute>
-      );
-    }
-    
-    // Handle doctor-specific routes
-    if (currentPath.startsWith('/doctor/')) {
-      return (
-        <ProtectedRoute allowedRoles={['doctor']}>
-          {currentPath === '/doctor/dashboard' ? <DoctorDashboard /> : <NotFound />}
-        </ProtectedRoute>
-      );
-    }
-    
-    // Handle patient-specific routes
-    if (currentPath.startsWith('/patient/')) {
-      return (
-        <ProtectedRoute allowedRoles={['patient']}>
-          {currentPath === '/patient/dashboard' ? <PatientDashboard /> : <NotFound />}
-        </ProtectedRoute>
-      );
-    }
-    
-    // Admin-specific routes require admin privileges
-    if (['/analytics', '/activity-log', '/backups', '/emergencies', 
-         '/plans', '/organizations', '/organization-registration', 
-         '/requests', '/financial', '/email-templates', 
-         '/administrators', '/settings'].includes(currentPath)) {
-      return (
-        <ProtectedRoute allowedRoles={['admin']}>
-          {(() => {
-            switch (currentPath) {
-              case '/analytics': return <Analytics />;
-              case '/activity-log': return <ActivityLog />;
-              case '/backups': return <Backups />;
-              case '/emergencies': return <Emergencies />;
-              case '/plans': return <Plans />;
-              case '/organizations': return <Organizations />;
-              case '/organization-registration': return <OrganizationRegistration />;
-              case '/requests': return <Requests />;
-              case '/financial': return <Financial />;
-              case '/email-templates': return <EmailTemplates />;
-              case '/administrators': return <Administrators />;
-              case '/settings': return <Settings />;
-              default: return <NotFound />;
-            }
-          })()}
-        </ProtectedRoute>
-      );
-    }
-    
-    // Default case for unrecognized paths
-    return <NotFound />;
-  };
-
-  // Return the app content
-  return (
-    <>
+  // Check if the path matches an order view pattern (/orders/123)
+  if (currentPath.startsWith('/orders/')) {
+    return (
       <Layout>
-        {renderContent()}
+        <OrderView />
       </Layout>
-      <TourGuide />
-    </>
+    );
+  }
+  
+  // Role-specific dashboards
+  if (currentPath === '/dashboard' || currentPath === '/') {
+    let DashboardComponent = Dashboard;
+    
+    if (userRole === 'admin') {
+      DashboardComponent = AdminDashboard;
+    } else if (userRole === 'org_admin') {
+      DashboardComponent = OrgAdminDashboard;
+    } else if (userRole === 'doctor') {
+      DashboardComponent = DoctorDashboard;
+    } else if (userRole === 'patient') {
+      DashboardComponent = PatientDashboard;
+    }
+    
+    return (
+      <Layout>
+        <DashboardComponent />
+      </Layout>
+    );
+  }
+  
+  // Handle organization-specific routes
+  if (currentPath.startsWith('/organization/')) {
+    if (userRole !== 'org_admin') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar esta área. Este painel é apenas para administradores de organizações.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    if (currentPath === '/organization/dashboard') {
+      return <OrganizationDashboard />;
+    }
+    
+    return <NotFound />;
+  }
+  
+  // Handle doctor-specific routes
+  if (currentPath.startsWith('/doctor/')) {
+    if (userRole !== 'doctor') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar esta área.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    if (currentPath === '/doctor/dashboard') {
+      return (
+        <Layout>
+          <DoctorDashboard />
+        </Layout>
+      );
+    }
+    
+    return <NotFound />;
+  }
+  
+  // Handle patient-specific routes
+  if (currentPath.startsWith('/patient/')) {
+    if (userRole !== 'patient') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar esta área.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    if (currentPath === '/patient/dashboard') {
+      return (
+        <Layout>
+          <PatientDashboard />
+        </Layout>
+      );
+    }
+    
+    return <NotFound />;
+  }
+  
+  // Admin-specific routes require admin privileges
+  if (['/analytics', '/activity-log', '/backups', '/emergencies', 
+       '/plans', '/organizations', '/organization-registration', 
+       '/requests', '/financial', '/email-templates', 
+       '/administrators', '/settings'].includes(currentPath)) {
+    
+    if (userRole !== 'admin') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar esta área.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    let Component = NotFound;
+    switch (currentPath) {
+      case '/analytics': Component = Analytics; break;
+      case '/activity-log': Component = ActivityLog; break;
+      case '/backups': Component = Backups; break;
+      case '/emergencies': Component = Emergencies; break;
+      case '/plans': Component = Plans; break;
+      case '/organizations': Component = Organizations; break;
+      case '/organization-registration': Component = OrganizationRegistration; break;
+      case '/requests': Component = Requests; break;
+      case '/financial': Component = Financial; break;
+      case '/email-templates': Component = EmailTemplates; break;
+      case '/administrators': Component = Administrators; break;
+      case '/settings': Component = Settings; break;
+    }
+    
+    return (
+      <Layout>
+        <Component />
+      </Layout>
+    );
+  }
+  
+  // Default case for unrecognized paths
+  return (
+    <Layout>
+      <NotFound />
+    </Layout>
   );
 }
 
@@ -177,6 +274,7 @@ function App() {
       <AuthProvider>
         <AppContent />
         <Toaster />
+        <TourGuide />
       </AuthProvider>
     </QueryClientProvider>
   );
