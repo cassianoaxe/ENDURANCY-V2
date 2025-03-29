@@ -4,23 +4,36 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Loader2, User, Eye, Info, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
+  username: z.string().min(1, 'O email é obrigatório'),
+  password: z.string().min(1, 'A senha é obrigatória'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient';
 
 export default function Login() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [userType, setUserType] = useState<UserRole>('admin');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Mapping de tipos de usuário para rótulos em português
+  const userTypeLabels = {
+    admin: 'Comply',
+    org_admin: 'Organização',
+    doctor: 'Médico',
+    patient: 'Paciente'
+  };
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,17 +46,18 @@ export default function Login() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
-      await login(data.username, data.password);
+      // Incluir o tipo de usuário no login
+      await login(data.username, data.password, userType);
       toast({
-        title: 'Login successful',
-        description: 'Welcome back!',
+        title: 'Login bem-sucedido',
+        description: 'Bem-vindo de volta!',
         variant: 'default',
       });
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('Login falhou:', error);
       toast({
-        title: 'Login failed',
-        description: 'Invalid username or password',
+        title: 'Falha no login',
+        description: 'Email ou senha inválidos',
         variant: 'destructive',
       });
     } finally {
@@ -51,61 +65,168 @@ export default function Login() {
     }
   }
 
+  function fillDemoCredentials() {
+    form.setValue('username', 'admin@comply.com');
+    form.setValue('password', 'admin123');
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access the dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#f2f7f2]">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-[#e6f7e6] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <span className="text-3xl font-bold text-[#4CAF50]">E</span>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
+        <p className="text-gray-500 mt-1">Plataforma de Controle e Regulação</p>
+      </div>
+      
+      <Card className="w-full max-w-md shadow-lg border-0">
+        <div className="text-center p-6 pb-2">
+          <h2 className="text-xl font-bold text-gray-800">Acesso ao Sistema</h2>
+          <p className="text-gray-500 text-sm mt-1">Faça login para acessar a plataforma</p>
+        </div>
+        
+        <Tabs defaultValue="admin" className="w-full" onValueChange={(value) => setUserType(value as UserRole)}>
+          <div className="px-6">
+            <TabsList className="grid grid-cols-4 h-12 rounded-md bg-gray-100">
+              <TabsTrigger 
+                value="admin" 
+                className={cn(
+                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                  "data-[state=active]:shadow-sm font-medium"
                 )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              >
+                Comply
+              </TabsTrigger>
+              <TabsTrigger 
+                value="org_admin" 
+                className={cn(
+                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                  "data-[state=active]:shadow-sm font-medium"
                 )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
-                  </>
-                ) : (
-                  'Sign In'
+              >
+                Organização
+              </TabsTrigger>
+              <TabsTrigger 
+                value="doctor" 
+                className={cn(
+                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                  "data-[state=active]:shadow-sm font-medium"
                 )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-500">
-            Secure access for authorized administrators only
-          </p>
+              >
+                Médico
+              </TabsTrigger>
+              <TabsTrigger 
+                value="patient" 
+                className={cn(
+                  "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                  "data-[state=active]:shadow-sm font-medium"
+                )}
+              >
+                Paciente
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {Object.entries(userTypeLabels).map(([role, label]) => (
+            <TabsContent key={role} value={role} className="mt-6">
+              <CardContent className="px-6">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Email</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              <Input 
+                                placeholder={`admin@${role}.com`} 
+                                className="pl-10 h-12 bg-white" 
+                                {...field} 
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-gray-700">Senha</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <div className="absolute right-3 top-3 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
+                                <Eye className="h-4 w-4 text-gray-400" />
+                              </div>
+                              <Input 
+                                type={showPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                className="pr-10 h-12 bg-white" 
+                                {...field} 
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 bg-[#4CAF50] hover:bg-[#43a047] text-white flex items-center justify-center gap-2"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> Processando...
+                        </>
+                      ) : (
+                        <>
+                          Entrar <ArrowRight className="h-4 w-4 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+                
+                {/* Bloco de credenciais de demonstração */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-100">
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">Credenciais de demonstração:</p>
+                      <p className="text-xs text-blue-600 mt-1">Email: admin@comply.com</p>
+                      <p className="text-xs text-blue-600">Senha: admin123</p>
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={fillDemoCredentials}
+                        className="mt-2 text-xs h-8 border-blue-200 text-blue-700 hover:bg-blue-100 w-full"
+                      >
+                        Preencher automaticamente
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </TabsContent>
+          ))}
+        </Tabs>
+        
+        <CardFooter className="px-6 pb-6 pt-2 flex justify-center">
+          <a href="#" className="text-sm text-[#4CAF50] hover:underline">
+            Esqueceu sua senha?
+          </a>
         </CardFooter>
+        
+        <div className="text-xs text-center text-gray-500 pb-4">
+          © 2024 Endurancy. Todos os direitos reservados.
+        </div>
       </Card>
     </div>
   );
