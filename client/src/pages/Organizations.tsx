@@ -114,7 +114,7 @@ export default function Organizations() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        {new Date(org.createdAt).toLocaleDateString()}
+                        {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         <Button variant="ghost" size="sm">...</Button>
