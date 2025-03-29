@@ -1,561 +1,407 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/contexts/AuthContext';
 import TourGuide from '@/components/features/TourGuide';
-import { User, CircleUser, Activity, Calendar, FileText, Settings, Users, HeartPulse, PanelRight, Stethoscope } from 'lucide-react';
-
-// Dados de demonstração
-const appointmentsData = [
-  { month: 'Jan', appointments: 120 },
-  { month: 'Fev', appointments: 150 },
-  { month: 'Mar', appointments: 180 },
-  { month: 'Abr', appointments: 220 },
-  { month: 'Mai', appointments: 250 },
-  { month: 'Jun', appointments: 280 },
-  { month: 'Jul', appointments: 310 },
-];
-
-const userTypesData = [
-  { month: 'Jan', doctors: 8, patients: 120 },
-  { month: 'Fev', doctors: 10, patients: 150 },
-  { month: 'Mar', doctors: 12, patients: 180 },
-  { month: 'Abr', doctors: 12, patients: 220 },
-  { month: 'Mai', doctors: 15, patients: 250 },
-  { month: 'Jun', doctors: 18, patients: 280 },
-  { month: 'Jul', doctors: 20, patients: 310 },
-];
+import { 
+  Users, FileText, Package, FileCheck, ShoppingBag, BarChart, 
+  ChevronUp, ArrowUpRight, CirclePlus, Wallet, LineChart
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function OrgAdminDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('visao-geral');
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto px-4 py-4">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard Organizacional</h1>
-          <p className="text-gray-500 mt-1">Bem-vindo, {user?.name}</p>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-gray-500 text-sm">Gerencie sua organização, pacientes e produtos na plataforma Endurancy</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Plano Premium</span>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-1 bg-white border-gray-200"
+            onClick={() => window.location.href="/organization/patients/new"}
+          >
+            <CirclePlus className="h-4 w-4 text-green-600" />
+            <span>Novo Paciente</span>
+          </Button>
+          <Button 
+            className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+            onClick={() => window.location.href="/organization/products/new"}
+          >
+            <CirclePlus className="h-4 w-4" />
+            <span>Novo Produto</span>
+          </Button>
         </div>
       </div>
-
-      <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            <span className="hidden md:inline">Visão Geral</span>
+      
+      <Tabs defaultValue={activeTab} className="space-y-4" onValueChange={setActiveTab}>
+        <TabsList className="border-b border-gray-200 bg-transparent p-0 mb-4">
+          <TabsTrigger 
+            value="visao-geral" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="doctors" className="flex items-center gap-2">
-            <Stethoscope className="h-4 w-4" />
-            <span className="hidden md:inline">Médicos</span>
+          <TabsTrigger 
+            value="pacientes" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Pacientes
           </TabsTrigger>
-          <TabsTrigger value="patients" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span className="hidden md:inline">Pacientes</span>
+          <TabsTrigger 
+            value="produtos" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Produtos
           </TabsTrigger>
-          <TabsTrigger value="appointments" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <span className="hidden md:inline">Consultas</span>
+          <TabsTrigger 
+            value="prescricoes" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Prescrições
           </TabsTrigger>
-          <TabsTrigger value="financial" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden md:inline">Financeiro</span>
+          <TabsTrigger 
+            value="pedidos" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Pedidos
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden md:inline">Configurações</span>
+          <TabsTrigger 
+            value="producao" 
+            className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+          >
+            Produção
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 dashboard-stats">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total de Médicos</CardTitle>
+        <TabsContent value="visao-geral" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border rounded-lg shadow-sm bg-white overview-patients">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+                <CardTitle className="text-sm font-medium text-gray-600">Total de Pacientes</CardTitle>
+                <Users className="h-5 w-5 text-blue-500" />
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">20</div>
-                <p className="text-xs text-green-500">+2 no último mês</p>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl font-bold">128</div>
+                <div className="flex items-center gap-1 mt-1 text-xs text-emerald-600">
+                  <ChevronUp className="h-3 w-3" />
+                  <span>+8 novos pacientes este mês</span>
+                </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
+            
+            <Card className="border rounded-lg shadow-sm bg-white overview-products">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+                <CardTitle className="text-sm font-medium text-gray-600">Produtos Ativos</CardTitle>
+                <Package className="h-5 w-5 text-emerald-500" />
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">310</div>
-                <p className="text-xs text-green-500">+30 no último mês</p>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl font-bold">24</div>
+                <div className="flex items-center gap-1 mt-1 text-xs text-emerald-600">
+                  <ChevronUp className="h-3 w-3" />
+                  <span>+3 novos produtos adicionados</span>
+                </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Consultas (Mês Atual)</CardTitle>
+            
+            <Card className="border rounded-lg shadow-sm bg-white overview-prescriptions">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+                <CardTitle className="text-sm font-medium text-gray-600">Prescrições Pendentes</CardTitle>
+                <FileCheck className="h-5 w-5 text-amber-500" />
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">128</div>
-                <p className="text-xs text-green-500">+12% em relação ao mês anterior</p>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl font-bold">12</div>
+                <div className="flex items-center gap-1 mt-1 text-xs text-amber-600">
+                  <ArrowUpRight className="h-3 w-3" />
+                  <span>5 novas nas últimas 24h</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border rounded-lg shadow-sm bg-white overview-sales">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+                <CardTitle className="text-sm font-medium text-gray-600">Faturamento Mensal</CardTitle>
+                <Wallet className="h-5 w-5 text-violet-500" />
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                <div className="text-2xl font-bold">R$ 42.580,00</div>
+                <div className="flex items-center gap-1 mt-1 text-xs text-emerald-600">
+                  <ChevronUp className="h-3 w-3" />
+                  <span>+12% comparado ao mês anterior</span>
+                </div>
               </CardContent>
             </Card>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Histórico de Consultas</CardTitle>
+            <Card className="border rounded-lg shadow-sm bg-white overview-sales-chart">
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-base font-semibold">Vendas Mensais</CardTitle>
+                <div className="text-xs text-gray-500">Jan - Jul</div>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={appointmentsData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="appointments" stroke="#3b82f6" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
+              <CardContent className="p-4">
+                <div className="h-[240px] relative">
+                  {/* Simulando barras do gráfico */}
+                  <div className="flex items-end justify-between h-[200px] pt-6 pb-2 px-2">
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[40px] rounded-t"></div>
+                      <div className="text-xs">Jan</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[70px] rounded-t"></div>
+                      <div className="text-xs">Fev</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[55px] rounded-t"></div>
+                      <div className="text-xs">Mar</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[85px] rounded-t"></div>
+                      <div className="text-xs">Abr</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[115px] rounded-t"></div>
+                      <div className="text-xs">Mai</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[130px] rounded-t"></div>
+                      <div className="text-xs">Jun</div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 w-10">
+                      <div className="bg-green-500 w-full h-[170px] rounded-t"></div>
+                      <div className="text-xs">Jul</div>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-8 left-0 right-0 text-center text-xs text-gray-500">
+                    Vendas (R$)
+                  </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Crescimento de Usuários</CardTitle>
+            <Card className="border rounded-lg shadow-sm bg-white overview-product-dist">
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-base font-semibold">Distribuição de Produtos</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={userTypesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="doctors" fill="#8884d8" name="Médicos" />
-                      <Bar dataKey="patients" fill="#82ca9d" name="Pacientes" />
-                    </BarChart>
-                  </ResponsiveContainer>
+              <CardContent className="p-4">
+                <div className="h-[240px] flex items-center justify-center">
+                  {/* Simulando gráfico de pizza */}
+                  <div className="relative w-[200px] h-[200px] rounded-full border-8 border-transparent flex items-center justify-center overflow-hidden" style={{ background: 'conic-gradient(#3b82f6 0% 45%, #10b981 45% 70%, #f59e0b 70% 85%, #ef4444 85% 95%, #8b5cf6 95% 100%)' }}>
+                    <div className="bg-white w-[120px] h-[120px] rounded-full"></div>
+                  </div>
+                  <div className="ml-8 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                      <span className="text-sm">Óleo: 45%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                      <span className="text-sm">Cápsula: 25%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                      <span className="text-sm">Flor: 15%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="text-sm">Extrato: 10%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="text-sm">Tópico: 5%</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
           
           <div className="grid grid-cols-1 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Próximas Consultas de Hoje</CardTitle>
+            <Card className="border rounded-lg shadow-sm bg-white">
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-base font-semibold">Pedidos Recentes</CardTitle>
+                <Button variant="link" className="text-green-600 p-0 h-auto text-sm">
+                  Ver todos
+                </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th scope="col" className="px-6 py-3">Paciente</th>
-                        <th scope="col" className="px-6 py-3">Médico</th>
-                        <th scope="col" className="px-6 py-3">Horário</th>
-                        <th scope="col" className="px-6 py-3">Status</th>
-                        <th scope="col" className="px-6 py-3">Ações</th>
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b text-xs text-gray-500">
+                        <th className="text-left py-2 font-medium">Pedido</th>
+                        <th className="text-left py-2 font-medium">Paciente</th>
+                        <th className="text-left py-2 font-medium">Data</th>
+                        <th className="text-left py-2 font-medium">Status</th>
+                        <th className="text-right py-2 font-medium">Valor</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Maria Silva</td>
-                        <td className="px-6 py-4">Dr. Carlos Mendes</td>
-                        <td className="px-6 py-4">14:00</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Confirmada</span>
+                      <tr className="border-b">
+                        <td className="py-2.5">#8734</td>
+                        <td className="py-2.5">Maria Silva</td>
+                        <td className="py-2.5">29/03/2025</td>
+                        <td className="py-2.5">
+                          <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+                            Concluído
+                          </Badge>
                         </td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver</button>
-                          <button className="text-red-600 hover:underline">Cancelar</button>
-                        </td>
+                        <td className="py-2.5 text-right">R$ 420,00</td>
                       </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">João Pereira</td>
-                        <td className="px-6 py-4">Dra. Ana Ferreira</td>
-                        <td className="px-6 py-4">15:30</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Aguardando</span>
+                      <tr className="border-b">
+                        <td className="py-2.5">#8733</td>
+                        <td className="py-2.5">João Santos</td>
+                        <td className="py-2.5">28/03/2025</td>
+                        <td className="py-2.5">
+                          <Badge className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">
+                            Em processamento
+                          </Badge>
                         </td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver</button>
-                          <button className="text-red-600 hover:underline">Cancelar</button>
-                        </td>
+                        <td className="py-2.5 text-right">R$ 650,00</td>
                       </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Luiza Costa</td>
-                        <td className="px-6 py-4">Dr. Roberto Alves</td>
-                        <td className="px-6 py-4">16:45</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Confirmada</span>
+                      <tr className="border-b">
+                        <td className="py-2.5">#8732</td>
+                        <td className="py-2.5">Ana Oliveira</td>
+                        <td className="py-2.5">27/03/2025</td>
+                        <td className="py-2.5">
+                          <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+                            Concluído
+                          </Badge>
                         </td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver</button>
-                          <button className="text-red-600 hover:underline">Cancelar</button>
+                        <td className="py-2.5 text-right">R$ 320,00</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2.5">#8731</td>
+                        <td className="py-2.5">Pedro Almeida</td>
+                        <td className="py-2.5">26/03/2025</td>
+                        <td className="py-2.5">
+                          <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+                            Enviado
+                          </Badge>
                         </td>
+                        <td className="py-2.5 text-right">R$ 580,00</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="doctors" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 doctors-list">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Lista de Médicos</CardTitle>
-                <button className="add-doctor-button px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
-                  Adicionar Médico
-                </button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th scope="col" className="px-6 py-3">Nome</th>
-                        <th scope="col" className="px-6 py-3">Especialidade</th>
-                        <th scope="col" className="px-6 py-3">CRM</th>
-                        <th scope="col" className="px-6 py-3">Status</th>
-                        <th scope="col" className="px-6 py-3">Consultas/Mês</th>
-                        <th scope="col" className="px-6 py-3">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Dr. Carlos Mendes</td>
-                        <td className="px-6 py-4">Cardiologia</td>
-                        <td className="px-6 py-4">CRM-12345</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">42</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Editar</button>
-                          <button className="text-red-600 hover:underline">Desativar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Dra. Ana Ferreira</td>
-                        <td className="px-6 py-4">Dermatologia</td>
-                        <td className="px-6 py-4">CRM-67890</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">38</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Editar</button>
-                          <button className="text-red-600 hover:underline">Desativar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Dr. Roberto Alves</td>
-                        <td className="px-6 py-4">Ortopedia</td>
-                        <td className="px-6 py-4">CRM-54321</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">35</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Editar</button>
-                          <button className="text-red-600 hover:underline">Desativar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Dra. Juliana Santos</td>
-                        <td className="px-6 py-4">Pediatria</td>
-                        <td className="px-6 py-4">CRM-98765</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Férias</span>
-                        </td>
-                        <td className="px-6 py-4">0</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Editar</button>
-                          <button className="text-green-600 hover:underline">Ativar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Dr. Marcos Oliveira</td>
-                        <td className="px-6 py-4">Clínica Geral</td>
-                        <td className="px-6 py-4">CRM-24680</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">45</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Editar</button>
-                          <button className="text-red-600 hover:underline">Desativar</button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="patients" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 patients-list">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Lista de Pacientes</CardTitle>
-                <button className="add-patient-button px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
-                  Adicionar Paciente
-                </button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th scope="col" className="px-6 py-3">Nome</th>
-                        <th scope="col" className="px-6 py-3">CPF</th>
-                        <th scope="col" className="px-6 py-3">Data de Nascimento</th>
-                        <th scope="col" className="px-6 py-3">Status</th>
-                        <th scope="col" className="px-6 py-3">Última Consulta</th>
-                        <th scope="col" className="px-6 py-3">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Maria Silva</td>
-                        <td className="px-6 py-4">123.456.789-00</td>
-                        <td className="px-6 py-4">15/05/1980</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">10/07/2023</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver Prontuário</button>
-                          <button className="text-green-600 hover:underline">Agendar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">João Pereira</td>
-                        <td className="px-6 py-4">987.654.321-00</td>
-                        <td className="px-6 py-4">22/11/1975</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">05/07/2023</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver Prontuário</button>
-                          <button className="text-green-600 hover:underline">Agendar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Luiza Costa</td>
-                        <td className="px-6 py-4">456.789.123-00</td>
-                        <td className="px-6 py-4">30/03/1990</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">20/06/2023</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver Prontuário</button>
-                          <button className="text-green-600 hover:underline">Agendar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Pedro Santos</td>
-                        <td className="px-6 py-4">789.123.456-00</td>
-                        <td className="px-6 py-4">12/09/1985</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Inativo</span>
-                        </td>
-                        <td className="px-6 py-4">15/02/2023</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver Prontuário</button>
-                          <button className="text-green-600 hover:underline">Agendar</button>
-                        </td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Ana Oliveira</td>
-                        <td className="px-6 py-4">321.654.987-00</td>
-                        <td className="px-6 py-4">05/12/1982</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">25/07/2023</td>
-                        <td className="px-6 py-4">
-                          <button className="text-blue-600 hover:underline mr-3">Ver Prontuário</button>
-                          <button className="text-green-600 hover:underline">Agendar</button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="appointments" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Consultas Hoje</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">12</div>
-                <p className="text-xs text-gray-500">3 restantes</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Consultas Esta Semana</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">48</div>
-                <p className="text-xs text-green-500">+8% em relação à semana anterior</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Taxa de Cancelamento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">5%</div>
-                <p className="text-xs text-green-500">-2% em relação ao mês anterior</p>
               </CardContent>
             </Card>
           </div>
           
-          <Card className="appointment-calendar">
-            <CardHeader>
-              <CardTitle>Calendário de Consultas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center p-4 border rounded-md">
-                <p className="text-lg font-medium">Componente de Calendário</p>
-                <p className="text-sm text-gray-500">Interface de calendário para visualização e agendamento de consultas</p>
-                <button className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
-                  Agendar Nova Consulta
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="financial" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Faturamento do Mês</CardTitle>
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="border rounded-lg shadow-sm bg-white">
+              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                <CardTitle className="text-base font-semibold">Prescrições para Aprovação</CardTitle>
+                <Button variant="link" className="text-green-600 p-0 h-auto text-sm">
+                  Ver todas
+                </Button>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">R$ 45.325,00</div>
-                <p className="text-xs text-green-500">+12% em relação ao mês anterior</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Valor Médio por Consulta</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">R$ 150,00</div>
-                <p className="text-xs text-green-500">+5% em relação ao mês anterior</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Consultas Pendentes de Pagamento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">8</div>
-                <p className="text-xs text-gray-500">R$ 1.200,00 em aberto</p>
+              <CardContent className="p-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b text-xs text-gray-500">
+                        <th className="text-left py-2 font-medium">Prescrição</th>
+                        <th className="text-left py-2 font-medium">Paciente</th>
+                        <th className="text-left py-2 font-medium">Médico</th>
+                        <th className="text-left py-2 font-medium">Data</th>
+                        <th className="text-right py-2 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="py-2.5">#PR-1021</td>
+                        <td className="py-2.5">Lucia Ferreira</td>
+                        <td className="py-2.5">Dr. Roberto Santos</td>
+                        <td className="py-2.5">29/03/2025</td>
+                        <td className="py-2.5 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" className="h-8 text-xs">
+                              Ver
+                            </Button>
+                            <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-xs">
+                              Aprovar
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2.5">#PR-1020</td>
+                        <td className="py-2.5">Miguel Costa</td>
+                        <td className="py-2.5">Dra. Carla Mendes</td>
+                        <td className="py-2.5">28/03/2025</td>
+                        <td className="py-2.5 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" className="h-8 text-xs">
+                              Ver
+                            </Button>
+                            <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-xs">
+                              Aprovar
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2.5">#PR-1019</td>
+                        <td className="py-2.5">Fernanda Lima</td>
+                        <td className="py-2.5">Dr. Marcelo Alves</td>
+                        <td className="py-2.5">28/03/2025</td>
+                        <td className="py-2.5 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="outline" className="h-8 text-xs">
+                              Ver
+                            </Button>
+                            <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-xs">
+                              Aprovar
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Transações Recentes</CardTitle>
+        </TabsContent>
+        
+        <TabsContent value="pacientes" className="space-y-4">
+          <Card className="border rounded-lg shadow-sm bg-white">
+            <CardHeader className="p-4">
+              <CardTitle>Pacientes</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs uppercase bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th scope="col" className="px-6 py-3">ID</th>
-                      <th scope="col" className="px-6 py-3">Paciente</th>
-                      <th scope="col" className="px-6 py-3">Médico</th>
-                      <th scope="col" className="px-6 py-3">Data</th>
-                      <th scope="col" className="px-6 py-3">Valor</th>
-                      <th scope="col" className="px-6 py-3">Status</th>
+            <CardContent className="p-4 pt-0">
+              <div className="rounded border">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-xs text-gray-500">
+                      <th className="text-left p-3 font-medium">Nome</th>
+                      <th className="text-left p-3 font-medium">Email</th>
+                      <th className="text-left p-3 font-medium">Telefone</th>
+                      <th className="text-left p-3 font-medium">Consultas</th>
+                      <th className="text-right p-3 font-medium">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                      <td className="px-6 py-4">#1234</td>
-                      <td className="px-6 py-4 font-medium">Maria Silva</td>
-                      <td className="px-6 py-4">Dr. Carlos Mendes</td>
-                      <td className="px-6 py-4">25/07/2023</td>
-                      <td className="px-6 py-4">R$ 150,00</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pago</span>
-                      </td>
-                    </tr>
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                      <td className="px-6 py-4">#1235</td>
-                      <td className="px-6 py-4 font-medium">João Pereira</td>
-                      <td className="px-6 py-4">Dra. Ana Ferreira</td>
-                      <td className="px-6 py-4">24/07/2023</td>
-                      <td className="px-6 py-4">R$ 180,00</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pago</span>
-                      </td>
-                    </tr>
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                      <td className="px-6 py-4">#1236</td>
-                      <td className="px-6 py-4 font-medium">Luiza Costa</td>
-                      <td className="px-6 py-4">Dr. Roberto Alves</td>
-                      <td className="px-6 py-4">24/07/2023</td>
-                      <td className="px-6 py-4">R$ 200,00</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
-                      </td>
-                    </tr>
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                      <td className="px-6 py-4">#1237</td>
-                      <td className="px-6 py-4 font-medium">Pedro Santos</td>
-                      <td className="px-6 py-4">Dr. Marcos Oliveira</td>
-                      <td className="px-6 py-4">23/07/2023</td>
-                      <td className="px-6 py-4">R$ 150,00</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pago</span>
-                      </td>
-                    </tr>
-                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                      <td className="px-6 py-4">#1238</td>
-                      <td className="px-6 py-4 font-medium">Ana Oliveira</td>
-                      <td className="px-6 py-4">Dra. Juliana Santos</td>
-                      <td className="px-6 py-4">23/07/2023</td>
-                      <td className="px-6 py-4">R$ 180,00</td>
-                      <td className="px-6 py-4">
-                        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
-                      </td>
-                    </tr>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-b">
+                        <td className="p-3">Paciente {i}</td>
+                        <td className="p-3">paciente{i}@email.com</td>
+                        <td className="p-3">(11) 9999-888{i}</td>
+                        <td className="p-3">{Math.floor(Math.random() * 10) + 1}</td>
+                        <td className="p-3 text-right">
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            Ver detalhes
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -563,141 +409,293 @@ export default function OrgAdminDashboard() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="settings" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="org-settings">
-              <CardHeader>
-                <CardTitle>Configurações da Organização</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Nome da Organização</label>
-                    <input type="text" defaultValue="Hospital Santa Maria" className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Email Principal</label>
-                    <input type="email" defaultValue="contato@santamaria.com" className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Telefone</label>
-                    <input type="tel" defaultValue="(11) 1234-5678" className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Endereço</label>
-                    <textarea defaultValue="Av. Paulista, 1000 - São Paulo, SP" className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary" rows={3}></textarea>
-                  </div>
-                  <button type="button" className="w-full bg-primary text-white py-2 rounded-md hover:bg-primary/90">
-                    Salvar Alterações
-                  </button>
-                </form>
-              </CardContent>
-            </Card>
-            
-            <Card className="billing-info">
-              <CardHeader>
-                <CardTitle>Informações de Faturamento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 border rounded-md">
-                    <h3 className="font-medium text-lg">Plano Atual: Premium</h3>
-                    <p className="text-sm text-gray-500 mt-1">Renovação em: 15/08/2023</p>
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-lg font-bold">R$ 299/mês</span>
-                      <button className="text-blue-600 hover:underline">Alterar Plano</button>
+        <TabsContent value="produtos" className="space-y-4">
+          <Card className="border rounded-lg shadow-sm bg-white">
+            <CardHeader className="p-4">
+              <CardTitle>Produtos</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="border">
+                    <CardContent className="p-4">
+                      <div className="aspect-square bg-gray-100 rounded-md mb-3 flex items-center justify-center">
+                        <Package className="h-12 w-12 text-gray-400" />
+                      </div>
+                      <h3 className="font-medium">Produto {i}</h3>
+                      <p className="text-sm text-gray-500 mt-1">Categoria {i % 3 + 1}</p>
+                      <div className="mt-3 flex justify-between items-center">
+                        <span className="font-bold">R$ {(Math.random() * 1000).toFixed(2)}</span>
+                        <Badge className={`${i % 2 === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                          {i % 2 === 0 ? 'Ativo' : 'Em análise'}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="prescricoes" className="space-y-4">
+          <Card className="border rounded-lg shadow-sm bg-white">
+            <CardHeader className="p-4">
+              <CardTitle>Prescrições</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="rounded border">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-xs text-gray-500">
+                      <th className="text-left p-3 font-medium">ID</th>
+                      <th className="text-left p-3 font-medium">Paciente</th>
+                      <th className="text-left p-3 font-medium">Médico</th>
+                      <th className="text-left p-3 font-medium">Data</th>
+                      <th className="text-left p-3 font-medium">Status</th>
+                      <th className="text-right p-3 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-b">
+                        <td className="p-3">#PR-10{i}</td>
+                        <td className="p-3">Paciente {i}</td>
+                        <td className="p-3">Dr. Médico {i}</td>
+                        <td className="p-3">{30-i}/03/2025</td>
+                        <td className="p-3">
+                          <Badge className={`
+                            ${i === 1 ? 'bg-blue-50 text-blue-700' : 
+                              i === 2 ? 'bg-emerald-50 text-emerald-700' :
+                              i === 3 ? 'bg-amber-50 text-amber-700' :
+                              'bg-gray-50 text-gray-700'
+                            }
+                          `}>
+                            {i === 1 ? 'Pendente' : 
+                             i === 2 ? 'Aprovada' :
+                             i === 3 ? 'Em análise' :
+                             'Finalizada'}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            Ver detalhes
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="pedidos" className="space-y-4">
+          <Card className="border rounded-lg shadow-sm bg-white">
+            <CardHeader className="p-4">
+              <CardTitle>Pedidos</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="rounded border">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-xs text-gray-500">
+                      <th className="text-left p-3 font-medium">Pedido</th>
+                      <th className="text-left p-3 font-medium">Cliente</th>
+                      <th className="text-left p-3 font-medium">Data</th>
+                      <th className="text-left p-3 font-medium">Status</th>
+                      <th className="text-right p-3 font-medium">Valor</th>
+                      <th className="text-right p-3 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-b">
+                        <td className="p-3">#87{30+i}</td>
+                        <td className="p-3">Cliente {i}</td>
+                        <td className="p-3">{30-i}/03/2025</td>
+                        <td className="p-3">
+                          <Badge className={`
+                            ${i === 1 ? 'bg-emerald-50 text-emerald-700' : 
+                              i === 2 ? 'bg-yellow-50 text-yellow-700' :
+                              i === 3 ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-50 text-gray-700'
+                            }
+                          `}>
+                            {i === 1 ? 'Concluído' : 
+                             i === 2 ? 'Em processamento' :
+                             i === 3 ? 'Enviado' :
+                             'Cancelado'}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-right">R$ {(Math.random() * 1000).toFixed(2)}</td>
+                        <td className="p-3 text-right">
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            Detalhes
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="producao" className="space-y-4">
+          <Card className="border rounded-lg shadow-sm bg-white">
+            <CardHeader className="p-4">
+              <CardTitle>Produção</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                <Card className="border">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-sm font-medium">Produção Mensal</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="h-[200px] relative">
+                      <LineChart className="h-full w-full text-gray-300" />
+                      <div className="absolute inset-0 flex items-center justify-center text-lg font-semibold">
+                        Gráfico de Produção
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md">
-                    <h3 className="font-medium">Método de Pagamento</h3>
-                    <div className="flex items-center mt-2">
-                      <div className="bg-gray-200 rounded-md p-2 mr-3">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <rect width="20" height="14" x="2" y="5" rx="2" />
-                          <path d="M2 10h20" />
-                        </svg>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border">
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-sm font-medium">Status da Produção</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Pedidos Pendentes</span>
+                          <span>8/20</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '40%' }}></div>
+                        </div>
                       </div>
                       <div>
-                        <p className="font-medium">Cartão terminando em 4242</p>
-                        <p className="text-sm text-gray-500">Expira em 12/2024</p>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Em Produção</span>
+                          <span>12/20</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '60%' }}></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Completos</span>
+                          <span>16/40</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '40%' }}></div>
+                        </div>
                       </div>
                     </div>
-                    <button className="text-blue-600 hover:underline mt-3 block">Alterar método de pagamento</button>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md">
-                    <h3 className="font-medium">Histórico de Faturas</h3>
-                    <div className="space-y-2 mt-2">
-                      <div className="flex justify-between items-center">
-                        <span>15/07/2023</span>
-                        <span>R$ 299,00</span>
-                        <button className="text-blue-600 hover:underline">PDF</button>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>15/06/2023</span>
-                        <span>R$ 299,00</span>
-                        <button className="text-blue-600 hover:underline">PDF</button>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>15/05/2023</span>
-                        <span>R$ 299,00</span>
-                        <button className="text-blue-600 hover:underline">PDF</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="rounded border">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-gray-50 text-xs text-gray-500">
+                      <th className="text-left p-3 font-medium">Lote</th>
+                      <th className="text-left p-3 font-medium">Produto</th>
+                      <th className="text-left p-3 font-medium">Início</th>
+                      <th className="text-left p-3 font-medium">Término Est.</th>
+                      <th className="text-left p-3 font-medium">Status</th>
+                      <th className="text-right p-3 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <tr key={i} className="border-b">
+                        <td className="p-3">#L-20{i}</td>
+                        <td className="p-3">Produto {i}</td>
+                        <td className="p-3">{20+i}/03/2025</td>
+                        <td className="p-3">{30+i}/03/2025</td>
+                        <td className="p-3">
+                          <Badge className={`
+                            ${i === 1 ? 'bg-emerald-50 text-emerald-700' : 
+                              i === 2 ? 'bg-yellow-50 text-yellow-700' :
+                              i === 3 ? 'bg-blue-50 text-blue-700' :
+                              'bg-gray-50 text-gray-700'
+                            }
+                          `}>
+                            {i === 1 ? 'Concluído' : 
+                             i === 2 ? 'Em progresso' :
+                             i === 3 ? 'Iniciado' :
+                             'Planejado'}
+                          </Badge>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            Gerenciar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
       
-      {/* Tour Guide para primeiro acesso */}
+      {/* Tour Guide */}
       <TourGuide
         tourId="org-admin-dashboard-tour"
         steps={[
           {
-            selector: '.dashboard-stats',
-            title: 'Estatísticas da Organização',
-            content: 'Aqui você vê os principais números da sua organização: médicos, pacientes e consultas.',
+            selector: '.overview-patients',
+            title: 'Total de Pacientes',
+            content: 'Veja quantos pacientes estão registrados em sua organização.',
             buttonText: 'Próximo',
             placementBeacon: 'top',
           },
           {
-            selector: '.doctors-list',
-            title: 'Gerenciamento de Médicos',
-            content: 'Visualize e gerencie todos os médicos da sua organização. Adicione novos médicos ou edite informações existentes.',
+            selector: '.overview-products',
+            title: 'Produtos Ativos',
+            content: 'Acompanhe todos os produtos disponíveis na sua organização.',
             buttonText: 'Próximo',
             placementBeacon: 'top',
           },
           {
-            selector: '.patients-list',
-            title: 'Gerenciamento de Pacientes',
-            content: 'Visualize e gerencie todos os pacientes atendidos em sua organização.',
+            selector: '.overview-prescriptions',
+            title: 'Prescrições Pendentes',
+            content: 'Visualize as prescrições que estão pendentes de aprovação.',
             buttonText: 'Próximo',
             placementBeacon: 'top',
           },
           {
-            selector: '.appointment-calendar',
-            title: 'Agenda de Consultas',
-            content: 'Gerencie todas as consultas em um calendário interativo. Agende, reagende ou cancele consultas.',
+            selector: '.overview-sales',
+            title: 'Faturamento Mensal',
+            content: 'Acompanhe o faturamento mensal da sua organização.',
             buttonText: 'Próximo',
             placementBeacon: 'top',
           },
           {
-            selector: '.org-settings',
-            title: 'Configurações da Organização',
-            content: 'Atualize as informações e configurações da sua organização.',
+            selector: '.overview-sales-chart',
+            title: 'Gráfico de Vendas',
+            content: 'Visualize o histórico de vendas mensais.',
             buttonText: 'Próximo',
             placementBeacon: 'left',
           },
           {
-            selector: '.billing-info',
-            title: 'Informações de Pagamento',
-            content: 'Verifique seu plano atual, método de pagamento e acesse o histórico de faturas.',
+            selector: '.overview-product-dist',
+            title: 'Distribuição de Produtos',
+            content: 'Veja a distribuição de vendas por tipo de produto.',
             buttonText: 'Finalizar Tour',
-            placementBeacon: 'left',
+            placementBeacon: 'right',
           },
         ]}
       />
