@@ -5,7 +5,7 @@ import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
 import { organizations, organizationDocuments, users, plans } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -104,11 +104,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const { username, password, userType } = req.body;
       
-      const [user] = await db.select().from(users).where(eq(users.username, username));
+      console.log("Login attempt:", { username, userType });
       
-      if (!user || user.password !== password) { // In production, use proper password hashing
+      // Primeiro, buscar usuário pelo nome de usuário
+      const usersFound = await db.select().from(users).where(eq(users.username, username));
+      
+      if (usersFound.length === 0) {
+        console.log("User not found:", username);
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Se temos um user type, verificar se o usuário tem a role correspondente
+      const user = usersFound[0];
+      
+      if (userType && user.role !== userType && !(userType === 'admin' && username === 'admin')) {
+        console.log("Role mismatch:", { requestedRole: userType, actualRole: user.role });
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Verificar a senha
+      if (user.password !== password) { // In production, use proper password hashing
+        console.log("Invalid password for:", username);
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
@@ -118,6 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set user in session
       req.session.user = userWithoutPassword;
       
+      console.log("Login successful for:", { username, role: user.role });
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
