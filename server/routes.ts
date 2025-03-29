@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Protected Routes - Organizations
   app.get("/api/organizations", authenticate, async (_req, res) => {
     try {
-      const organizationsList = await db.query.organizations.findMany();
+      const organizationsList = await db.select().from(organizations);
       res.json(organizationsList);
     } catch (error) {
       console.error("Error fetching organizations:", error);
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (paymentIntent.status === 'succeeded') {
         // Update organization status to active
         await db.update(organizations)
-          .set({ status: 'active', paymentStatus: 'paid' })
+          .set({ status: 'active' })
           .where(eq(organizations.id, organizationId));
         
         res.json({ success: true });
