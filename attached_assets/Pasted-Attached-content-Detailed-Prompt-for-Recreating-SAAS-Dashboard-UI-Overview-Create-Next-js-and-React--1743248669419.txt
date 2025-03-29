@@ -1,0 +1,88 @@
+Attached content
+Detailed Prompt for Recreating SAAS Dashboard UI Overview Create Next.js and React.js and TailwindCSS
+
+Create a responsive admin dashboard for a medical cannabis management system called "Endurancy" with a clean, professional interface that prioritizes functionality and ease of use. The UI should follow a modern design system with a predominantly white background, green accent colors for interactive elements, and a left sidebar navigation panel. Main Layout Structure Header Section Create a thin header bar spanning the full width of the screen Place the product name "Endurancy" in the top-left corner using a bold, sans-serif font Include a collapsible sidebar toggle button (< icon) to the right of the product name Display the current section name "Solicitações" in the header center-left On the far right of the header, include: A notification bell icon with a small green notification badge showing "2" User initials "AD" in a small circular container Text showing "Admin" with "Super Admin" in smaller, lighter font underneath Left Sidebar Navigation Create a fixed-position sidebar with a width of approximately 230px Background color: white Menu items should be arranged vertically with consistent spacing Each menu item should have: A relevant icon on the left Menu text in a medium-weight sans-serif font 15-20px padding on all sides Include the following menu items in exact order: Dashboard (grid/squares icon) Analytics (graph/trending up icon) Registro de Atividades (clipboard/list icon) Backups (database/storage icon) Emergências (alert/warning icon) Planos (layers/stack icon) Organizações (people/organization icon) Solicitações (building/requests icon) - this item should be visually highlighted as the active page Financeiro (dollar/currency icon) Templates de Email (envelope/mail icon) Administradores (user-group icon) Configurações (gear/settings icon) At the bottom of the sidebar, include a "Sair" (logout) option with an exit/door icon Below that, include a "Captura de Tela" (screen capture) button in lighter gray Main Content Area Page Header Create a page header section with the title "Solicitações de Organizações" in a large, bold sans-serif font (24px) Add a red button on the right side labeled "Deletar Selecionados (1)" with a trash icon Place this header directly under the top navigation bar Content Section - Pending Requests Table Create a white card/container with subtle shadow and rounded corners (8px radius) Add a section header "Solicitações Pendentes" in bold Design a data table with the following columns: The table should have a light gray header row with column names Currently, the table shows one data row with the following details: The table row should have: Visual Design Details Color Scheme Primary background: White (#FFFFFF) Secondary background: Light gray (#F5F7FA) for table headers and inactive elements Accent color: Green (#4CAF50) for checkboxes, active elements, and notification badges Text colors: Primary text: Dark gray (#333333) Secondary text: Medium gray (#666666) Tertiary text: Light gray (#999999) Button colors: Primary action (Delete): Red (#F44336) Secondary action (Review): Blue (#2196F3) Typography Use a clean sans-serif font family throughout (e.g., Roboto, Inter, or SF Pro) Font sizes: Large headings: 22-24px Section headings: 18-20px Normal text: 14px Small text: 12px Font weights: Bold (600) for headings and important elements Medium (500) for menu items and subheadings Regular (400) for body text Component Styling Buttons: Rectangular with rounded corners (4-6px radius) Padding: 8-10px horizontal, 6-8px vertical Include appropriate icons to the left of button text Hover effect that slightly darkens the button Checkboxes: Square with rounded corners Green fill when checked with a white checkmark Light gray border when unchecked Table: Subtle borders or alternating row colors for readability Padding: 12-15px vertical, 15-20px horizontal in cells Light gray header with slightly darker text Status indicators (like "Pendente") should have a light background with text color matching their meaning Responsive Behavior On smaller screens, the sidebar should collapse to icons only or hide behind a hamburger menu Table should become scrollable horizontally when screen width is insufficient Prioritize displaying the most important columns on small screens Interactive Elements Checkbox in header should select/deselect all items Individual row checkboxes should select/deselect that specific row "Revisar" action should link to a detailed view of that specific request "Deletar Selecionados" button should be disabled when no items are selected Hovering over menu items in the sidebar should subtly highlight them The notification bell should open a dropdown of notifications when clicked Implementation Notes Use a consistent 8px grid system for spacing (8px, 16px, 24px, etc.) Ensure adequate whitespace between sections for readability Maintain proper alignment of all elements, especially in the table Use appropriate ARIA attributes for accessibility Ensure all interactive elements have visible focus states Use subtle transitions for hover and active states (0.2s duration)" O Endurancy é um SaaS para organizações do meio cannábico, focado em simplificar a gestão de pacientes, venda online de medicamentos, e a produção para organizações do meio cannabico, onde a segurança e compliance são fundamentais. Com rastreio de ponta a ponta, do ciclo de vida da produção, da planta ao produto final a entrega aos pacientes.
+
+Dividido em três aplicações: Painel de administração CPLY (MVP) Painel de administração da organização (MVP) Área dos pacientes
+
+Micro Serviços
+
+A execução do sistema deve ser conteinerizada e orquestrada, utilizando micro serviços, para garantir a escalabilidade e a segurança.
+
+Para a comunicação os micro serviços devem utilizar mensageria, para que cada serviço possa reagir a eventos ocorridos em outros serviços.
+
+Gateway de API
+
+O Gateway de API deve ser o ponto de entrada para todas as requisições, garantindo a segurança e a autenticação de todas as requisições.
+
+Sendo o ponto de entrada, o Gateway de API deve ser responsável por rotear as requisições para os micro serviços corretos.
+
+Aplicações Front-End
+
+Sendo PWAs, as aplicações front-end devem ser responsivas e funcionar em qualquer dispositivo. Com customização limitada, sendo possível apenas a alteração de cores e logo.
+
+Entrega contínua
+
+A entrega contínua deve ser garantida, com a execução de testes automatizados e a garantia de que a aplicação está pronta para ser entregue.
+
+Gerando logs de todas as entregas, para que seja possível rastrear o que foi entregue e quando, e quais versões da aplicação estão ativas em um dado momento.
+
+Utilizando também técnicas de entrega como canary release e blue/green deployment para garantir a qualidade e a disponibilidade do sistema.
+
+Recuperação de Desastres
+
+O sistema deve ser preparado para a recuperação de desastres, garantindo a disponibilidade do sistema mesmo em caso de falhas.
+
+Com um plano de backups e restaurações automatizadas, garantindo que os dados estejam seguros e disponíveis mesmo em caso de falhas.
+
+Resiliência e Chaos Engineering
+
+O sistema deve ser preparado para se recuperar de falhas, garantindo alta disponibilidade e confiabilidade.
+
+Executando testes de resiliência e utilizando-se de chaos engineering, para garantir que o sistema possa se recuperar de falhas e indisponibilidade de serviços sem impactar a disponibilidade do sistema em produção.
+
+Separação de dados e execução
+
+Os dados devem ser separados por organização utilizando silos de dados, mantendo a independência de cada ambiente, facilitando a segurança por padrão, e evitar vazamento de dados.
+
+Inicialmente é previsto que a execução do sistema seja em um ambiente compartilhado, mas a arquitetura deve ser preparada para a execução em ambientes isolados, quando requisitado pelos clientes.
+
+Auditabilidade
+
+Os ambientes devem ser auditáveis, mantendo um log inalterável e consultável de todos os eventos ocorridos no ambiente. Preferencialmente utilizando de um database de transição de estado, “event store”, garantindo que todos os eventos sejam registrados e que não possam ser alterados.
+
+Métricas
+
+O ambiente tem que ser metrificado para termos uma visão geral do ambiente, custos e gastos relacionados a computação e provedores de serviço.
+
+Controle de acesso
+
+O Controle de acesso é uma funcionalidade que permite que o administrador do sistema define quais usuários podem acessar determinadas funcionalidades do sistema. Para isso, deve-se criar políticas de acesso onde essas políticas são agrupadas em funções e atribuídas aos usuários.
+
+Uma política de acesso é composta por um conjunto de regras que definem quais funcionalidades o usuário pode acessar e quais condições devem ser satisfeitas para que o acesso seja permitido.
+
+Assim, o controle de acesso é uma forma de garantir que apenas usuários autorizados possam acessar determinadas funcionalidades do sistema.
+
+Essas funcionalidades devem ser granulares, ou seja, devem ser divididas em pequenas partes, de forma que seja possível definir regras específicas para cada uma delas.
+
+Por exemplo, no gerenciamento de pacientes:
+
+Cadastrar paciente Visualizar dados pessoais paciente Visualizar dados médicos do paciente Visualizar dados de contato do paciente Visualizar dados de entrega do paciente Visualizar dados de cobrança do paciente Alterar dados pessoais do paciente Alterar dados médicos do paciente Alterar dados de entrega do paciente Alterar dados de contato do paciente Alterar dados de cobrança do paciente Excluir paciente Suspender paciente Visualizar histórico de cobranças Visualizar histórico de dados médicos Visualizar alterações no perfil Nem todos os colaboradores do sistema devem ter acesso a todas essas funcionalidades.
+
+Um atendente precisa apenas do acesso a cadastrar paciente, visualizar e alterar todos os dados do paciente mas não os de cobrança, suspender e excluir um paciente. Já um farmacêutico precisa apenas visualizar dados pessoais do paciente, e seus dados médicos, mas nenhuma outra informação e ou ação pode ser realizada por essa função.
+
+Utilizando assim o princípio do menor privilégio, onde cada usuário no sistema deve ser capaz de acessar apenas as funcionalidades essenciais para seu trabalho e nenhuma outra a mais. (MVP) Gerenciamento do ambiente de clientes
+
+O painel de controle do Endurancy proporciona aos administradores um conjunto completo de ferramentas para gerenciar os ambientes dos clientes de forma eficaz, garantindo operações suaves e consistentes em todo o sistema.
+
+(MVP) Lista de ambientes: Visualizar os ambientes existentes, com a capacidade de filtrar os ambientes.
+
+(MVP) Ativar e Desativar Ambientes: Oferecendo a flexibilidade necessária para iniciar ou encerrar operações.
+
+(MVP) Suspender ambientes: Possibilitando a pausa das atividades em um ambiente específico, sem a necessidade de desligamento completo, o que mantém o estado atual do sistema preservado para retomada posterior.
+
+(MVP) Automatizar ações: Permitindo a execução automática de ações em resposta a eventos do sistema, reduzindo a dependência de intervenções manuais e garantindo uma operação mais eficiente e livre de problemas.
+
+Modo de apenas leitura: Paralisando temporariamente a capacidade de modificação em um ambiente, garantindo que ele permaneça acessível para visualização, mas protegido contra alterações indesejadas.
+
+Reconfigurar: Capacidade de ajustar e configurar certas opções nos ambientes da organização para garantir sua funcionalidade e estabilidade contínuas, adaptando-se às necessidades em constante evolução dos usuários e do sistema.

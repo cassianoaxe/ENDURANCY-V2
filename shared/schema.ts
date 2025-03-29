@@ -25,7 +25,7 @@ export const organizations = pgTable("organizations", {
   adminName: text("admin_name").notNull(),
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
-  website: text("website"),
+  website: text("website").notNull().default(''),
   plan: text("plan").notNull(),
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
   email: text("email").notNull(),
