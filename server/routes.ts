@@ -17,7 +17,10 @@ declare module 'express-session' {
     user: {
       id: number;
       username: string;
-      role: string;
+      role: 'admin' | 'org_admin' | 'doctor' | 'patient';
+      name: string;
+      email: string;
+      organizationId: number | null;
     };
   }
 }
@@ -82,6 +85,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: 'admin',
           password: 'admin123', // In production, this should be hashed
           role: 'admin',
+          name: 'Administrador do Sistema',
+          email: 'admin@endurancy.com',
         });
         console.log('Admin user created');
       }
