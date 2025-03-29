@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
+import OrganizationConfirmation from "@/pages/OrganizationConfirmation";
 import EmailTemplates from "@/pages/EmailTemplates";
 import Settings from "@/pages/Settings";
 import OrderView from "@/pages/OrderView";
@@ -231,6 +232,11 @@ function AppContent() {
     return <NotFound />;
   }
   
+  // Organization confirmation page
+  if (currentPath === '/organization-confirmation') {
+    return <OrganizationConfirmation />;
+  }
+
   // Admin-specific routes require admin privileges
   if (['/analytics', '/activity-log', '/backups', '/emergencies', 
        '/plans', '/organizations', '/organization-registration', 
