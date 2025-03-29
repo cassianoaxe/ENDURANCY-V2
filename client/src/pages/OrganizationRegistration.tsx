@@ -8,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { insertOrganizationSchema, type InsertOrganization } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle } from "lucide-react";
+import { z } from "zod";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
@@ -27,6 +28,8 @@ export default function OrganizationRegistration() {
       type: 'Empresa',
       status: 'pending',
       termsAccepted: false,
+      adminName: '',
+      website: '',
     }
   });
 
@@ -59,7 +62,8 @@ export default function OrganizationRegistration() {
       });
       setLocation('/organizations');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error creating organization:", error);
       toast({
         title: "Erro ao criar organização",
         description: "Por favor, tente novamente.",
@@ -69,7 +73,8 @@ export default function OrganizationRegistration() {
   });
 
   const nextStep = async () => {
-    const currentStepValid = await form.trigger();
+    const fields = getFieldsForStep(step);
+    const currentStepValid = await form.trigger(fields);
     if (currentStepValid && step < 4) setStep(step + 1);
   };
 
@@ -90,6 +95,21 @@ export default function OrganizationRegistration() {
     createOrganization.mutate({ ...data, document: selectedFile });
   };
 
+  const getFieldsForStep = (step: number): (keyof InsertOrganization)[] => {
+    switch (step) {
+      case 1: 
+        return ['type', 'cnpj', 'website', 'phone', 'email', 'adminCpf', 'adminName', 'password', 'confirmPassword'];
+      case 2:
+        return ['name', 'address', 'city', 'state'];
+      case 3:
+        return ['plan', 'bankName', 'bankBranch', 'bankAccount'];
+      case 4:
+        return ['termsAccepted'];
+      default:
+        return [];
+    }
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -103,14 +123,20 @@ export default function OrganizationRegistration() {
         </div>
       </div>
 
-      <div className="flex gap-4 mb-8">
-        {[1, 2, 3, 4].map((number) => (
-          <div
-            key={number}
-            className={`h-2 flex-1 rounded-full ${
-              step >= number ? 'bg-primary' : 'bg-gray-200'
-            }`}
-          />
+      <div className="grid grid-cols-4 gap-2 mb-8">
+        {['Informações Básicas', 'Dados da Organização', 'Plano e Dados Bancários', 'Termos e Condições'].map((label, index) => (
+          <div key={index} className="relative">
+            <div
+              className={`h-2 w-full rounded-full ${
+                step > index+1 ? 'bg-green-500' : 
+                step === index+1 ? 'bg-primary' : 'bg-gray-200'
+              }`}
+            />
+            <span className="text-xs mt-1 block">{label}</span>
+            {step > index+1 && (
+              <Check size={16} className="absolute -top-1 -right-1 text-green-500 bg-white rounded-full" />
+            )}
+          </div>
         ))}
       </div>
 
@@ -119,153 +145,176 @@ export default function OrganizationRegistration() {
           {step === 1 && (
             <Card>
               <CardHeader>
-                <CardTitle>Informações Iniciais</CardTitle>
+                <CardTitle>Informações Básicas</CardTitle>
+                <CardDescription>Insira as informações básicas da organização</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Tipo de Organização*</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Empresa">Empresa</SelectItem>
-                          <SelectItem value="Associação">Associação</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cnpj"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CNPJ*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="37.206.081/0001-24" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Website</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://www.exemplo.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="83981321486" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email do Administrador*</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" placeholder="cassianoaxe@gmail.com" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="adminCpf"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CPF do Administrador*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="XXX.XXX.XXX-XX" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha*</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Senha*</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="password" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="col-span-2">
-                  <h3 className="text-sm font-medium mb-2">Documentação*</h3>
-                  <div className="border-2 border-dashed rounded-lg p-4">
-                    <input
-                      type="file"
-                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="hidden"
-                      id="document-upload"
-                      accept=".pdf,.doc,.docx"
-                    />
-                    <label
-                      htmlFor="document-upload"
-                      className="cursor-pointer text-blue-600 hover:text-blue-800"
-                    >
-                      {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
-                    </label>
-                    {selectedFile && (
-                      <p className="mt-2 text-sm text-gray-600">
-                        Arquivo selecionado: {selectedFile.name}
-                      </p>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Organização*</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Empresa">Empresa</SelectItem>
+                            <SelectItem value="Associação">Associação</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
                     )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="adminName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Administrador*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cnpj"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CNPJ*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="37.206.081/0001-24" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="website"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="https://www.exemplo.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="83981321486" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email do Administrador*</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" placeholder="cassianoaxe@gmail.com" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="adminCpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF do Administrador*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="XXX.XXX.XXX-XX" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex gap-4">
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Senha*</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="password" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Confirmar Senha*</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="password" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2">
+                    <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="document-upload"
+                        accept=".pdf,.doc,.docx"
+                      />
+                      <label
+                        htmlFor="document-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="h-8 w-8 text-primary" />
+                        <span className="text-blue-600 hover:text-blue-800 font-medium">
+                          {form.watch('type') === 'Empresa' ? 'Upload do Contrato Social*' : 'Upload do Estatuto*'}
+                        </span>
+                        <span className="text-xs text-gray-500">Formatos aceitos: PDF, DOC, DOCX</span>
+                      </label>
+                      {selectedFile && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-green-600 bg-green-50 p-2 rounded">
+                          <FileText className="h-4 w-4" />
+                          <span className="text-sm">{selectedFile.name}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -276,63 +325,66 @@ export default function OrganizationRegistration() {
             <Card>
               <CardHeader>
                 <CardTitle>Dados da Organização</CardTitle>
+                <CardDescription>Insira os dados de identificação da organização</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Nome da Organização*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Nome da Organização*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="CASSIANO RICARDO TEIXEIRA GOMES" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Endereço*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Rua joaquim martins da silva" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Endereço*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Rua joaquim martins da silva" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade*</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cidade*</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado*</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado*</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
@@ -341,75 +393,82 @@ export default function OrganizationRegistration() {
             <Card>
               <CardHeader>
                 <CardTitle>Plano e Dados Bancários</CardTitle>
+                <CardDescription>Escolha um plano e informe os dados bancários</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="plan"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Plano*</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="plan"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Plano*</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o plano" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="basic">Básico - R$ 99/mês</SelectItem>
+                            <SelectItem value="pro">Pro - R$ 199/mês</SelectItem>
+                            <SelectItem value="enterprise">Enterprise - R$ 499/mês</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="col-span-1 md:col-span-2 mt-4">
+                    <h3 className="text-lg font-medium mb-3">Dados Bancários</h3>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="bankName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Banco*</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o plano" />
-                          </SelectTrigger>
+                          <Input {...field} placeholder="Nome do Banco" />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="basic">Básico - R$ 99/mês</SelectItem>
-                          <SelectItem value="pro">Pro - R$ 199/mês</SelectItem>
-                          <SelectItem value="enterprise">Enterprise - R$ 499/mês</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="bankName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Banco*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Nome do Banco" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="bankBranch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Agência*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Número da Agência" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="bankBranch"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Agência*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Número da Agência" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="bankAccount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Conta*</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Número da Conta" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="bankAccount"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Conta*</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Número da Conta" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
@@ -418,12 +477,21 @@ export default function OrganizationRegistration() {
             <Card>
               <CardHeader>
                 <CardTitle>Termos de Uso</CardTitle>
+                <CardDescription>Leia e aceite os termos para finalizar o registro</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="border rounded-lg p-4">
-                  <div className="h-40 overflow-y-auto text-sm text-gray-600 mb-4">
-                    {/* Add terms of use text here */}
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+                  <div className="h-60 overflow-y-auto text-sm text-gray-600 mb-4 p-4 bg-gray-50 rounded">
+                    <h4 className="font-semibold mb-2">Termos e Condições de Uso da Plataforma Endurancy</h4>
+                    <p className="mb-3">Ao utilizar a plataforma Endurancy, você concorda com os seguintes termos:</p>
+                    <ol className="list-decimal pl-5 space-y-2">
+                      <li>A organização declara que todas as informações fornecidas são verdadeiras e precisas.</li>
+                      <li>A Endurancy reserva-se o direito de verificar as informações fornecidas e solicitar documentação adicional quando necessário.</li>
+                      <li>O uso da plataforma está sujeito às leis e regulamentações aplicáveis.</li>
+                      <li>A organização concorda em manter a confidencialidade das credenciais de acesso.</li>
+                      <li>A Endurancy não se responsabiliza por qualquer uso indevido da plataforma.</li>
+                      <li>Estes termos podem ser atualizados periodicamente, e é responsabilidade da organização manter-se informada sobre essas alterações.</li>
+                    </ol>
                   </div>
                   <FormField
                     control={form.control}
@@ -436,7 +504,7 @@ export default function OrganizationRegistration() {
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <FormLabel className="text-sm">
+                        <FormLabel className="text-sm font-medium">
                           Li e aceito os termos de uso*
                         </FormLabel>
                         <FormMessage />
@@ -447,29 +515,56 @@ export default function OrganizationRegistration() {
               </CardContent>
             </Card>
           )}
-
-          <div className="flex justify-between pt-4">
+          
+          <div className="flex justify-between mt-6">
             {step > 1 && (
-              <Button type="button" variant="outline" onClick={prevStep}>
-                <ChevronLeft className="h-4 w-4 mr-2" />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={prevStep}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
                 Anterior
               </Button>
             )}
+            
             {step < 4 ? (
-              <Button type="button" onClick={nextStep} className="ml-auto">
+              <Button 
+                type="button" 
+                onClick={nextStep}
+                className="ml-auto flex items-center gap-2"
+              >
                 Próximo
-                <ChevronRight className="h-4 w-4 ml-2" />
+                <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button
                 type="submit"
                 disabled={!form.watch('termsAccepted') || createOrganization.isPending}
-                className="ml-auto"
+                className="ml-auto flex items-center gap-2"
               >
-                Finalizar Registro
+                {createOrganization.isPending ? (
+                  <>
+                    Enviando...
+                    <span className="animate-spin ml-1">⏳</span>
+                  </>
+                ) : (
+                  <>
+                    Finalizar Registro
+                    <Save className="h-4 w-4" />
+                  </>
+                )}
               </Button>
             )}
           </div>
+          
+          {selectedFile === null && step === 1 && (
+            <div className="flex items-center gap-2 text-amber-600 mt-4 p-2 bg-amber-50 rounded border border-amber-200">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Lembre-se de fazer o upload do documento da organização.</span>
+            </div>
+          )}
         </form>
       </Form>
     </div>
