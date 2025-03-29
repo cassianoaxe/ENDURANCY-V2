@@ -187,6 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values({
           ...organizationData,
           status: 'pending',
+          createdAt: new Date()
         })
         .returning();
 
@@ -202,6 +203,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating organization:", error);
       res.status(500).json({ message: "Failed to create organization" });
+    }
+  });
+  
+  // Update organization status
+  app.patch("/api/organizations/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!status || !['pending', 'approved', 'rejected', 'active'].includes(status)) {
+        return res.status(400).json({ message: "Valid status is required" });
+      }
+      
+      // Check if the organization exists
+      const existingOrg = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, parseInt(id)));
+        
+      if (existingOrg.length === 0) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Update the organization status
+      const [updatedOrg] = await db.update(organizations)
+        .set({ 
+          status: status
+        })
+        .where(eq(organizations.id, parseInt(id)))
+        .returning();
+      
+      res.json(updatedOrg);
+    } catch (error) {
+      console.error("Error updating organization:", error);
+      res.status(500).json({ message: "Failed to update organization" });
     }
   });
   
