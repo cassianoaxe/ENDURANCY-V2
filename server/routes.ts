@@ -104,10 +104,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password, userType } = req.body;
+      const { username, password, userType, orgCode } = req.body;
       
-      console.log("Login attempt:", { username, userType });
+      console.log("Login attempt:", { username, userType, hasOrgCode: !!orgCode });
       
+      // Se temos um código de organização, verificar se é válido
+      if (orgCode) {
+        const orgsFound = await db.select().from(organizations).where(eq(organizations.orgCode, orgCode));
+        
+        // Se o código não foi encontrado ou a organização não está ativa, rejeitar o login
+        if (orgsFound.length === 0 || orgsFound[0].status !== 'active') {
+          console.log("Invalid organization code:", orgCode);
+          return res.status(401).json({ message: "Invalid organization code" });
+        }
+        
+        console.log("Valid organization code:", { code: orgCode, orgId: orgsFound[0].id });
+        
+        // Aqui poderia ser feita a conexão com o banco de dados específico da organização
+        // Por enquanto, vamos buscar no banco de dados principal
+        
+        // Buscar usuário pelo nome de usuário e organizationId
+        const usersFound = await db.select().from(users)
+          .where(and(
+            eq(users.username, username),
+            eq(users.organizationId, orgsFound[0].id)
+          ));
+        
+        if (usersFound.length === 0) {
+          console.log("User not found in organization:", { username, orgId: orgsFound[0].id });
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+        
+        const user = usersFound[0];
+        
+        // Verificar a senha
+        if (user.password !== password) {
+          console.log("Invalid password for:", username);
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+        
+        // Remove password from user object before sending to client
+        const { password: _, ...userWithoutPassword } = user;
+        
+        // Set user in session
+        req.session.user = userWithoutPassword;
+        
+        console.log("Login successful for:", { username, role: user.role, orgId: orgsFound[0].id });
+        res.json(userWithoutPassword);
+        return;
+      }
+      
+      // Login normal sem código de organização
       // Primeiro, buscar usuário pelo nome de usuário
       const usersFound = await db.select().from(users).where(eq(users.username, username));
       
@@ -225,10 +272,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organization not found" });
       }
       
-      // Update the organization status
+      // Gerar um código único para a organização se estiver sendo aprovada
+      let orgCode = null;
+      if (status === 'approved') {
+        // Gerar um código único baseado no ID e em um timestamp
+        orgCode = `ORG-${id}-${Date.now().toString(36).toUpperCase()}`;
+        
+        // Verificar se já existe uma organização com este código (por segurança)
+        const existingWithCode = await db.select()
+          .from(organizations)
+          .where(eq(organizations.orgCode, orgCode));
+        
+        if (existingWithCode.length > 0) {
+          // Se por acaso houver colisão, regenerar o código
+          orgCode = `ORG-${id}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+        }
+        
+        console.log(`Organization ${id} approved with code: ${orgCode}`);
+        
+        // Aqui seria o lugar para criar um banco de dados específico para a organização
+        // Por enquanto, vamos apenas registrar o código único
+      }
+      
+      // Update the organization status and code if applicable
       const [updatedOrg] = await db.update(organizations)
         .set({ 
-          status: status
+          status: status,
+          ...(orgCode ? { orgCode } : {})
         })
         .where(eq(organizations.id, parseInt(id)))
         .returning();

@@ -54,11 +54,16 @@ export default function Requests() {
       const res = await apiRequest("PATCH", `/api/organizations/${orgId}`, { status: "approved" });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      
+      const orgCode = data.orgCode;
+      
       toast({
         title: "Organização aprovada com sucesso!",
-        description: "A organização foi aprovada e seus administradores foram notificados.",
+        description: orgCode 
+          ? `Código de acesso gerado: ${orgCode}`
+          : "A organização foi aprovada e seus administradores foram notificados.",
       });
     },
     onError: () => {
