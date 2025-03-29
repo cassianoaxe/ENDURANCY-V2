@@ -1,8 +1,18 @@
 import React from "react";
-import { Bell, Sun, User } from "lucide-react";
+import { Bell, Sun, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
+  const { user, logout } = useAuth();
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
 
   // Update current path when URL changes
@@ -44,9 +54,29 @@ export default function Header() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
           </Button>
-          <Button variant="ghost" size="icon" className="user-profile">
-            <User className="h-5 w-5" />
-          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="user-profile">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuItem className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={logout} 
+                className="text-red-600 cursor-pointer"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
