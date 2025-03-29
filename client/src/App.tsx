@@ -14,6 +14,7 @@ import OrderView from "@/pages/OrderView";
 import Login from "@/pages/Login";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import TourGuide from "@/components/features/TourGuide";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -89,9 +90,12 @@ function AppContent() {
 
   // Return the app content
   return (
-    <Layout>
-      {renderContent()}
-    </Layout>
+    <>
+      <Layout>
+        {renderContent()}
+      </Layout>
+      <TourGuide />
+    </>
   );
 }
 
