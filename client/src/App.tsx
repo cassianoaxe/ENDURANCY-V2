@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route } from "wouter";
+import { Route, Router } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,66 +7,61 @@ import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
-import ActivityLog from "@/pages/ActivityLog";
-import Backups from "@/pages/Backups";
-import Emergencies from "@/pages/Emergencies";
-import Plans from "@/pages/Plans";
 import Organizations from "@/pages/Organizations";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
-import Requests from "@/pages/Requests";
-import Financial from "@/pages/Financial";
 import EmailTemplates from "@/pages/EmailTemplates";
-import Administrators from "@/pages/Administrators";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
-// Public Routes
-function PublicRouter() {
+// Wrapper component that handles authentication for protected pages
+const ProtectedPage = ({ component: Component }: { component: React.ComponentType }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    window.location.href = "/login";
+    return null;
+  }
+  
   return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route>
-        <ProtectedRouter />
-      </Route>
-    </Switch>
+    <Layout>
+      <Component />
+    </Layout>
   );
-}
+};
 
-// Protected Routes - Requires Authentication
-function ProtectedRouter() {
-  return (
-    <ProtectedRoute>
-      <Layout>
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/registro-de-atividades" component={ActivityLog} />
-          <Route path="/backups" component={Backups} />
-          <Route path="/emergencias" component={Emergencies} />
-          <Route path="/planos" component={Plans} />
-          <Route path="/organizacoes" component={Organizations} />
-          <Route path="/organization-registration" component={OrganizationRegistration} />
-          <Route path="/solicitacoes" component={Requests} />
-          <Route path="/financeiro" component={Financial} />
-          <Route path="/templates-de-email" component={EmailTemplates} />
-          <Route path="/administradores" component={Administrators} />
-          <Route path="/configuracoes" component={Settings} />
-          <Route component={NotFound} />
-        </Switch>
-      </Layout>
-    </ProtectedRoute>
-  );
-}
+// Simple router
+const simpleRoutes = {
+  "/": () => <ProtectedPage component={Dashboard} />,
+  "/dashboard": () => <ProtectedPage component={Dashboard} />,
+  "/analytics": () => <ProtectedPage component={Analytics} />,
+  "/organizacoes": () => <ProtectedPage component={Organizations} />,
+  "/organization-registration": () => <ProtectedPage component={OrganizationRegistration} />,
+  "/templates-de-email": () => <ProtectedPage component={EmailTemplates} />,
+  "/configuracoes": () => <ProtectedPage component={Settings} />,
+  "/login": () => <Login />,
+  "/:rest*": () => <NotFound />
+};
 
 function App() {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <PublicRouter />
+          <Router>
+            {Object.entries(simpleRoutes).map(([path, Component]) => (
+              <Route key={path} path={path} component={Component} />
+            ))}
+          </Router>
           <Toaster />
         </AuthProvider>
       </QueryClientProvider>

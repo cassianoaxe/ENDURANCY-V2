@@ -465,8 +465,7 @@ export default function OrganizationRegistration() {
                     selectedPlan={selectedPlan}
                     onPaymentSuccess={(paymentId) => {
                       setPaymentIntentId(paymentId);
-                      form.setValue('paymentIntentId', paymentId);
-                      form.setValue('paymentStatus', 'paid');
+                      // We no longer store payment status in the database
                       setShowPaymentForm(false);
                       toast({
                         title: "Pagamento confirmado!",
