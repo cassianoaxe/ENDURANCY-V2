@@ -60,7 +60,7 @@ export default function OrderView() {
 
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <OrderTimeline status={order.status} createdAt={order.createdAt} />
-          <OrderFinancials total={order.total} />
+          <OrderFinancials total={typeof order.total === 'string' ? parseFloat(order.total) : Number(order.total)} />
         </div>
       </div>
     </div>

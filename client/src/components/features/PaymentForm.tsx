@@ -24,6 +24,34 @@ export function PaymentFormWrapper({
   onBack: () => void;
   selectedPlan: Plan;
 }) {
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  // Handle case when Stripe is not initialized
+  useEffect(() => {
+    // Check if Stripe key is available
+    if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) {
+      setStripeError("Chave Stripe não encontrada. Por favor, configure a chave VITE_STRIPE_PUBLISHABLE_KEY.");
+    }
+  }, []);
+
+  if (stripeError) {
+    return (
+      <Card className="w-full max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle>Erro de Configuração</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertDescription>{stripeError}</AlertDescription>
+          </Alert>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={onBack}>Voltar</Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   return (
     <Elements stripe={stripePromise}>
       <PaymentForm
