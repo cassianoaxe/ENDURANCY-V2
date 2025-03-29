@@ -89,6 +89,8 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     website: true,
     plan: true,
     status: true,
+    paymentStatus: true,
+    paymentIntentId: true,
     email: true,
     adminCpf: true,
     password: true,
