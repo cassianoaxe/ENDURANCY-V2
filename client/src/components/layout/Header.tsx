@@ -44,7 +44,7 @@ export default function Header() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="user-profile">
             <User className="h-5 w-5" />
           </Button>
         </div>

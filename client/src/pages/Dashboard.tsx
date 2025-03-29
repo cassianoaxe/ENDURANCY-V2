@@ -24,7 +24,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       <p className="text-gray-600 mb-8">Gerencie todas as organizações e usuários da plataforma.</p>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8 dashboard-stats">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total de Organizações</CardTitle>
