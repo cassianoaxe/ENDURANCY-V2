@@ -3,7 +3,10 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: number;
   username: string;
-  role: string;
+  role: 'admin' | 'org_admin' | 'doctor' | 'patient';
+  name: string;
+  email: string;
+  organizationId: number | null;
 }
 
 interface AuthContextType {
@@ -57,8 +60,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = await response.json();
       setUser(userData);
       
+      // Redirecionar com base no papel do usuário
+      let redirectPath = '/dashboard';
+      
+      if (userData.role === 'admin') {
+        redirectPath = '/dashboard';
+      } else if (userData.role === 'org_admin') {
+        redirectPath = '/organization/dashboard';
+      } else if (userData.role === 'doctor') {
+        redirectPath = '/doctor/dashboard';
+      } else if (userData.role === 'patient') {
+        redirectPath = '/patient/dashboard';
+      }
+      
       // Use window.history instead of wouter
-      window.history.pushState({}, '', '/dashboard');
+      window.history.pushState({}, '', redirectPath);
       // Dispatch a custom event to notify about path change
       window.dispatchEvent(new Event('popstate'));
     } catch (error) {

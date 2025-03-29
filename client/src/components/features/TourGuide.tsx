@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SpotlightTour } from 'react-spotlight-tour';
 import { Button } from '@/components/ui/button';
+// Custom hooks
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { X, HelpCircle } from 'lucide-react';
 

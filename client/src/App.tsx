@@ -22,6 +22,13 @@ import Administrators from "@/pages/Administrators";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+
+// Import role-specific dashboards
+import AdminDashboard from "@/pages/dashboards/AdminDashboard";
+import OrgAdminDashboard from "@/pages/dashboards/OrgAdminDashboard";
+import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
+import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -69,44 +76,88 @@ function AppContent() {
     setCurrentPath('/');
   }
 
-  // Render the appropriate component based on the current path
+  // Render the appropriate component based on the current path and user role
   const renderContent = () => {
+    const { user } = useAuth();
+    const userRole = user?.role;
+
     // Check if the path matches an order view pattern (/orders/123)
     if (currentPath.startsWith('/orders/')) {
       return <OrderView />;
     }
     
-    switch (currentPath) {
-      case '/':
-      case '/dashboard':
-        return <Dashboard />;
-      case '/analytics':
-        return <Analytics />;
-      case '/activity-log':
-        return <ActivityLog />;
-      case '/backups':
-        return <Backups />;
-      case '/emergencies':
-        return <Emergencies />;
-      case '/plans':
-        return <Plans />;
-      case '/organizations':
-        return <Organizations />;
-      case '/organization-registration':
-        return <OrganizationRegistration />;
-      case '/requests':
-        return <Requests />;
-      case '/financial':
-        return <Financial />;
-      case '/email-templates':
-        return <EmailTemplates />;
-      case '/administrators':
-        return <Administrators />;
-      case '/settings':
-        return <Settings />;
-      default:
-        return <NotFound />;
+    // Role-specific dashboards
+    if (currentPath === '/dashboard' || currentPath === '/') {
+      if (userRole === 'admin') {
+        return <AdminDashboard />;
+      } else if (userRole === 'org_admin') {
+        return <OrgAdminDashboard />;
+      } else if (userRole === 'doctor') {
+        return <DoctorDashboard />;
+      } else if (userRole === 'patient') {
+        return <PatientDashboard />;
+      }
+      // Fallback to the original dashboard if role isn't recognized
+      return <Dashboard />;
     }
+    
+    // Handle organization-specific routes
+    if (currentPath.startsWith('/organization/')) {
+      return (
+        <ProtectedRoute allowedRoles={['org_admin']}>
+          {currentPath === '/organization/dashboard' ? <OrgAdminDashboard /> : <NotFound />}
+        </ProtectedRoute>
+      );
+    }
+    
+    // Handle doctor-specific routes
+    if (currentPath.startsWith('/doctor/')) {
+      return (
+        <ProtectedRoute allowedRoles={['doctor']}>
+          {currentPath === '/doctor/dashboard' ? <DoctorDashboard /> : <NotFound />}
+        </ProtectedRoute>
+      );
+    }
+    
+    // Handle patient-specific routes
+    if (currentPath.startsWith('/patient/')) {
+      return (
+        <ProtectedRoute allowedRoles={['patient']}>
+          {currentPath === '/patient/dashboard' ? <PatientDashboard /> : <NotFound />}
+        </ProtectedRoute>
+      );
+    }
+    
+    // Admin-specific routes require admin privileges
+    if (['/analytics', '/activity-log', '/backups', '/emergencies', 
+         '/plans', '/organizations', '/organization-registration', 
+         '/requests', '/financial', '/email-templates', 
+         '/administrators', '/settings'].includes(currentPath)) {
+      return (
+        <ProtectedRoute allowedRoles={['admin']}>
+          {(() => {
+            switch (currentPath) {
+              case '/analytics': return <Analytics />;
+              case '/activity-log': return <ActivityLog />;
+              case '/backups': return <Backups />;
+              case '/emergencies': return <Emergencies />;
+              case '/plans': return <Plans />;
+              case '/organizations': return <Organizations />;
+              case '/organization-registration': return <OrganizationRegistration />;
+              case '/requests': return <Requests />;
+              case '/financial': return <Financial />;
+              case '/email-templates': return <EmailTemplates />;
+              case '/administrators': return <Administrators />;
+              case '/settings': return <Settings />;
+              default: return <NotFound />;
+            }
+          })()}
+        </ProtectedRoute>
+      );
+    }
+    
+    // Default case for unrecognized paths
+    return <NotFound />;
   };
 
   // Return the app content
