@@ -48,6 +48,7 @@ export const organizations = pgTable("organizations", {
   termsAccepted: boolean("terms_accepted").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  orgCode: text("org_code").unique(),
 });
 
 export const organizationDocuments = pgTable("organization_documents", {

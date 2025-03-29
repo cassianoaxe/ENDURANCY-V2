@@ -74,8 +74,21 @@ function AppContent() {
     );
   }
 
-  // If not authenticated, only show login page
+  // If not authenticated, handle login pages
   if (!isAuthenticated) {
+    // Check if this is an organization-specific login URL (e.g., /login/ORG-123-ABC)
+    const orgLoginMatch = currentPath.match(/^\/login\/([^\/]+)$/);
+    if (orgLoginMatch) {
+      // The orgCode will be extracted in the Login component
+      return <Login />;
+    }
+    // Regular login
+    if (currentPath === '/login') {
+      return <Login />;
+    }
+    // Redirect to login for any other path
+    window.history.pushState({}, '', '/login');
+    setCurrentPath('/login');
     return <Login />;
   }
 

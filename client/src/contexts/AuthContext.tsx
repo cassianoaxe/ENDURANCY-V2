@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient') => Promise<void>;
+  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient', orgCode?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -42,13 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuthStatus();
   }, []);
 
-  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient') => {
+  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient', orgCode?: string) => {
     setIsLoading(true);
     try {
-      // Incluir o tipo de usuário na solicitação de login se estiver disponível
-      const requestBody = userType 
-        ? { username, password, userType } 
-        : { username, password };
+      // Construir o corpo da requisição com base nos parâmetros disponíveis
+      let requestBody: any = { username, password };
+      
+      // Adicionar tipo de usuário se disponível
+      if (userType) {
+        requestBody.userType = userType;
+      }
+      
+      // Adicionar código da organização se disponível
+      if (orgCode) {
+        requestBody.orgCode = orgCode;
+      }
         
       const response = await fetch('/api/auth/login', {
         method: 'POST',
