@@ -4,11 +4,12 @@ import multer from "multer";
 import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
-import { organizations, organizationDocuments, users } from "@shared/schema";
+import { organizations, organizationDocuments, users, plans } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
+import { createPaymentIntent, retrievePaymentIntent, initializePlans } from "./services/stripe";
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -92,6 +93,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize admin user
   initializeAdmin();
   
+  // Initialize sample plans
+  initializePlans();
+  
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -174,6 +178,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating organization:", error);
       res.status(500).json({ message: "Failed to create organization" });
+    }
+  });
+  
+  // Plans Routes
+  app.get("/api/plans", async (_req, res) => {
+    try {
+      const plansList = await db.select().from(plans);
+      res.json(plansList);
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      res.status(500).json({ message: "Failed to fetch plans" });
+    }
+  });
+  
+  // Payment Routes
+  app.post("/api/payments/create-intent", async (req, res) => {
+    try {
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "Plan ID is required" });
+      }
+      
+      const clientSecret = await createPaymentIntent(planId);
+      res.json({ clientSecret });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+  
+  app.post("/api/payments/confirm", async (req, res) => {
+    try {
+      const { paymentIntentId, organizationId } = req.body;
+      
+      if (!paymentIntentId || !organizationId) {
+        return res.status(400).json({ message: "Payment intent ID and organization ID are required" });
+      }
+      
+      // Verify payment was successful
+      const paymentIntent = await retrievePaymentIntent(paymentIntentId);
+      
+      if (paymentIntent.status === 'succeeded') {
+        // Update organization status to active
+        await db.update(organizations)
+          .set({ status: 'active', paymentStatus: 'paid' })
+          .where(eq(organizations.id, organizationId));
+        
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: "Payment not completed",
+          status: paymentIntent.status
+        });
+      }
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Failed to confirm payment" });
     }
   });
 
