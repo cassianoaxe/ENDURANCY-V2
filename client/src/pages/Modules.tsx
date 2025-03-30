@@ -87,24 +87,33 @@ const moduleSpecificData: Record<string, any> = {
     }
   },
   producao: {
-    longDescription: "O módulo de produção permite controlar todo o processo produtivo, desde a matéria-prima até o produto final.",
+    longDescription: "O módulo de Produção oferece ferramentas completas para controle de qualidade, gestão de fornecedores, matérias-primas e processos de produção, garantindo rastreabilidade e conformidade regulatória.",
     features: [
-      "Planejamento de produção",
       "Controle de qualidade",
-      "Rastreabilidade de lotes",
-      "Gestão de maquinário",
-      "Eficiência produtiva"
+      "Gestão de fornecedores",
+      "Controle de matérias-primas",
+      "Ordens de produção",
+      "Rastreabilidade"
     ],
+    subtitle: "Controle de produção e qualidade",
     stats: {
-      activeOrgs: 4,
-      totalOrgs: 6,
-      monthlyRevenue: 3200,
-      avgPrice: 1066.67,
+      activeOrgs: 12,
+      totalActiveOrgs: 12,
+      monthlyRevenue: 28750,
+      adoptionRate: 27,
+      growthRate: 5,
       activeProductions: 18,
       productionGrowth: 5,
       products: 45,
       productGrowth: 7
-    }
+    },
+    recentOrgs: [
+      {
+        name: "MediCannabis Farma", 
+        plan: "Plano Profissional",
+        status: "Ativo"
+      }
+    ]
   },
 };
 
@@ -264,7 +273,7 @@ export default function Modules() {
                 <div>
                   <h1 className="text-2xl font-bold">Módulo {selectedModule.name.split(' ').slice(1).join(' ')}</h1>
                   <p className="text-muted-foreground">
-                    Controle de {selectedModule.type.toLowerCase()} e qualidade
+                    {moduleData.subtitle || `Controle de ${selectedModule.type.toLowerCase()} e qualidade`}
                   </p>
                 </div>
               </div>
@@ -345,57 +354,78 @@ export default function Modules() {
               </TabsList>
 
               <TabsContent value="visao-geral" className="mt-0">
-                <Card className="mb-8">
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="md:col-span-2">
-                        <h2 className="text-xl font-bold mb-3">Informações do Módulo</h2>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Detalhes sobre o módulo de {selectedModule.type.toLowerCase()} e suas funcionalidades
-                        </p>
+                {selectedModule.type.toLowerCase() === 'producao' ? (
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <h2 className="text-2xl font-bold mb-4">Sobre o Módulo</h2>
+                      <p className="mb-6">
+                        O módulo de Produção oferece ferramentas completas para controle de qualidade, gestão de fornecedores, matérias-primas e processos de produção, garantindo rastreabilidade e conformidade regulatória.
+                      </p>
+                      
+                      <h3 className="text-xl font-medium mb-3">Recursos Principais</h3>
+                      <ul className="space-y-2">
+                        {moduleData.features.map((feature, index) => (
+                          <li key={index} className="flex items-start">
+                            <Check className="mr-2 h-5 w-5 text-green-500 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="mb-8">
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2">
+                          <h2 className="text-xl font-bold mb-3">Informações do Módulo</h2>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Detalhes sobre o módulo de {selectedModule.type.toLowerCase()} e suas funcionalidades
+                          </p>
 
-                        <p className="mb-4">{moduleData.longDescription}</p>
+                          <p className="mb-4">{moduleData.longDescription}</p>
 
-                        <h3 className="font-semibold mb-3">Principais Funcionalidades:</h3>
-                        <ul className="space-y-1">
-                          {moduleData.features.map((feature, index) => (
-                            <li key={index} className="flex items-start">
-                              <Check className="mr-2 h-5 w-5 text-green-500 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                          <h3 className="font-semibold mb-3">Principais Funcionalidades:</h3>
+                          <ul className="space-y-1">
+                            {moduleData.features.map((feature, index) => (
+                              <li key={index} className="flex items-start">
+                                <Check className="mr-2 h-5 w-5 text-green-500 flex-shrink-0" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
 
-                      <div>
-                        <h2 className="text-xl font-bold mb-3">Estatísticas</h2>
-                        
-                        <div className="space-y-4">
-                          <div className="flex justify-between border-b pb-2">
-                            <span className="text-muted-foreground">Organizações ativas:</span>
-                            <span className="font-medium">
-                              {moduleData.stats.activeOrgs} / {moduleData.stats.totalOrgs}
-                            </span>
-                          </div>
+                        <div>
+                          <h2 className="text-xl font-bold mb-3">Estatísticas</h2>
                           
-                          <div className="flex justify-between border-b pb-2">
-                            <span className="text-muted-foreground">Receita mensal:</span>
-                            <span className="font-medium">
-                              R$ {moduleData.stats.monthlyRevenue}
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between pb-2">
-                            <span className="text-muted-foreground">Preço médio:</span>
-                            <span className="font-medium">
-                              R$ {moduleData.stats.avgPrice}
-                            </span>
+                          <div className="space-y-4">
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Organizações ativas:</span>
+                              <span className="font-medium">
+                                {moduleData.stats.activeOrgs} / {moduleData.stats.totalOrgs}
+                              </span>
+                            </div>
+                            
+                            <div className="flex justify-between border-b pb-2">
+                              <span className="text-muted-foreground">Receita mensal:</span>
+                              <span className="font-medium">
+                                R$ {moduleData.stats.monthlyRevenue}
+                              </span>
+                            </div>
+                            
+                            <div className="flex justify-between pb-2">
+                              <span className="text-muted-foreground">Preço médio:</span>
+                              <span className="font-medium">
+                                R$ {moduleData.stats.avgPrice}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <StatCard 
@@ -414,7 +444,7 @@ export default function Modules() {
                     icon={DollarSign}
                   />
                   
-                  {selectedModule.type === 'cultivo' && (
+                  {selectedModule.type.toLowerCase() === 'cultivo' && (
                     <>
                       <StatCard 
                         title="Plantas Rastreadas" 
@@ -436,7 +466,7 @@ export default function Modules() {
                     </>
                   )}
                   
-                  {selectedModule.type === 'compras' && (
+                  {selectedModule.type.toLowerCase() === 'compras' && (
                     <>
                       <StatCard 
                         title="Ordens de Compra" 
@@ -458,7 +488,7 @@ export default function Modules() {
                     </>
                   )}
                   
-                  {selectedModule.type === 'producao' && (
+                  {selectedModule.type.toLowerCase() === 'producao' && (
                     <>
                       <StatCard 
                         title="Produções Ativas" 
@@ -490,33 +520,53 @@ export default function Modules() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <Building className="h-8 w-8 text-primary" />
-                          <div>
-                            <h4 className="font-semibold">Green Medical</h4>
-                            <p className="text-sm text-muted-foreground">Plano Profissional</p>
+                      {selectedModule.type.toLowerCase() === 'producao' ? (
+                        <div className="flex items-center justify-between p-3 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-yellow-100 text-yellow-800 font-semibold">
+                              ME
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">MediCannabis Farma</h4>
+                              <p className="text-sm text-muted-foreground">Plano Profissional</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">3 dias atrás</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">3 dias atrás</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-3 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <Building className="h-8 w-8 text-primary" />
-                          <div>
-                            <h4 className="font-semibold">Cultivar Brasil</h4>
-                            <p className="text-sm text-muted-foreground">Plano Empresarial</p>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between p-3 rounded-lg border">
+                            <div className="flex items-center gap-3">
+                              <Building className="h-8 w-8 text-primary" />
+                              <div>
+                                <h4 className="font-semibold">Green Medical</h4>
+                                <p className="text-sm text-muted-foreground">Plano Profissional</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">3 dias atrás</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">1 semana atrás</span>
-                        </div>
-                      </div>
+                          
+                          <div className="flex items-center justify-between p-3 rounded-lg border">
+                            <div className="flex items-center gap-3">
+                              <Building className="h-8 w-8 text-primary" />
+                              <div>
+                                <h4 className="font-semibold">Cultivar Brasil</h4>
+                                <p className="text-sm text-muted-foreground">Plano Empresarial</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">1 semana atrás</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
                       
                       <Button variant="outline" className="w-full">
                         <Plus className="mr-2 h-4 w-4" />
@@ -528,48 +578,72 @@ export default function Modules() {
               </TabsContent>
 
               <TabsContent value="organizacoes" className="mt-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Organizações utilizando este módulo</CardTitle>
-                    <CardDescription>
-                      Total de {moduleData.stats.activeOrgs} organizações ativas de {moduleData.stats.totalOrgs} cadastradas
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border">
-                      <div className="flex items-center justify-between p-4 bg-muted/30">
-                        <div className="font-medium">Nome</div>
-                        <div className="font-medium">Plano</div>
-                        <div className="font-medium">Status</div>
-                        <div className="font-medium">Data de ativação</div>
-                        <div className="font-medium">Ações</div>
-                      </div>
-                      <div className="divide-y">
-                        <div className="flex items-center justify-between p-4">
-                          <div>Green Medical</div>
-                          <div>Profissional</div>
-                          <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
-                          <div>15/03/2025</div>
-                          <Button variant="ghost" size="sm">Detalhes</Button>
-                        </div>
-                        <div className="flex items-center justify-between p-4">
-                          <div>Cultivar Brasil</div>
-                          <div>Empresarial</div>
-                          <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
-                          <div>22/03/2025</div>
-                          <Button variant="ghost" size="sm">Detalhes</Button>
-                        </div>
-                        <div className="flex items-center justify-between p-4">
-                          <div>Instituto Verde</div>
-                          <div>Básico</div>
-                          <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
-                          <div>28/02/2025</div>
-                          <Button variant="ghost" size="sm">Detalhes</Button>
+                {selectedModule.type.toLowerCase() === 'producao' ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-2xl font-bold">Organizações com o Módulo</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 rounded-lg border">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-yellow-100 text-yellow-800 font-semibold">
+                              ME
+                            </div>
+                            <div>
+                              <h4 className="font-medium">MediCannabis Farma</h4>
+                              <p className="text-sm text-muted-foreground">Plano Profissional</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">Ativo</Button>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Organizações utilizando este módulo</CardTitle>
+                      <CardDescription>
+                        Total de {moduleData.stats.activeOrgs} organizações ativas de {moduleData.stats.totalOrgs} cadastradas
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="rounded-md border">
+                        <div className="flex items-center justify-between p-4 bg-muted/30">
+                          <div className="font-medium">Nome</div>
+                          <div className="font-medium">Plano</div>
+                          <div className="font-medium">Status</div>
+                          <div className="font-medium">Data de ativação</div>
+                          <div className="font-medium">Ações</div>
+                        </div>
+                        <div className="divide-y">
+                          <div className="flex items-center justify-between p-4">
+                            <div>Green Medical</div>
+                            <div>Profissional</div>
+                            <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
+                            <div>15/03/2025</div>
+                            <Button variant="ghost" size="sm">Detalhes</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-4">
+                            <div>Cultivar Brasil</div>
+                            <div>Empresarial</div>
+                            <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
+                            <div>22/03/2025</div>
+                            <Button variant="ghost" size="sm">Detalhes</Button>
+                          </div>
+                          <div className="flex items-center justify-between p-4">
+                            <div>Instituto Verde</div>
+                            <div>Básico</div>
+                            <div><Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge></div>
+                            <div>28/02/2025</div>
+                            <Button variant="ghost" size="sm">Detalhes</Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="precos-planos" className="mt-0">
@@ -648,77 +722,75 @@ export default function Modules() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="uso-metricas" className="mt-0">
+              <TabsContent value="configuracoes" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Métricas de Uso</CardTitle>
+                      <CardTitle>Configurações do Módulo</CardTitle>
                       <CardDescription>
-                        Estatísticas de utilização do módulo
+                        Personalize as configurações deste módulo
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between border-b pb-2">
-                          <span>Total de usuários ativos</span>
-                          <span className="font-medium">127</span>
+                          <span>Disponível para novas organizações</span>
+                          <Badge className="bg-green-500 hover:bg-green-500/80">Ativo</Badge>
                         </div>
                         <div className="flex justify-between border-b pb-2">
-                          <span>Sessões diárias (média)</span>
-                          <span className="font-medium">48</span>
+                          <span>Requer aprovação</span>
+                          <Badge className="bg-green-500 hover:bg-green-500/80">Sim</Badge>
                         </div>
                         <div className="flex justify-between border-b pb-2">
-                          <span>Tempo médio de sessão</span>
-                          <span className="font-medium">26 minutos</span>
+                          <span>Documentação requerida</span>
+                          <Badge variant="outline">Opcional</Badge>
                         </div>
                         <div className="flex justify-between pb-2">
-                          <span>Taxa de adoção</span>
-                          <span className="font-medium">87%</span>
+                          <span>Versão</span>
+                          <span className="font-medium">2.3.1</span>
                         </div>
+                        <Button className="w-full mt-4">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Editar Configurações
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle>Performance do Sistema</CardTitle>
+                      <CardTitle>Integrações</CardTitle>
                       <CardDescription>
-                        Métricas técnicas e de performance
+                        Gerenciar integrações com outros sistemas
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        <div className="flex justify-between border-b pb-2">
-                          <span>Tempo médio de resposta</span>
-                          <span className="font-medium">245ms</span>
+                        <div className="flex justify-between items-center border-b pb-2">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-5 w-5 text-primary" />
+                            <span>ERP Empresarial</span>
+                          </div>
+                          <Badge className="bg-green-500 hover:bg-green-500/80">Conectado</Badge>
                         </div>
-                        <div className="flex justify-between border-b pb-2">
-                          <span>Uso de CPU</span>
-                          <span className="font-medium">32%</span>
+                        <div className="flex justify-between items-center border-b pb-2">
+                          <div className="flex items-center gap-2">
+                            <ShoppingCart className="h-5 w-5 text-primary" />
+                            <span>Sistema de Compras</span>
+                          </div>
+                          <Badge variant="outline">Desconectado</Badge>
                         </div>
-                        <div className="flex justify-between border-b pb-2">
-                          <span>Uso de memória</span>
-                          <span className="font-medium">1.8GB</span>
+                        <div className="flex justify-between items-center pb-2">
+                          <div className="flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5 text-primary" />
+                            <span>Business Intelligence</span>
+                          </div>
+                          <Badge className="bg-green-500 hover:bg-green-500/80">Conectado</Badge>
                         </div>
-                        <div className="flex justify-between pb-2">
-                          <span>Disponibilidade</span>
-                          <span className="font-medium">99.98%</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="md:col-span-2">
-                    <CardHeader>
-                      <CardTitle>Uso ao longo do tempo</CardTitle>
-                      <CardDescription>
-                        Tendências de uso nos últimos 30 dias
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                        <LineChart className="mr-2 h-5 w-5" />
-                        Gráfico de uso será exibido aqui
+                        <Button variant="outline" className="w-full mt-4">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Adicionar Integração
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
