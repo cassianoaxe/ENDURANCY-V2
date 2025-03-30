@@ -983,6 +983,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint para sincronizar pagamentos com transações financeiras
+  app.post('/api/payments/sync-with-financial', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Apenas administradores podem sincronizar pagamentos'
+        });
+      }
+      
+      // Lista todos os planos para referência
+      const plansData = await db.select().from(plans);
+      const modulesData = await db.select().from(modules);
+      const modulePlansData = await db.select().from(modulePlans);
+      
+      // Lista as organizações ativas
+      const orgs = await db.select().from(organizations)
+        .where(eq(organizations.status, 'active'));
+      
+      let syncedCount = 0;
+      
+      // Para cada organização, criar transação para o plano atual se tem pagamento
+      for (const org of orgs) {
+        if (!org.planId) continue;
+        
+        const planDetails = plansData.find(p => p.id === org.planId);
+        if (!planDetails) continue;
+        
+        // Verifica se já existe uma transação para este plano
+        const existingTransaction = await db.select()
+          .from(financialTransactions)
+          .where(and(
+            eq(financialTransactions.organizationId, org.id),
+            eq(financialTransactions.category, 'Assinaturas'),
+            eq(financialTransactions.status, 'pago')
+          ))
+          .orderBy(desc(financialTransactions.createdAt))
+          .limit(1);
+        
+        // Se não existe transação ou a última foi há mais de 25 dias
+        const shouldCreateTransaction = existingTransaction.length === 0 || 
+          (existingTransaction.length > 0 && 
+           new Date().getTime() - new Date(existingTransaction[0].createdAt).getTime() > 25 * 24 * 60 * 60 * 1000);
+        
+        if (shouldCreateTransaction) {
+          // Criar transação financeira para o plano
+          await db.insert(financialTransactions).values({
+            organizationId: org.id,
+            description: `Assinatura do plano ${planDetails.name}`,
+            type: 'receita',
+            category: 'Assinaturas',
+            amount: planDetails.price,
+            status: 'pago',
+            dueDate: new Date(),
+            paymentDate: new Date(),
+            documentNumber: `PLANO-${org.id}-${Date.now()}`,
+            paymentMethod: 'cartão de crédito',
+            notes: 'Transação gerada automaticamente pela sincronização de pagamentos',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          
+          syncedCount++;
+        }
+        
+        // Processa os módulos add-on da organização
+        const orgModules = await db.select()
+          .from(organizationModules)
+          .where(eq(organizationModules.organizationId, org.id));
+        
+        for (const orgModule of orgModules) {
+          const modulePlanDetails = modulePlansData.find(mp => mp.id === orgModule.planId);
+          if (!modulePlanDetails) continue;
+          
+          const moduleDetails = modulesData.find(m => m.id === orgModule.moduleId);
+          if (!moduleDetails) continue;
+          
+          // Verifica se já existe uma transação para este módulo
+          const existingModuleTransaction = await db.select()
+            .from(financialTransactions)
+            .where(and(
+              eq(financialTransactions.organizationId, org.id),
+              eq(financialTransactions.category, 'Módulos Add-on'),
+              eq(financialTransactions.status, 'pago'),
+              sql`${financialTransactions.description} LIKE ${`%${moduleDetails.name}%`}`
+            ))
+            .orderBy(desc(financialTransactions.createdAt))
+            .limit(1);
+          
+          // Se não existe transação ou a última foi há mais de 25 dias
+          const shouldCreateModuleTransaction = existingModuleTransaction.length === 0 || 
+            (existingModuleTransaction.length > 0 && 
+             new Date().getTime() - new Date(existingModuleTransaction[0].createdAt).getTime() > 25 * 24 * 60 * 60 * 1000);
+          
+          if (shouldCreateModuleTransaction) {
+            // Criar transação financeira para o módulo
+            await db.insert(financialTransactions).values({
+              organizationId: org.id,
+              description: `Assinatura do módulo ${moduleDetails.name} - Plano ${modulePlanDetails.name}`,
+              type: 'receita',
+              category: 'Módulos Add-on',
+              amount: modulePlanDetails.price,
+              status: 'pago',
+              dueDate: new Date(),
+              paymentDate: new Date(),
+              documentNumber: `MODULO-${org.id}-${orgModule.moduleId}-${Date.now()}`,
+              paymentMethod: 'cartão de crédito',
+              notes: 'Transação gerada automaticamente pela sincronização de pagamentos',
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+            
+            syncedCount++;
+          }
+        }
+      }
+      
+      res.json({ 
+        success: true,
+        syncedCount,
+        message: `${syncedCount} transações financeiras sincronizadas com sucesso.`
+      });
+      
+    } catch (error) {
+      console.error('Erro ao sincronizar pagamentos com o financeiro:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao sincronizar pagamentos com o financeiro',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Endpoint para testar envio de e-mails
   app.post('/api/email/test', authenticate, async (req, res) => {
     try {
