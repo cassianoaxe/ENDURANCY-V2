@@ -10,6 +10,7 @@ import Organizations from "@/pages/Organizations";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
 import OrganizationConfirmation from "@/pages/OrganizationConfirmation";
 import EmailTemplates from "@/pages/EmailTemplates";
+import RoutesList from "@/pages/RoutesList";
 import Settings from "@/pages/Settings";
 import OrderView from "@/pages/OrderView";
 import Login from "@/pages/Login";
@@ -256,7 +257,7 @@ function AppContent() {
   // Admin-specific routes require admin privileges
   if (['/analytics', '/activity-log', '/backups', '/emergencies', 
        '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
-       '/requests', '/financial', '/email-templates', 
+       '/requests', '/financial', '/email-templates', '/routes-list',
        '/administrators', '/settings'].includes(currentPath)) {
     
     if (userRole !== 'admin') {
@@ -296,6 +297,7 @@ function AppContent() {
       case '/requests': Component = Requests; break;
       case '/financial': Component = Financial; break;
       case '/email-templates': Component = EmailTemplates; break;
+      case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
       case '/settings': Component = Settings; break;
     }
