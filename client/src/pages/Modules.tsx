@@ -24,7 +24,8 @@ import {
   Clock,
   Plus,
   DollarSign,
-  Building
+  Building,
+  Package
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Module, ModulePlan } from '@/../../shared/schema';
@@ -256,62 +257,90 @@ export default function Modules() {
         <div className="container mx-auto py-6">
           <div className="flex flex-col space-y-6">
             <div className="flex justify-between items-start">
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2"
-                onClick={backToModulesList}
-              >
-                <ArrowLeft size={16} />
-                Voltar
-              </Button>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Download size={16} />
-                  Exportar
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Settings size={16} />
-                  Configurações
-                </Button>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-md bg-yellow-50 flex items-center justify-center">
+                  <ModuleIcon className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">Módulo {selectedModule.name.split(' ').slice(1).join(' ')}</h1>
+                  <p className="text-muted-foreground">
+                    Controle de {selectedModule.type.toLowerCase()} e qualidade
+                  </p>
+                </div>
               </div>
+              
+              <Button className="gap-2 bg-gray-900 text-white hover:bg-gray-800">
+                <Plus size={16} />
+                Adicionar a Organização
+              </Button>
             </div>
             
-            <div className="flex flex-col md:flex-row md:items-center gap-3">
-              <ModuleIcon className="h-12 w-12 text-primary" />
-              <div>
-                <h1 className="text-3xl font-bold">Módulo de {selectedModule.name.split(' ').slice(1).join(' ')}</h1>
-                <p className="text-muted-foreground">
-                  Gerencie as organizações que utilizam o módulo de {selectedModule.type.toLowerCase()}
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm">Organizações com o Módulo</p>
+                    <h3 className="text-3xl font-bold">{moduleData.stats.activeOrgs || 12}</h3>
+                    <div className="flex items-center text-blue-500 gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <p className="text-sm">{moduleData.stats.activeOrgs || 12} organizações ativas</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm">Receita Mensal</p>
+                    <h3 className="text-3xl font-bold">R$ {moduleData.stats.monthlyRevenue.toLocaleString() || '28.750'}</h3>
+                    <div className="flex items-center text-green-500 gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <p className="text-sm">Faturamento recorrente</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm">Taxa de Adoção</p>
+                    <h3 className="text-3xl font-bold">27%</h3>
+                    <div className="flex items-center text-purple-500 gap-2">
+                      <ArrowUpRight className="h-4 w-4" />
+                      <p className="text-sm">Crescimento de 5% este mês</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-8 bg-muted/30 p-0">
+              <TabsList className="bg-muted/30 p-0 border-b">
                 <TabsTrigger 
                   value="visao-geral" 
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary text-gray-700 hover:text-gray-900"
                 >
                   Visão Geral
                 </TabsTrigger>
                 <TabsTrigger 
                   value="organizacoes" 
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary text-gray-700 hover:text-gray-900"
                 >
                   Organizações
                 </TabsTrigger>
                 <TabsTrigger 
                   value="precos-planos" 
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary text-gray-700 hover:text-gray-900"
                 >
-                  Preços e Planos
+                  Planos e Preços
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="uso-metricas" 
-                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary"
+                  value="configuracoes" 
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-none rounded-none py-2.5 border-b-2 border-transparent data-[state=active]:border-primary text-gray-700 hover:text-gray-900"
                 >
-                  Uso e Métricas
+                  Configurações
                 </TabsTrigger>
               </TabsList>
 
@@ -444,7 +473,7 @@ export default function Modules() {
                         title="Produtos" 
                         value={moduleData.stats.products}
                         description="Total de produtos cadastrados" 
-                        icon={Package}
+                        icon={BarChart3}
                         trend="up"
                         trendValue={`+${moduleData.stats.productGrowth} este mês`}
                       />
