@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Card, 
   CardContent, 
@@ -68,6 +68,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import FinancialCalendarPage from './FinancialCalendar';
 
 // Interface para contas a pagar/receber
 interface Transaction {
@@ -116,6 +117,40 @@ interface Payroll {
   netSalary: number;
   status: 'pendente' | 'pago';
 }
+
+// Funções utilitárias
+
+// Função para formatar valores monetários
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+// Função para retornar o badge de status
+const getStatusBadge = (status: string) => {
+  const statusConfig: Record<string, { color: string, label: string, icon: React.ReactNode }> = {
+    'pendente': { color: 'bg-yellow-100 text-yellow-800', label: 'Pendente', icon: <Clock className="h-3.5 w-3.5 mr-1" /> },
+    'pago': { color: 'bg-green-100 text-green-800', label: 'Pago', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
+    'atrasado': { color: 'bg-red-100 text-red-800', label: 'Atrasado', icon: <AlertCircle className="h-3.5 w-3.5 mr-1" /> },
+    'cancelado': { color: 'bg-gray-100 text-gray-800', label: 'Cancelado', icon: null },
+    'aprovada': { color: 'bg-green-100 text-green-800', label: 'Aprovada', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
+    'negada': { color: 'bg-red-100 text-red-800', label: 'Negada', icon: <AlertCircle className="h-3.5 w-3.5 mr-1" /> },
+    'em_andamento': { color: 'bg-blue-100 text-blue-800', label: 'Em andamento', icon: <Clock className="h-3.5 w-3.5 mr-1" /> },
+    'concluída': { color: 'bg-green-100 text-green-800', label: 'Concluída', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
+    'ativo': { color: 'bg-green-100 text-green-800', label: 'Ativo', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
+    'férias': { color: 'bg-blue-100 text-blue-800', label: 'Férias', icon: <Calendar className="h-3.5 w-3.5 mr-1" /> },
+    'licença': { color: 'bg-purple-100 text-purple-800', label: 'Licença', icon: null },
+    'desligado': { color: 'bg-gray-100 text-gray-800', label: 'Desligado', icon: null },
+  };
+  
+  const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', label: status, icon: null };
+  
+  return (
+    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+      {config.icon}
+      {config.label}
+    </div>
+  );
+};
 
 // Dados simulados para contas a pagar e receber
 const mockTransactions: Transaction[] = [
@@ -272,35 +307,9 @@ const mockPayroll: Payroll[] = [
   }
 ];
 
-// Funções utilitárias
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
-
-const getStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { color: string, label: string, icon: React.ReactNode }> = {
-    'pendente': { color: 'bg-yellow-100 text-yellow-800', label: 'Pendente', icon: <Clock className="h-3.5 w-3.5 mr-1" /> },
-    'pago': { color: 'bg-green-100 text-green-800', label: 'Pago', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
-    'atrasado': { color: 'bg-red-100 text-red-800', label: 'Atrasado', icon: <AlertCircle className="h-3.5 w-3.5 mr-1" /> },
-    'cancelado': { color: 'bg-gray-100 text-gray-800', label: 'Cancelado', icon: null },
-    'aprovada': { color: 'bg-green-100 text-green-800', label: 'Aprovada', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
-    'negada': { color: 'bg-red-100 text-red-800', label: 'Negada', icon: <AlertCircle className="h-3.5 w-3.5 mr-1" /> },
-    'em_andamento': { color: 'bg-blue-100 text-blue-800', label: 'Em andamento', icon: <Clock className="h-3.5 w-3.5 mr-1" /> },
-    'concluída': { color: 'bg-green-100 text-green-800', label: 'Concluída', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
-    'ativo': { color: 'bg-green-100 text-green-800', label: 'Ativo', icon: <CheckCircle className="h-3.5 w-3.5 mr-1" /> },
-    'férias': { color: 'bg-blue-100 text-blue-800', label: 'Férias', icon: <Calendar className="h-3.5 w-3.5 mr-1" /> },
-    'licença': { color: 'bg-purple-100 text-purple-800', label: 'Licença', icon: null },
-    'desligado': { color: 'bg-gray-100 text-gray-800', label: 'Desligado', icon: null },
-  };
-  
-  const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', label: status, icon: null };
-  
-  return (
-    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-      {config.icon}
-      {config.label}
-    </div>
-  );
+// Componente para o Calendário Financeiro
+const FinancialCalendar = () => {
+  return <FinancialCalendarPage />;
 };
 
 // Componentes para cada módulo do financeiro
@@ -713,15 +722,15 @@ const FinancialPayroll = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockPayroll.map((payroll) => (
-                <TableRow key={payroll.id}>
-                  <TableCell className="font-medium">{payroll.employeeName}</TableCell>
-                  <TableCell>{formatCurrency(payroll.baseSalary)}</TableCell>
-                  <TableCell>{formatCurrency(payroll.benefits)}</TableCell>
-                  <TableCell>{formatCurrency(payroll.bonuses)}</TableCell>
-                  <TableCell className="text-red-600">{formatCurrency(payroll.deductions)}</TableCell>
-                  <TableCell className="font-semibold">{formatCurrency(payroll.netSalary)}</TableCell>
-                  <TableCell>{getStatusBadge(payroll.status)}</TableCell>
+              {mockPayroll.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.employeeName}</TableCell>
+                  <TableCell>{formatCurrency(item.baseSalary)}</TableCell>
+                  <TableCell>{formatCurrency(item.benefits)}</TableCell>
+                  <TableCell>{formatCurrency(item.bonuses)}</TableCell>
+                  <TableCell>{formatCurrency(item.deductions)}</TableCell>
+                  <TableCell className="font-bold">{formatCurrency(item.netSalary)}</TableCell>
+                  <TableCell>{getStatusBadge(item.status)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -733,50 +742,47 @@ const FinancialPayroll = () => {
 };
 
 const FinancialVacations = () => {
-  // Implementação do componente férias
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Controle de Férias</h2>
-          <p className="text-sm text-gray-600">Gerenciamento de solicitações e cronograma de férias da equipe</p>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input placeholder="Buscar férias..." className="pl-8" />
+          </div>
+          <Select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="aprovada">Aprovada</SelectItem>
+              <SelectItem value="negada">Negada</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="concluída">Concluída</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                Nova Solicitação
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Solicitar Férias</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados para solicitar um período de férias.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Formulário... */}
-              <DialogFooter>
-                <Button type="submit">Enviar solicitação</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Solicitação
+          </Button>
         </div>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Solicitações de Férias</CardTitle>
+          <CardTitle>Férias e Licenças</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Colaborador</TableHead>
-                <TableHead>Data de Início</TableHead>
-                <TableHead>Data de Término</TableHead>
                 <TableHead>Período</TableHead>
+                <TableHead>Dias</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -785,12 +791,13 @@ const FinancialVacations = () => {
               {mockVacations.map((vacation) => (
                 <TableRow key={vacation.id}>
                   <TableCell className="font-medium">{vacation.employeeName}</TableCell>
-                  <TableCell>{new Date(vacation.startDate).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell>{new Date(vacation.endDate).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell>
+                    {new Date(vacation.startDate).toLocaleDateString('pt-BR')} a {new Date(vacation.endDate).toLocaleDateString('pt-BR')}
+                  </TableCell>
                   <TableCell>{vacation.totalDays} dias</TableCell>
                   <TableCell>{getStatusBadge(vacation.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Detalhes</Button>
+                    <Button variant="ghost" size="sm">Gerenciar</Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -802,80 +809,98 @@ const FinancialVacations = () => {
   );
 };
 
-const FinancialReports = () => {
-  // Implementação do componente DRE
+const FinancialAnalysis = () => {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">Demonstrativo de Resultados</h2>
-          <p className="text-sm text-gray-600">Visão geral financeira da empresa em diferentes períodos</p>
-        </div>
-        <div className="flex gap-2">
-          <Select>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mensal">Mensal</SelectItem>
-              <SelectItem value="trimestral">Trimestral</SelectItem>
-              <SelectItem value="anual">Anual</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Análise de IA</CardTitle>
+          <CardDescription>Insights e recomendações baseadas em IA para otimizar suas finanças</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <Brain className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Assistente de Inteligência Financeira</h3>
+                <p className="text-sm text-gray-500">Análise de dados financeiros com IA</p>
+              </div>
+              <Button variant="outline" className="ml-auto">
+                <Brain className="h-4 w-4 mr-2" />
+                Gerar nova análise
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-4 bg-white rounded-lg shadow-sm">
+                <h4 className="font-medium text-blue-700 mb-2">Tendências de Receita</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Suas receitas aumentaram 12% em comparação com o mesmo período do ano passado. 
+                  Isso indica um crescimento saudável do negócio.
+                </p>
+                <div className="h-40 bg-gray-100 rounded flex items-center justify-center">
+                  <span className="text-gray-400">Gráfico de tendências de receita</span>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-white rounded-lg shadow-sm">
+                <h4 className="font-medium text-purple-700 mb-2">Oportunidades de Economia</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Identificamos potenciais economias de R$ 4.250 mensais em despesas operacionais 
+                  com base na análise de seus padrões de gastos.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Assinaturas de software</span>
+                    <span className="text-sm font-semibold">R$ 1.800</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Serviços terceirizados</span>
+                    <span className="text-sm font-semibold">R$ 2.450</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-white rounded-lg shadow-sm">
+                <h4 className="font-medium text-amber-700 mb-2">Previsão de Fluxo de Caixa</h4>
+                <p className="text-sm text-gray-600 mb-3">
+                  Com base nos seus dados históricos, projetamos um fluxo de caixa positivo 
+                  nos próximos 3 meses, com um aumento estimado de 8% na liquidez.
+                </p>
+                <div className="h-40 bg-gray-100 rounded flex items-center justify-center">
+                  <span className="text-gray-400">Gráfico de previsão de fluxo de caixa</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
-      <div className="grid gap-4 md:grid-cols-12">
-        <Card className="md:col-span-8">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
           <CardHeader>
-            <CardTitle>Relatório Financeiro - 2025</CardTitle>
+            <CardTitle>Distribuição de Despesas</CardTitle>
+            <CardDescription>Análise por categoria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
-              <BarChart className="h-8 w-8 text-gray-400" />
-              <span className="ml-2 text-gray-500">Gráfico DRE</span>
+            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <PieChart className="h-8 w-8 text-gray-400" />
+              <span className="ml-2 text-gray-500">Gráfico de distribuição de despesas</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="md:col-span-4">
+        <Card>
           <CardHeader>
-            <CardTitle>Resumo Financeiro</CardTitle>
+            <CardTitle>Comparativo de Receitas</CardTitle>
+            <CardDescription>Análise mensal</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Receita Bruta</span>
-                <span className="font-semibold text-green-600">R$ 587.450,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Impostos</span>
-                <span className="font-semibold text-red-600">R$ 82.243,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Receita Líquida</span>
-                <span className="font-semibold">R$ 505.207,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Custos Operacionais</span>
-                <span className="font-semibold text-red-600">R$ 193.950,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Despesas Administrativas</span>
-                <span className="font-semibold text-red-600">R$ 147.320,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 border-b">
-                <span className="text-sm font-medium">Lucro Operacional</span>
-                <span className="font-semibold">R$ 163.937,00</span>
-              </div>
-              <div className="flex justify-between items-center pb-2 pt-2">
-                <span className="text-base font-bold">Lucro Líquido</span>
-                <span className="font-bold text-green-600">R$ 122.953,00</span>
-              </div>
+            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <BarChart className="h-8 w-8 text-gray-400" />
+              <span className="ml-2 text-gray-500">Gráfico comparativo de receitas</span>
             </div>
           </CardContent>
         </Card>
@@ -884,350 +909,223 @@ const FinancialReports = () => {
   );
 };
 
-// Componente de Calendário Financeiro
-const FinancialCalendar = () => {
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Calendário Financeiro</CardTitle>
-          <CardDescription>Visualize todos os eventos financeiros importantes</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
-            <div className="text-center">
-              <Calendar className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-              <h3 className="text-lg font-medium text-gray-900">Calendário Financeiro</h3>
-              <p className="text-gray-500 mt-1">O calendário financeiro será implementado em breve.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Componente de Conciliação Bancária
-const BankReconciliation = () => {
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Conciliação Bancária</CardTitle>
-          <CardDescription>Reconcilie transações bancárias com registros financeiros internos</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
-            <div className="text-center">
-              <CreditCard className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-              <h3 className="text-lg font-medium text-gray-900">Conciliação Bancária</h3>
-              <p className="text-gray-500 mt-1">O sistema de conciliação bancária será implementado em breve.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Componente de Análise com IA
-const AIAnalysis = () => {
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Análise Financeira com IA</CardTitle>
-          <CardDescription>Obtenha insights inteligentes sobre seus dados financeiros</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
-            <div className="text-center">
-              <Brain className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-              <h3 className="text-lg font-medium text-gray-900">Análise com IA</h3>
-              <p className="text-gray-500 mt-1">O sistema de análise com IA será implementado em breve.</p>
-              <Button variant="outline" className="mt-4">
-                <Brain className="h-4 w-4 mr-2" />
-                Solicitar Análise
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Componente de Configurações Financeiras
 const FinancialSettings = () => {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Configurações Financeiras</CardTitle>
-          <CardDescription>Configure opções e preferências do módulo financeiro</CardDescription>
+          <CardDescription>Gerencie as configurações relacionadas ao módulo financeiro</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Categorias Financeiras</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border rounded-md p-3">
-                  <h4 className="font-medium">Categorias de Receitas</h4>
-                  <p className="text-sm text-gray-500">Gerencie as categorias para contas a receber</p>
-                  <Button variant="link" size="sm" className="px-0">
-                    Gerenciar
-                  </Button>
-                </div>
-                <div className="border rounded-md p-3">
-                  <h4 className="font-medium">Categorias de Despesas</h4>
-                  <p className="text-sm text-gray-500">Gerencie as categorias para contas a pagar</p>
-                  <Button variant="link" size="sm" className="px-0">
-                    Gerenciar
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Integrações</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border rounded-md p-3">
-                  <h4 className="font-medium">Integração Bancária</h4>
-                  <p className="text-sm text-gray-500">Conecte sua conta bancária para sincronização automática</p>
-                  <Button variant="link" size="sm" className="px-0">
-                    Configurar
-                  </Button>
-                </div>
-                <div className="border rounded-md p-3">
-                  <h4 className="font-medium">Contabilidade</h4>
-                  <p className="text-sm text-gray-500">Integre com sistema contábil externo</p>
-                  <Button variant="link" size="sm" className="px-0">
-                    Configurar
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Preferências</h3>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4">Permissões e Acesso</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Notificações Financeiras</h4>
-                    <p className="text-sm text-gray-500">Receba alertas sobre contas e transações</p>
+                    <Label htmlFor="permission-all">Acesso completo ao módulo financeiro</Label>
+                    <p className="text-sm text-gray-500">Permitir que administradores vejam todas as informações financeiras</p>
                   </div>
-                  <Switch />
+                  <Switch id="permission-all" defaultChecked />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Relatórios Automáticos</h4>
-                    <p className="text-sm text-gray-500">Gere relatórios mensais automaticamente</p>
+                    <Label htmlFor="permission-reports">Geração de relatórios</Label>
+                    <p className="text-sm text-gray-500">Permitir que gerentes gerem relatórios financeiros</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch id="permission-reports" defaultChecked />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Visão em Dólares</h4>
-                    <p className="text-sm text-gray-500">Exibir valores também em dólares (USD)</p>
+                    <Label htmlFor="permission-edit">Edição de transações</Label>
+                    <p className="text-sm text-gray-500">Permitir que gerentes editem transações financeiras</p>
                   </div>
-                  <Switch />
+                  <Switch id="permission-edit" />
+                </div>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-lg font-medium mb-4">Notificações</h3>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Alertas de pagamento</Label>
+                    <Select defaultValue="7">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 dia antes</SelectItem>
+                        <SelectItem value="3">3 dias antes</SelectItem>
+                        <SelectItem value="5">5 dias antes</SelectItem>
+                        <SelectItem value="7">7 dias antes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Relatórios automáticos</Label>
+                    <Select defaultValue="month">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="day">Diários</SelectItem>
+                        <SelectItem value="week">Semanais</SelectItem>
+                        <SelectItem value="month">Mensais</SelectItem>
+                        <SelectItem value="quarter">Trimestrais</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="notify-payment">Notificações de pagamentos</Label>
+                    <p className="text-sm text-gray-500">Receber e-mails sobre pagamentos recebidos ou efetuados</p>
+                  </div>
+                  <Switch id="notify-payment" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="notify-overdue">Alertas de atraso</Label>
+                    <p className="text-sm text-gray-500">Receber alertas diários sobre contas em atraso</p>
+                  </div>
+                  <Switch id="notify-overdue" defaultChecked />
+                </div>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div>
+              <h3 className="text-lg font-medium mb-4">Integração com outros módulos</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="integration-sales">Integração com Vendas</Label>
+                    <p className="text-sm text-gray-500">Sincronizar dados de vendas com o módulo financeiro</p>
+                  </div>
+                  <Switch id="integration-sales" defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="integration-purchases">Integração com Compras</Label>
+                    <p className="text-sm text-gray-500">Sincronizar dados de compras com o módulo financeiro</p>
+                  </div>
+                  <Switch id="integration-purchases" defaultChecked />
                 </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      <div className="flex justify-end gap-2">
+        <Button variant="outline">Cancelar</Button>
+        <Button>Salvar configurações</Button>
+      </div>
     </div>
   );
 };
 
-// Interface para os itens de menu
 interface FinancialMenuItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  path: string;
+  component: React.ReactNode;
 }
 
-// Componente de item de menu
-const SidebarMenuItem = ({ 
-  item, 
-  isActive, 
-  onClick 
-}: { 
-  item: FinancialMenuItem; 
-  isActive: boolean; 
-  onClick: () => void;
-}) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center w-full px-3 py-2 rounded-md transition-colors text-left ${
-        isActive 
-          ? 'bg-gray-100 text-primary font-medium' 
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-      }`}
-    >
-      <span className="mr-3 text-lg">{item.icon}</span>
-      <span>{item.label}</span>
-    </button>
-  );
-};
-
 export default function Financial() {
-  // Usa o pathname para determinar qual componente exibir
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [activeSection, setActiveSection] = useState("overview");
   
-  // Define o menu financeiro
-  const financialMenu: FinancialMenuItem[] = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard Financeiro',
-      icon: <DollarSign />,
-      path: '/financial'
+  const sections: Record<string, FinancialMenuItem> = {
+    "overview": {
+      id: "overview",
+      label: "Visão Geral",
+      icon: <PieChart className="h-4 w-4" />,
+      component: <FinancialOverview />
     },
-    {
-      id: 'payables',
-      label: 'Contas a Pagar',
-      icon: <ArrowUp />,
-      path: '/financial/payables'
+    "cashflow": {
+      id: "cashflow",
+      label: "Contas a Pagar e Receber",
+      icon: <Wallet className="h-4 w-4" />,
+      component: <FinancialCashflow />
     },
-    {
-      id: 'receivables',
-      label: 'Contas a Receber',
-      icon: <ArrowDown />,
-      path: '/financial/receivables'
+    "calendar": {
+      id: "calendar",
+      label: "Calendário Financeiro",
+      icon: <Calendar className="h-4 w-4" />,
+      component: <FinancialCalendar />
     },
-    {
-      id: 'dre',
-      label: 'DRE',
-      icon: <BarChart />,
-      path: '/financial/reports'
+    "employees": {
+      id: "employees",
+      label: "Colaboradores",
+      icon: <Users className="h-4 w-4" />,
+      component: <FinancialEmployees />
     },
-    {
-      id: 'cashflow',
-      label: 'Fluxo de Caixa',
-      icon: <Calendar />,
-      path: '/financial/cashflow'
+    "payroll": {
+      id: "payroll",
+      label: "Folha de Pagamento",
+      icon: <CreditCard className="h-4 w-4" />,
+      component: <FinancialPayroll />
     },
-    {
-      id: 'calendar',
-      label: 'Calendário Financeiro',
-      icon: <Calendar />,
-      path: '/financial/calendar'
+    "vacations": {
+      id: "vacations",
+      label: "Férias e Licenças",
+      icon: <Briefcase className="h-4 w-4" />,
+      component: <FinancialVacations />
     },
-    {
-      id: 'bankreconciliation',
-      label: 'Conciliação Bancária',
-      icon: <CreditCard />,
-      path: '/financial/bankreconciliation'
+    "analysis": {
+      id: "analysis",
+      label: "Análise de IA",
+      icon: <Brain className="h-4 w-4" />,
+      component: <FinancialAnalysis />
     },
-    {
-      id: 'aianalysis',
-      label: 'Análise com IA',
-      icon: <Brain />,
-      path: '/financial/aianalysis'
-    },
-    {
-      id: 'settings',
-      label: 'Configurações',
-      icon: <Settings />,
-      path: '/financial/settings'
-    }
-  ];
-  
-  // Atualiza o path quando a URL muda
-  useEffect(() => {
-    const handlePathChange = () => {
-      setCurrentPath(window.location.pathname);
-    };
-    
-    window.addEventListener('popstate', handlePathChange);
-    return () => window.removeEventListener('popstate', handlePathChange);
-  }, []);
-  
-  // Função para navegar para uma rota dentro do módulo financeiro
-  const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    setCurrentPath(path);
-    window.dispatchEvent(new Event('popstate'));
-  };
-  
-  // Determina qual título mostrar baseado na rota atual
-  const getPageTitle = () => {
-    const currentItem = financialMenu.find(item => item.path === currentPath);
-    if (currentItem) return currentItem.label;
-    
-    switch (currentPath) {
-      case '/financial/employees': return 'Gerenciamento de Colaboradores';
-      case '/financial/payroll': return 'Folha de Pagamento';
-      case '/financial/vacations': return 'Controle de Férias';
-      default: return 'Dashboard Financeiro';
-    }
-  };
-  
-  // Determina qual componente renderizar baseado na rota atual
-  const renderContent = () => {
-    switch (currentPath) {
-      case '/financial/payables': 
-      case '/financial/receivables': 
-      case '/financial/cashflow': 
-        return <FinancialCashflow />;
-      case '/financial/employees': 
-        return <FinancialEmployees />;
-      case '/financial/payroll': 
-        return <FinancialPayroll />;
-      case '/financial/vacations': 
-        return <FinancialVacations />;
-      case '/financial/reports': 
-      case '/financial/dre': 
-        return <FinancialReports />;
-      case '/financial/calendar':
-        return <FinancialCalendar />;
-      case '/financial/bankreconciliation':
-        return <BankReconciliation />;
-      case '/financial/aianalysis':
-        return <AIAnalysis />;
-      case '/financial/settings':
-        return <FinancialSettings />;
-      default: 
-        return <FinancialOverview />;
+    "settings": {
+      id: "settings",
+      label: "Configurações",
+      icon: <Settings className="h-4 w-4" />,
+      component: <FinancialSettings />
     }
   };
   
   return (
-    <div className="flex flex-col">
-      {/* Conteúdo principal */}
-      <div className="flex-1 p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
-            <p className="text-gray-600">Gerenciamento financeiro completo para empresas de tecnologia</p>
-          </div>
-          <div className="space-x-2 mt-4 md:mt-0">
-            {currentPath === '/financial' && (
-              <>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Financeiro</h1>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <Card className="md:col-span-3">
+          <CardContent className="p-4">
+            <nav className="space-y-1">
+              {Object.values(sections).map((item) => (
+                <Button
+                  key={item.id}
+                  variant={activeSection === item.id ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveSection(item.id)}
+                >
+                  {item.icon}
+                  <span className="ml-2">{item.label}</span>
                 </Button>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Transação
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
+              ))}
+            </nav>
+          </CardContent>
+        </Card>
         
-        {/* Conteúdo dinâmico baseado na rota */}
-        {renderContent()}
+        <div className="md:col-span-9">
+          {sections[activeSection].component}
+        </div>
       </div>
     </div>
   );
