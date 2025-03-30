@@ -1,4 +1,10 @@
 import nodemailer from 'nodemailer';
+import {
+  ticketCreationTemplate,
+  ticketUpdateTemplate,
+  ticketStatusUpdateTemplate,
+  ticketResolvedTemplate
+} from './ticketEmailTemplates';
 
 // Verificar se estamos no modo de teste ou produção
 // Por padrão, iniciar em modo de teste se não estiver definido
@@ -53,7 +59,11 @@ export type EmailTemplate =
   | 'subscription_expiring'
   | 'limit_warning'
   | 'new_module_available'
-  | 'module_status_update';
+  | 'module_status_update'
+  | 'ticket_creation'
+  | 'ticket_update'
+  | 'ticket_status_update'
+  | 'ticket_resolved';
 
 // Interface para opções de e-mail
 interface SendEmailOptions {
@@ -132,6 +142,14 @@ export function generateEmailContent(
       return newModuleAvailableTemplate(data);
     case 'module_status_update':
       return moduleStatusUpdateTemplate(data);
+    case 'ticket_creation':
+      return ticketCreationTemplate(data);
+    case 'ticket_update':
+      return ticketUpdateTemplate(data);
+    case 'ticket_status_update':
+      return ticketStatusUpdateTemplate(data);
+    case 'ticket_resolved':
+      return ticketResolvedTemplate(data);
     default:
       return `<p>Houve um erro ao gerar o template de e-mail.</p>`;
   }

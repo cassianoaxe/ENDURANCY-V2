@@ -26,7 +26,9 @@ import {
   Clock,
   ArrowUp,
   ArrowDown,
-  Brain
+  Brain,
+  TicketIcon,
+  MessageSquareText
 } from "lucide-react";
 
 // Interface para itens de menu e submenu
@@ -56,6 +58,14 @@ const menuItems: MenuItem[] = [
   { icon: Building2, label: "Organizações", path: "/organizations" },
   { icon: InboxIcon, label: "Solicitações", path: "/requests" },
   { 
+    icon: TicketIcon, 
+    label: "Tickets de Suporte", 
+    submenu: [
+      { icon: TicketIcon, label: "Lista de Tickets", path: "/tickets" },
+      { icon: MessageSquareText, label: "Criar Novo Ticket", path: "/tickets/new" }
+    ]
+  },
+  { 
     icon: Wallet, 
     label: "Financeiro", 
     submenu: [
@@ -82,6 +92,7 @@ export default function Sidebar() {
   // Estado para controle dos menus expandidos
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
     "Módulos": false,
+    "Tickets de Suporte": false,
     "Financeiro": true // Começar com o menu financeiro expandido por padrão
   });
   
