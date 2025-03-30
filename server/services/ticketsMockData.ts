@@ -42,6 +42,17 @@ const mockTickets: MockTicket[] = [
     assignedToId: null,
   },
   {
+    tempId: 8, // ID temporário para referência dos comentários
+    title: "Implementação do módulo de relatórios avançados",
+    description: "Precisamos desenvolver um novo módulo que permita a geração de relatórios avançados com filtros personalizados e visualizações gráficas para análise de dados.",
+    status: "em_desenvolvimento",
+    priority: "alta",
+    category: "desenvolvimento",
+    organizationId: 1,
+    createdById: 5, // admin
+    assignedToId: 5,
+  },
+  {
     tempId: 2, // ID temporário para referência dos comentários
     title: "Solicitação de integração com sistema externo",
     description: "Nossa associação gostaria de integrar o sistema ComplyPay com nosso ERP existente para facilitar a gestão financeira. Podemos agendar uma reunião para discutir as possibilidades?",
@@ -113,6 +124,12 @@ const mockTickets: MockTicket[] = [
 ];
 
 const mockComments = [
+  {
+    ticketId: 8, // Para o ticket "Implementação do módulo de relatórios avançados"
+    userId: 5, // admin
+    content: "Desenvolvimento iniciado. Estamos na fase de planejamento do módulo e definição da arquitetura. Estimativa inicial é de 3 semanas para conclusão.",
+    isInternal: true,
+  },
   {
     ticketId: 2, // Para o ticket "Solicitação de integração com sistema externo"
     userId: 5, // admin

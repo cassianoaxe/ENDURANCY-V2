@@ -48,7 +48,7 @@ const ticketSchema = z.object({
     message: "A descrição deve ter pelo menos 10 caracteres",
   }),
   category: z.enum([
-    'bug', 'melhoria', 'duvida', 'financeiro', 'acesso', 'seguranca', 'performance', 'outros'
+    'bug', 'melhoria', 'duvida', 'financeiro', 'acesso', 'seguranca', 'performance', 'desenvolvimento', 'outros'
   ], {
     message: "Selecione uma categoria válida",
   }),
@@ -197,6 +197,7 @@ export default function CreateTicketPage() {
                         <SelectItem value="acesso">Acesso / Permissões</SelectItem>
                         <SelectItem value="seguranca">Segurança</SelectItem>
                         <SelectItem value="performance">Performance</SelectItem>
+                        <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
                         <SelectItem value="outros">Outros</SelectItem>
                       </SelectContent>
                     </Select>
