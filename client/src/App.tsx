@@ -27,6 +27,7 @@ import Administrators from "@/pages/Administrators";
 import Tickets from "@/pages/Tickets";
 import TicketDetail from "@/pages/TicketDetail";
 import CreateTicket from "@/pages/CreateTicket";
+import SupportDashboard from "@/pages/SupportDashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -290,7 +291,7 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
-    '/administrators', '/settings'
+    '/administrators', '/settings', '/support-dashboard'
   ];
   
   // Lista de rotas do módulo financeiro
@@ -345,6 +346,7 @@ function AppContent() {
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
       case '/settings': Component = Settings; break;
+      case '/support-dashboard': Component = SupportDashboard; break;
       
       // Rotas do módulo financeiro
       case '/financial': Component = Financial; break;
