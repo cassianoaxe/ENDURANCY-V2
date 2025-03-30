@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { PlusCircle, RefreshCw, Search, Filter, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -83,8 +82,6 @@ const formatStatus = (status: string) => {
 export default function TicketsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  
   // Estado para filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -142,7 +139,10 @@ export default function TicketsPage() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => setLocation('/tickets/new')}
+                onClick={() => {
+                  window.history.pushState({}, '', '/tickets/new');
+                  window.dispatchEvent(new Event('popstate'));
+                }}
               >
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Novo Ticket
@@ -224,9 +224,15 @@ export default function TicketsPage() {
                   <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">{ticket.id}</TableCell>
                     <TableCell>
-                      <Link to={`/tickets/${ticket.id}`} className="text-primary hover:underline">
+                      <a 
+                        className="text-primary hover:underline cursor-pointer"
+                        onClick={() => {
+                          window.history.pushState({}, '', `/tickets/${ticket.id}`);
+                          window.dispatchEvent(new Event('popstate'));
+                        }}
+                      >
                         {ticket.title}
-                      </Link>
+                      </a>
                     </TableCell>
                     {user?.role === 'admin' && <TableCell>{ticket.organization || '-'}</TableCell>}
                     <TableCell>
