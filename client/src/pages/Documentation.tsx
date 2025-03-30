@@ -2828,7 +2828,7 @@ SESSION_SECRET=your_secret_key
       </div>
       {/* Footer com copyright */}
       <div className="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm">
-        <p>© {new Date().getFullYear()} <a href="https://complysolutions.com.br" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">ComplySoft</a>. Todos os direitos reservados.</p>
+        <p>© 2025 <a href="https://complysolutions.com.br" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">ComplySoft</a>. Todos os direitos reservados.</p>
       </div>
     </div>
   );
