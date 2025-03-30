@@ -20,6 +20,24 @@ export default function Settings() {
   const [isSending, setIsSending] = useState(false);
   const [testMode, setTestMode] = useState(true);
   const [isTogglingMode, setIsTogglingMode] = useState(false);
+  const [isSavingGeneralSettings, setIsSavingGeneralSettings] = useState(false);
+  const [isSavingSecuritySettings, setIsSavingSecuritySettings] = useState(false);
+  
+  // Estado para as configurações gerais
+  const [generalSettings, setGeneralSettings] = useState({
+    platformName: "Endurancy",
+    platformUrl: "https://endurancy.com",
+    timezone: "America/Sao_Paulo",
+    dateFormat: "DD/MM/YYYY"
+  });
+  
+  // Estado para as configurações de segurança
+  const [securitySettings, setSecuritySettings] = useState({
+    passwordPolicy: "medium",
+    sessionTimeout: "30",
+    twoFactorAuthRequired: false,
+    ipRestrictions: ""
+  });
   
   // Carregar o estado do modo de teste quando o componente for montado
   useEffect(() => {
@@ -30,7 +48,9 @@ export default function Settings() {
   const handleToggleTestMode = async () => {
     setIsTogglingMode(true);
     try {
-      const response = await apiRequest('POST', '/api/email/toggle-test-mode', {});
+      const response = await apiRequest('POST', '/api/email/toggle-test-mode', {
+        currentTestMode: testMode
+      });
       const result = await response.json();
       
       if (result.success) {
@@ -51,6 +71,60 @@ export default function Settings() {
       });
     } finally {
       setIsTogglingMode(false);
+    }
+  };
+  
+  const handleSaveGeneralSettings = async () => {
+    setIsSavingGeneralSettings(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/settings/general', generalSettings);
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "Configurações salvas",
+          description: "As configurações gerais foram salvas com sucesso.",
+        });
+      } else {
+        throw new Error(result.message || "Erro ao salvar configurações");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar configurações gerais:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações. Verifique os logs para mais detalhes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingGeneralSettings(false);
+    }
+  };
+  
+  const handleSaveSecuritySettings = async () => {
+    setIsSavingSecuritySettings(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/settings/security', securitySettings);
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: "Configurações salvas",
+          description: "As configurações de segurança foram salvas com sucesso.",
+        });
+      } else {
+        throw new Error(result.message || "Erro ao salvar configurações");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar configurações de segurança:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as configurações. Verifique os logs para mais detalhes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingSecuritySettings(false);
     }
   };
 
@@ -115,11 +189,17 @@ export default function Settings() {
                 <div className="grid gap-4">
                   <div>
                     <label className="text-sm font-medium">Nome da Plataforma</label>
-                    <Input defaultValue="Endurancy" />
+                    <Input 
+                      value={generalSettings.platformName} 
+                      onChange={(e) => setGeneralSettings({...generalSettings, platformName: e.target.value})}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">URL</label>
-                    <Input defaultValue="https://endurancy.com" />
+                    <Input 
+                      value={generalSettings.platformUrl} 
+                      onChange={(e) => setGeneralSettings({...generalSettings, platformUrl: e.target.value})}
+                    />
                   </div>
                 </div>
               </div>
@@ -129,20 +209,122 @@ export default function Settings() {
                 <div className="grid gap-4">
                   <div>
                     <label className="text-sm font-medium">Fuso Horário</label>
-                    <Input defaultValue="America/Sao_Paulo" />
+                    <Select 
+                      value={generalSettings.timezone} 
+                      onValueChange={(value) => setGeneralSettings({...generalSettings, timezone: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um fuso horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="America/Sao_Paulo">America/Sao_Paulo</SelectItem>
+                        <SelectItem value="America/New_York">America/New_York</SelectItem>
+                        <SelectItem value="Europe/London">Europe/London</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Asia/Tokyo</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Formato de Data</label>
-                    <Input defaultValue="DD/MM/YYYY" />
+                    <Select 
+                      value={generalSettings.dateFormat} 
+                      onValueChange={(value) => setGeneralSettings({...generalSettings, dateFormat: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um formato de data" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
 
-              <Button>Salvar Alterações</Button>
+              <Button 
+                onClick={handleSaveGeneralSettings}
+                disabled={isSavingGeneralSettings}
+              >
+                {isSavingGeneralSettings ? "Salvando..." : "Salvar Alterações"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Key className="h-5 w-5 mr-2" />
+                Configurações de Segurança
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Política de Senhas</h3>
+                <div className="grid gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Política de Complexidade</label>
+                    <Select 
+                      value={securitySettings.passwordPolicy} 
+                      onValueChange={(value) => setSecuritySettings({...securitySettings, passwordPolicy: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma política" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa (min. 6 caracteres)</SelectItem>
+                        <SelectItem value="medium">Média (min. 8 caracteres, letras e números)</SelectItem>
+                        <SelectItem value="high">Alta (min. 10 caracteres, letras, números e símbolos)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Tempo de Sessão (minutos)</label>
+                    <Input 
+                      type="number"
+                      value={securitySettings.sessionTimeout}
+                      onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Autenticação de Dois Fatores</h3>
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    checked={securitySettings.twoFactorAuthRequired}
+                    onCheckedChange={(checked) => setSecuritySettings({...securitySettings, twoFactorAuthRequired: checked})}
+                  />
+                  <span>Exigir autenticação de dois fatores para todos os administradores</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Restrições de IP</h3>
+                <p className="text-sm text-gray-500">
+                  Liste os endereços IP permitidos para acesso administrativo (separados por vírgula). Deixe em branco para permitir todos.
+                </p>
+                <Input 
+                  placeholder="Ex: 192.168.1.1, 10.0.0.1"
+                  value={securitySettings.ipRestrictions}
+                  onChange={(e) => setSecuritySettings({...securitySettings, ipRestrictions: e.target.value})}
+                />
+              </div>
+
+              <Button 
+                onClick={handleSaveSecuritySettings}
+                disabled={isSavingSecuritySettings}
+              >
+                {isSavingSecuritySettings ? "Salvando..." : "Salvar Configurações de Segurança"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="email">
           <Card>
             <CardHeader>
@@ -231,6 +413,13 @@ export default function Settings() {
                         <SelectItem value="organization_rejected">Organização Rejeitada</SelectItem>
                         <SelectItem value="user_welcome">Boas-vindas ao Usuário</SelectItem>
                         <SelectItem value="password_reset">Redefinição de Senha</SelectItem>
+                        <SelectItem value="plan_purchase_confirmation">Confirmação de Compra de Plano</SelectItem>
+                        <SelectItem value="module_purchase_confirmation">Confirmação de Compra de Módulo</SelectItem>
+                        <SelectItem value="payment_failed">Falha no Pagamento</SelectItem>
+                        <SelectItem value="subscription_expiring">Assinatura Expirando</SelectItem>
+                        <SelectItem value="limit_warning">Aviso de Limite</SelectItem>
+                        <SelectItem value="new_module_available">Novo Módulo Disponível</SelectItem>
+                        <SelectItem value="module_status_update">Atualização de Status do Módulo</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -247,7 +436,121 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Other tab contents would be similar */}
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Bell className="h-5 w-5 mr-2" />
+                Configurações de Notificações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Notificações do Sistema</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Configure quais eventos geram notificações no sistema.
+                </p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Novas organizações</h4>
+                      <p className="text-sm text-gray-500">Notificar quando uma nova organização se registrar</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Pagamentos</h4>
+                      <p className="text-sm text-gray-500">Notificar sobre pagamentos bem-sucedidos e falhos</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Uso de limite</h4>
+                      <p className="text-sm text-gray-500">Notificar quando organizações estiverem próximas do limite de cadastros</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Segurança</h4>
+                      <p className="text-sm text-gray-500">Notificar sobre tentativas de login suspeitas</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+                
+                <Button className="mt-4">
+                  Salvar Preferências de Notificação
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="api">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Globe className="h-5 w-5 mr-2" />
+                Configurações de API
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Chaves de API</h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Gerencie as chaves de API para integração com outros sistemas.
+                </p>
+                
+                <div className="border rounded-md p-4 mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Chave de API Principal</h4>
+                    <div className="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-full">Ativa</div>
+                  </div>
+                  <div className="flex mb-2">
+                    <Input value="••••••••••••••••••••••••••••••" className="mr-2" disabled />
+                    <Button variant="outline" size="sm">Mostrar</Button>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Criada em: 01/03/2024</span>
+                    <span>Última utilização: Hoje</span>
+                  </div>
+                </div>
+                
+                <Button>
+                  Gerar Nova Chave de API
+                </Button>
+                
+                <div className="mt-8">
+                  <h3 className="text-lg font-medium mb-4">Limites e Restrições</h3>
+                  
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Taxa de Requisições (por minuto)</label>
+                      <Input type="number" defaultValue="100" />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Domínios Permitidos</label>
+                      <Input placeholder="Ex: api.exemplo.com, *.meudominio.com" />
+                      <p className="text-xs text-gray-500 mt-1">Deixe em branco para permitir de qualquer origem</p>
+                    </div>
+                  </div>
+                  
+                  <Button className="mt-4">
+                    Salvar Configurações de API
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
