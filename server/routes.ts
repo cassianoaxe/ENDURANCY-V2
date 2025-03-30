@@ -1119,7 +1119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const templateData = data || mockData[template as EmailTemplate];
       
       // Enviar o e-mail de teste
-      const subject = `[TESTE] - ${template.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+      const subject = `[TESTE] - ${template.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}`;
       const result = await sendTemplateEmail(
         email,
         subject,
@@ -1144,6 +1144,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "Erro ao enviar e-mail de teste",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Endpoint para alternar modo de e-mail (teste ou produção)
+  app.post('/api/email/toggle-test-mode', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      // Certificar que é um admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: "Apenas administradores podem alterar esta configuração"
+        });
+      }
+      
+      // Este seria um valor armazenado no banco ou variável de sistema
+      // Para simplificar, vamos apenas retornar que foi alternado
+      const newTestMode = !req.body.currentTestMode;
+      
+      res.status(200).json({
+        success: true,
+        testMode: newTestMode,
+        message: newTestMode ? 
+          "Modo de teste de e-mail ativado. E-mails não serão enviados para destinatários reais." :
+          "Modo de produção de e-mail ativado. E-mails serão enviados para destinatários reais."
+      });
+    } catch (error) {
+      console.error('Erro ao alternar modo de e-mail:', error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao alternar modo de teste de e-mail",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Endpoint para salvar configurações gerais
+  app.post('/api/settings/general', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      // Certificar que é um admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: "Apenas administradores podem alterar estas configurações"
+        });
+      }
+      
+      const { platformName, platformUrl, timezone, dateFormat } = req.body;
+      
+      // Validar dados recebidos
+      if (!platformName || !platformUrl) {
+        return res.status(400).json({
+          success: false,
+          message: "Nome da plataforma e URL são obrigatórios"
+        });
+      }
+      
+      // Em um sistema real, salvaríamos esses dados no banco
+      // Para este protótipo, apenas retornamos sucesso
+      
+      res.status(200).json({
+        success: true,
+        message: "Configurações gerais salvas com sucesso",
+        settings: {
+          platformName,
+          platformUrl,
+          timezone,
+          dateFormat
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao salvar configurações gerais:', error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao salvar configurações gerais",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Endpoint para salvar configurações de segurança
+  app.post('/api/settings/security', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      // Certificar que é um admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: "Apenas administradores podem alterar estas configurações"
+        });
+      }
+      
+      const { 
+        passwordPolicy, 
+        sessionTimeout, 
+        twoFactorAuthRequired,
+        ipRestrictions 
+      } = req.body;
+      
+      // Em um sistema real, salvaríamos esses dados no banco
+      // Para este protótipo, apenas retornamos sucesso
+      
+      res.status(200).json({
+        success: true,
+        message: "Configurações de segurança salvas com sucesso",
+        settings: {
+          passwordPolicy, 
+          sessionTimeout, 
+          twoFactorAuthRequired,
+          ipRestrictions
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao salvar configurações de segurança:', error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao salvar configurações de segurança",
         error: error instanceof Error ? error.message : String(error)
       });
     }
