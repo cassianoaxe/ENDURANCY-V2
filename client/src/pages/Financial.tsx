@@ -7,6 +7,8 @@ import {
   CardTitle, 
   CardDescription 
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -408,6 +410,40 @@ const FinancialOverview = () => {
 };
 
 const FinancialCashflow = () => {
+  const { toast } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  const syncPaymentsWithFinancial = async () => {
+    try {
+      setIsSyncing(true);
+      const response = await apiRequest("POST", "/api/payments/sync-with-financial");
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Sincronização concluída",
+          description: data.message,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Erro na sincronização",
+          description: data.message || "Não foi possível sincronizar os pagamentos",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao sincronizar pagamentos:", error);
+      toast({
+        title: "Erro na sincronização",
+        description: "Ocorreu um erro ao sincronizar pagamentos com o financeiro",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -424,6 +460,24 @@ const FinancialCashflow = () => {
           <Button variant="outline" size="sm">
             <FileText className="h-4 w-4 mr-2" />
             Relatório
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => syncPaymentsWithFinancial()}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <>
+                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Sincronizando...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Sincronizar Pagamentos
+              </>
+            )}
           </Button>
           <Dialog>
             <DialogTrigger asChild>
