@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, ArrowUpRight, Copy, Check } from "lucide-react";
+import { Search, Building2, Users, ArrowUpRight, Copy, Check, Settings, Database, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import type { Organization } from "@shared/schema";
+import type { Organization, Plan } from "@shared/schema";
 
 export default function Organizations() {
   // Navigation function to replace wouter
@@ -21,10 +21,21 @@ export default function Organizations() {
     queryKey: ['/api/organizations']
   });
   
+  const { data: plans } = useQuery<Plan[]>({
+    queryKey: ['/api/plans']
+  });
+  
   // Filtrar apenas organizações aprovadas para exibição nesta página
   const organizations = allOrganizations?.filter(org => 
     org.status === 'approved' || org.status === 'active'
   );
+  
+  // Função para obter o nome do plano com base no planId da organização
+  const getPlanName = (planId: number | null) => {
+    if (!planId || !plans) return "Não definido";
+    const plan = plans.find(p => p.id === planId);
+    return plan?.name || "Não definido";
+  };
   
   // Função para copiar o link de acesso
   const copyAccessLink = (orgCode: string) => {
@@ -91,13 +102,36 @@ export default function Organizations() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Crescimento</CardTitle>
+            <CardTitle className="text-sm font-medium">Planos Pro</CardTitle>
+            <CreditCard className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {organizations?.filter(org => org.planTier === 'pro').length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              +1 upgrade no último mês
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Receita Mensal Estimada</CardTitle>
             <ArrowUpRight className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15%</div>
+            <div className="text-2xl font-bold">
+              {organizations && plans ? 
+                `R$ ${organizations.reduce((acc, org) => {
+                  const plan = plans.find(p => p.id === org.planId);
+                  return acc + (plan?.price || 0);
+                }, 0).toLocaleString('pt-BR')}` : 
+                'Calculando...'
+              }
+            </div>
             <p className="text-xs text-muted-foreground">
-              +3% desde o último mês
+              +R$ 3.500 desde o último mês
             </p>
           </CardContent>
         </Card>
@@ -138,7 +172,16 @@ export default function Organizations() {
                     <tr key={org.id} className="bg-white border-b">
                       <td className="px-6 py-4 font-medium">{org.name}</td>
                       <td className="px-6 py-4">{org.type}</td>
-                      <td className="px-6 py-4">{org.plan}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          org.planTier === 'pro' ? 'bg-purple-100 text-purple-800' :
+                          org.planTier === 'grow' ? 'bg-blue-100 text-blue-800' :
+                          org.planTier === 'seed' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {getPlanName(org.planId)}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           org.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -175,7 +218,26 @@ export default function Organizations() {
                         {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
-                        <Button variant="ghost" size="sm">...</Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => navigate(`/organization-modules/${org.id}`)}
+                          >
+                            <Settings className="h-3 w-3" />
+                            Módulos
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => navigate(`/organization/${org.id}`)}
+                          >
+                            <Database className="h-3 w-3" />
+                            Detalhes
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

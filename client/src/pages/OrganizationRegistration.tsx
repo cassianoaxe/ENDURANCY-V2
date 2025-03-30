@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, 
 import { z } from "zod";
 import PlanSelection from "@/components/features/PlanSelection";
 import { PaymentFormWrapper } from "@/components/features/PaymentForm";
-import { confirmPayment } from "@/lib/stripeClient";
+import { confirmPlanPayment } from "@/lib/stripeClient";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
@@ -109,7 +109,7 @@ export default function OrganizationRegistration() {
   // Mutation for confirming payment
   const confirmPaymentMutation = useMutation({
     mutationFn: async ({ paymentIntentId, organizationId }: { paymentIntentId: string; organizationId: number }) => {
-      return confirmPayment(paymentIntentId, organizationId);
+      return confirmPlanPayment(paymentIntentId, organizationId);
     },
     onSuccess: () => {
       toast({
