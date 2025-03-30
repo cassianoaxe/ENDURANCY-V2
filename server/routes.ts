@@ -12,8 +12,11 @@ import {
   insertPayrollSchema, insertVacationSchema, insertFinancialReportSchema,
   // Imports para o sistema de tickets
   supportTickets, ticketComments, ticketAttachments,
-  insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema
+  insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema,
+  // Imports para o sistema de notificações
+  notifications, insertNotificationSchema
 } from "@shared/schema";
+import * as notificationService from "./services/notificationService";
 import { z } from "zod";
 import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import session from "express-session";
@@ -241,6 +244,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize sample modules
   initializeModules();
+  
+  // Initialize notifications
+  notificationService.createMockNotifications()
+    .then(() => console.log("Mock notifications initialized"))
+    .catch(err => console.error("Error initializing notifications:", err));
   
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
@@ -2136,6 +2144,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // =========================================================
+  // SISTEMA DE NOTIFICAÇÕES
+  // =========================================================
+  
+  // Rota para buscar notificações do usuário
+  app.get("/api/notifications", authenticate, async (req, res) => {
+    try {
+      const notifications = await notificationService.getUserNotifications(req.session.user.id);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Erro ao buscar notificações:", error);
+      res.status(500).json({ message: "Falha ao buscar notificações" });
+    }
+  });
+
+  // Rota para buscar estatísticas de notificações
+  app.get("/api/notifications/stats", authenticate, async (req, res) => {
+    try {
+      const stats = await notificationService.getNotificationStats(req.session.user.id);
+      res.json(stats);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas de notificações:", error);
+      res.status(500).json({ message: "Falha ao buscar estatísticas de notificações" });
+    }
+  });
+
+  // Rota para marcar uma notificação como lida
+  app.patch("/api/notifications/:id/read", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const notification = await notificationService.markNotificationAsRead(parseInt(id));
+      res.json(notification);
+    } catch (error) {
+      console.error("Erro ao marcar notificação como lida:", error);
+      res.status(500).json({ message: "Falha ao marcar notificação como lida" });
+    }
+  });
+  
+  // Rota para marcar todas as notificações como lidas
+  app.post("/api/notifications/mark-all-read", authenticate, async (req, res) => {
+    try {
+      const count = await notificationService.markAllNotificationsAsRead(req.session.user.id);
+      res.json({ count, message: `${count} notificações marcadas como lidas` });
+    } catch (error) {
+      console.error("Erro ao marcar todas notificações como lidas:", error);
+      res.status(500).json({ message: "Falha ao marcar notificações como lidas" });
+    }
+  });
+
+  // Rota para criar uma notificação (apenas admin)
+  app.post("/api/notifications", authenticate, async (req, res) => {
+    try {
+      // Verificar se o usuário é administrador
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem criar notificações" });
+      }
+      
+      // Validar o corpo da requisição
+      const validatedData = insertNotificationSchema.parse(req.body);
+      
+      // Criar a notificação
+      const notification = await notificationService.createNotification(validatedData);
+      res.status(201).json(notification);
+    } catch (error) {
+      console.error("Erro ao criar notificação:", error);
+      res.status(500).json({ message: "Falha ao criar notificação" });
+    }
+  });
+
+  // Rota para buscar estatísticas para o dashboard de suporte
+  app.get("/api/support/stats", authenticate, async (req, res) => {
+    try {
+      // Verificar se o usuário é administrador
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem acessar estas estatísticas" });
+      }
+      
+      const { timeRange = '7d', organization = 'all' } = req.query;
+      
+      // Calcular datas para o filtro
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (timeRange) {
+        case '24h':
+          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case '90d':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      }
+      
+      // Construir a query base
+      let ticketsQuery = db.select()
+        .from(supportTickets)
+        .where(gte(supportTickets.createdAt, startDate));
+      
+      // Filtrar por organização se especificado
+      if (organization !== 'all') {
+        ticketsQuery = ticketsQuery.where(eq(supportTickets.organizationId, parseInt(organization as string)));
+      }
+      
+      // Executar a query
+      const tickets = await ticketsQuery;
+      
+      // Calcular estatísticas
+      const total = tickets.length;
+      const open = tickets.filter(t => ['novo', 'em_analise', 'em_desenvolvimento', 'aguardando_resposta'].includes(t.status)).length;
+      const resolved = tickets.filter(t => t.status === 'resolvido').length;
+      const inProgress = tickets.filter(t => ['em_analise', 'em_desenvolvimento'].includes(t.status)).length;
+      const critical = tickets.filter(t => t.priority === 'critica').length;
+      
+      // Calcular tempo médio de resposta e resolução (em horas)
+      // Aqui estamos simulando esses valores, em uma implementação completa
+      // seriam calculados com base nas datas reais de primeira resposta e resolução
+      const responseTime = 4.2; // Média de tempo até primeira resposta
+      const resolutionTime = 36.5; // Média de tempo até resolução
+      
+      // Contagem por categoria
+      const byCategoryCount: Record<string, number> = {};
+      tickets.forEach(ticket => {
+        byCategoryCount[ticket.category] = (byCategoryCount[ticket.category] || 0) + 1;
+      });
+      
+      // Contagem por status
+      const byStatusCount: Record<string, number> = {};
+      tickets.forEach(ticket => {
+        byStatusCount[ticket.status] = (byStatusCount[ticket.status] || 0) + 1;
+      });
+      
+      // Contagem por organização
+      const byOrganizationCount: Record<string, number> = {};
+      tickets.forEach(ticket => {
+        byOrganizationCount[ticket.organizationId.toString()] = (byOrganizationCount[ticket.organizationId.toString()] || 0) + 1;
+      });
+      
+      // Obter dados de atividade recente
+      const recentActivity = tickets
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 10);
+      
+      // Retornar as estatísticas compiladas
+      res.json({
+        total,
+        open,
+        resolved,
+        inProgress,
+        critical,
+        responseTime,
+        resolutionTime,
+        byCategoryCount,
+        byStatusCount,
+        byOrganizationCount,
+        recentActivity
+      });
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas de suporte:", error);
+      res.status(500).json({ message: "Falha ao buscar estatísticas de suporte" });
+    }
+  });
+
   // =========================================================
   // SISTEMA DE TICKETS DE SUPORTE
   // =========================================================

@@ -1,7 +1,8 @@
 import React from "react";
-import { Bell, Sun, User, LogOut } from "lucide-react";
+import { Sun, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationsPopover from "@/components/features/NotificationsPopover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,10 +51,7 @@ export default function Header() {
           <Button variant="ghost" size="icon">
             <Sun className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-          </Button>
+          <NotificationsPopover />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
