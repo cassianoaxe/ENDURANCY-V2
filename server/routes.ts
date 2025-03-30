@@ -2413,8 +2413,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? comments 
         : comments.filter(comment => !comment.isInternal);
       
-      // Buscar anexos
-      const attachments = await db.select()
+      // Buscar apenas anexos vinculados diretamente ao ticket (não a comentários)
+      const attachments = await db.select({
+        id: ticketAttachments.id,
+        ticketId: ticketAttachments.ticketId,
+        fileName: ticketAttachments.fileName,
+        fileType: ticketAttachments.fileType,
+        filePath: ticketAttachments.filePath,
+        fileSize: ticketAttachments.fileSize,
+        uploadedById: ticketAttachments.uploadedById,
+        createdAt: ticketAttachments.createdAt
+      })
         .from(ticketAttachments)
         .where(eq(ticketAttachments.ticketId, parseInt(id)));
       
