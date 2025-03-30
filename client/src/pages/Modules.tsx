@@ -138,9 +138,21 @@ export default function Modules() {
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <CardTitle>Módulos Disponíveis</CardTitle>
-                <Button variant="outline" size="sm">
-                  <span className="hidden sm:inline mr-2">Adicionar</span> Módulo
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      window.history.pushState({}, '', '/modules-table');
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                  >
+                    Ver em tabela
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <span className="hidden sm:inline mr-2">Adicionar</span> Módulo
+                  </Button>
+                </div>
               </div>
               
               <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab} className="w-full">
