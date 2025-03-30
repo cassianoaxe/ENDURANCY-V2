@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { db } from '../db';
-import { plans, modulePlans, organizations, organizationModules } from '@shared/schema';
+import { plans, modulePlans, organizations, organizationModules, financialTransactions } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Inicializar o cliente Stripe
@@ -119,6 +119,16 @@ export async function processPlanPayment(paymentIntentId: string, organizationId
         stripeSubscriptionId: null, // Para assinaturas futuras
       })
       .where(eq(organizations.id, organizationId));
+    
+    // Registrar a transação financeira
+    const amount = Number(plan.price);
+    await registerFinancialTransaction(
+      organizationId,
+      amount,
+      `Pagamento de assinatura do plano ${plan.name}`,
+      'Assinaturas',
+      paymentIntentId
+    );
 
     return true;
   } catch (error) {
@@ -153,6 +163,13 @@ export async function processModulePayment(paymentIntentId: string): Promise<boo
     if (!modulePlan) {
       throw new Error('Plano de módulo não encontrado');
     }
+    
+    // Buscar detalhes do módulo para a descrição
+    const [module] = await db.select().from(modules).where(eq(modules.id, moduleId));
+    
+    if (!module) {
+      throw new Error('Módulo não encontrado');
+    }
 
     // Adicionar o módulo à organização
     await db.insert(organizationModules).values({
@@ -165,11 +182,56 @@ export async function processModulePayment(paymentIntentId: string): Promise<boo
       createdAt: new Date(),
       updatedAt: new Date()
     });
+    
+    // Registrar a transação financeira
+    const amount = Number(modulePlan.price);
+    await registerFinancialTransaction(
+      organizationId,
+      amount,
+      `Aquisição do módulo ${module.name} - Plano ${modulePlan.name}`,
+      'Módulos Add-on',
+      paymentIntentId
+    );
 
     return true;
   } catch (error) {
     console.error('Erro ao processar pagamento do módulo:', error);
     throw error;
+  }
+}
+
+/**
+ * Registra uma transação financeira para um pagamento confirmado
+ */
+async function registerFinancialTransaction(
+  organizationId: number, 
+  amount: number, 
+  description: string, 
+  category: string,
+  paymentIntentId: string
+): Promise<void> {
+  try {
+    // Registrar a transação financeira como receita
+    await db.insert(financialTransactions).values({
+      organizationId,
+      description,
+      type: 'receita',
+      category,
+      amount,
+      status: 'pago',
+      dueDate: new Date(),
+      paymentDate: new Date(),
+      documentNumber: paymentIntentId,
+      paymentMethod: 'cartão de crédito',
+      notes: `Pagamento através do Stripe (ID: ${paymentIntentId})`,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    console.log(`Transação financeira registrada para pagamento: ${paymentIntentId}`);
+  } catch (error) {
+    // Log do erro, mas não interromper o fluxo principal
+    console.error('Erro ao registrar transação financeira:', error);
   }
 }
 
