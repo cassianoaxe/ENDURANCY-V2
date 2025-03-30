@@ -5,6 +5,19 @@ import { z } from "zod";
 // Define a role enum para os diferentes tipos de usuário
 export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient']);
 
+// Enum para os tipos de módulos disponíveis
+export const moduleTypeEnum = pgEnum('module_type', [
+  'compras', 
+  'cultivo', 
+  'producao', 
+  'crm', 
+  'rh', 
+  'juridico', 
+  'social', 
+  'transparencia', 
+  'inteligencia_artificial'
+]);
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -104,6 +117,44 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tabela de módulos
+export const modules = pgTable("modules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: moduleTypeEnum("type").notNull(),
+  description: text("description").notNull(),
+  iconName: text("icon_name").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela de planos para cada módulo
+export const modulePlans = pgTable("module_plans", {
+  id: serial("id").primaryKey(),
+  moduleId: integer("module_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  billingCycle: text("billing_cycle").notNull(), // 'monthly', 'quarterly', 'yearly'
+  features: text("features").array().notNull(),
+  maxUsers: integer("max_users").notNull(),
+  isPopular: boolean("is_popular").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela para armazenar os módulos contratados pelas organizações
+export const organizationModules = pgTable("organization_modules", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  planId: integer("plan_id").notNull(),
+  startDate: timestamp("start_date").defaultNow().notNull(),
+  expiryDate: timestamp("expiry_date"),
+  status: text("status").notNull().default("active"), // 'active', 'suspended', 'expired'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -195,6 +246,36 @@ export const insertAppointmentSchema = createInsertSchema(appointments).pick({
   notes: true,
 });
 
+// Schemas para as novas tabelas
+export const insertModuleSchema = createInsertSchema(modules).pick({
+  name: true,
+  type: true,
+  description: true,
+  iconName: true,
+  isActive: true,
+});
+
+export const insertModulePlanSchema = createInsertSchema(modulePlans).pick({
+  moduleId: true,
+  name: true,
+  description: true,
+  price: true,
+  billingCycle: true,
+  features: true,
+  maxUsers: true,
+  isPopular: true,
+  isActive: true,
+});
+
+export const insertOrganizationModuleSchema = createInsertSchema(organizationModules).pick({
+  organizationId: true,
+  moduleId: true,
+  planId: true,
+  startDate: true,
+  expiryDate: true,
+  status: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Order = typeof orders.$inferSelect;
@@ -211,3 +292,9 @@ export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type Module = typeof modules.$inferSelect;
+export type InsertModule = z.infer<typeof insertModuleSchema>;
+export type ModulePlan = typeof modulePlans.$inferSelect;
+export type InsertModulePlan = z.infer<typeof insertModulePlanSchema>;
+export type OrganizationModule = typeof organizationModules.$inferSelect;
+export type InsertOrganizationModule = z.infer<typeof insertOrganizationModuleSchema>;
