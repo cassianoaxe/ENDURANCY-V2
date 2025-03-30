@@ -395,10 +395,7 @@ const FinancialOverview = () => {
                   </div>
                 </div>
               ))}
-              <Button variant="ghost" size="sm" className="w-full flex justify-center items-center">
-                Ver todas as transações
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+              {/* Botão de ver todas as transações removido - navegação pelo menu lateral */}
             </div>
           </CardContent>
         </Card>
@@ -420,48 +417,7 @@ const FinancialCashflow = () => {
             <Filter className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Relatório
-          </Button>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <FilePlus className="h-4 w-4 mr-2" />
-                Nova Transação
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Nova Transação</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados da transação financeira abaixo.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="transaction-type" className="text-right">
-                    Tipo
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="receita">Receita</SelectItem>
-                      <SelectItem value="despesa">Despesa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Outros campos do formulário... */}
-              </div>
-              <DialogFooter>
-                <Button type="submit">Salvar transação</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* Botões de ação rápida removidos - funcionalidades devem ser acessadas pelo menu lateral */}
       </div>
       
       <Card>
@@ -469,11 +425,7 @@ const FinancialCashflow = () => {
           <CardTitle>Contas a Pagar e Receber</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" className="mr-2">Todas</Button>
-            <Button variant="ghost" size="sm" className="mr-2">Receitas</Button>
-            <Button variant="ghost" size="sm">Despesas</Button>
-          </div>
+          {/* Filtros removidos - serão gerenciados pelo menu lateral */}
           <Table>
             <TableHeader>
               <TableRow>
@@ -526,28 +478,7 @@ const FinancialEmployees = () => {
             <Filter className="h-4 w-4" />
           </Button>
         </div>
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Users className="h-4 w-4 mr-2" />
-                Novo Colaborador
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Colaborador</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados do novo colaborador abaixo.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Formulário... */}
-              <DialogFooter>
-                <Button type="submit">Salvar colaborador</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* Botão removido - funcionalidade deverá ser acessada pelo menu lateral */}
       </div>
       
       <Card>
@@ -628,12 +559,7 @@ const FinancialPayroll = () => {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Button size="sm">
-            <FileText className="h-4 w-4 mr-2" />
-            Gerar Folha
-          </Button>
-        </div>
+        {/* Botão removido - funcionalidade deverá ser acessada pelo menu lateral */}
       </div>
       
       <Card>
@@ -682,28 +608,7 @@ const FinancialVacations = () => {
           <h2 className="text-lg font-semibold">Controle de Férias</h2>
           <p className="text-sm text-gray-600">Gerenciamento de solicitações e cronograma de férias da equipe</p>
         </div>
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                Nova Solicitação
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Solicitar Férias</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados para solicitar um período de férias.
-                </DialogDescription>
-              </DialogHeader>
-              {/* Formulário... */}
-              <DialogFooter>
-                <Button type="submit">Enviar solicitação</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+        {/* Botão removido - funcionalidade deverá ser acessada pelo menu lateral */}
       </div>
       
       <Card>
@@ -763,10 +668,7 @@ const FinancialReports = () => {
               <SelectItem value="anual">Anual</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
+          {/* Botão exportar removido - funcionalidade deverá ser acessada pelo menu lateral */}
         </div>
       </div>
       
@@ -877,69 +779,10 @@ export default function Financial() {
           <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
           <p className="text-gray-600">Gerenciamento financeiro completo para empresas de tecnologia</p>
         </div>
-        <div className="space-x-2 mt-4 md:mt-0">
-          {currentPath === '/financial' && (
-            <>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Transação
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Botões de ação rápida removidos - navegação exclusivamente pelo menu lateral */}
       </div>
       
-      {/* Menu de navegação financeira */}
-      <div className="mb-6">
-        <div className="bg-white border rounded-lg p-1 inline-flex space-x-1 overflow-x-auto">
-          <Button 
-            variant={currentPath === '/financial' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial')}
-          >
-            Visão Geral
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/cashflow' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/cashflow')}
-          >
-            Contas
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/employees' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/employees')}
-          >
-            Colaboradores
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/payroll' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/payroll')}
-          >
-            Folha de Pagamento
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/vacations' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/vacations')}
-          >
-            Férias
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/reports' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/reports')}
-          >
-            DRE
-          </Button>
-        </div>
-      </div>
+      {/* Removido menu de navegação interna financeira */}
 
       {/* Conteúdo dinâmico baseado na rota */}
       {renderContent()}
