@@ -85,8 +85,15 @@ export default function OrganizationRegistration() {
           title: "Organização criada com sucesso!",
           description: "Aguarde a aprovação da administração.",
         });
-        // Redirect to the confirmation page
-        navigate('/organization-confirmation');
+        
+        // Se o usuário atual for admin, redirecionar para a página de solicitações
+        // caso contrário, redirecionar para a página de confirmação
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (currentUser && currentUser.role === 'admin') {
+          navigate('/requests');
+        } else {
+          navigate('/organization-confirmation');
+        }
       }
     },
     onError: (error) => {
@@ -107,9 +114,17 @@ export default function OrganizationRegistration() {
     onSuccess: () => {
       toast({
         title: "Pagamento confirmado!",
-        description: "Sua organização foi ativada com sucesso.",
+        description: "Organização registrada com sucesso.",
       });
-      navigate('/organization-confirmation');
+      
+      // Se o usuário atual for admin, redirecionar para a página de solicitações
+      // caso contrário, redirecionar para a página de confirmação
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser && currentUser.role === 'admin') {
+        navigate('/requests');
+      } else {
+        navigate('/organization-confirmation');
+      }
     },
     onError: () => {
       toast({
@@ -533,14 +548,53 @@ export default function OrganizationRegistration() {
                     </div>
 
                     <div className="flex flex-col gap-4 items-center mt-8">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowPlanSelection(true)}
-                        className="w-full max-w-md flex items-center justify-center gap-2"
-                      >
-                        <CreditCard className="h-4 w-4" />
-                        Selecionar Plano e Pagar
-                      </Button>
+                      {/* Verificar se o usuário é admin para mostrar a opção de pular pagamento */}
+                      {JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin' ? (
+                        <>
+                          <div className="flex gap-4 w-full max-w-md">
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowPlanSelection(true)}
+                              className="flex-1 flex items-center justify-center gap-2"
+                            >
+                              <CreditCard className="h-4 w-4" />
+                              Selecionar Plano e Pagar
+                            </Button>
+                            
+                            <Button
+                              onClick={() => {
+                                // Definir um plano padrão (Básico) sem pagamento
+                                if (plans && plans.length > 0) {
+                                  const defaultPlan = plans[0];
+                                  setSelectedPlan(defaultPlan);
+                                  form.setValue('plan', defaultPlan.name);
+                                } else {
+                                  form.setValue('plan', 'Básico');
+                                }
+                                toast({
+                                  title: "Plano definido",
+                                  description: "Plano selecionado sem necessidade de pagamento imediato.",
+                                });
+                              }}
+                              className="flex-1"
+                            >
+                              Pular Pagamento
+                            </Button>
+                          </div>
+                          <p className="text-xs text-muted-foreground w-full max-w-md">
+                            Como administrador, você pode registrar uma organização sem exigir pagamento imediato.
+                          </p>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowPlanSelection(true)}
+                          className="w-full max-w-md flex items-center justify-center gap-2"
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          Selecionar Plano e Pagar
+                        </Button>
+                      )}
                       
                       {paymentIntentId && (
                         <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded w-full max-w-md">
