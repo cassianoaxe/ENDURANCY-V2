@@ -20,6 +20,7 @@ import Plans from "@/pages/Plans";
 import Requests from "@/pages/Requests";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
+import Modules from "@/pages/Modules";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -254,7 +255,7 @@ function AppContent() {
   if (['/analytics', '/activity-log', '/backups', '/emergencies', 
        '/plans', '/organizations', '/organization-registration', 
        '/requests', '/financial', '/email-templates', 
-       '/administrators', '/settings'].includes(currentPath)) {
+       '/administrators', '/settings', '/modules'].includes(currentPath)) {
     
     if (userRole !== 'admin') {
       return (
@@ -292,6 +293,7 @@ function AppContent() {
       case '/email-templates': Component = EmailTemplates; break;
       case '/administrators': Component = Administrators; break;
       case '/settings': Component = Settings; break;
+      case '/modules': Component = Modules; break;
     }
     
     return (

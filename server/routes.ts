@@ -4,12 +4,24 @@ import multer from "multer";
 import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
-import { organizations, organizationDocuments, users, plans } from "@shared/schema";
+import { 
+  organizations, 
+  organizationDocuments, 
+  users, 
+  plans, 
+  modules, 
+  modulePlans, 
+  organizationModules,
+  insertModuleSchema, 
+  insertModulePlanSchema, 
+  insertOrganizationModuleSchema 
+} from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import { createPaymentIntent, retrievePaymentIntent, initializePlans } from "./services/stripe";
+import { initializeModules } from "./services/modules";
 import { sendTemplateEmail } from "./services/email";
 
 // Extend express-session with custom user property
@@ -101,6 +113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize sample plans
   initializePlans();
+  
+  // Initialize modules and plans
+  initializeModules();
   
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
@@ -506,6 +521,233 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao alternar modo de teste:", error);
       res.status(500).json({ success: false, message: "Erro ao alternar modo de teste" });
+    }
+  });
+  
+  // ======== API de Módulos ========
+  
+  // Listar todos os módulos
+  app.get("/api/modules", async (req, res) => {
+    try {
+      const modulesList = await db.select().from(modules);
+      res.json(modulesList);
+    } catch (error) {
+      console.error("Erro ao buscar módulos:", error);
+      res.status(500).json({ message: "Erro ao buscar módulos" });
+    }
+  });
+  
+  // Obter um módulo específico
+  app.get("/api/modules/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [module] = await db.select().from(modules).where(eq(modules.id, parseInt(id)));
+      
+      if (!module) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      res.json(module);
+    } catch (error) {
+      console.error("Erro ao buscar módulo:", error);
+      res.status(500).json({ message: "Erro ao buscar módulo" });
+    }
+  });
+  
+  // Criar um novo módulo (apenas admin)
+  app.post("/api/modules", authenticate, async (req, res) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem criar módulos." });
+      }
+      
+      const moduleData = insertModuleSchema.parse(req.body);
+      const [newModule] = await db.insert(modules).values(moduleData).returning();
+      
+      res.status(201).json(newModule);
+    } catch (error) {
+      console.error("Erro ao criar módulo:", error);
+      res.status(500).json({ message: "Erro ao criar módulo" });
+    }
+  });
+  
+  // Atualizar um módulo (apenas admin)
+  app.put("/api/modules/:id", authenticate, async (req, res) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem atualizar módulos." });
+      }
+      
+      const { id } = req.params;
+      const moduleData = insertModuleSchema.parse(req.body);
+      
+      const [updatedModule] = await db
+        .update(modules)
+        .set(moduleData)
+        .where(eq(modules.id, parseInt(id)))
+        .returning();
+      
+      if (!updatedModule) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      res.json(updatedModule);
+    } catch (error) {
+      console.error("Erro ao atualizar módulo:", error);
+      res.status(500).json({ message: "Erro ao atualizar módulo" });
+    }
+  });
+  
+  // ======== API de Planos de Módulos ========
+  
+  // Listar todos os planos de um módulo
+  app.get("/api/modules/:moduleId/plans", async (req, res) => {
+    try {
+      const { moduleId } = req.params;
+      const plansList = await db
+        .select()
+        .from(modulePlans)
+        .where(eq(modulePlans.moduleId, parseInt(moduleId)));
+      
+      res.json(plansList);
+    } catch (error) {
+      console.error("Erro ao buscar planos:", error);
+      res.status(500).json({ message: "Erro ao buscar planos" });
+    }
+  });
+  
+  // Obter um plano específico
+  app.get("/api/module-plans/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const [plan] = await db
+        .select()
+        .from(modulePlans)
+        .where(eq(modulePlans.id, parseInt(id)));
+      
+      if (!plan) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      res.json(plan);
+    } catch (error) {
+      console.error("Erro ao buscar plano:", error);
+      res.status(500).json({ message: "Erro ao buscar plano" });
+    }
+  });
+  
+  // Criar um novo plano para um módulo (apenas admin)
+  app.post("/api/module-plans", authenticate, async (req, res) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem criar planos." });
+      }
+      
+      const planData = insertModulePlanSchema.parse(req.body);
+      const [newPlan] = await db.insert(modulePlans).values(planData).returning();
+      
+      res.status(201).json(newPlan);
+    } catch (error) {
+      console.error("Erro ao criar plano:", error);
+      res.status(500).json({ message: "Erro ao criar plano" });
+    }
+  });
+  
+  // Atualizar um plano (apenas admin)
+  app.put("/api/module-plans/:id", authenticate, async (req, res) => {
+    try {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem atualizar planos." });
+      }
+      
+      const { id } = req.params;
+      const planData = insertModulePlanSchema.parse(req.body);
+      
+      const [updatedPlan] = await db
+        .update(modulePlans)
+        .set(planData)
+        .where(eq(modulePlans.id, parseInt(id)))
+        .returning();
+      
+      if (!updatedPlan) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      res.json(updatedPlan);
+    } catch (error) {
+      console.error("Erro ao atualizar plano:", error);
+      res.status(500).json({ message: "Erro ao atualizar plano" });
+    }
+  });
+  
+  // ======== API de Módulos de Organizações ========
+  
+  // Listar todos os módulos de uma organização
+  app.get("/api/organizations/:organizationId/modules", authenticate, async (req, res) => {
+    try {
+      const { organizationId } = req.params;
+      
+      // Verificar permissão: admin ou admin da organização
+      if (req.user?.role !== 'admin' && 
+         (req.user?.role !== 'org_admin' || req.user?.organizationId !== parseInt(organizationId))) {
+        return res.status(403).json({ message: "Acesso negado." });
+      }
+      
+      const orgModules = await db
+        .select({
+          id: organizationModules.id,
+          organizationId: organizationModules.organizationId,
+          moduleId: organizationModules.moduleId,
+          planId: organizationModules.planId,
+          startDate: organizationModules.startDate,
+          expiryDate: organizationModules.expiryDate,
+          status: organizationModules.status,
+          moduleName: modules.name,
+          moduleType: modules.type,
+          moduleDescription: modules.description,
+          moduleIconName: modules.iconName,
+          planName: modulePlans.name,
+          planPrice: modulePlans.price,
+          planBillingCycle: modulePlans.billingCycle,
+          planMaxUsers: modulePlans.maxUsers,
+        })
+        .from(organizationModules)
+        .innerJoin(modules, eq(organizationModules.moduleId, modules.id))
+        .innerJoin(modulePlans, eq(organizationModules.planId, modulePlans.id))
+        .where(eq(organizationModules.organizationId, parseInt(organizationId)));
+      
+      res.json(orgModules);
+    } catch (error) {
+      console.error("Erro ao buscar módulos da organização:", error);
+      res.status(500).json({ message: "Erro ao buscar módulos da organização" });
+    }
+  });
+  
+  // Adicionar um módulo para uma organização
+  app.post("/api/organizations/:organizationId/modules", authenticate, async (req, res) => {
+    try {
+      const { organizationId } = req.params;
+      
+      // Verificar permissão: admin ou admin da organização
+      if (req.user?.role !== 'admin' && 
+         (req.user?.role !== 'org_admin' || req.user?.organizationId !== parseInt(organizationId))) {
+        return res.status(403).json({ message: "Acesso negado." });
+      }
+      
+      const moduleData = insertOrganizationModuleSchema.parse({
+        ...req.body,
+        organizationId: parseInt(organizationId)
+      });
+      
+      const [newOrgModule] = await db
+        .insert(organizationModules)
+        .values(moduleData)
+        .returning();
+      
+      res.status(201).json(newOrgModule);
+    } catch (error) {
+      console.error("Erro ao adicionar módulo à organização:", error);
+      res.status(500).json({ message: "Erro ao adicionar módulo à organização" });
     }
   });
 

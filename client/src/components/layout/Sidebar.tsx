@@ -12,7 +12,8 @@ import {
   Mail,
   Users,
   Settings,
-  Leaf
+  Leaf,
+  Layers
 } from "lucide-react";
 
 const menuItems = [
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: Wallet, label: "Financeiro", path: "/financial" },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
+  { icon: Layers, label: "Módulos", path: "/modules" },
   { icon: Settings, label: "Configurações", path: "/settings" }
 ];
 
