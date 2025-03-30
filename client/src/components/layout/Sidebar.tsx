@@ -13,7 +13,8 @@ import {
   Users,
   Settings,
   Leaf,
-  Blocks
+  Blocks,
+  Link
 } from "lucide-react";
 
 const menuItems = [
@@ -30,7 +31,8 @@ const menuItems = [
   { icon: Wallet, label: "Financeiro", path: "/financial" },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
-  { icon: Settings, label: "Configurações", path: "/settings" }
+  { icon: Settings, label: "Configurações", path: "/settings" },
+  { icon: Link, label: "Lista de URLs", path: "/routes-list" }
 ];
 
 export default function Sidebar() {
