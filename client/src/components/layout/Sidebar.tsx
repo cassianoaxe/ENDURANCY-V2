@@ -52,18 +52,7 @@ const menuItems: MenuItem[] = [
   },
   { icon: Building2, label: "Organizações", path: "/organizations" },
   { icon: InboxIcon, label: "Solicitações", path: "/requests" },
-  { 
-    icon: Wallet, 
-    label: "Financeiro", 
-    submenu: [
-      { icon: BarChart, label: "Visão Geral", path: "/financial" },
-      { icon: CreditCard, label: "Contas", path: "/financial/cashflow" },
-      { icon: UserRound, label: "Colaboradores", path: "/financial/employees" },
-      { icon: DollarSign, label: "Folha de Pagamento", path: "/financial/payroll" },
-      { icon: Calendar, label: "Férias", path: "/financial/vacations" },
-      { icon: BarChart, label: "DRE", path: "/financial/reports" }
-    ]
-  },
+  { icon: Wallet, label: "Financeiro", path: "/financial" },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Settings, label: "Configurações", path: "/settings" },
@@ -75,7 +64,6 @@ export default function Sidebar() {
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
-    "Financeiro": true, // Começar com o menu financeiro expandido
     "Módulos": false
   });
   
