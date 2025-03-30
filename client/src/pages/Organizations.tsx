@@ -17,9 +17,14 @@ export default function Organizations() {
   const { toast } = useToast();
   const [copiedOrgCode, setCopiedOrgCode] = useState<string | null>(null);
   
-  const { data: organizations, isLoading } = useQuery<Organization[]>({
+  const { data: allOrganizations, isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations']
   });
+  
+  // Filtrar apenas organizações aprovadas para exibição nesta página
+  const organizations = allOrganizations?.filter(org => 
+    org.status === 'approved' || org.status === 'active'
+  );
   
   // Função para copiar o link de acesso
   const copyAccessLink = (orgCode: string) => {
@@ -37,14 +42,22 @@ export default function Organizations() {
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-2xl font-bold mb-2">Organizações</h1>
-          <p className="text-gray-600">Gerencie todas as organizações da plataforma.</p>
+          <p className="text-gray-600">Gerencie todas as organizações aprovadas na plataforma. As organizações pendentes estão disponíveis em "Solicitações".</p>
         </div>
-        <Button 
-          onClick={() => navigate('/organization-registration')}
-          className="add-organization-button"
-        >
-          Adicionar Organização
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/requests')}
+          >
+            Ver Solicitações
+          </Button>
+          <Button 
+            onClick={() => navigate('/organization-registration')}
+            className="add-organization-button"
+          >
+            Adicionar Organização
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">

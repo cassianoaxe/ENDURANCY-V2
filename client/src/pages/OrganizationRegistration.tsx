@@ -192,6 +192,7 @@ export default function OrganizationRegistration() {
   };
 
   const onSubmit = async (data: InsertOrganization) => {
+    // Todas as organizações começam com status pending para revisão de documentação
     submitOrganization();
   };
 

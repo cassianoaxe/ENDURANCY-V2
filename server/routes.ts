@@ -219,6 +219,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch organizations" });
     }
   });
+  
+  // Rota para visualizar o documento de uma organização
+  app.get("/api/organizations/:id/document", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Buscar o documento da organização
+      const [document] = await db.select()
+        .from(organizationDocuments)
+        .where(eq(organizationDocuments.organizationId, parseInt(id)));
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Em um ambiente real, isso seria um link para o documento armazenado
+      // ou seria retornado diretamente como um arquivo
+      res.json({ 
+        documentUrl: document.documentUrl,
+        documentType: document.documentType,
+        message: "Em um ambiente de produção, o documento seria exibido ou baixado aqui."
+      });
+    } catch (error) {
+      console.error("Error fetching organization document:", error);
+      res.status(500).json({ message: "Failed to fetch organization document" });
+    }
+  });
 
   app.post("/api/organizations", upload.single('document'), async (req, res) => {
     try {
