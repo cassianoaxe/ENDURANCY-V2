@@ -20,6 +20,7 @@ interface Module {
   slug: string;
   is_active: boolean;
   type: string;
+  status: string; // 'active', 'test', 'development'
   created_at: string;
   updated_at: string;
 }
@@ -106,10 +107,13 @@ export default function Modules() {
   });
 
   // Filtrar módulos com base na tab ativa
+  // Status do módulo - usando a coluna 'status' para filtrar
   const filteredModules = modules.filter(module => {
     if (activeTab === 'todos') return true;
-    if (activeTab === 'ativos') return module.is_active;
+    if (activeTab === 'ativos') return module.is_active && module.status === 'active';
     if (activeTab === 'inativos') return !module.is_active;
+    if (activeTab === 'em_teste') return module.is_active && module.status === 'test';
+    if (activeTab === 'em_desenvolvimento') return module.is_active && module.status === 'development';
     return true;
   });
 
@@ -131,13 +135,31 @@ export default function Modules() {
         
         <Card>
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle>Módulos Disponíveis</CardTitle>
-              <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-3">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center">
+                <CardTitle>Módulos Disponíveis</CardTitle>
+                <Button variant="outline" size="sm">
+                  <span className="hidden sm:inline mr-2">Adicionar</span> Módulo
+                </Button>
+              </div>
+              
+              <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="hidden sm:grid grid-cols-5 w-full">
                   <TabsTrigger value="todos">Todos</TabsTrigger>
                   <TabsTrigger value="ativos">Ativos</TabsTrigger>
                   <TabsTrigger value="inativos">Inativos</TabsTrigger>
+                  <TabsTrigger value="em_teste">Em teste</TabsTrigger>
+                  <TabsTrigger value="em_desenvolvimento">Em desenvolvimento</TabsTrigger>
+                </TabsList>
+                
+                <TabsList className="grid sm:hidden grid-cols-2 gap-1 w-full mb-2">
+                  <TabsTrigger value="todos">Todos</TabsTrigger>
+                  <TabsTrigger value="ativos">Ativos</TabsTrigger>
+                </TabsList>
+                <TabsList className="grid sm:hidden grid-cols-3 gap-1 w-full">
+                  <TabsTrigger value="inativos">Inativos</TabsTrigger>
+                  <TabsTrigger value="em_teste">Em teste</TabsTrigger>
+                  <TabsTrigger value="em_desenvolvimento">Em desenv.</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -154,8 +176,16 @@ export default function Modules() {
                   const plans = getPlansByModuleId(module.id);
                   const popularPlan = getPopularPlan(module.id);
                   
+                  // Definir cor de borda baseada no status do módulo
+                  const getBorderColor = () => {
+                    if (!module.is_active) return 'border-t-gray-300';
+                    if (module.status === 'test') return 'border-t-amber-500';
+                    if (module.status === 'development') return 'border-t-blue-500';
+                    return 'border-t-green-500';
+                  };
+                  
                   return (
-                    <Card key={module.id} className={`overflow-hidden border-t-4 ${module.is_active ? 'border-t-green-500' : 'border-t-gray-300'}`}>
+                    <Card key={module.id} className={`overflow-hidden border-t-4 ${getBorderColor()}`}>
                       <CardHeader className="relative pb-2">
                         <div className="absolute right-4 top-4">
                           <Switch 
@@ -168,6 +198,19 @@ export default function Modules() {
                           {getModuleIcon(module.icon_name, "h-6 w-6 text-primary")}
                           <CardTitle>{module.name}</CardTitle>
                         </div>
+                        
+                        {/* Status badge */}
+                        {module.is_active && module.status === 'test' && (
+                          <Badge variant="outline" className="absolute right-16 top-4 border-amber-500 text-amber-700">
+                            Em teste
+                          </Badge>
+                        )}
+                        {module.is_active && module.status === 'development' && (
+                          <Badge variant="outline" className="absolute right-16 top-4 border-blue-500 text-blue-700">
+                            Em desenvolvimento
+                          </Badge>
+                        )}
+                        
                         <CardDescription className="mt-2">{module.description}</CardDescription>
                       </CardHeader>
                       
