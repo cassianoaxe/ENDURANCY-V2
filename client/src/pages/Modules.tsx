@@ -125,24 +125,24 @@ export default function Modules() {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center py-6">
-        <div className="w-full max-w-6xl px-4">
-          <h1 className="text-3xl font-bold mb-6 text-center">Gerenciamento de Módulos</h1>
-          
-          <Tabs defaultValue="todos" className="mb-6" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-4">
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-8 text-center">Gerenciamento de Módulos</h1>
+        
+        <div className="max-w-5xl mx-auto">
+          <Tabs defaultValue="todos" className="mb-8" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="todos">Todos os Módulos</TabsTrigger>
               <TabsTrigger value="ativos">Módulos Ativos</TabsTrigger>
               <TabsTrigger value="inativos">Módulos Inativos</TabsTrigger>
             </TabsList>
             
-            <TabsContent value={activeTab} className="space-y-4">
+            <TabsContent value={activeTab} className="space-y-6">
               {isLoadingModules || isLoadingPlans ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredModules.map((module) => {
                     const plans = getPlansByModuleId(module.id);
                     const popularPlan = getPopularPlan(module.id);
