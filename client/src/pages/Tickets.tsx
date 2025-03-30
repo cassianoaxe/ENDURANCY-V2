@@ -87,8 +87,8 @@ export default function TicketsPage() {
   
   // Estado para filtros
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [priorityFilter, setPriorityFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
   // Buscar tickets
   const { data: tickets, isLoading, error, refetch } = useQuery<Ticket[]>({
@@ -102,8 +102,8 @@ export default function TicketsPage() {
       ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (ticket.organization && ticket.organization.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = statusFilter === '' || ticket.status === statusFilter;
-    const matchesPriority = priorityFilter === '' || ticket.priority === priorityFilter;
+    const matchesStatus = statusFilter === 'all' || ticket.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || ticket.priority === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -171,7 +171,7 @@ export default function TicketsPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="all">Todos os status</SelectItem>
                     <SelectItem value="novo">Novo</SelectItem>
                     <SelectItem value="em_analise">Em Análise</SelectItem>
                     <SelectItem value="em_desenvolvimento">Em Desenvolvimento</SelectItem>
@@ -191,7 +191,7 @@ export default function TicketsPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as prioridades</SelectItem>
+                    <SelectItem value="all">Todas as prioridades</SelectItem>
                     <SelectItem value="baixa">Baixa</SelectItem>
                     <SelectItem value="media">Média</SelectItem>
                     <SelectItem value="alta">Alta</SelectItem>
@@ -246,8 +246,8 @@ export default function TicketsPage() {
               <div className="text-muted-foreground mb-4">Nenhum ticket encontrado</div>
               <Button variant="outline" onClick={() => {
                 setSearchTerm('');
-                setStatusFilter('');
-                setPriorityFilter('');
+                setStatusFilter('all');
+                setPriorityFilter('all');
               }}>
                 Limpar filtros
               </Button>

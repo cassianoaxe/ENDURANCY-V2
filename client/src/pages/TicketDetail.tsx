@@ -168,7 +168,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     if (ticketData?.ticket) {
       setStatusValue(ticketData.ticket.status);
       setPriorityValue(ticketData.ticket.priority);
-      setAssignToValue(ticketData.ticket.assignedToId?.toString() || '');
+      setAssignToValue(ticketData.ticket.assignedToId?.toString() || 'none');
     }
   }, [ticketData]);
 
@@ -250,7 +250,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
   const assignMutation = useMutation({
     mutationFn: async (assignToId: string) => {
       const res = await apiRequest("PATCH", `/api/tickets/${id}/assign`, {
-        assignToId: assignToId ? parseInt(assignToId) : null
+        assignToId: assignToId !== 'none' ? parseInt(assignToId) : null
       });
       return res.json();
     },
@@ -563,7 +563,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                           <SelectValue placeholder="Selecione um usuário" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Não atribuído</SelectItem>
+                          <SelectItem value="none">Não atribuído</SelectItem>
                           {/* Idealmente, buscaríamos uma lista de administradores aqui */}
                           <SelectItem value={user?.id?.toString() || ''}>Eu</SelectItem>
                         </SelectContent>
