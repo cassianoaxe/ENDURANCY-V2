@@ -61,8 +61,13 @@ import {
   LineChart,
   BarChart,
   ArrowDown,
-  ArrowUp
+  ArrowUp,
+  Settings,
+  CreditCard,
+  Brain
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 // Interface para contas a pagar/receber
 interface Transaction {
@@ -879,9 +884,263 @@ const FinancialReports = () => {
   );
 };
 
+// Componente de Calendário Financeiro
+const FinancialCalendar = () => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendário Financeiro</CardTitle>
+          <CardDescription>Visualize todos os eventos financeiros importantes</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
+            <div className="text-center">
+              <Calendar className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-lg font-medium text-gray-900">Calendário Financeiro</h3>
+              <p className="text-gray-500 mt-1">O calendário financeiro será implementado em breve.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Componente de Conciliação Bancária
+const BankReconciliation = () => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Conciliação Bancária</CardTitle>
+          <CardDescription>Reconcilie transações bancárias com registros financeiros internos</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
+            <div className="text-center">
+              <CreditCard className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-lg font-medium text-gray-900">Conciliação Bancária</h3>
+              <p className="text-gray-500 mt-1">O sistema de conciliação bancária será implementado em breve.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Componente de Análise com IA
+const AIAnalysis = () => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Análise Financeira com IA</CardTitle>
+          <CardDescription>Obtenha insights inteligentes sobre seus dados financeiros</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300 flex items-center justify-center h-80">
+            <div className="text-center">
+              <Brain className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+              <h3 className="text-lg font-medium text-gray-900">Análise com IA</h3>
+              <p className="text-gray-500 mt-1">O sistema de análise com IA será implementado em breve.</p>
+              <Button variant="outline" className="mt-4">
+                <Brain className="h-4 w-4 mr-2" />
+                Solicitar Análise
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Componente de Configurações Financeiras
+const FinancialSettings = () => {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Configurações Financeiras</CardTitle>
+          <CardDescription>Configure opções e preferências do módulo financeiro</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Categorias Financeiras</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-md p-3">
+                  <h4 className="font-medium">Categorias de Receitas</h4>
+                  <p className="text-sm text-gray-500">Gerencie as categorias para contas a receber</p>
+                  <Button variant="link" size="sm" className="px-0">
+                    Gerenciar
+                  </Button>
+                </div>
+                <div className="border rounded-md p-3">
+                  <h4 className="font-medium">Categorias de Despesas</h4>
+                  <p className="text-sm text-gray-500">Gerencie as categorias para contas a pagar</p>
+                  <Button variant="link" size="sm" className="px-0">
+                    Gerenciar
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Integrações</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-md p-3">
+                  <h4 className="font-medium">Integração Bancária</h4>
+                  <p className="text-sm text-gray-500">Conecte sua conta bancária para sincronização automática</p>
+                  <Button variant="link" size="sm" className="px-0">
+                    Configurar
+                  </Button>
+                </div>
+                <div className="border rounded-md p-3">
+                  <h4 className="font-medium">Contabilidade</h4>
+                  <p className="text-sm text-gray-500">Integre com sistema contábil externo</p>
+                  <Button variant="link" size="sm" className="px-0">
+                    Configurar
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Preferências</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Notificações Financeiras</h4>
+                    <p className="text-sm text-gray-500">Receba alertas sobre contas e transações</p>
+                  </div>
+                  <Switch />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Relatórios Automáticos</h4>
+                    <p className="text-sm text-gray-500">Gere relatórios mensais automaticamente</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Visão em Dólares</h4>
+                    <p className="text-sm text-gray-500">Exibir valores também em dólares (USD)</p>
+                  </div>
+                  <Switch />
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Interface para os itens de menu
+interface FinancialMenuItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+// Componente de item de menu
+const SidebarMenuItem = ({ 
+  item, 
+  isActive, 
+  onClick 
+}: { 
+  item: FinancialMenuItem; 
+  isActive: boolean; 
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center w-full px-3 py-2 rounded-md transition-colors text-left ${
+        isActive 
+          ? 'bg-gray-100 text-primary font-medium' 
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+      }`}
+    >
+      <span className="mr-3 text-lg">{item.icon}</span>
+      <span>{item.label}</span>
+    </button>
+  );
+};
+
 export default function Financial() {
   // Usa o pathname para determinar qual componente exibir
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  
+  // Define o menu financeiro
+  const financialMenu: FinancialMenuItem[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard Financeiro',
+      icon: <DollarSign />,
+      path: '/financial'
+    },
+    {
+      id: 'payables',
+      label: 'Contas a Pagar',
+      icon: <ArrowUp />,
+      path: '/financial/payables'
+    },
+    {
+      id: 'receivables',
+      label: 'Contas a Receber',
+      icon: <ArrowDown />,
+      path: '/financial/receivables'
+    },
+    {
+      id: 'dre',
+      label: 'DRE',
+      icon: <BarChart />,
+      path: '/financial/reports'
+    },
+    {
+      id: 'cashflow',
+      label: 'Fluxo de Caixa',
+      icon: <Calendar />,
+      path: '/financial/cashflow'
+    },
+    {
+      id: 'calendar',
+      label: 'Calendário Financeiro',
+      icon: <Calendar />,
+      path: '/financial/calendar'
+    },
+    {
+      id: 'bankreconciliation',
+      label: 'Conciliação Bancária',
+      icon: <CreditCard />,
+      path: '/financial/bankreconciliation'
+    },
+    {
+      id: 'aianalysis',
+      label: 'Análise com IA',
+      icon: <Brain />,
+      path: '/financial/aianalysis'
+    },
+    {
+      id: 'settings',
+      label: 'Configurações',
+      icon: <Settings />,
+      path: '/financial/settings'
+    }
+  ];
   
   // Atualiza o path quando a URL muda
   useEffect(() => {
@@ -902,101 +1161,92 @@ export default function Financial() {
   
   // Determina qual título mostrar baseado na rota atual
   const getPageTitle = () => {
+    const currentItem = financialMenu.find(item => item.path === currentPath);
+    if (currentItem) return currentItem.label;
+    
     switch (currentPath) {
-      case '/financial/cashflow': return 'Contas a Pagar e Receber';
       case '/financial/employees': return 'Gerenciamento de Colaboradores';
       case '/financial/payroll': return 'Folha de Pagamento';
       case '/financial/vacations': return 'Controle de Férias';
-      case '/financial/reports': return 'Demonstrativo de Resultados (DRE)';
-      default: return 'Financeiro';
+      default: return 'Dashboard Financeiro';
     }
   };
   
   // Determina qual componente renderizar baseado na rota atual
   const renderContent = () => {
     switch (currentPath) {
-      case '/financial/cashflow': return <FinancialCashflow />;
-      case '/financial/employees': return <FinancialEmployees />;
-      case '/financial/payroll': return <FinancialPayroll />;
-      case '/financial/vacations': return <FinancialVacations />;
-      case '/financial/reports': return <FinancialReports />;
-      default: return <FinancialOverview />;
+      case '/financial/payables': 
+      case '/financial/receivables': 
+      case '/financial/cashflow': 
+        return <FinancialCashflow />;
+      case '/financial/employees': 
+        return <FinancialEmployees />;
+      case '/financial/payroll': 
+        return <FinancialPayroll />;
+      case '/financial/vacations': 
+        return <FinancialVacations />;
+      case '/financial/reports': 
+      case '/financial/dre': 
+        return <FinancialReports />;
+      case '/financial/calendar':
+        return <FinancialCalendar />;
+      case '/financial/bankreconciliation':
+        return <BankReconciliation />;
+      case '/financial/aianalysis':
+        return <AIAnalysis />;
+      case '/financial/settings':
+        return <FinancialSettings />;
+      default: 
+        return <FinancialOverview />;
     }
   };
   
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
-          <p className="text-gray-600">Gerenciamento financeiro completo para empresas de tecnologia</p>
+    <div className="flex">
+      {/* Sidebar financeira */}
+      <div className="w-64 p-4 border-r min-h-[calc(100vh-4rem)] bg-white">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold uppercase text-gray-700">FINANCEIRO</h2>
         </div>
-        <div className="space-x-2 mt-4 md:mt-0">
-          {currentPath === '/financial' && (
-            <>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Transação
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-      
-      {/* Menu de navegação financeira */}
-      <div className="mb-6">
-        <div className="bg-white border rounded-lg p-1 inline-flex space-x-1 overflow-x-auto">
-          <Button 
-            variant={currentPath === '/financial' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial')}
-          >
-            Visão Geral
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/cashflow' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/cashflow')}
-          >
-            Contas
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/employees' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/employees')}
-          >
-            Colaboradores
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/payroll' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/payroll')}
-          >
-            Folha de Pagamento
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/vacations' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/vacations')}
-          >
-            Férias
-          </Button>
-          <Button 
-            variant={currentPath === '/financial/reports' ? "default" : "ghost"} 
-            size="sm"
-            onClick={() => navigateTo('/financial/reports')}
-          >
-            DRE
-          </Button>
+        
+        <div className="space-y-1">
+          {financialMenu.map(item => (
+            <SidebarMenuItem
+              key={item.id}
+              item={item}
+              isActive={currentPath === item.path}
+              onClick={() => navigateTo(item.path)}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Conteúdo dinâmico baseado na rota */}
-      {renderContent()}
+      {/* Conteúdo principal */}
+      <div className="flex-1 p-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+            <p className="text-gray-600">Gerenciamento financeiro completo para empresas de tecnologia</p>
+          </div>
+          <div className="space-x-2 mt-4 md:mt-0">
+            {currentPath === '/financial' && (
+              <>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Transação
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Conteúdo dinâmico baseado na rota */}
+        {renderContent()}
+      </div>
     </div>
   );
 }
