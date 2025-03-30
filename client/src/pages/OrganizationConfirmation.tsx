@@ -36,17 +36,26 @@ export default function OrganizationConfirmation() {
         </CardHeader>
         <CardContent className="text-center">
           <p className="mb-4">
-            Obrigado por se registrar na nossa plataforma. Nossa equipe irá 
-            revisar suas informações e entrará em contato em breve para 
-            finalizar o processo de ativação.
+            Obrigado por se registrar na nossa plataforma. Sua solicitação está agora
+            pendente de aprovação. Nossa equipe administrativa irá revisar a documentação
+            enviada e demais informações antes de aprovar o acesso.
           </p>
           <div className="bg-gray-100 p-4 rounded-lg mb-4">
             <h3 className="font-medium text-lg mb-2">Próximos passos:</h3>
             <ul className="text-sm text-left list-disc pl-5 space-y-1">
               <li>Validação das informações da organização</li>
               <li>Análise da documentação enviada</li>
-              <li>Confirmação do pagamento</li>
-              <li>Ativação da conta</li>
+              <li>Aprovação administrativa da solicitação</li>
+              <li>Configuração do ambiente da organização</li>
+              <li>Geração do código de acesso único</li>
+            </ul>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg text-blue-700 text-sm mb-4">
+            <p className="font-medium mb-1">Informações importantes:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>O processo de análise documental pode levar até 5 dias úteis.</li>
+              <li>A aprovação dá acesso a um ambiente exclusivo para sua organização.</li>
+              <li>Após aprovação, você receberá um código único de acesso ao sistema.</li>
             </ul>
           </div>
           <p className="text-sm text-gray-500">
