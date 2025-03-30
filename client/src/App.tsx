@@ -24,6 +24,9 @@ import OrganizationModules from "@/pages/OrganizationModules";
 import Requests from "@/pages/Requests";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
+import Tickets from "@/pages/Tickets";
+import TicketDetail from "@/pages/TicketDetail";
+import CreateTicket from "@/pages/CreateTicket";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -107,6 +110,33 @@ function AppContent() {
     return (
       <Layout>
         <OrderView />
+      </Layout>
+    );
+  }
+  
+  // Check if the path matches a ticket view pattern (/tickets/123)
+  if (currentPath.match(/^\/tickets\/\d+$/)) {
+    return (
+      <Layout>
+        <TicketDetail params={{ id: currentPath.split('/')[2] }} />
+      </Layout>
+    );
+  }
+  
+  // Check if the path is for creating a new ticket
+  if (currentPath === '/tickets/new') {
+    return (
+      <Layout>
+        <CreateTicket />
+      </Layout>
+    );
+  }
+  
+  // Check if the path is for the tickets list
+  if (currentPath === '/tickets') {
+    return (
+      <Layout>
+        <Tickets />
       </Layout>
     );
   }

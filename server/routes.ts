@@ -9,7 +9,10 @@ import {
   // Imports para o módulo financeiro
   financialTransactions, financialCategories, employees, payroll, vacations, financialReports,
   insertFinancialTransactionSchema, insertFinancialCategorySchema, insertEmployeeSchema,
-  insertPayrollSchema, insertVacationSchema, insertFinancialReportSchema 
+  insertPayrollSchema, insertVacationSchema, insertFinancialReportSchema,
+  // Imports para o sistema de tickets
+  supportTickets, ticketComments, ticketAttachments,
+  insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema
 } from "@shared/schema";
 import { z } from "zod";
 import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
@@ -1141,7 +1144,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'subscription_expiring',
         'limit_warning',
         'new_module_available',
-        'module_status_update'
+        'module_status_update',
+        'ticket_creation',
+        'ticket_update',
+        'ticket_status_update',
+        'ticket_resolved'
       ];
       
       if (!validTemplates.includes(template as EmailTemplate)) {
@@ -1252,6 +1259,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updateDetails: "O módulo foi completamente testado e validado, e agora está disponível para uso em produção.",
           updateDate: new Date().toISOString(),
           moduleUrl: "https://endurancy.com/modules/portal-medico"
+        },
+        'ticket_creation': {
+          ticketId: 123,
+          ticketTitle: "Problema de Login no Sistema",
+          priority: "alta",
+          organizationName: "Organização Exemplo",
+          description: "Estamos enfrentando problemas ao tentar fazer login no sistema. A página carrega, mas ao submeter as credenciais, nada acontece."
+        },
+        'ticket_update': {
+          ticketId: 123,
+          ticketTitle: "Problema de Login no Sistema",
+          commentContent: "Verificamos o problema e identificamos que pode estar relacionado com uma atualização recente no servidor. Estamos trabalhando na solução.",
+          commentAuthor: "Suporte Técnico",
+          organizationName: "Organização Exemplo"
+        },
+        'ticket_status_update': {
+          ticketId: 123,
+          ticketTitle: "Problema de Login no Sistema",
+          oldStatus: "novo",
+          newStatus: "em_analise"
+        },
+        'ticket_resolved': {
+          ticketId: 123,
+          ticketTitle: "Problema de Login no Sistema",
+          resolution: "O problema foi resolvido através de uma atualização no servidor de autenticação. Todos os usuários já devem conseguir fazer login normalmente.",
+          resolutionDate: new Date().toISOString()
         }
       };
       
@@ -2103,5 +2136,517 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // =========================================================
+  // SISTEMA DE TICKETS DE SUPORTE
+  // =========================================================
+  
+  // Rota para listar todos os tickets (apenas admin)
+  app.get("/api/tickets", authenticate, async (req, res) => {
+    try {
+      // Verificar se o usuário é administrador
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso permitido apenas para administradores" });
+      }
+      
+      // Buscar todos os tickets
+      const tickets = await db.select({
+        id: supportTickets.id,
+        title: supportTickets.title,
+        status: supportTickets.status,
+        priority: supportTickets.priority,
+        category: supportTickets.category,
+        organizationId: supportTickets.organizationId,
+        organization: organizations.name,
+        createdAt: supportTickets.createdAt,
+        updatedAt: supportTickets.updatedAt
+      })
+      .from(supportTickets)
+      .leftJoin(organizations, eq(supportTickets.organizationId, organizations.id))
+      .orderBy(desc(supportTickets.createdAt));
+      
+      res.json(tickets);
+    } catch (error) {
+      console.error("Erro ao buscar tickets:", error);
+      res.status(500).json({ message: "Falha ao buscar tickets" });
+    }
+  });
+  
+  // Rota para listar tickets de uma organização específica
+  app.get("/api/organizations/:orgId/tickets", authenticate, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      
+      // Verificar se o usuário tem permissão para acessar os tickets desta organização
+      if (req.session.user.role !== 'admin' && 
+          (req.session.user.role !== 'org_admin' || req.session.user.organizationId !== parseInt(orgId))) {
+        return res.status(403).json({ message: "Sem permissão para acessar tickets desta organização" });
+      }
+      
+      // Buscar tickets da organização
+      const tickets = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.organizationId, parseInt(orgId)))
+        .orderBy(desc(supportTickets.createdAt));
+      
+      res.json(tickets);
+    } catch (error) {
+      console.error("Erro ao buscar tickets da organização:", error);
+      res.status(500).json({ message: "Falha ao buscar tickets da organização" });
+    }
+  });
+  
+  // Rota para obter detalhes de um ticket específico com comentários
+  app.get("/api/tickets/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Buscar o ticket
+      const [ticket] = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Verificar se o usuário tem permissão para ver este ticket
+      if (req.session.user.role !== 'admin' && 
+          (req.session.user.role !== 'org_admin' || req.session.user.organizationId !== ticket.organizationId)) {
+        return res.status(403).json({ message: "Sem permissão para acessar este ticket" });
+      }
+      
+      // Buscar comentários
+      const comments = await db.select({
+        id: ticketComments.id,
+        content: ticketComments.content,
+        isInternal: ticketComments.isInternal,
+        createdAt: ticketComments.createdAt,
+        userId: ticketComments.userId,
+        userName: users.name
+      })
+      .from(ticketComments)
+      .leftJoin(users, eq(ticketComments.userId, users.id))
+      .where(eq(ticketComments.ticketId, parseInt(id)))
+      .orderBy(asc(ticketComments.createdAt));
+      
+      // Filtrar comentários internos se não for admin
+      const filteredComments = req.session.user.role === 'admin' 
+        ? comments 
+        : comments.filter(comment => !comment.isInternal);
+      
+      // Buscar anexos
+      const attachments = await db.select()
+        .from(ticketAttachments)
+        .where(eq(ticketAttachments.ticketId, parseInt(id)));
+      
+      // Retornar ticket com comentários e anexos
+      res.json({
+        ...ticket,
+        comments: filteredComments,
+        attachments
+      });
+    } catch (error) {
+      console.error("Erro ao buscar detalhes do ticket:", error);
+      res.status(500).json({ message: "Falha ao buscar detalhes do ticket" });
+    }
+  });
+  
+  // Rota para criar um novo ticket
+  app.post("/api/tickets", authenticate, upload.array('attachments'), async (req, res) => {
+    try {
+      // Obter e validar dados do ticket
+      const ticketData = insertSupportTicketSchema.parse({
+        ...req.body,
+        createdById: req.session.user.id,
+        organizationId: req.body.organizationId || req.session.user.organizationId
+      });
+      
+      // Verificar se o usuário tem permissão para criar ticket para esta organização
+      if (req.session.user.role !== 'admin' && 
+          req.session.user.organizationId !== ticketData.organizationId) {
+        return res.status(403).json({ message: "Sem permissão para criar ticket para esta organização" });
+      }
+      
+      // Criar ticket
+      const [ticket] = await db.insert(supportTickets)
+        .values({
+          ...ticketData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      // Se temos arquivos anexados
+      if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+        const attachmentPromises = req.files.map(async (file: any) => {
+          return db.insert(ticketAttachments)
+            .values({
+              ticketId: ticket.id,
+              fileName: file.originalname,
+              fileType: file.mimetype,
+              filePath: file.path,
+              fileSize: file.size,
+              uploadedById: req.session.user.id,
+              createdAt: new Date()
+            });
+        });
+        
+        await Promise.all(attachmentPromises);
+      }
+      
+      // Enviar notificação por e-mail para os administradores
+      if (req.session.user.role !== 'admin') {
+        try {
+          const admins = await db.select()
+            .from(users)
+            .where(eq(users.role, 'admin'));
+          
+          for (const admin of admins) {
+            if (admin.email) {
+              await sendTemplateEmail(
+                admin.email,
+                "Novo Ticket de Suporte Criado",
+                "ticket_creation" as EmailTemplate,
+                {
+                  ticketId: ticket.id,
+                  ticketTitle: ticket.title,
+                  priority: ticket.priority,
+                  organizationName: req.body.organizationName || "Organização",
+                  description: ticket.description
+                }
+              );
+            }
+          }
+        } catch (emailError) {
+          console.error("Erro ao enviar notificação de ticket:", emailError);
+          // Não interromper o fluxo se o e-mail falhar
+        }
+      }
+      
+      res.status(201).json(ticket);
+    } catch (error) {
+      console.error("Erro ao criar ticket:", error);
+      res.status(500).json({ message: "Falha ao criar ticket" });
+    }
+  });
+  
+  // Rota para adicionar comentário a um ticket
+  app.post("/api/tickets/:id/comments", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Buscar o ticket
+      const [ticket] = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Verificar se o usuário tem permissão para comentar neste ticket
+      if (req.session.user.role !== 'admin' && 
+          (req.session.user.role !== 'org_admin' || req.session.user.organizationId !== ticket.organizationId)) {
+        return res.status(403).json({ message: "Sem permissão para comentar neste ticket" });
+      }
+      
+      // Validar dados do comentário
+      const commentData = {
+        ticketId: parseInt(id),
+        userId: req.session.user.id,
+        content: req.body.content,
+        // Apenas admins podem criar comentários internos
+        isInternal: req.session.user.role === 'admin' ? !!req.body.isInternal : false
+      };
+      
+      // Criar comentário
+      const [comment] = await db.insert(ticketComments)
+        .values({
+          ...commentData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      // Atualizar data de atualização do ticket
+      await db.update(supportTickets)
+        .set({
+          updatedAt: new Date()
+        })
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      // Notificar sobre o novo comentário
+      if (commentData.isInternal === false) {
+        try {
+          // Se é um comentário do admin, notificar o org_admin
+          if (req.session.user.role === 'admin') {
+            const orgAdmins = await db.select()
+              .from(users)
+              .where(and(
+                eq(users.organizationId, ticket.organizationId),
+                eq(users.role, 'org_admin')
+              ));
+            
+            for (const orgAdmin of orgAdmins) {
+              if (orgAdmin.email) {
+                await sendTemplateEmail(
+                  orgAdmin.email,
+                  "Resposta em seu Ticket de Suporte",
+                  "ticket_update" as EmailTemplate,
+                  {
+                    ticketId: ticket.id,
+                    ticketTitle: ticket.title,
+                    commentContent: commentData.content,
+                    commentAuthor: req.session.user.name
+                  }
+                );
+              }
+            }
+          } 
+          // Se é um comentário do org_admin, notificar os admins
+          else if (req.session.user.role === 'org_admin') {
+            const admins = await db.select()
+              .from(users)
+              .where(eq(users.role, 'admin'));
+            
+            for (const admin of admins) {
+              if (admin.email) {
+                await sendTemplateEmail(
+                  admin.email,
+                  "Novo Comentário em Ticket de Suporte",
+                  "ticket_update" as EmailTemplate,
+                  {
+                    ticketId: ticket.id,
+                    ticketTitle: ticket.title,
+                    commentContent: commentData.content,
+                    commentAuthor: req.session.user.name,
+                    organizationName: req.body.organizationName || "Organização"
+                  }
+                );
+              }
+            }
+          }
+        } catch (emailError) {
+          console.error("Erro ao enviar notificação de comentário:", emailError);
+          // Não interromper o fluxo se o e-mail falhar
+        }
+      }
+      
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error("Erro ao adicionar comentário:", error);
+      res.status(500).json({ message: "Falha ao adicionar comentário" });
+    }
+  });
+  
+  // Rota para atualizar status de um ticket
+  app.patch("/api/tickets/:id/status", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Validar o novo status
+      if (!status || !['novo', 'em_analise', 'em_desenvolvimento', 'aguardando_resposta', 'resolvido', 'fechado', 'cancelado'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido" });
+      }
+      
+      // Buscar o ticket
+      const [ticket] = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Apenas admins podem atualizar o status
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem atualizar o status do ticket" });
+      }
+      
+      // Atualizar campos com base no novo status
+      const updateData: any = {
+        status,
+        updatedAt: new Date()
+      };
+      
+      // Se status for resolvido, atualizar o campo resolvedAt
+      if (status === 'resolvido') {
+        updateData.resolvedAt = new Date();
+      }
+      
+      // Se status for fechado, atualizar o campo closedAt
+      if (status === 'fechado') {
+        updateData.closedAt = new Date();
+      }
+      
+      // Atualizar ticket
+      const [updatedTicket] = await db.update(supportTickets)
+        .set(updateData)
+        .where(eq(supportTickets.id, parseInt(id)))
+        .returning();
+      
+      // Adicionar um comentário automático sobre a mudança de status
+      await db.insert(ticketComments)
+        .values({
+          ticketId: parseInt(id),
+          userId: req.session.user.id,
+          content: `Status alterado para: ${status}`,
+          isInternal: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      
+      // Notificar administradores da organização sobre a mudança de status
+      try {
+        const orgAdmins = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.organizationId, ticket.organizationId),
+            eq(users.role, 'org_admin')
+          ));
+        
+        for (const orgAdmin of orgAdmins) {
+          if (orgAdmin.email) {
+            await sendTemplateEmail(
+              orgAdmin.email,
+              "Atualização de Status em Ticket de Suporte",
+              "ticket_status_update" as EmailTemplate,
+              {
+                ticketId: ticket.id,
+                ticketTitle: ticket.title,
+                oldStatus: ticket.status,
+                newStatus: status
+              }
+            );
+          }
+        }
+      } catch (emailError) {
+        console.error("Erro ao enviar notificação de mudança de status:", emailError);
+        // Não interromper o fluxo se o e-mail falhar
+      }
+      
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Erro ao atualizar status do ticket:", error);
+      res.status(500).json({ message: "Falha ao atualizar status do ticket" });
+    }
+  });
+  
+  // Rota para atualizar prioridade de um ticket
+  app.patch("/api/tickets/:id/priority", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { priority } = req.body;
+      
+      // Validar a nova prioridade
+      if (!priority || !['baixa', 'media', 'alta', 'critica'].includes(priority)) {
+        return res.status(400).json({ message: "Prioridade inválida" });
+      }
+      
+      // Buscar o ticket
+      const [ticket] = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Apenas admins podem atualizar a prioridade
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem atualizar a prioridade do ticket" });
+      }
+      
+      // Atualizar ticket
+      const [updatedTicket] = await db.update(supportTickets)
+        .set({
+          priority,
+          updatedAt: new Date()
+        })
+        .where(eq(supportTickets.id, parseInt(id)))
+        .returning();
+      
+      // Adicionar um comentário automático sobre a mudança de prioridade
+      await db.insert(ticketComments)
+        .values({
+          ticketId: parseInt(id),
+          userId: req.session.user.id,
+          content: `Prioridade alterada para: ${priority}`,
+          isInternal: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Erro ao atualizar prioridade do ticket:", error);
+      res.status(500).json({ message: "Falha ao atualizar prioridade do ticket" });
+    }
+  });
+  
+  // Rota para atribuir ticket a um administrador
+  app.patch("/api/tickets/:id/assign", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { assignedToId } = req.body;
+      
+      // Buscar o ticket
+      const [ticket] = await db.select()
+        .from(supportTickets)
+        .where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Apenas admins podem atribuir tickets
+      if (req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem atribuir tickets" });
+      }
+      
+      // Verificar se o usuário atribuído existe e é um administrador
+      if (assignedToId) {
+        const [assignedUser] = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.id, assignedToId),
+            eq(users.role, 'admin')
+          ));
+        
+        if (!assignedUser) {
+          return res.status(400).json({ message: "Usuário atribuído inválido" });
+        }
+      }
+      
+      // Atualizar ticket
+      const [updatedTicket] = await db.update(supportTickets)
+        .set({
+          assignedToId: assignedToId || null,
+          updatedAt: new Date()
+        })
+        .where(eq(supportTickets.id, parseInt(id)))
+        .returning();
+      
+      // Adicionar um comentário automático sobre a atribuição
+      await db.insert(ticketComments)
+        .values({
+          ticketId: parseInt(id),
+          userId: req.session.user.id,
+          content: assignedToId 
+            ? `Ticket atribuído ao administrador ID: ${assignedToId}` 
+            : "Ticket removido de atribuição",
+          isInternal: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Erro ao atribuir ticket:", error);
+      res.status(500).json({ message: "Falha ao atribuir ticket" });
+    }
+  });
+
   return httpServer;
 }
