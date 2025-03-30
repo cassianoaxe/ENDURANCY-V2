@@ -184,40 +184,37 @@ function PaymentForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="payment-form" onSubmit={handleSubmit}>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="mb-6">
-            <p className="mb-2 font-semibold">Resumo:</p>
-            <div className="flex justify-between">
-              <span>Plano:</span>
-              <span>{selectedPlan?.name}</span>
-            </div>
-            <div className="flex justify-between mb-4">
-              <span>Valor:</span>
-              <span>R$ {selectedPlan?.price}</span>
-            </div>
-            
-            <div className="p-4 border rounded-md bg-slate-50 mb-4">
-              <CardElement 
-                options={cardStyle} 
-                onChange={(e) => setCardComplete(e.complete)} 
-              />
-            </div>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        <div className="mb-6">
+          <p className="mb-2 font-semibold">Resumo:</p>
+          <div className="flex justify-between">
+            <span>Plano:</span>
+            <span>{selectedPlan?.name}</span>
           </div>
-        </form>
+          <div className="flex justify-between mb-4">
+            <span>Valor:</span>
+            <span>R$ {selectedPlan?.price}</span>
+          </div>
+          
+          <div className="p-4 border rounded-md bg-slate-50 mb-4">
+            <CardElement 
+              options={cardStyle} 
+              onChange={(e) => setCardComplete(e.complete)} 
+            />
+          </div>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onBack} disabled={processing}>
           Voltar
         </Button>
         <Button 
-          type="submit" 
-          form="payment-form" 
+          onClick={handleSubmit}
           disabled={!stripe || processing || !cardComplete}
         >
           {processing ? <Spinner className="mr-2" /> : null}
