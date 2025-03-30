@@ -115,15 +115,6 @@ function AppContent() {
     );
   }
   
-  // Check if the path matches a ticket view pattern (/tickets/123)
-  if (currentPath.match(/^\/tickets\/\d+$/)) {
-    return (
-      <Layout>
-        <TicketDetail params={{ id: currentPath.split('/')[2] }} />
-      </Layout>
-    );
-  }
-  
   // Check if the path is for creating a new ticket
   if (currentPath === '/tickets/new') {
     return (
@@ -133,8 +124,20 @@ function AppContent() {
     );
   }
   
+  // Check if the path matches a ticket view pattern (/tickets/123)
+  if (currentPath.match(/^\/tickets\/\d+$/)) {
+    const ticketId = currentPath.split('/')[2];
+    console.log("Visualizando ticket com ID:", ticketId);
+    return (
+      <Layout>
+        <TicketDetail params={{ id: ticketId }} />
+      </Layout>
+    );
+  }
+  
   // Check if the path is for the tickets list
   if (currentPath === '/tickets') {
+    console.log("Acessando lista de tickets");
     return (
       <Layout>
         <Tickets />
