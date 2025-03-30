@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { initializeMockTickets, ensureOrganizationsExist, ensureAdminUserExists } from "./services/ticketsMockData";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,15 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Inicializar dados de exemplo para tickets
+  try {
+    await ensureAdminUserExists();
+    await ensureOrganizationsExist();
+    await initializeMockTickets();
+  } catch (error) {
+    console.error("Erro ao inicializar dados de exemplo:", error);
+  }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
