@@ -581,3 +581,92 @@ export type Vacation = typeof vacations.$inferSelect;
 export type InsertVacation = z.infer<typeof insertVacationSchema>;
 export type FinancialReport = typeof financialReports.$inferSelect;
 export type InsertFinancialReport = z.infer<typeof insertFinancialReportSchema>;
+
+// Enums para o sistema de tickets de suporte
+export const ticketStatusEnum = pgEnum('ticket_status', [
+  'novo', 'em_analise', 'em_desenvolvimento', 'aguardando_resposta', 'resolvido', 'fechado', 'cancelado'
+]);
+
+export const ticketPriorityEnum = pgEnum('ticket_priority', ['baixa', 'media', 'alta', 'critica']);
+
+export const ticketCategoryEnum = pgEnum('ticket_category', [
+  'bug', 'melhoria', 'duvida', 'financeiro', 'acesso', 'seguranca', 'performance', 'outros'
+]);
+
+// Tabela de tickets de suporte
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  status: ticketStatusEnum("status").notNull().default("novo"),
+  priority: ticketPriorityEnum("priority").notNull().default("media"),
+  category: ticketCategoryEnum("category").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  createdById: integer("created_by_id").notNull(),
+  assignedToId: integer("assigned_to_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  closedAt: timestamp("closed_at")
+});
+
+// Tabela de comentários em tickets
+export const ticketComments = pgTable("ticket_comments", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  isInternal: boolean("is_internal").default(false), // Se true, só visível para admins
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Tabela de anexos em tickets
+export const ticketAttachments = pgTable("ticket_attachments", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").notNull(),
+  commentId: integer("comment_id"),
+  fileName: text("file_name").notNull(),
+  fileType: text("file_type").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(), // tamanho em bytes
+  uploadedById: integer("uploaded_by_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+// Schemas para inserção
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).pick({
+  title: true, 
+  description: true,
+  status: true,
+  priority: true,
+  category: true,
+  organizationId: true,
+  createdById: true,
+  assignedToId: true
+});
+
+export const insertTicketCommentSchema = createInsertSchema(ticketComments).pick({
+  ticketId: true,
+  userId: true,
+  content: true,
+  isInternal: true
+});
+
+export const insertTicketAttachmentSchema = createInsertSchema(ticketAttachments).pick({
+  ticketId: true,
+  commentId: true,
+  fileName: true,
+  fileType: true,
+  filePath: true,
+  fileSize: true,
+  uploadedById: true
+});
+
+// Tipos para o sistema de tickets
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type TicketComment = typeof ticketComments.$inferSelect;
+export type InsertTicketComment = z.infer<typeof insertTicketCommentSchema>;
+export type TicketAttachment = typeof ticketAttachments.$inferSelect;
+export type InsertTicketAttachment = z.infer<typeof insertTicketAttachmentSchema>;
