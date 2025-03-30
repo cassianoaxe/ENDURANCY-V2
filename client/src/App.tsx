@@ -266,7 +266,10 @@ function AppContent() {
   // Lista de rotas do módulo financeiro
   const financialRoutes = [
     '/financial', '/financial/cashflow', '/financial/employees',
-    '/financial/payroll', '/financial/vacations', '/financial/reports'
+    '/financial/payroll', '/financial/vacations', '/financial/reports',
+    '/financial/payables', '/financial/receivables', '/financial/calendar',
+    '/financial/bankreconciliation', '/financial/aianalysis', '/financial/settings',
+    '/financial/dre'
   ];
   
   // Verifica se o caminho atual é uma rota administrativa
@@ -320,6 +323,13 @@ function AppContent() {
       case '/financial/payroll': Component = Financial; break;
       case '/financial/vacations': Component = Financial; break;
       case '/financial/reports': Component = Financial; break;
+      case '/financial/payables': Component = Financial; break;
+      case '/financial/receivables': Component = Financial; break;
+      case '/financial/calendar': Component = Financial; break;
+      case '/financial/bankreconciliation': Component = Financial; break;
+      case '/financial/aianalysis': Component = Financial; break;
+      case '/financial/settings': Component = Financial; break;
+      case '/financial/dre': Component = Financial; break;
     }
     
     return (
