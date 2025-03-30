@@ -1,15 +1,44 @@
 import nodemailer from 'nodemailer';
 
+// Verificar se estamos no modo de teste ou produção
+// Temporariamente, estamos forçando o modo de teste, independente da variável de ambiente
+const isTestMode = true; // process.env.EMAIL_TEST_MODE === 'true';
+
+console.log(`Configurando serviço de e-mail em modo: ${isTestMode ? 'TESTE' : 'PRODUÇÃO'}`);
+
 // Configuração do transportador de e-mail
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_PORT === '465', // true para porta 465, false para outras portas
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+let transporter: nodemailer.Transporter;
+
+if (isTestMode) {
+  // No modo de teste, usar o "ethereal" nodemailer que simula o envio sem realmente enviar
+  console.log('Usando transportador de e-mail em modo TESTE (não envia realmente os e-mails)');
+  
+  // Criar uma conta de teste ethereal
+  transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'ethereal.user@ethereal.email',
+      pass: 'ethereal_pass',
+    },
+    // Esta opção desativa o envio real, mas registra as informações
+    debug: true,
+    logger: true,
+  });
+} else {
+  // No modo de produção, usar as credenciais SMTP reais
+  console.log('Usando transportador de e-mail em modo PRODUÇÃO');
+  transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    secure: process.env.EMAIL_PORT === '465', // true para porta 465, false para outras portas
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+}
 
 // Tipos de e-mail
 export type EmailTemplate = 
@@ -34,12 +63,27 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
     const { to, subject, html, from = process.env.EMAIL_USER } = options;
     
-    await transporter.sendMail({
-      from: `Endurancy <${from}>`,
-      to,
-      subject,
-      html,
-    });
+    if (isTestMode) {
+      // No modo de teste, apenas exibir as informações do e-mail no console
+      console.log('\n========== MODO DE TESTE: E-MAIL SIMULADO ==========');
+      console.log(`De: Endurancy <${from}>`);
+      console.log(`Para: ${to}`);
+      console.log(`Assunto: ${subject}`);
+      console.log('Conteúdo HTML:\n');
+      console.log(html);
+      console.log('\n========== FIM DO E-MAIL SIMULADO ==========\n');
+      
+      // No modo de teste, consideramos como sucesso sem realmente enviar
+      return true;
+    } else {
+      // No modo de produção, realmente enviar o e-mail
+      await transporter.sendMail({
+        from: `Endurancy <${from}>`,
+        to,
+        subject,
+        html,
+      });
+    }
     
     console.log(`E-mail enviado para ${to}: ${subject}`);
     return true;
