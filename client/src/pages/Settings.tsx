@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings as SettingsIcon, Globe, Bell, Key, Mail } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Settings as SettingsIcon, Globe, Bell, Key, Mail, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -117,6 +118,15 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Configuração SMTP</h3>
+                <Alert className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Modo de Teste Ativado</AlertTitle>
+                  <AlertDescription>
+                    O sistema está operando em modo de teste para e-mails. Neste modo, os e-mails não são realmente enviados, 
+                    mas são exibidos no console do servidor para fins de depuração. Isso é útil durante o desenvolvimento 
+                    ou quando não há um servidor SMTP disponível.
+                  </AlertDescription>
+                </Alert>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Servidor SMTP</label>
