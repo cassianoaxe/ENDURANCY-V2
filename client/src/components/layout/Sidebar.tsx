@@ -61,6 +61,7 @@ const menuItems: MenuItem[] = [
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
     submenu: [
+      { icon: BarChart2, label: "Dashboard de Suporte", path: "/support-dashboard" },
       { icon: TicketIcon, label: "Lista de Tickets", path: "/tickets" },
       { icon: MessageSquareText, label: "Criar Novo Ticket", path: "/tickets/new" }
     ]
