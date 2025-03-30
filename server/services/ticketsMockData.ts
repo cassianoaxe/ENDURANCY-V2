@@ -177,8 +177,11 @@ export async function initializeMockTickets() {
     const result = await db.execute(sql`SELECT COUNT(*) AS count FROM support_tickets`);
     const existingTickets = result.rows && result.rows.length > 0 ? parseInt(result.rows[0].count) : 0;
     
-    // Se não existirem tickets, criar os tickets de exemplo
-    if (existingTickets === 0) {
+    // Mostrar quantidade de tickets existentes
+    console.log(`[Tickets Mock] Existem ${existingTickets} tickets no banco de dados`);
+    
+    // Forçar a criação de tickets de exemplo, independente de já existirem outros
+    if (true) {
       console.log("[Tickets Mock] Inicializando tickets de exemplo...");
       
       // Obter IDs das organizações existentes
@@ -245,7 +248,7 @@ export async function initializeMockTickets() {
       
       console.log("[Tickets Mock] Tickets de exemplo inicializados com sucesso");
     } else {
-      console.log("[Tickets Mock] Tickets já existem, pulando inicialização de dados mock");
+      console.log("[Tickets Mock] Forçando reinicialização de tickets");
     }
   } catch (error) {
     console.error("[Tickets Mock] Erro ao inicializar tickets de exemplo:", error);
