@@ -13,8 +13,26 @@ import {
   TicketIcon,
   RefreshCw,
   PlusCircle,
-  XCircle
+  XCircle,
+  Download,
+  BarChart2,
+  Timer,
+  Zap,
+  Smile,
+  FileText
 } from 'lucide-react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
@@ -81,6 +99,14 @@ interface DashboardStats {
   byStatusCount: Record<string, number>;
   byOrganizationCount: Record<string, number>;
   recentActivity: Ticket[];
+  // Novas métricas de SLA
+  slaCompliance: number;
+  slaMissed: number;
+  avgFirstResponseTime: number;
+  avgResolutionTimeByPriority: Record<string, number>;
+  ticketVolumeByDay: Record<string, number>;
+  avgRating: number;
+  firstContactResolution: number;
 }
 
 // Formatador de data/hora
@@ -174,7 +200,28 @@ export default function SupportDashboardPage() {
         cancelado: 0
       },
       byOrganizationCount: {},
-      recentActivity: []
+      recentActivity: [],
+      // Novas métricas de SLA
+      slaCompliance: 87,
+      slaMissed: 13,
+      avgFirstResponseTime: 2.7,
+      avgResolutionTimeByPriority: {
+        baixa: 72.5,
+        media: 48.2,
+        alta: 24.3,
+        critica: 8.7
+      },
+      ticketVolumeByDay: {
+        '2025-03-24': 3,
+        '2025-03-25': 4,
+        '2025-03-26': 2,
+        '2025-03-27': 5,
+        '2025-03-28': 6,
+        '2025-03-29': 3,
+        '2025-03-30': 2
+      },
+      avgRating: 4.8,
+      firstContactResolution: 42
     }
   });
 
@@ -256,6 +303,20 @@ export default function SupportDashboardPage() {
   // Calcular porcentagem de tickets resolvidos
   const resolutionRate = dashboardStats ? 
     Math.round((dashboardStats.resolved / dashboardStats.total) * 100) : 0;
+    
+  // Preparar dados para gráficos
+  const ticketVolumeData = dashboardStats?.ticketVolumeByDay ? 
+    Object.entries(dashboardStats.ticketVolumeByDay).map(([date, count]) => ({
+      date: new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      tickets: count
+    })).sort((a, b) => a.date.localeCompare(b.date)) : [];
+    
+  // Preparar dados para gráfico de resolução por prioridade
+  const resolutionTimeByPriorityData = dashboardStats?.avgResolutionTimeByPriority ? 
+    Object.entries(dashboardStats.avgResolutionTimeByPriority).map(([priority, time]) => ({
+      priority: priority.charAt(0).toUpperCase() + priority.slice(1),
+      horas: time
+    })) : [];
 
   return (
     <div className="container mx-auto py-8">
@@ -510,6 +571,160 @@ export default function SupportDashboardPage() {
           </CardContent>
           <CardFooter className="border-t px-6 py-4">
             <Button variant="outline" className="w-full text-sm">Ver todas as notificações</Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Nova seção de SLA e métricas avançadas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-lg">
+              <Zap className="h-5 w-5 mr-2 text-yellow-500" />
+              Métricas de SLA
+            </CardTitle>
+            <CardDescription>Contratos de nível de serviço</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Conformidade com SLA</span>
+                  <Badge variant={dashboardStats?.slaCompliance! >= 80 ? "success" : "destructive"}>
+                    {dashboardStats?.slaCompliance || 0}%
+                  </Badge>
+                </div>
+                <Progress 
+                  value={dashboardStats?.slaCompliance} 
+                  className={`h-2 ${dashboardStats?.slaCompliance! >= 80 ? 'bg-green-100' : 'bg-red-100'}`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tickets resolvidos dentro do prazo acordado
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">SLAs Perdidos</span>
+                  <Badge variant="outline">{dashboardStats?.slaMissed || 0}%</Badge>
+                </div>
+                <Progress 
+                  value={dashboardStats?.slaMissed} 
+                  className="h-2 bg-red-100" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tickets que ultrapassaram o prazo de resolução
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Tempo até Primeira Resposta</span>
+                  <span className="text-sm font-semibold">{dashboardStats?.avgFirstResponseTime || 0} horas</span>
+                </div>
+                <Progress 
+                  value={Math.min(100, (5 / (dashboardStats?.avgFirstResponseTime || 1)) * 100)} 
+                  className="h-2" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tempo médio para primeira interação com cliente
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Resolução no Primeiro Contato</span>
+                  <span className="text-sm font-semibold">{dashboardStats?.firstContactResolution || 0}%</span>
+                </div>
+                <Progress 
+                  value={dashboardStats?.firstContactResolution} 
+                  className="h-2" 
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tickets resolvidos sem escalação ou transferência
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-lg">
+              <BarChart2 className="h-5 w-5 mr-2 text-blue-500" />
+              Análise de Desempenho
+            </CardTitle>
+            <CardDescription>Tendências e métricas detalhadas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="volume">
+              <TabsList className="mb-4">
+                <TabsTrigger value="volume">Volume de Tickets</TabsTrigger>
+                <TabsTrigger value="resolution">Tempo de Resolução</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="volume">
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={ticketVolumeData}
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area 
+                        type="monotone" 
+                        dataKey="tickets" 
+                        stroke="var(--primary)" 
+                        fill="var(--primary)" 
+                        fillOpacity={0.2} 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="text-xs text-muted-foreground text-center mt-2">
+                  Volume diário de tickets durante o período selecionado
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="resolution">
+                <div className="h-[250px] w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={resolutionTimeByPriorityData}
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" />
+                      <XAxis dataKey="priority" />
+                      <YAxis label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+                      <Tooltip formatter={(value) => [`${value} horas`, 'Tempo de Resolução']} />
+                      <Bar dataKey="horas" fill="var(--primary)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="text-xs text-muted-foreground text-center mt-2">
+                  Tempo médio de resolução por nível de prioridade (em horas)
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          <CardFooter className="border-t px-6 py-3">
+            <div className="w-full flex justify-between items-center text-sm">
+              <div className="flex items-center gap-2">
+                <Timer className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Meta de primeira resposta: <span className="font-medium">4 horas</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Meta de resolução: <span className="font-medium">36 horas</span>
+                </span>
+              </div>
+            </div>
           </CardFooter>
         </Card>
       </div>
