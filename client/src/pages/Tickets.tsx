@@ -221,9 +221,13 @@ export default function TicketsPage() {
               </TableHeader>
               <TableBody>
                 {filteredTickets.map((ticket) => (
-                  <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setLocation(`/tickets/${ticket.id}`)}>
+                  <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">{ticket.id}</TableCell>
-                    <TableCell>{ticket.title}</TableCell>
+                    <TableCell>
+                      <Link to={`/tickets/${ticket.id}`} className="text-primary hover:underline">
+                        {ticket.title}
+                      </Link>
+                    </TableCell>
                     {user?.role === 'admin' && <TableCell>{ticket.organization || '-'}</TableCell>}
                     <TableCell>
                       <Badge className={statusColors[ticket.status] || 'bg-gray-100'}>
