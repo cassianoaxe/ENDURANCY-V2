@@ -1202,25 +1202,7 @@ export default function Financial() {
   };
   
   return (
-    <div className="flex">
-      {/* Sidebar financeira */}
-      <div className="w-64 p-4 border-r min-h-[calc(100vh-4rem)] bg-white">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold uppercase text-gray-700">FINANCEIRO</h2>
-        </div>
-        
-        <div className="space-y-1">
-          {financialMenu.map(item => (
-            <SidebarMenuItem
-              key={item.id}
-              item={item}
-              isActive={currentPath === item.path}
-              onClick={() => navigateTo(item.path)}
-            />
-          ))}
-        </div>
-      </div>
-
+    <div className="flex flex-col">
       {/* Conteúdo principal */}
       <div className="flex-1 p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
