@@ -590,7 +590,7 @@ export const ticketStatusEnum = pgEnum('ticket_status', [
 export const ticketPriorityEnum = pgEnum('ticket_priority', ['baixa', 'media', 'alta', 'critica']);
 
 export const ticketCategoryEnum = pgEnum('ticket_category', [
-  'bug', 'melhoria', 'duvida', 'financeiro', 'acesso', 'seguranca', 'performance', 'outros'
+  'bug', 'melhoria', 'duvida', 'financeiro', 'acesso', 'seguranca', 'performance', 'desenvolvimento', 'outros'
 ]);
 
 // Tabela de tickets de suporte
@@ -617,8 +617,7 @@ export const ticketComments = pgTable("ticket_comments", {
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
   isInternal: boolean("is_internal").default(false), // Se true, só visível para admins
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
 // Tabela de anexos em tickets
