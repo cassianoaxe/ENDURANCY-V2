@@ -162,8 +162,8 @@ export default function ModulesTable() {
 
   return (
     <Layout>
-      <div className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+      <div className="p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Gerenciamento de Módulos</h1>
             <p className="text-gray-600 mt-2">Gerencie todos os módulos e funcionalidades disponíveis na plataforma.</p>
