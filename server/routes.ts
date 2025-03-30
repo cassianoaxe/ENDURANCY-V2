@@ -705,7 +705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Module Management Routes
-  app.get("/api/modules", authenticate, async (_req, res) => {
+  app.get("/api/modules", async (_req, res) => {
     try {
       const modulesList = await db.select().from(modules);
       res.json(modulesList);
@@ -715,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/module-plans", authenticate, async (_req, res) => {
+  app.get("/api/module-plans", async (_req, res) => {
     try {
       const plansList = await db.select().from(modulePlans);
       res.json(plansList);
