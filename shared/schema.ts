@@ -347,3 +347,237 @@ export type ModulePlan = typeof modulePlans.$inferSelect;
 export type InsertModulePlan = z.infer<typeof insertModulePlanSchema>;
 export type OrganizationModule = typeof organizationModules.$inferSelect;
 export type InsertOrganizationModule = z.infer<typeof insertOrganizationModuleSchema>;
+
+// Enums para o módulo financeiro
+export const transactionTypeEnum = pgEnum('transaction_type', ['receita', 'despesa']);
+export const transactionStatusEnum = pgEnum('transaction_status', ['pendente', 'pago', 'atrasado', 'cancelado']);
+export const employeeStatusEnum = pgEnum('employee_status', ['ativo', 'férias', 'licença', 'desligado']);
+export const departmentEnum = pgEnum('department_type', ['desenvolvimento', 'design', 'marketing', 'vendas', 'suporte', 'administrativo', 'rh', 'financeiro', 'diretoria']);
+export const vacationStatusEnum = pgEnum('vacation_status', ['pendente', 'aprovada', 'negada', 'cancelada', 'em_andamento', 'concluída']);
+
+// Transações financeiras (contas a pagar e receber)
+export const financialTransactions = pgTable("financial_transactions", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  description: text("description").notNull(),
+  type: transactionTypeEnum("type").notNull(), // receita ou despesa
+  category: text("category").notNull(), // categoria da transação (salários, impostos, vendas, etc)
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: transactionStatusEnum("status").notNull().default("pendente"),
+  dueDate: timestamp("due_date").notNull(),
+  paymentDate: timestamp("payment_date"),
+  documentNumber: text("document_number"), // número da nota fiscal ou documento
+  paymentMethod: text("payment_method"), // método de pagamento
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Categorias financeiras
+export const financialCategories = pgTable("financial_categories", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  type: transactionTypeEnum("type").notNull(), // receita ou despesa
+  description: text("description"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Colaboradores (funcionários)
+export const employees = pgTable("employees", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  cpf: text("cpf").notNull(),
+  position: text("position").notNull(), // cargo
+  department: departmentEnum("department").notNull(),
+  salaryBase: decimal("salary_base", { precision: 10, scale: 2 }).notNull(),
+  hireDate: timestamp("hire_date").notNull(),
+  birthDate: timestamp("birth_date").notNull(),
+  status: employeeStatusEnum("status").notNull().default("ativo"),
+  address: text("address"),
+  phone: text("phone"),
+  bankName: text("bank_name"),
+  bankBranch: text("bank_branch"),
+  bankAccount: text("bank_account"),
+  pixKey: text("pix_key"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Folha de pagamento
+export const payroll = pgTable("payroll", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  employeeId: integer("employee_id").notNull(),
+  month: integer("month").notNull(), // mês de referência
+  year: integer("year").notNull(), // ano de referência
+  baseSalary: decimal("base_salary", { precision: 10, scale: 2 }).notNull(),
+  benefits: decimal("benefits", { precision: 10, scale: 2 }).default("0"),
+  bonuses: decimal("bonuses", { precision: 10, scale: 2 }).default("0"),
+  inssDiscount: decimal("inss_discount", { precision: 10, scale: 2 }).default("0"),
+  irrfDiscount: decimal("irrf_discount", { precision: 10, scale: 2 }).default("0"),
+  otherDiscounts: decimal("other_discounts", { precision: 10, scale: 2 }).default("0"),
+  netSalary: decimal("net_salary", { precision: 10, scale: 2 }).notNull(),
+  paymentDate: timestamp("payment_date"),
+  status: transactionStatusEnum("status").notNull().default("pendente"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Controle de férias
+export const vacations = pgTable("vacations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  employeeId: integer("employee_id").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  totalDays: integer("total_days").notNull(),
+  periodStart: timestamp("period_start").notNull(), // início do período aquisitivo
+  periodEnd: timestamp("period_end").notNull(), // fim do período aquisitivo
+  requestDate: timestamp("request_date").defaultNow().notNull(),
+  approvedBy: integer("approved_by"), // ID do usuário que aprovou
+  approvalDate: timestamp("approval_date"),
+  status: vacationStatusEnum("status").notNull().default("pendente"),
+  paymentAmount: decimal("payment_amount", { precision: 10, scale: 2 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// DRE - Demonstração do Resultado do Exercício
+export const financialReports = pgTable("financial_reports", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  type: text("type").notNull(), // 'dre', 'balanco', etc
+  month: integer("month"),
+  year: integer("year").notNull(),
+  quarter: integer("quarter"),
+  revenue: decimal("revenue", { precision: 15, scale: 2 }).notNull(),
+  cogs: decimal("cogs", { precision: 15, scale: 2 }).notNull(), // custo dos serviços prestados
+  grossProfit: decimal("gross_profit", { precision: 15, scale: 2 }).notNull(),
+  operatingExpenses: decimal("operating_expenses", { precision: 15, scale: 2 }).notNull(),
+  ebitda: decimal("ebitda", { precision: 15, scale: 2 }).notNull(),
+  depreciation: decimal("depreciation", { precision: 15, scale: 2 }).default("0"),
+  ebit: decimal("ebit", { precision: 15, scale: 2 }).notNull(),
+  financialExpenses: decimal("financial_expenses", { precision: 15, scale: 2 }).default("0"),
+  financialRevenue: decimal("financial_revenue", { precision: 15, scale: 2 }).default("0"),
+  profitBeforeTax: decimal("profit_before_tax", { precision: 15, scale: 2 }).notNull(),
+  incomeTax: decimal("income_tax", { precision: 15, scale: 2 }).default("0"),
+  netProfit: decimal("net_profit", { precision: 15, scale: 2 }).notNull(),
+  notes: text("notes"),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schemas de inserção para os novos modelos
+export const insertFinancialTransactionSchema = createInsertSchema(financialTransactions).pick({
+  organizationId: true,
+  description: true,
+  type: true,
+  category: true,
+  amount: true,
+  status: true,
+  dueDate: true,
+  paymentDate: true,
+  documentNumber: true,
+  paymentMethod: true,
+  notes: true,
+});
+
+export const insertFinancialCategorySchema = createInsertSchema(financialCategories).pick({
+  organizationId: true,
+  name: true,
+  type: true,
+  description: true,
+  isDefault: true,
+});
+
+export const insertEmployeeSchema = createInsertSchema(employees).pick({
+  organizationId: true,
+  name: true,
+  email: true,
+  cpf: true,
+  position: true,
+  department: true,
+  salaryBase: true,
+  hireDate: true,
+  birthDate: true,
+  status: true,
+  address: true,
+  phone: true,
+  bankName: true,
+  bankBranch: true,
+  bankAccount: true,
+  pixKey: true,
+});
+
+export const insertPayrollSchema = createInsertSchema(payroll).pick({
+  organizationId: true,
+  employeeId: true,
+  month: true,
+  year: true,
+  baseSalary: true,
+  benefits: true,
+  bonuses: true,
+  inssDiscount: true,
+  irrfDiscount: true,
+  otherDiscounts: true,
+  netSalary: true,
+  paymentDate: true,
+  status: true,
+  notes: true,
+});
+
+export const insertVacationSchema = createInsertSchema(vacations).pick({
+  organizationId: true,
+  employeeId: true,
+  startDate: true,
+  endDate: true,
+  totalDays: true,
+  periodStart: true,
+  periodEnd: true,
+  requestDate: true,
+  approvedBy: true,
+  approvalDate: true,
+  status: true,
+  paymentAmount: true,
+  notes: true,
+});
+
+export const insertFinancialReportSchema = createInsertSchema(financialReports).pick({
+  organizationId: true,
+  type: true,
+  month: true,
+  year: true,
+  quarter: true,
+  revenue: true,
+  cogs: true,
+  grossProfit: true,
+  operatingExpenses: true,
+  ebitda: true,
+  depreciation: true,
+  ebit: true,
+  financialExpenses: true,
+  financialRevenue: true,
+  profitBeforeTax: true,
+  incomeTax: true,
+  netProfit: true,
+  notes: true,
+});
+
+// Tipos para o módulo financeiro
+export type FinancialTransaction = typeof financialTransactions.$inferSelect;
+export type InsertFinancialTransaction = z.infer<typeof insertFinancialTransactionSchema>;
+export type FinancialCategory = typeof financialCategories.$inferSelect;
+export type InsertFinancialCategory = z.infer<typeof insertFinancialCategorySchema>;
+export type Employee = typeof employees.$inferSelect;
+export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
+export type Payroll = typeof payroll.$inferSelect;
+export type InsertPayroll = z.infer<typeof insertPayrollSchema>;
+export type Vacation = typeof vacations.$inferSelect;
+export type InsertVacation = z.infer<typeof insertVacationSchema>;
+export type FinancialReport = typeof financialReports.$inferSelect;
+export type InsertFinancialReport = z.infer<typeof insertFinancialReportSchema>;
