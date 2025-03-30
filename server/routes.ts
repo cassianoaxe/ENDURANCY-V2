@@ -489,7 +489,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota de teste para o envio de e-mail (apenas para desenvolvimento)
+  // Rota para alternar o modo de teste de email
+  app.post("/api/email/toggle-test-mode", authenticate, async (req, res) => {
+    try {
+      // Esta rota apenas simula a alternância entre modos de teste/produção
+      // Na implementação real, alteraria uma variável de ambiente ou configuração
+      const currentMode = process.env.EMAIL_TEST_MODE === 'true';
+      // Inverte o modo atual
+      process.env.EMAIL_TEST_MODE = (!currentMode).toString();
+      
+      res.json({ 
+        success: true, 
+        testMode: process.env.EMAIL_TEST_MODE === 'true',
+        message: `Modo de teste ${process.env.EMAIL_TEST_MODE === 'true' ? 'ativado' : 'desativado'} com sucesso.`
+      });
+    } catch (error) {
+      console.error("Erro ao alternar modo de teste:", error);
+      res.status(500).json({ success: false, message: "Erro ao alternar modo de teste" });
+    }
+  });
+
+// Rota de teste para o envio de e-mail (apenas para desenvolvimento)
   app.post("/api/email/test", authenticate, async (req, res) => {
     try {
       const { email, template } = req.body;
