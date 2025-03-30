@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   ArrowLeft, Send, RefreshCw, Clock, AlertCircle, Tag, 
-  User, Briefcase, MessageCircle, Paperclip, CheckCircle 
+  User, Briefcase, MessageCircle, Paperclip, CheckCircle, Lightbulb
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import TicketAiSuggestions from '@/components/features/TicketAiSuggestions';
 import {
   Dialog,
   DialogContent,
@@ -438,6 +439,27 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
           {/* Coluna lateral - Informações e ações */}
           <div className="space-y-6">
+            {isAdmin && !isTicketClosed && (
+              <TicketAiSuggestions 
+                ticketId={parseInt(id)}
+                onAddComment={(text) => {
+                  setComment(text);
+                  // Rolagem automática para o campo de comentário
+                  setTimeout(() => {
+                    const commentArea = document.querySelector('textarea');
+                    if (commentArea) {
+                      commentArea.focus();
+                      commentArea.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+                onUpdateStatus={(status) => statusMutation.mutate(status)}
+                onUpdatePriority={(priority) => priorityMutation.mutate(priority)}
+                onAssignSelf={() => assignMutation.mutate(user?.id.toString() || '')}
+                onViewTicket={(ticketId) => setLocation(`/tickets/${ticketId}`)}
+              />
+            )}
+            
             <Card>
               <CardHeader>
                 <CardTitle>Informações</CardTitle>
