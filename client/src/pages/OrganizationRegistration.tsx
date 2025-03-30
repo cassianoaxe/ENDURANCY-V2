@@ -124,19 +124,11 @@ export default function OrganizationRegistration() {
     confirmPaymentMutation.mutate({ paymentIntentId, organizationId });
   };
 
+  // Esta função não é mais necessária, pois a lógica foi movida para o onPaymentSuccess
+  // da PaymentFormWrapper
   const handlePaymentSuccess = (paymentIntentId: string) => {
-    setPaymentIntentId(paymentIntentId);
-    setRegistrationComplete(true);
-    setShowPaymentForm(false);
-    
-    // If the organization has already been created, confirm the payment
-    if (organizationId) {
-      confirmPaymentAndFinish(paymentIntentId, organizationId);
-    } else {
-      // Otherwise, we'll need to create the organization first, and then confirm the payment
-      // This will be handled in the onSuccess of createOrganization
-      submitOrganization();
-    }
+    // Manter este método para compatibilidade, mas usar a lógica dentro do componente
+    console.log("Payment success handled via onPaymentSuccess callback");
   };
 
   const nextStep = async () => {
@@ -600,8 +592,16 @@ export default function OrganizationRegistration() {
                     selectedPlan={selectedPlan}
                     onPaymentSuccess={(paymentId) => {
                       setPaymentIntentId(paymentId);
-                      // We no longer store payment status in the database
-                      setShowPaymentForm(false);
+                      setRegistrationComplete(true);
+                      
+                      // Se a organização já foi criada, confirmar o pagamento
+                      if (organizationId) {
+                        confirmPaymentAndFinish(paymentId, organizationId);
+                      } else {
+                        // Se não, criar a organização primeiro
+                        submitOrganization();
+                      }
+                      
                       toast({
                         title: "Pagamento confirmado!",
                         description: "Seu pagamento foi processado com sucesso.",
