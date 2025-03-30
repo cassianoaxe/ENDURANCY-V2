@@ -22,7 +22,10 @@ export const plans = pgTable("plans", {
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   features: text("features").array().notNull(),
+  isModulePlan: boolean("is_module_plan").default(false), // Indica se o plano está associado a um módulo específico
+  moduleId: integer("module_id"), // Referência ao módulo (apenas se for um plano de módulo)
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const organizations = pgTable("organizations", {
@@ -104,6 +107,52 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Define o enum para tipos de módulos
+export const moduleTypeEnum = pgEnum('module_type', [
+  'compras', 'cultivo', 'producao', 'crm', 'rh', 
+  'juridico', 'social', 'transparencia', 'inteligencia_artificial'
+]);
+
+// Tabela de módulos disponíveis no sistema
+export const modules = pgTable("modules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon_name: text("icon_name").notNull(), // ícone do módulo
+  slug: text("slug").notNull().unique(), // identificador único para o módulo (ex: "compras", "crm")
+  is_active: boolean("is_active").default(true), // se o módulo está disponível para contratação
+  type: moduleTypeEnum("type").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de planos específicos para módulos
+export const modulePlans = pgTable("module_plans", {
+  id: serial("id").primaryKey(),
+  module_id: integer("module_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  billing_cycle: text("billing_cycle").notNull().default('monthly'),
+  features: text("features").array().notNull(),
+  max_users: integer("max_users").notNull().default(5),
+  is_popular: boolean("is_popular").default(false),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela de associação entre organizações e módulos contratados
+export const organizationModules = pgTable("organization_modules", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  planId: integer("plan_id"), // plano contratado para este módulo
+  active: boolean("active").default(true), // se o módulo está ativo para esta organização
+  billingDay: integer("billing_day"), // dia de cobrança da assinatura
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -125,6 +174,8 @@ export const insertPlanSchema = createInsertSchema(plans).pick({
   description: true,
   price: true,
   features: true,
+  isModulePlan: true,
+  moduleId: true,
 });
 
 export const insertOrganizationSchema = createInsertSchema(organizations)
@@ -211,3 +262,39 @@ export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+
+export const insertModuleSchema = createInsertSchema(modules).pick({
+  name: true,
+  description: true,
+  icon_name: true,
+  slug: true,
+  is_active: true,
+  type: true,
+});
+
+export const insertModulePlanSchema = createInsertSchema(modulePlans).pick({
+  module_id: true,
+  name: true,
+  description: true,
+  price: true,
+  billing_cycle: true,
+  features: true,
+  max_users: true,
+  is_popular: true,
+  is_active: true,
+});
+
+export const insertOrganizationModuleSchema = createInsertSchema(organizationModules).pick({
+  organizationId: true,
+  moduleId: true,
+  planId: true,
+  active: true,
+  billingDay: true,
+});
+
+export type Module = typeof modules.$inferSelect;
+export type InsertModule = z.infer<typeof insertModuleSchema>;
+export type ModulePlan = typeof modulePlans.$inferSelect;
+export type InsertModulePlan = z.infer<typeof insertModulePlanSchema>;
+export type OrganizationModule = typeof organizationModules.$inferSelect;
+export type InsertOrganizationModule = z.infer<typeof insertOrganizationModuleSchema>;
