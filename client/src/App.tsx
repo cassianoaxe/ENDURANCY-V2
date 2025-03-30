@@ -18,6 +18,7 @@ import Backups from "@/pages/Backups";
 import Emergencies from "@/pages/Emergencies";
 import Plans from "@/pages/Plans";
 import Modules from "@/pages/Modules";
+import OrganizationModules from "@/pages/OrganizationModules";
 import Requests from "@/pages/Requests";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
@@ -253,7 +254,7 @@ function AppContent() {
 
   // Admin-specific routes require admin privileges
   if (['/analytics', '/activity-log', '/backups', '/emergencies', 
-       '/plans', '/modules', '/organizations', '/organization-registration', 
+       '/plans', '/modules', '/organization-modules', '/organizations', '/organization-registration', 
        '/requests', '/financial', '/email-templates', 
        '/administrators', '/settings'].includes(currentPath)) {
     
@@ -287,6 +288,7 @@ function AppContent() {
       case '/emergencies': Component = Emergencies; break;
       case '/plans': Component = Plans; break;
       case '/modules': Component = Modules; break;
+      case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': Component = Organizations; break;
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/requests': Component = Requests; break;
