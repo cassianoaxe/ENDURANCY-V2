@@ -126,7 +126,7 @@ export default function Modules() {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8">
+      <div className="px-4 py-6">
         <h1 className="text-3xl font-bold mb-6">Gerenciamento de Módulos</h1>
         
         <Tabs defaultValue="todos" className="mb-6" value={activeTab} onValueChange={setActiveTab}>
@@ -142,7 +142,7 @@ export default function Modules() {
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredModules.map((module) => {
                   const plans = getPlansByModuleId(module.id);
                   const popularPlan = getPopularPlan(module.id);
