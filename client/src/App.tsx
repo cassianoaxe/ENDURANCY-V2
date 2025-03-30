@@ -20,7 +20,6 @@ import Plans from "@/pages/Plans";
 import Requests from "@/pages/Requests";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
-import Modules from "@/pages/Modules";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -251,44 +250,11 @@ function AppContent() {
     return <OrganizationConfirmation />;
   }
 
-  // Check for module-specific paths like /modules/1, /modules/2, etc.
-  const moduleMatch = currentPath.match(/^\/modules\/(\d+)$/);
-  if (moduleMatch) {
-    const moduleId = parseInt(moduleMatch[1]);
-    if (userRole !== 'admin') {
-      return (
-        <Layout>
-          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
-            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
-            <p className="text-gray-500 mb-4">
-              Você não tem permissão para acessar esta área.
-            </p>
-            <button 
-              onClick={() => {
-                window.history.pushState({}, '', '/');
-                window.dispatchEvent(new Event('popstate'));
-              }}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-            >
-              Voltar para a página inicial
-            </button>
-          </div>
-        </Layout>
-      );
-    }
-    
-    return (
-      <Layout>
-        <Modules />
-      </Layout>
-    );
-  }
-
   // Admin-specific routes require admin privileges
   if (['/analytics', '/activity-log', '/backups', '/emergencies', 
        '/plans', '/organizations', '/organization-registration', 
        '/requests', '/financial', '/email-templates', 
-       '/administrators', '/settings', '/modules'].includes(currentPath)) {
+       '/administrators', '/settings'].includes(currentPath)) {
     
     if (userRole !== 'admin') {
       return (
@@ -326,7 +292,6 @@ function AppContent() {
       case '/email-templates': Component = EmailTemplates; break;
       case '/administrators': Component = Administrators; break;
       case '/settings': Component = Settings; break;
-      case '/modules': Component = Modules; break;
     }
     
     return (
