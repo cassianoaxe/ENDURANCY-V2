@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
-import { organizations, organizationDocuments, users, plans } from "@shared/schema";
+import { organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
@@ -101,6 +101,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize sample plans
   initializePlans();
+  
+  // Function to initialize sample modules
+  const initializeModules = async () => {
+    try {
+      // Check if modules already exist
+      const existingModules = await db.select().from(modules);
+      if (existingModules.length > 0) {
+        console.log('Modules already initialized');
+        return;
+      }
+      
+      // Sample modules
+      const sampleModules = [
+        {
+          name: 'Compras',
+          description: 'Gerenciamento de compras e fornecedores',
+          icon_name: 'ShoppingCart',
+          slug: 'compras',
+          is_active: true,
+          type: 'logistica'
+        },
+        {
+          name: 'Cultivo',
+          description: 'Gerenciamento de plantio e monitoramento',
+          icon_name: 'Leaf',
+          slug: 'cultivo',
+          is_active: true,
+          type: 'producao'
+        },
+        {
+          name: 'Análises',
+          description: 'Relatórios e análises de desempenho',
+          icon_name: 'LineChart',
+          slug: 'analises',
+          is_active: true,
+          type: 'administrativo'
+        },
+        {
+          name: 'Médico',
+          description: 'Gerenciamento de pacientes e consultas',
+          icon_name: 'Heart',
+          slug: 'medico',
+          is_active: true,
+          type: 'saude'
+        },
+        {
+          name: 'Jurídico',
+          description: 'Gestão de processos e documentos legais',
+          icon_name: 'Scale',
+          slug: 'juridico',
+          is_active: false,
+          type: 'administrativo'
+        }
+      ];
+      
+      // Insert modules
+      for (const moduleData of sampleModules) {
+        const [createdModule] = await db.insert(modules)
+          .values({
+            ...moduleData,
+            created_at: new Date(),
+            updated_at: new Date()
+          })
+          .returning();
+          
+        console.log(`Created module: ${createdModule.name}`);
+        
+        // Create sample plans for each module
+        const plans = [
+          {
+            module_id: createdModule.id,
+            name: 'Básico',
+            description: 'Acesso às funcionalidades essenciais',
+            price: 149.90,
+            billing_cycle: 'mensal',
+            features: ['Funcionalidade básica 1', 'Funcionalidade básica 2', 'Suporte por email'],
+            max_users: 5,
+            is_popular: false,
+            is_active: true
+          },
+          {
+            module_id: createdModule.id,
+            name: 'Profissional',
+            description: 'Recursos avançados para equipes maiores',
+            price: 289.90,
+            billing_cycle: 'mensal',
+            features: ['Todas as funcionalidades do plano Básico', 'Funcionalidade avançada 1', 'Funcionalidade avançada 2', 'Suporte prioritário'],
+            max_users: 15,
+            is_popular: true,
+            is_active: true
+          },
+          {
+            module_id: createdModule.id,
+            name: 'Enterprise',
+            description: 'Solução completa para grandes empresas',
+            price: 599.90,
+            billing_cycle: 'mensal',
+            features: ['Todas as funcionalidades do plano Profissional', 'Funcionalidade enterprise 1', 'Suporte 24/7', 'Implementação personalizada'],
+            max_users: 50,
+            is_popular: false,
+            is_active: true
+          }
+        ];
+        
+        for (const planData of plans) {
+          await db.insert(modulePlans)
+            .values({
+              ...planData,
+              created_at: new Date()
+            });
+        }
+        
+        console.log(`Created plans for module: ${createdModule.name}`);
+      }
+      
+      console.log('All modules and plans initialized');
+    } catch (error) {
+      console.error('Error initializing modules:', error);
+    }
+  };
+  
+  // Initialize sample modules
+  initializeModules();
   
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
@@ -571,6 +694,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao testar envio de e-mail:", error);
       res.status(500).json({ message: "Erro ao testar envio de e-mail" });
+    }
+  });
+  
+  // Module Management Routes
+  app.get("/api/modules", authenticate, async (_req, res) => {
+    try {
+      const modulesList = await db.select().from(modules);
+      res.json(modulesList);
+    } catch (error) {
+      console.error("Error fetching modules:", error);
+      res.status(500).json({ message: "Failed to fetch modules" });
+    }
+  });
+
+  app.get("/api/module-plans", authenticate, async (_req, res) => {
+    try {
+      const plansList = await db.select().from(modulePlans);
+      res.json(plansList);
+    } catch (error) {
+      console.error("Error fetching module plans:", error);
+      res.status(500).json({ message: "Failed to fetch module plans" });
+    }
+  });
+
+  app.put("/api/modules/:id/status", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      
+      if (isActive === undefined) {
+        return res.status(400).json({ message: "isActive status is required" });
+      }
+      
+      // Update module status
+      const [updatedModule] = await db.update(modules)
+        .set({ is_active: isActive })
+        .where(eq(modules.id, parseInt(id)))
+        .returning();
+      
+      if (!updatedModule) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      res.json(updatedModule);
+    } catch (error) {
+      console.error("Error updating module status:", error);
+      res.status(500).json({ message: "Failed to update module status" });
+    }
+  });
+
+  app.get("/api/organization-modules/:orgId", authenticate, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      
+      const organizationModulesList = await db.select()
+        .from(organizationModules)
+        .where(eq(organizationModules.organizationId, parseInt(orgId)));
+      
+      res.json(organizationModulesList);
+    } catch (error) {
+      console.error("Error fetching organization modules:", error);
+      res.status(500).json({ message: "Failed to fetch organization modules" });
+    }
+  });
+
+  app.post("/api/organization-modules", authenticate, async (req, res) => {
+    try {
+      const { organizationId, moduleId, planId, active = true } = req.body;
+      
+      if (!organizationId || !moduleId || !planId) {
+        return res.status(400).json({ message: "organizationId, moduleId, and planId are required" });
+      }
+      
+      // Check if this organization already has this module
+      const existingModules = await db.select()
+        .from(organizationModules)
+        .where(and(
+          eq(organizationModules.organizationId, organizationId),
+          eq(organizationModules.moduleId, moduleId)
+        ));
+      
+      if (existingModules.length > 0) {
+        return res.status(400).json({ message: "This organization already has this module" });
+      }
+      
+      // Create new organization module entry
+      const [orgModule] = await db.insert(organizationModules)
+        .values({
+          organizationId,
+          moduleId,
+          planId,
+          active,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      res.status(201).json(orgModule);
+    } catch (error) {
+      console.error("Error adding module to organization:", error);
+      res.status(500).json({ message: "Failed to add module to organization" });
+    }
+  });
+
+  app.delete("/api/organization-modules/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Delete the organization module entry
+      await db.delete(organizationModules)
+        .where(eq(organizationModules.id, parseInt(id)));
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing module from organization:", error);
+      res.status(500).json({ message: "Failed to remove module from organization" });
     }
   });
   
