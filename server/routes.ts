@@ -17,6 +17,7 @@ import {
   notifications, insertNotificationSchema
 } from "@shared/schema";
 import * as notificationService from "./services/notificationService";
+import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
 import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import session from "express-session";
@@ -2819,6 +2820,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao atribuir ticket:", error);
       res.status(500).json({ message: "Falha ao atribuir ticket" });
+    }
+  });
+
+  // API de sugestões baseadas em IA para tickets
+  app.get("/api/tickets/:id/suggestions", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verificar se o ticket existe
+      const [ticket] = await db.select().from(supportTickets).where(eq(supportTickets.id, parseInt(id)));
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Ticket não encontrado" });
+      }
+      
+      // Gerar sugestões de IA com detalhes relacionados
+      const suggestions = await getTicketSuggestionsWithDetails(parseInt(id));
+      
+      res.json({
+        ticketId: parseInt(id),
+        suggestions
+      });
+    } catch (error) {
+      console.error("Erro ao gerar sugestões de IA:", error);
+      res.status(500).json({ message: "Falha ao gerar sugestões para o ticket" });
     }
   });
 
