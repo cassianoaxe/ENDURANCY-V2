@@ -28,7 +28,8 @@ import {
   ArrowDown,
   Brain,
   TicketIcon,
-  MessageSquareText
+  MessageSquareText,
+  BookOpen
 } from "lucide-react";
 
 // Interface para itens de menu e submenu
@@ -84,7 +85,8 @@ const menuItems: MenuItem[] = [
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Settings, label: "Configurações", path: "/settings" },
-  { icon: Link, label: "Lista de URLs", path: "/routes-list" }
+  { icon: Link, label: "Lista de URLs", path: "/routes-list" },
+  { icon: BookOpen, label: "Documentação", path: "/documentation" }
 ];
 
 export default function Sidebar() {
