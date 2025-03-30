@@ -669,3 +669,34 @@ export type TicketComment = typeof ticketComments.$inferSelect;
 export type InsertTicketComment = z.infer<typeof insertTicketCommentSchema>;
 export type TicketAttachment = typeof ticketAttachments.$inferSelect;
 export type InsertTicketAttachment = z.infer<typeof insertTicketAttachmentSchema>;
+
+// Enums para o sistema de notificações
+export const notificationTypeEnum = pgEnum('notification_type', ['info', 'warning', 'success', 'error']);
+
+// Tabela de notificações
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: notificationTypeEnum("type").notNull().default("info"),
+  userId: integer("user_id").notNull(),
+  isRead: boolean("is_read").default(false),
+  ticketId: integer("ticket_id"),
+  organizationId: integer("organization_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Schema para inserção de notificações
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  title: true,
+  message: true,
+  type: true,
+  userId: true,
+  isRead: true,
+  ticketId: true,
+  organizationId: true
+});
+
+// Tipos para o sistema de notificações
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
