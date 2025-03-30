@@ -4,8 +4,15 @@ import multer from "multer";
 import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
-import { organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { 
+  organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
+  // Imports para o módulo financeiro
+  financialTransactions, financialCategories, employees, payroll, vacations, financialReports,
+  insertFinancialTransactionSchema, insertFinancialCategorySchema, insertEmployeeSchema,
+  insertPayrollSchema, insertVacationSchema, insertFinancialReportSchema 
+} from "@shared/schema";
+import { z } from "zod";
+import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -1261,6 +1268,702 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Erro ao salvar configurações de segurança",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ========== ENDPOINTS DO MÓDULO FINANCEIRO ==========
+  
+  // === CONTAS A PAGAR E RECEBER ===
+  
+  // Listar transações financeiras
+  app.get('/api/financial/transactions', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.query.organizationId ? parseInt(req.query.organizationId as string) : req.user.organizationId;
+      
+      if (!organizationId && req.user.role !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      const type = req.query.type as string;
+      const status = req.query.status as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      let query = db.select().from(financialTransactions);
+      
+      // Aplicar filtros
+      if (organizationId) {
+        query = query.where(eq(financialTransactions.organizationId, organizationId));
+      }
+      
+      if (type) {
+        query = query.where(eq(financialTransactions.type, type as any));
+      }
+      
+      if (status) {
+        query = query.where(eq(financialTransactions.status, status as any));
+      }
+      
+      if (startDate) {
+        query = query.where(gte(financialTransactions.dueDate, new Date(startDate)));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(financialTransactions.dueDate, new Date(endDate)));
+      }
+      
+      const transactions = await query.orderBy(desc(financialTransactions.dueDate));
+      
+      res.json({ success: true, transactions });
+    } catch (error) {
+      console.error('Erro ao buscar transações financeiras:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar transações financeiras',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Obter transação financeira pelo ID
+  app.get('/api/financial/transactions/:id', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      const transaction = await db.query.financialTransactions.findFirst({
+        where: eq(financialTransactions.id, id),
+      });
+      
+      if (!transaction) {
+        return res.status(404).json({ success: false, message: 'Transação não encontrada' });
+      }
+      
+      // Verificar se o usuário tem acesso a esta transação
+      if (req.user.role !== 'admin' && transaction.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para acessar esta transação' });
+      }
+      
+      res.json({ success: true, transaction });
+    } catch (error) {
+      console.error('Erro ao buscar transação financeira:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar transação financeira',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Criar transação financeira
+  app.post('/api/financial/transactions', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      // Validar os dados recebidos
+      const validatedData = insertFinancialTransactionSchema.parse(req.body);
+      
+      // Inserir transação
+      const [transaction] = await db.insert(financialTransactions).values(validatedData).returning();
+      
+      res.status(201).json({ success: true, transaction, message: 'Transação criada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar transação financeira:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar transação financeira',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Atualizar transação financeira
+  app.put('/api/financial/transactions/:id', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // Verificar se a transação existe
+      const existingTransaction = await db.query.financialTransactions.findFirst({
+        where: eq(financialTransactions.id, id),
+      });
+      
+      if (!existingTransaction) {
+        return res.status(404).json({ success: false, message: 'Transação não encontrada' });
+      }
+      
+      // Verificar se o usuário tem permissão para atualizar esta transação
+      if (req.user.role !== 'admin' && existingTransaction.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para atualizar esta transação' });
+      }
+      
+      // Atualizar transação
+      await db.update(financialTransactions)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(eq(financialTransactions.id, id));
+      
+      // Buscar a transação atualizada
+      const updatedTransaction = await db.query.financialTransactions.findFirst({
+        where: eq(financialTransactions.id, id),
+      });
+      
+      res.json({ 
+        success: true, 
+        transaction: updatedTransaction, 
+        message: 'Transação atualizada com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar transação financeira:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao atualizar transação financeira',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Deletar transação financeira
+  app.delete('/api/financial/transactions/:id', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // Verificar se a transação existe
+      const existingTransaction = await db.query.financialTransactions.findFirst({
+        where: eq(financialTransactions.id, id),
+      });
+      
+      if (!existingTransaction) {
+        return res.status(404).json({ success: false, message: 'Transação não encontrada' });
+      }
+      
+      // Verificar se o usuário tem permissão para deletar esta transação
+      if (req.user.role !== 'admin' && existingTransaction.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para deletar esta transação' });
+      }
+      
+      // Deletar transação
+      await db.delete(financialTransactions).where(eq(financialTransactions.id, id));
+      
+      res.json({ success: true, message: 'Transação deletada com sucesso' });
+    } catch (error) {
+      console.error('Erro ao deletar transação financeira:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao deletar transação financeira',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // === COLABORADORES / FUNCIONÁRIOS ===
+  
+  // Listar colaboradores
+  app.get('/api/employees', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.query.organizationId ? parseInt(req.query.organizationId as string) : req.user.organizationId;
+      
+      if (!organizationId && req.user.role !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      let query = db.select().from(employees);
+      
+      if (organizationId) {
+        query = query.where(eq(employees.organizationId, organizationId));
+      }
+      
+      // Filtrar por departamento se especificado
+      if (req.query.department) {
+        query = query.where(eq(employees.department, req.query.department as any));
+      }
+      
+      // Filtrar por status se especificado
+      if (req.query.status) {
+        query = query.where(eq(employees.status, req.query.status as any));
+      }
+      
+      const employeesList = await query.orderBy(asc(employees.name));
+      
+      res.json({ success: true, employees: employeesList });
+    } catch (error) {
+      console.error('Erro ao buscar colaboradores:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar colaboradores',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Obter colaborador pelo ID
+  app.get('/api/employees/:id', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      const employee = await db.query.employees.findFirst({
+        where: eq(employees.id, id),
+      });
+      
+      if (!employee) {
+        return res.status(404).json({ success: false, message: 'Colaborador não encontrado' });
+      }
+      
+      // Verificar se o usuário tem acesso a este colaborador
+      if (req.user.role !== 'admin' && employee.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para acessar este colaborador' });
+      }
+      
+      res.json({ success: true, employee });
+    } catch (error) {
+      console.error('Erro ao buscar colaborador:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar colaborador',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Criar colaborador
+  app.post('/api/employees', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      // Validar os dados recebidos
+      const validatedData = insertEmployeeSchema.parse(req.body);
+      
+      // Inserir colaborador
+      const [employee] = await db.insert(employees).values(validatedData).returning();
+      
+      res.status(201).json({ success: true, employee, message: 'Colaborador criado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar colaborador:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar colaborador',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Atualizar colaborador
+  app.put('/api/employees/:id', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      
+      // Verificar se o colaborador existe
+      const existingEmployee = await db.query.employees.findFirst({
+        where: eq(employees.id, id),
+      });
+      
+      if (!existingEmployee) {
+        return res.status(404).json({ success: false, message: 'Colaborador não encontrado' });
+      }
+      
+      // Verificar se o usuário tem permissão para atualizar este colaborador
+      if (req.user.role !== 'admin' && existingEmployee.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para atualizar este colaborador' });
+      }
+      
+      // Atualizar colaborador
+      await db.update(employees)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(eq(employees.id, id));
+      
+      // Buscar o colaborador atualizado
+      const updatedEmployee = await db.query.employees.findFirst({
+        where: eq(employees.id, id),
+      });
+      
+      res.json({ 
+        success: true, 
+        employee: updatedEmployee, 
+        message: 'Colaborador atualizado com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar colaborador:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao atualizar colaborador',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // === FOLHA DE PAGAMENTO ===
+  
+  // Listar registros de folha de pagamento
+  app.get('/api/payroll', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.query.organizationId ? parseInt(req.query.organizationId as string) : req.user.organizationId;
+      
+      if (!organizationId && req.user.role !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      const month = req.query.month ? parseInt(req.query.month as string) : null;
+      const year = req.query.year ? parseInt(req.query.year as string) : null;
+      const employeeId = req.query.employeeId ? parseInt(req.query.employeeId as string) : null;
+      
+      let query = db.select().from(payroll);
+      
+      if (organizationId) {
+        query = query.where(eq(payroll.organizationId, organizationId));
+      }
+      
+      if (month !== null) {
+        query = query.where(eq(payroll.month, month));
+      }
+      
+      if (year !== null) {
+        query = query.where(eq(payroll.year, year));
+      }
+      
+      if (employeeId !== null) {
+        query = query.where(eq(payroll.employeeId, employeeId));
+      }
+      
+      const payrollRecords = await query.orderBy(desc(payroll.year), desc(payroll.month));
+      
+      res.json({ success: true, payroll: payrollRecords });
+    } catch (error) {
+      console.error('Erro ao buscar folha de pagamento:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar folha de pagamento',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Criar registro de folha de pagamento
+  app.post('/api/payroll', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      // Validar os dados recebidos
+      const validatedData = insertPayrollSchema.parse(req.body);
+      
+      // Inserir registro de folha de pagamento
+      const [record] = await db.insert(payroll).values(validatedData).returning();
+      
+      res.status(201).json({ success: true, record, message: 'Registro de folha de pagamento criado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar registro de folha de pagamento:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar registro de folha de pagamento',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // === CONTROLE DE FÉRIAS ===
+  
+  // Listar registros de férias
+  app.get('/api/vacations', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.query.organizationId ? parseInt(req.query.organizationId as string) : req.user.organizationId;
+      
+      if (!organizationId && req.user.role !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      const employeeId = req.query.employeeId ? parseInt(req.query.employeeId as string) : null;
+      const status = req.query.status as string;
+      
+      let query = db.select().from(vacations);
+      
+      if (organizationId) {
+        query = query.where(eq(vacations.organizationId, organizationId));
+      }
+      
+      if (employeeId !== null) {
+        query = query.where(eq(vacations.employeeId, employeeId));
+      }
+      
+      if (status) {
+        query = query.where(eq(vacations.status, status as any));
+      }
+      
+      // Ordenar por data de início mais recente
+      const vacationRecords = await query.orderBy(desc(vacations.startDate));
+      
+      res.json({ success: true, vacations: vacationRecords });
+    } catch (error) {
+      console.error('Erro ao buscar férias:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar férias',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Criar registro de férias
+  app.post('/api/vacations', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      // Validar os dados recebidos
+      const validatedData = insertVacationSchema.parse(req.body);
+      
+      // Inserir registro de férias
+      const [vacation] = await db.insert(vacations).values(validatedData).returning();
+      
+      res.status(201).json({ success: true, vacation, message: 'Registro de férias criado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar registro de férias:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar registro de férias',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Aprovar ou rejeitar férias
+  app.put('/api/vacations/:id/status', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const id = parseInt(req.params.id);
+      const { status, notes } = req.body;
+      
+      if (!status || !['aprovada', 'negada', 'cancelada'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Status inválido' });
+      }
+      
+      // Verificar se o registro de férias existe
+      const existingVacation = await db.query.vacations.findFirst({
+        where: eq(vacations.id, id),
+      });
+      
+      if (!existingVacation) {
+        return res.status(404).json({ success: false, message: 'Registro de férias não encontrado' });
+      }
+      
+      // Verificar se o usuário tem permissão para atualizar este registro
+      if (req.user.role !== 'admin' && existingVacation.organizationId !== req.user.organizationId) {
+        return res.status(403).json({ success: false, message: 'Sem permissão para atualizar este registro' });
+      }
+      
+      // Atualizar registro de férias
+      await db.update(vacations)
+        .set({
+          status: status as any,
+          approvedBy: req.user.id,
+          approvalDate: new Date(),
+          notes: notes || existingVacation.notes,
+          updatedAt: new Date(),
+        })
+        .where(eq(vacations.id, id));
+      
+      // Buscar o registro atualizado
+      const updatedVacation = await db.query.vacations.findFirst({
+        where: eq(vacations.id, id),
+      });
+      
+      res.json({ 
+        success: true, 
+        vacation: updatedVacation, 
+        message: `Férias ${status === 'aprovada' ? 'aprovadas' : status === 'negada' ? 'negadas' : 'canceladas'} com sucesso` 
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar status das férias:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao atualizar status das férias',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // === RELATÓRIOS FINANCEIROS (DRE) ===
+  
+  // Listar relatórios financeiros
+  app.get('/api/financial/reports', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.query.organizationId ? parseInt(req.query.organizationId as string) : req.user.organizationId;
+      
+      if (!organizationId && req.user.role !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      const type = req.query.type as string;
+      const year = req.query.year ? parseInt(req.query.year as string) : null;
+      const quarter = req.query.quarter ? parseInt(req.query.quarter as string) : null;
+      
+      let query = db.select().from(financialReports);
+      
+      if (organizationId) {
+        query = query.where(eq(financialReports.organizationId, organizationId));
+      }
+      
+      if (type) {
+        query = query.where(eq(financialReports.type, type));
+      }
+      
+      if (year !== null) {
+        query = query.where(eq(financialReports.year, year));
+      }
+      
+      if (quarter !== null) {
+        query = query.where(eq(financialReports.quarter, quarter));
+      }
+      
+      // Ordenar por data de geração mais recente
+      const reports = await query.orderBy(desc(financialReports.generatedAt));
+      
+      res.json({ success: true, reports });
+    } catch (error) {
+      console.error('Erro ao buscar relatórios financeiros:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar relatórios financeiros',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Criar relatório financeiro
+  app.post('/api/financial/reports', authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      // Validar os dados recebidos
+      const validatedData = insertFinancialReportSchema.parse(req.body);
+      
+      // Inserir relatório financeiro
+      const [report] = await db.insert(financialReports).values(validatedData).returning();
+      
+      res.status(201).json({ success: true, report, message: 'Relatório financeiro criado com sucesso' });
+    } catch (error) {
+      console.error('Erro ao criar relatório financeiro:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Dados inválidos',
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao criar relatório financeiro',
         error: error instanceof Error ? error.message : String(error)
       });
     }
