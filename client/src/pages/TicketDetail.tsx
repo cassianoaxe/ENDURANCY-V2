@@ -49,7 +49,7 @@ interface Ticket {
   description: string;
   status: 'novo' | 'em_analise' | 'em_desenvolvimento' | 'aguardando_resposta' | 'resolvido' | 'fechado' | 'cancelado';
   priority: 'baixa' | 'media' | 'alta' | 'critica';
-  category: string;
+  category: 'bug' | 'melhoria' | 'duvida' | 'financeiro' | 'acesso' | 'seguranca' | 'performance' | 'desenvolvimento' | 'outros';
   organizationId: number;
   organization?: string;
   createdById: number;
