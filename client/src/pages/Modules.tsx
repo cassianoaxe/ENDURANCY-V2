@@ -129,9 +129,9 @@ export default function Modules() {
 
   return (
     <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Gerenciamento de Módulos</h1>
-        <p className="text-gray-600 mb-8">Gerencie os módulos e funcionalidades disponíveis na plataforma.</p>
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-4">Gerenciamento de Módulos</h1>
+        <p className="text-gray-600 mb-6">Gerencie os módulos e funcionalidades disponíveis na plataforma.</p>
         
         <Card>
           <CardHeader>
