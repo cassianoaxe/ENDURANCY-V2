@@ -218,12 +218,13 @@ export default function Requests() {
                         </td>
                         <td className="px-6 py-4">{formatDate(org.createdAt)}</td>
                         <td className="px-6 py-4">
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
                             <Button 
                               variant="outline" 
                               size="sm" 
                               onClick={() => approveOrganization.mutate(org.id)}
                               disabled={approveOrganization.isPending}
+                              className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                             >
                               {approveOrganization.isPending ? (
                                 <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -231,15 +232,32 @@ export default function Requests() {
                               Aprovar
                             </Button>
                             <Button 
-                              variant="ghost" 
+                              variant="outline" 
                               size="sm"
                               onClick={() => rejectOrganization.mutate(org.id)}
                               disabled={rejectOrganization.isPending}
+                              className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                             >
                               {rejectOrganization.isPending ? (
                                 <Loader2 className="h-3 w-3 animate-spin mr-1" />
                               ) : null}
                               Rejeitar
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-blue-600"
+                              onClick={() => {
+                                // Aqui mostraria o documento da organização
+                                toast({
+                                  title: "Visualizando documento",
+                                  description: "Documento da organização sendo aberto...",
+                                });
+                                // Em um sistema real, isso abriria o documento em uma nova janela
+                                window.open(`/api/organizations/${org.id}/document`, '_blank');
+                              }}
+                            >
+                              Ver Documento
                             </Button>
                           </div>
                         </td>
