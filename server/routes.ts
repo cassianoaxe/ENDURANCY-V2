@@ -9,8 +9,15 @@ import { eq, and, sql } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
-import { createPaymentIntent, retrievePaymentIntent, initializePlans } from "./services/stripe";
+import { initializePlans } from "./services/stripe";
 import { sendTemplateEmail } from "./services/email";
+import { 
+  createPlanPaymentIntent, 
+  createModulePaymentIntent, 
+  processPlanPayment, 
+  processModulePayment, 
+  checkPaymentStatus 
+} from "./services/payments";
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -539,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Plan ID is required" });
       }
       
-      const clientSecret = await createPaymentIntent(planId);
+      const clientSecret = await createPlanPaymentIntent(planId);
       res.json({ clientSecret });
     } catch (error) {
       console.error("Error creating payment intent:", error);
@@ -556,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify payment was successful
-      const paymentIntent = await retrievePaymentIntent(paymentIntentId);
+      const paymentIntent = await checkPaymentStatus(paymentIntentId);
       
       if (paymentIntent.status === 'succeeded') {
         // Buscar organização antes de atualizar
@@ -874,6 +881,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Payment Routes
+  app.post("/api/payments/create-plan-intent", authenticate, async (req, res) => {
+    try {
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "Plan ID is required" });
+      }
+      
+      const clientSecret = await createPlanPaymentIntent(Number(planId));
+      res.json({ clientSecret });
+    } catch (error) {
+      console.error("Error creating plan payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+  
+  app.post("/api/payments/create-module-intent", authenticate, async (req, res) => {
+    try {
+      const { modulePlanId, organizationId } = req.body;
+      
+      if (!modulePlanId) {
+        return res.status(400).json({ message: "Module plan ID is required" });
+      }
+      
+      const clientSecret = await createModulePaymentIntent(
+        Number(modulePlanId), 
+        organizationId ? Number(organizationId) : undefined
+      );
+      
+      res.json({ clientSecret });
+    } catch (error) {
+      console.error("Error creating module payment intent:", error);
+      res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+  
+  app.post("/api/payments/confirm-plan-payment", authenticate, async (req, res) => {
+    try {
+      const { paymentIntentId, organizationId } = req.body;
+      
+      if (!paymentIntentId || !organizationId) {
+        return res.status(400).json({ message: "Payment intent ID and organization ID are required" });
+      }
+      
+      const success = await processPlanPayment(paymentIntentId, Number(organizationId));
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ message: "Payment processing failed" });
+      }
+    } catch (error) {
+      console.error("Error confirming plan payment:", error);
+      res.status(500).json({ message: "Failed to confirm payment" });
+    }
+  });
+  
+  app.post("/api/payments/confirm-module-payment", authenticate, async (req, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID is required" });
+      }
+      
+      const success = await processModulePayment(paymentIntentId);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(400).json({ message: "Payment processing failed" });
+      }
+    } catch (error) {
+      console.error("Error confirming module payment:", error);
+      res.status(500).json({ message: "Failed to confirm payment" });
+    }
+  });
+  
+  app.get("/api/payments/check-status/:paymentIntentId", authenticate, async (req, res) => {
+    try {
+      const { paymentIntentId } = req.params;
+      
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID is required" });
+      }
+      
+      const paymentIntent = await checkPaymentStatus(paymentIntentId);
+      res.json({ status: paymentIntent.status });
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+      res.status(500).json({ message: "Failed to check payment status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
