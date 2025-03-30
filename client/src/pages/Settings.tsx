@@ -3,9 +3,56 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Globe, Bell, Key } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Settings as SettingsIcon, Globe, Bell, Key, Mail } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Settings() {
+  const { toast } = useToast();
+  const [emailTestData, setEmailTestData] = useState({
+    email: "",
+    template: "organization_registration",
+  });
+  const [isSending, setIsSending] = useState(false);
+
+  const handleTestEmail = async () => {
+    if (!emailTestData.email) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, informe um endereço de e-mail válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await apiRequest('POST', '/api/email/test', emailTestData);
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "E-mail enviado",
+          description: `E-mail de teste enviado para ${emailTestData.email}`,
+        });
+      } else {
+        throw new Error(result.message || "Erro ao enviar e-mail");
+      }
+    } catch (error) {
+      console.error("Erro ao testar e-mail:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar o e-mail de teste. Verifique os logs para mais detalhes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Configurações</h1>
@@ -14,8 +61,9 @@ export default function Settings() {
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="security">Segurança</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="email">E-mail</TabsTrigger>
           <TabsTrigger value="api">API</TabsTrigger>
         </TabsList>
 
@@ -54,6 +102,82 @@ export default function Settings() {
               </div>
 
               <Button>Salvar Alterações</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="email">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Mail className="h-5 w-5 mr-2" />
+                Configurações de E-mail
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Configuração SMTP</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Servidor SMTP</label>
+                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Porta</label>
+                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">E-mail de Envio</label>
+                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Segurança</label>
+                    <Input disabled value="TLS" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Testar Envio de E-mail</h3>
+                <p className="text-sm text-gray-500">
+                  Utilize este formulário para testar o envio de e-mails utilizando os diferentes templates disponíveis.
+                </p>
+                <div className="grid gap-4">
+                  <div>
+                    <label className="text-sm font-medium">E-mail de Destino</label>
+                    <Input 
+                      value={emailTestData.email}
+                      onChange={(e) => setEmailTestData({...emailTestData, email: e.target.value})}
+                      placeholder="Digite o e-mail para teste"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Template</label>
+                    <Select 
+                      value={emailTestData.template}
+                      onValueChange={(value) => setEmailTestData({...emailTestData, template: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="organization_registration">Cadastro de Organização</SelectItem>
+                        <SelectItem value="organization_approved">Organização Aprovada</SelectItem>
+                        <SelectItem value="organization_rejected">Organização Rejeitada</SelectItem>
+                        <SelectItem value="user_welcome">Boas-vindas ao Usuário</SelectItem>
+                        <SelectItem value="password_reset">Redefinição de Senha</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleTestEmail} 
+                  disabled={isSending}
+                  className="mt-2"
+                >
+                  {isSending ? "Enviando..." : "Enviar E-mail de Teste"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

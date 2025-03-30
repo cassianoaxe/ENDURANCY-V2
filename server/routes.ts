@@ -10,6 +10,7 @@ import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import { createPaymentIntent, retrievePaymentIntent, initializePlans } from "./services/stripe";
+import { sendTemplateEmail } from "./services/email";
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -273,6 +274,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           documentUrl: file.path,
         });
 
+      // Enviar e-mail de confirmação de registro
+      try {
+        await sendTemplateEmail(
+          organizationData.email,
+          "Registro de Organização Recebido - Endurancy",
+          "organization_registration",
+          {
+            organizationName: organizationData.name,
+            adminName: organizationData.adminName || "Administrador",
+          }
+        );
+        console.log(`Confirmation email sent to ${organizationData.email}`);
+      } catch (emailError) {
+        console.error("Error sending confirmation email:", emailError);
+        // Não interromper o fluxo se o e-mail falhar
+      }
+
       res.status(201).json(organization);
     } catch (error) {
       console.error("Error creating organization:", error);
@@ -284,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/organizations/:id", authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const { status } = req.body;
+      const { status, rejectionReason } = req.body;
       
       if (!status || !['pending', 'approved', 'rejected', 'active'].includes(status)) {
         return res.status(400).json({ message: "Valid status is required" });
@@ -329,6 +347,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(organizations.id, parseInt(id)))
         .returning();
+      
+      // Enviar e-mail de acordo com o status atualizado
+      try {
+        const organization = existingOrg[0];
+        
+        if (status === 'approved') {
+          // E-mail de aprovação
+          const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+          const loginUrl = `${baseUrl}/login?org=${orgCode}`;
+          
+          await sendTemplateEmail(
+            organization.email,
+            "Organização Aprovada - Endurancy",
+            "organization_approved",
+            {
+              organizationName: organization.name,
+              adminName: organization.adminName || "Administrador",
+              orgCode,
+              loginUrl
+            }
+          );
+          console.log(`Approval email sent to ${organization.email}`);
+        } 
+        else if (status === 'rejected') {
+          // E-mail de rejeição
+          await sendTemplateEmail(
+            organization.email,
+            "Solicitação Não Aprovada - Endurancy",
+            "organization_rejected",
+            {
+              organizationName: organization.name,
+              adminName: organization.adminName || "Administrador",
+              rejectionReason: rejectionReason || "A solicitação não atendeu aos requisitos necessários."
+            }
+          );
+          console.log(`Rejection email sent to ${organization.email}`);
+        }
+      } catch (emailError) {
+        console.error("Error sending status update email:", emailError);
+        // Não interromper o fluxo se o e-mail falhar
+      }
       
       res.json(updatedOrg);
     } catch (error) {
@@ -377,12 +436,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentIntent = await retrievePaymentIntent(paymentIntentId);
       
       if (paymentIntent.status === 'succeeded') {
-        // Update organization status to active
-        await db.update(organizations)
-          .set({ status: 'active' })
+        // Buscar organização antes de atualizar
+        const [organization] = await db.select()
+          .from(organizations)
           .where(eq(organizations.id, organizationId));
+          
+        if (!organization) {
+          return res.status(404).json({ message: "Organization not found" });
+        }
         
-        res.json({ success: true });
+        // Update organization status to active
+        const [updatedOrg] = await db.update(organizations)
+          .set({ status: 'active' })
+          .where(eq(organizations.id, organizationId))
+          .returning();
+        
+        // Enviar e-mail de confirmação de pagamento e ativação da conta
+        try {
+          if (organization.email) {
+            const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+            const loginUrl = `${baseUrl}/login?org=${organization.orgCode}`;
+            
+            await sendTemplateEmail(
+              organization.email,
+              "Pagamento Confirmado - Sua Organização Está Ativa!",
+              "organization_approved", // Reutilizando o template de aprovação
+              {
+                organizationName: organization.name,
+                adminName: organization.adminName || "Administrador",
+                orgCode: organization.orgCode,
+                loginUrl
+              }
+            );
+            console.log(`Payment confirmation email sent to ${organization.email}`);
+          }
+        } catch (emailError) {
+          console.error("Error sending payment confirmation email:", emailError);
+          // Não interromper o fluxo se o e-mail falhar
+        }
+        
+        res.json({ success: true, organization: updatedOrg });
       } else {
         res.status(400).json({ 
           success: false, 
@@ -396,6 +489,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota de teste para o envio de e-mail (apenas para desenvolvimento)
+  app.post("/api/email/test", authenticate, async (req, res) => {
+    try {
+      const { email, template } = req.body;
+      
+      if (!email || !template) {
+        return res.status(400).json({ 
+          message: "Email and template are required",
+          availableTemplates: [
+            'organization_registration',
+            'organization_approved',
+            'organization_rejected',
+            'user_welcome',
+            'password_reset'
+          ]
+        });
+      }
+      
+      // Dados de teste para cada tipo de template
+      const testData: Record<string, any> = {
+        organization_registration: {
+          organizationName: "Organização de Teste",
+          adminName: "Administrador de Teste",
+        },
+        organization_approved: {
+          organizationName: "Organização de Teste",
+          adminName: "Administrador de Teste",
+          orgCode: "ORG-TEST-123",
+          loginUrl: "http://localhost:5000/login?org=ORG-TEST-123"
+        },
+        organization_rejected: {
+          organizationName: "Organização de Teste",
+          adminName: "Administrador de Teste",
+          rejectionReason: "Este é apenas um e-mail de teste."
+        },
+        user_welcome: {
+          userName: "Usuário de Teste",
+          organizationName: "Organização de Teste",
+          loginUrl: "http://localhost:5000/login"
+        },
+        password_reset: {
+          userName: "Usuário de Teste",
+          resetLink: "http://localhost:5000/reset-password?token=123456",
+          expirationTime: "24 horas"
+        }
+      };
+      
+      const success = await sendTemplateEmail(
+        email,
+        `Teste de E-mail - ${template}`,
+        template as any,
+        testData[template] || {}
+      );
+      
+      if (success) {
+        res.json({ success: true, message: `E-mail de teste enviado para ${email}` });
+      } else {
+        res.status(500).json({ success: false, message: "Erro ao enviar e-mail de teste" });
+      }
+    } catch (error) {
+      console.error("Erro ao testar envio de e-mail:", error);
+      res.status(500).json({ message: "Erro ao testar envio de e-mail" });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
