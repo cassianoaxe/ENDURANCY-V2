@@ -2363,8 +2363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [comment] = await db.insert(ticketComments)
         .values({
           ...commentData,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date()
         })
         .returning();
       
@@ -2493,8 +2492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: req.session.user.id,
           content: `Status alterado para: ${status}`,
           isInternal: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date()
         });
       
       // Notificar administradores da organização sobre a mudança de status
@@ -2574,8 +2572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: req.session.user.id,
           content: `Prioridade alterada para: ${priority}`,
           isInternal: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date()
         });
       
       res.json(updatedTicket);
@@ -2637,8 +2634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ? `Ticket atribuído ao administrador ID: ${assignedToId}` 
             : "Ticket removido de atribuição",
           isInternal: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: new Date()
         });
       
       res.json(updatedTicket);
