@@ -255,10 +255,22 @@ function AppContent() {
   }
 
   // Admin-specific routes require admin privileges
-  if (['/analytics', '/activity-log', '/backups', '/emergencies', 
-       '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
-       '/requests', '/financial', '/email-templates', '/routes-list',
-       '/administrators', '/settings'].includes(currentPath)) {
+  // Lista de rotas administrativas
+  const adminRoutes = [
+    '/analytics', '/activity-log', '/backups', '/emergencies', 
+    '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
+    '/requests', '/financial', '/email-templates', '/routes-list',
+    '/administrators', '/settings'
+  ];
+  
+  // Lista de rotas do módulo financeiro
+  const financialRoutes = [
+    '/financial', '/financial/cashflow', '/financial/employees',
+    '/financial/payroll', '/financial/vacations', '/financial/reports'
+  ];
+  
+  // Verifica se o caminho atual é uma rota administrativa
+  if (adminRoutes.includes(currentPath) || currentPath.startsWith('/financial/')) {
     
     if (userRole !== 'admin') {
       return (
@@ -284,6 +296,7 @@ function AppContent() {
     
     let Component = NotFound;
     switch (currentPath) {
+      // Rotas gerais administrativas
       case '/analytics': Component = Analytics; break;
       case '/activity-log': Component = ActivityLog; break;
       case '/backups': Component = Backups; break;
@@ -295,11 +308,18 @@ function AppContent() {
       case '/organizations': Component = Organizations; break;
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/requests': Component = Requests; break;
-      case '/financial': Component = Financial; break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
       case '/settings': Component = Settings; break;
+      
+      // Rotas do módulo financeiro
+      case '/financial': Component = Financial; break;
+      case '/financial/cashflow': Component = Financial; break;
+      case '/financial/employees': Component = Financial; break;
+      case '/financial/payroll': Component = Financial; break;
+      case '/financial/vacations': Component = Financial; break;
+      case '/financial/reports': Component = Financial; break;
     }
     
     return (
