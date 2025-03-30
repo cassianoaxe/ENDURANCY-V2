@@ -10,7 +10,7 @@ import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import { initializePlans } from "./services/stripe";
-import { sendTemplateEmail } from "./services/email";
+import { sendTemplateEmail, EmailTemplate } from "./services/email";
 import { 
   createPlanPaymentIntent, 
   createModulePaymentIntent, 
@@ -973,6 +973,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking payment status:", error);
       res.status(500).json({ message: "Failed to check payment status" });
+    }
+  });
+
+  // Endpoint para testar envio de e-mails
+  app.post('/api/email/test', authenticate, async (req, res) => {
+    try {
+      const { template, email, data } = req.body;
+      
+      if (!template || !email) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Template e e-mail são obrigatórios" 
+        });
+      }
+      
+      // Verificar se o template é válido
+      const validTemplates: EmailTemplate[] = [
+        'organization_registration',
+        'organization_approved',
+        'organization_rejected',
+        'user_welcome',
+        'password_reset',
+        'plan_purchase_confirmation',
+        'module_purchase_confirmation',
+        'payment_failed',
+        'subscription_expiring',
+        'limit_warning',
+        'new_module_available',
+        'module_status_update'
+      ];
+      
+      if (!validTemplates.includes(template as EmailTemplate)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Template inválido",
+          validTemplates 
+        });
+      }
+      
+      // Dados de mock para os templates caso não sejam fornecidos
+      const mockData: Record<EmailTemplate, Record<string, any>> = {
+        'organization_registration': {
+          organizationName: "Organização Exemplo",
+          adminName: "Administrador Teste"
+        },
+        'organization_approved': {
+          organizationName: "Organização Exemplo",
+          adminName: "Administrador Teste",
+          orgCode: "ORG-TEST-123456",
+          loginUrl: "https://endurancy.com/login"
+        },
+        'organization_rejected': {
+          organizationName: "Organização Exemplo",
+          adminName: "Administrador Teste",
+          rejectionReason: "Documentação incompleta ou inválida"
+        },
+        'user_welcome': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          loginUrl: "https://endurancy.com/login"
+        },
+        'password_reset': {
+          userName: "Usuário Teste",
+          resetLink: "https://endurancy.com/reset-password?token=abc123",
+          expirationTime: "24 horas"
+        },
+        'plan_purchase_confirmation': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          planName: "Plano Pro",
+          planPrice: 2999.00,
+          planDetails: ["Até 10.000 registros", "Suporte prioritário", "Todos os módulos básicos"],
+          startDate: new Date().toISOString(),
+          nextBillingDate: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+          orderNumber: "ORD-" + Date.now(),
+          accountUrl: "https://endurancy.com/account"
+        },
+        'module_purchase_confirmation': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          moduleName: "Módulo CRM",
+          modulePrice: 99.00,
+          startDate: new Date().toISOString(),
+          billingCycle: "mensal",
+          orderNumber: "ORD-" + Date.now(),
+          accountUrl: "https://endurancy.com/modules"
+        },
+        'payment_failed': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          planOrModuleName: "Plano Pro",
+          attemptDate: new Date().toISOString(),
+          paymentMethod: "Cartão de crédito terminando em 4242",
+          amount: 2999.00,
+          reason: "Cartão recusado pela operadora",
+          updatePaymentUrl: "https://endurancy.com/payment-update"
+        },
+        'subscription_expiring': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          planName: "Plano Pro",
+          expirationDate: new Date(Date.now() + 7*24*60*60*1000).toISOString(),
+          renewalPrice: 2999.00,
+          renewUrl: "https://endurancy.com/renew",
+          daysLeft: 7
+        },
+        'limit_warning': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          limitType: "cadastros",
+          currentUsage: 9200,
+          totalLimit: 10000,
+          percentageUsed: 92,
+          upgradeUrl: "https://endurancy.com/upgrade"
+        },
+        'new_module_available': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          moduleName: "Módulo CRM Avançado",
+          moduleDescription: "Uma solução completa para gestão de relacionamento com clientes, com recursos de automação e análise de dados.",
+          modulePrice: 199.00,
+          billingCycle: "mensal",
+          features: [
+            "Gestão de leads e oportunidades",
+            "Automação de campanhas",
+            "Relatórios personalizados",
+            "Integração com outros módulos"
+          ],
+          moduleUrl: "https://endurancy.com/modules/crm-avancado"
+        },
+        'module_status_update': {
+          userName: "Usuário Teste",
+          organizationName: "Organização Exemplo",
+          moduleName: "Módulo Portal do Médico",
+          oldStatus: "Em teste",
+          newStatus: "Ativo",
+          updateDetails: "O módulo foi completamente testado e validado, e agora está disponível para uso em produção.",
+          updateDate: new Date().toISOString(),
+          moduleUrl: "https://endurancy.com/modules/portal-medico"
+        }
+      };
+      
+      // Usar os dados fornecidos ou os dados de mock
+      const templateData = data || mockData[template as EmailTemplate];
+      
+      // Enviar o e-mail de teste
+      const subject = `[TESTE] - ${template.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+      const result = await sendTemplateEmail(
+        email,
+        subject,
+        template as EmailTemplate,
+        templateData
+      );
+      
+      if (result) {
+        res.status(200).json({
+          success: true,
+          message: `E-mail de teste enviado com sucesso para ${email} usando o template "${template}"`,
+          templateData
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: "Erro ao enviar e-mail de teste"
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao enviar e-mail de teste:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro ao enviar e-mail de teste",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
