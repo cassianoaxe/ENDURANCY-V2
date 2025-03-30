@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -21,6 +21,34 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import TicketAiSuggestions from '@/components/features/TicketAiSuggestions';
+
+// Componente ErrorBoundary para capturar erros
+class ErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  fallback: React.ReactNode;
+  onError?: (error: Error) => void;
+}> {
+  state = { hasError: false, error: null };
+  
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    if (this.props.onError) {
+      this.props.onError(error);
+    }
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    
+    return this.props.children;
+  }
+}
 import {
   Dialog,
   DialogContent,
@@ -439,7 +467,47 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
           {/* Coluna lateral - Informações e ações */}
           <div className="space-y-6">
-            {/* Componente de IA temporariamente removido para debugging */}
+            {/* Componente de IA com tratamento de erros melhorado */}
+            {ticketData.ticket && (
+              <ErrorBoundary
+                onError={(error) => {
+                  console.error('Erro no componente de IA:', error);
+                  toast({
+                    title: "Erro nas sugestões de IA",
+                    description: "Ocorreu um erro ao carregar as sugestões de IA.",
+                    variant: "destructive"
+                  });
+                }}
+                fallback={
+                  <Card className="w-full">
+                    <CardHeader>
+                      <CardTitle className="text-md flex items-center gap-2">
+                        <Lightbulb className="h-5 w-5 text-yellow-500" />
+                        <span>Sugestões de IA</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-4 text-muted-foreground">
+                        <p>Não foi possível carregar as sugestões para este ticket.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                }
+              >
+                <TicketAiSuggestions
+                  ticketId={ticketData.ticket.id}
+                  onAddComment={(comment) => {
+                    setComment(comment);
+                  }}
+                  onUpdateStatus={(status) => {
+                    statusMutation.mutate(status);
+                  }}
+                  onUpdatePriority={(priority) => {
+                    priorityMutation.mutate(priority);
+                  }}
+                />
+              </ErrorBoundary>
+            )}
             
             <Card>
               <CardHeader>
