@@ -60,7 +60,7 @@ export default function OrganizationModules() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOrg, setSelectedOrg] = useState<string>("");
+  const [selectedOrg, setSelectedOrg] = useState<string>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newModule, setNewModule] = useState({
     organizationId: 0,
@@ -199,7 +199,7 @@ export default function OrganizationModules() {
       orgModule.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       orgModule.moduleName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesOrgFilter = selectedOrg === "" || orgModule.organizationId.toString() === selectedOrg;
+    const matchesOrgFilter = selectedOrg === "all" || orgModule.organizationId.toString() === selectedOrg;
     
     return matchesSearch && matchesOrgFilter;
   });
@@ -326,7 +326,7 @@ export default function OrganizationModules() {
               <SelectValue placeholder="Filtrar por organização" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as organizações</SelectItem>
+              <SelectItem value="all">Todas as organizações</SelectItem>
               {organizations?.map((org) => (
                 <SelectItem key={org.id} value={org.id.toString()}>
                   {org.name}
