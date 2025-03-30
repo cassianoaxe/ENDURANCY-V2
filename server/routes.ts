@@ -750,6 +750,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update module status" });
     }
   });
+  
+  // Rota para buscar todos os módulos por organização com dados combinados
+  app.get("/api/organization-modules/all", authenticate, async (req, res) => {
+    try {
+      const results = await db.execute(sql`
+        SELECT 
+          om.id, 
+          om."organizationId", 
+          o.name as "organizationName",
+          om."moduleId",
+          m.name as "moduleName",
+          m.type as "moduleType",
+          om."planId",
+          mp.name as "planName",
+          mp.price,
+          mp.billing_cycle as "billingCycle",
+          o.status,
+          om.active,
+          om."createdAt"
+        FROM organization_modules om
+        JOIN organizations o ON om."organizationId" = o.id
+        JOIN modules m ON om."moduleId" = m.id
+        JOIN module_plans mp ON om."planId" = mp.id
+        ORDER BY o.name, m.name
+      `);
+      
+      res.json(results.rows);
+    } catch (error) {
+      console.error("Error fetching organization modules:", error);
+      res.status(500).json({ message: "Failed to fetch organization modules" });
+    }
+  });
 
   app.get("/api/organization-modules/:orgId", authenticate, async (req, res) => {
     try {
@@ -817,38 +849,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing module from organization:", error);
       res.status(500).json({ message: "Failed to remove module from organization" });
-    }
-  });
-  
-  // Rota para buscar todos os módulos por organização com dados combinados
-  app.get("/api/organization-modules/all", authenticate, async (req, res) => {
-    try {
-      const results = await db.execute(sql`
-        SELECT 
-          om.id, 
-          om."organizationId", 
-          o.name as "organizationName",
-          om."moduleId",
-          m.name as "moduleName",
-          m.type as "moduleType",
-          om."planId",
-          mp.name as "planName",
-          mp.price,
-          mp.billing_cycle as "billingCycle",
-          o.status,
-          om.active,
-          om."createdAt"
-        FROM organization_modules om
-        JOIN organizations o ON om."organizationId" = o.id
-        JOIN modules m ON om."moduleId" = m.id
-        JOIN module_plans mp ON om."planId" = mp.id
-        ORDER BY o.name, m.name
-      `);
-      
-      res.json(results.rows);
-    } catch (error) {
-      console.error("Error fetching organization modules:", error);
-      res.status(500).json({ message: "Failed to fetch organization modules" });
     }
   });
   
