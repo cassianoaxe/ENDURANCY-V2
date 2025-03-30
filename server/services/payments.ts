@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { db } from '../db';
-import { plans, modulePlans, organizations, organizationModules, financialTransactions } from '@shared/schema';
+import { plans, modulePlans, modules, organizations, organizationModules, financialTransactions } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Inicializar o cliente Stripe
