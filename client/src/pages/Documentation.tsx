@@ -19,7 +19,10 @@ import {
   ListChecks,
   TabletSmartphone,
   Settings,
-  FileText
+  FileText,
+  HelpCircle,
+  AlertTriangle,
+  ShieldAlert
 } from "lucide-react";
 
 export default function Documentation() {
@@ -86,6 +89,10 @@ export default function Documentation() {
             <TabsTrigger value="deployment" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ListChecks className="h-4 w-4 mr-2" />
               Deployment
+            </TabsTrigger>
+            <TabsTrigger value="troubleshooting" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Troubleshooting
             </TabsTrigger>
           </TabsList>
 
@@ -2510,6 +2517,309 @@ SESSION_SECRET=your_secret_key
                     <li>Testes rigorosos em ambiente de staging antes do deploy em produção</li>
                     <li>Capacidade de rollback rápido em caso de problemas</li>
                   </ul>
+                </section>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="troubleshooting" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <HelpCircle className="h-5 w-5 mr-2" />
+                  Guia de Resolução de Problemas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Visão Geral</h3>
+                  <p className="text-gray-700 mb-4">
+                    Este guia fornece soluções para problemas comuns encontrados no sistema Endurancy. Consulte as seções abaixo para 
+                    identificar e resolver questões específicas organizadas por categorias.
+                  </p>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2 flex items-center">
+                    <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
+                    Problemas de Autenticação
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Falha no login</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Usuário não consegue fazer login apesar de usar credenciais aparentemente corretas.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Credenciais incorretas</li>
+                        <li>Conta bloqueada após múltiplas tentativas</li>
+                        <li>Sessão de usuário expirada no servidor</li>
+                        <li>Cookies desativados no navegador</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar se o Caps Lock está ativado</li>
+                        <li>Usar a função "Esqueci minha senha" para redefinir</li>
+                        <li>Limpar cookies e cache do navegador</li>
+                        <li>Verificar no backend se a conta está bloqueada</li>
+                        <li>Verificar logs de autenticação em <code>server/logs/auth.log</code></li>
+                      </ol>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Sessão expira frequentemente</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Usuários são desconectados frequentemente durante o uso da plataforma.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Tempo de sessão configurado muito curto</li>
+                        <li>Problemas com armazenamento de sessão</li>
+                        <li>Balanceamento de carga sem sticky sessions</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Aumentar o tempo de sessão em <code>server/auth.ts</code></li>
+                        <li>Verificar configuração do armazenamento de sessão</li>
+                        <li>Implementar refresh token para renovação automática</li>
+                      </ol>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2 flex items-center">
+                    <Database className="h-5 w-5 mr-2 text-blue-500" />
+                    Problemas de Banco de Dados
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Erro de conexão com o banco</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Aplicação não consegue se conectar ao banco de dados PostgreSQL.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Credenciais incorretas no <code>DATABASE_URL</code></li>
+                        <li>Banco de dados não está em execução</li>
+                        <li>Conexões esgotadas no pool de conexões</li>
+                        <li>Firewall bloqueando acesso</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar variáveis de ambiente para conexão</li>
+                        <li>Confirmar status do serviço PostgreSQL</li>
+                        <li>Verificar logs do banco em <code>server/logs/db.log</code></li>
+                        <li>Testar conexão diretamente com ferramentas como <code>psql</code></li>
+                        <li>Ajustar configurações de pool em <code>server/db.ts</code></li>
+                      </ol>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Erro em migrações de esquema</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Falha ao executar <code>npm run db:push</code> para atualizar o esquema.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Conflitos de esquema (colunas existentes com tipos diferentes)</li>
+                        <li>Tabelas com dados que conflitam com novas restrições</li>
+                        <li>Permissões insuficientes no banco de dados</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar logs detalhados da migração</li>
+                        <li>Tentar migração passo a passo para identificar o problema específico</li>
+                        <li>Em ambiente de desenvolvimento, considerar recriar o banco</li>
+                        <li>Em produção, fazer backup antes de tentar migrações</li>
+                        <li>Consultar a documentação do Drizzle para migrações complexas</li>
+                      </ol>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2 flex items-center">
+                    <CreditCard className="h-5 w-5 mr-2 text-green-500" />
+                    Problemas com Pagamentos
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Pagamentos Stripe não processados</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Pagamentos não são processados ou falham silenciosamente.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Chaves de API inválidas ou expiradas</li>
+                        <li>Webhook do Stripe não configurado corretamente</li>
+                        <li>Cartão de teste usado em ambiente de produção</li>
+                        <li>Conta Stripe em modo de teste</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar configurações das chaves Stripe (<code>STRIPE_SECRET_KEY</code> e <code>VITE_STRIPE_PUBLISHABLE_KEY</code>)</li>
+                        <li>Testar com cartão válido (4242 4242 4242 4242 para testes)</li>
+                        <li>Verificar logs do webhook para identificar falhas</li>
+                        <li>Confirmar no dashboard do Stripe se os eventos estão sendo recebidos</li>
+                        <li>Verificar se o webhook está configurado com a URL correta</li>
+                      </ol>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Assinaturas não são renovadas</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Assinaturas expiram e não são renovadas automaticamente.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Falha ao processar pagamento de renovação</li>
+                        <li>Webhook de renovação não está sendo processado</li>
+                        <li>Cartão expirou ou foi cancelado</li>
+                        <li>Bug na lógica de atualização da assinatura</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar eventos de cobrança no dashboard do Stripe</li>
+                        <li>Implementar notificações para cartões próximos de expirar</li>
+                        <li>Verificar logs de webhook para eventos <code>invoice.payment_succeeded</code></li>
+                        <li>Testar fluxo de renovação manualmente com cartão de teste</li>
+                      </ol>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2 flex items-center">
+                    <ShieldAlert className="h-5 w-5 mr-2 text-red-500" />
+                    Problemas de Segurança
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Vulnerabilidades CSRF</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Ações podem ser executadas sem autorização própria do usuário.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Proteção CSRF desativada ou não implementada</li>
+                        <li>Tokens CSRF mal configurados</li>
+                        <li>Same-origin policy não aplicada corretamente</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar implementação de tokens CSRF em <code>server/index.ts</code></li>
+                        <li>Adicionar SameSite=Strict nos cookies de sessão</li>
+                        <li>Implementar verificação de referência nos endpoints sensíveis</li>
+                        <li>Configurar Content-Security-Policy adequadamente</li>
+                      </ol>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Problemas de exposição de dados sensíveis</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Dados sensíveis aparecem em respostas de API ou logs.
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Serialização completa de objetos de usuário</li>
+                        <li>Logs de debug em produção</li>
+                        <li>Falta de sanitização de dados em respostas</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Implementar schemas específicos para respostas que excluam dados sensíveis</li>
+                        <li>Configurar níveis de log apropriados para produção</li>
+                        <li>Usar ferramentas como <code>zod-omit</code> para remover campos sensíveis</li>
+                        <li>Implementar middleware de sanitização de resposta</li>
+                      </ol>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Ferramentas de Diagnóstico</h3>
+                  <p className="text-gray-700 mb-4">
+                    Utilize estas ferramentas para diagnosticar problemas no sistema:
+                  </p>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>
+                        <strong>Logs de Sistema:</strong> Verifique os logs em <code>server/logs/</code> para mensagens detalhadas de erro
+                      </li>
+                      <li>
+                        <strong>Ferramentas do Navegador:</strong> Use o console do navegador para identificar erros de JavaScript e problemas de rede
+                      </li>
+                      <li>
+                        <strong>pgAdmin ou DBeaver:</strong> Para inspeção direta do banco de dados e execução de queries
+                      </li>
+                      <li>
+                        <strong>Dashboard do Stripe:</strong> Para verificar eventos, webhooks e pagamentos processados
+                      </li>
+                      <li>
+                        <strong>Insomnia ou Postman:</strong> Para testar endpoints de API separadamente da interface
+                      </li>
+                      <li>
+                        <strong>Monitor de Performance:</strong> Use ferramentas como New Relic ou Datadog para monitorar desempenho
+                      </li>
+                    </ul>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Solicitar Suporte</h3>
+                  <p className="text-gray-700 mb-4">
+                    Se não conseguir resolver o problema com este guia, você pode solicitar suporte:
+                  </p>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>
+                        <strong>Suporte Técnico:</strong> Abra um ticket no sistema de suporte em <code>/tickets/new</code>
+                      </li>
+                      <li>
+                        <strong>Chat Comunitário:</strong> Participe do canal Discord da comunidade
+                      </li>
+                      <li>
+                        <strong>Documentação:</strong> Consulte a documentação detalhada em <code>/documentation</code>
+                      </li>
+                      <li>
+                        <strong>Email de Suporte:</strong> Para problemas urgentes, contate <code>suporte@endurancy.com</code>
+                      </li>
+                    </ul>
+                  </div>
                 </section>
               </CardContent>
             </Card>
