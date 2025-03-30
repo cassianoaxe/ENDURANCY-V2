@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { Settings as SettingsIcon, Globe, Bell, Key, Mail, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -17,6 +18,41 @@ export default function Settings() {
     template: "organization_registration",
   });
   const [isSending, setIsSending] = useState(false);
+  const [testMode, setTestMode] = useState(true);
+  const [isTogglingMode, setIsTogglingMode] = useState(false);
+  
+  // Carregar o estado do modo de teste quando o componente for montado
+  useEffect(() => {
+    // Poderíamos buscar o estado atual do servidor, mas por ora vamos iniciar como true (modo de teste)
+    setTestMode(true);
+  }, []);
+  
+  const handleToggleTestMode = async () => {
+    setIsTogglingMode(true);
+    try {
+      const response = await apiRequest('POST', '/api/email/toggle-test-mode', {});
+      const result = await response.json();
+      
+      if (result.success) {
+        setTestMode(result.testMode);
+        toast({
+          title: "Modo alterado",
+          description: result.message,
+        });
+      } else {
+        throw new Error(result.message || "Erro ao alternar modo de teste");
+      }
+    } catch (error) {
+      console.error("Erro ao alternar modo de teste:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alternar o modo de teste. Verifique os logs para mais detalhes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTogglingMode(false);
+    }
+  };
 
   const handleTestEmail = async () => {
     if (!emailTestData.email) {
@@ -118,31 +154,50 @@ export default function Settings() {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Configuração SMTP</h3>
-                <Alert className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Modo de Teste Ativado</AlertTitle>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">Modo de Produção</span>
+                    <Switch 
+                      checked={!testMode} 
+                      onCheckedChange={handleToggleTestMode} 
+                    />
+                    <span className="text-sm font-medium">Modo de Teste</span>
+                  </div>
+                </div>
+                <Alert className={`mb-4 ${testMode ? "bg-yellow-50 border-yellow-200" : "bg-green-50 border-green-200"}`}>
+                  <AlertCircle className={`h-4 w-4 ${testMode ? "text-yellow-500" : "text-green-500"}`} />
+                  <AlertTitle>{testMode ? "Modo de Teste Ativado" : "Modo de Produção Ativado"}</AlertTitle>
                   <AlertDescription>
-                    O sistema está operando em modo de teste para e-mails. Neste modo, os e-mails não são realmente enviados, 
-                    mas são exibidos no console do servidor para fins de depuração. Isso é útil durante o desenvolvimento 
-                    ou quando não há um servidor SMTP disponível.
+                    {testMode ? 
+                      "O sistema está operando em modo de teste para e-mails. Neste modo, os e-mails não são realmente enviados, mas são exibidos no console do servidor para fins de depuração." :
+                      "O sistema está operando em modo de produção para e-mails. Neste modo, os e-mails são realmente enviados aos destinatários usando as configurações SMTP definidas."
+                    }
                   </AlertDescription>
                 </Alert>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Servidor SMTP</label>
-                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                    <Input disabled value="mail.endurancy.com.br" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Porta</label>
-                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                    <Input disabled value="465" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Servidor IMAP</label>
+                    <Input disabled value="mail.endurancy.com.br" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Porta IMAP</label>
+                    <Input disabled value="993" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">E-mail de Envio</label>
-                    <Input disabled value="Configurado através de variáveis de ambiente" />
+                    <Input disabled value="E-mail configurado nas variáveis de ambiente" />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Segurança</label>
-                    <Input disabled value="TLS" />
+                    <Input disabled value="SSL/TLS" />
                   </div>
                 </div>
               </div>

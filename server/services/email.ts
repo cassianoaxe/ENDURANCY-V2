@@ -1,15 +1,15 @@
 import nodemailer from 'nodemailer';
 
 // Verificar se estamos no modo de teste ou produção
-// Temporariamente, estamos forçando o modo de teste, independente da variável de ambiente
-const isTestMode = true; // process.env.EMAIL_TEST_MODE === 'true';
+// Por padrão, iniciar em modo de teste se não estiver definido
+const isTestMode = () => process.env.EMAIL_TEST_MODE !== 'false';
 
-console.log(`Configurando serviço de e-mail em modo: ${isTestMode ? 'TESTE' : 'PRODUÇÃO'}`);
+console.log(`Configurando serviço de e-mail em modo: ${isTestMode() ? 'TESTE' : 'PRODUÇÃO'}`);
 
 // Configuração do transportador de e-mail
 let transporter: nodemailer.Transporter;
 
-if (isTestMode) {
+if (isTestMode()) {
   // No modo de teste, usar o "ethereal" nodemailer que simula o envio sem realmente enviar
   console.log('Usando transportador de e-mail em modo TESTE (não envia realmente os e-mails)');
   
@@ -30,9 +30,9 @@ if (isTestMode) {
   // No modo de produção, usar as credenciais SMTP reais
   console.log('Usando transportador de e-mail em modo PRODUÇÃO');
   transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_PORT === '465', // true para porta 465, false para outras portas
+    host: 'mail.endurancy.com.br',
+    port: 465,
+    secure: true, // true para porta 465
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
@@ -63,7 +63,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
     const { to, subject, html, from = process.env.EMAIL_USER } = options;
     
-    if (isTestMode) {
+    if (isTestMode()) {
       // No modo de teste, apenas exibir as informações do e-mail no console
       console.log('\n========== MODO DE TESTE: E-MAIL SIMULADO ==========');
       console.log(`De: Endurancy <${from}>`);
