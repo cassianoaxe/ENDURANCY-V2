@@ -439,26 +439,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
           {/* Coluna lateral - Informações e ações */}
           <div className="space-y-6">
-            {isAdmin && !isTicketClosed && (
-              <TicketAiSuggestions 
-                ticketId={parseInt(id)}
-                onAddComment={(text) => {
-                  setComment(text);
-                  // Rolagem automática para o campo de comentário
-                  setTimeout(() => {
-                    const commentArea = document.querySelector('textarea');
-                    if (commentArea) {
-                      commentArea.focus();
-                      commentArea.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
-                }}
-                onUpdateStatus={(status) => statusMutation.mutate(status)}
-                onUpdatePriority={(priority) => priorityMutation.mutate(priority)}
-                onAssignSelf={() => assignMutation.mutate(user?.id.toString() || '')}
-                onViewTicket={(ticketId) => setLocation(`/tickets/${ticketId}`)}
-              />
-            )}
+            {/* Componente de IA temporariamente removido para debugging */}
             
             <Card>
               <CardHeader>
