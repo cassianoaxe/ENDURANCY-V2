@@ -5,7 +5,7 @@ import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
 import { organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -810,6 +810,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing module from organization:", error);
       res.status(500).json({ message: "Failed to remove module from organization" });
+    }
+  });
+  
+  // Rota para buscar todos os módulos por organização com dados combinados
+  app.get("/api/organization-modules/all", authenticate, async (req, res) => {
+    try {
+      const results = await db.execute(sql`
+        SELECT 
+          om.id, 
+          om."organizationId", 
+          o.name as "organizationName",
+          om."moduleId",
+          m.name as "moduleName",
+          m.type as "moduleType",
+          om."planId",
+          mp.name as "planName",
+          mp.price,
+          mp.billing_cycle as "billingCycle",
+          o.status,
+          om.active,
+          om."createdAt"
+        FROM organization_modules om
+        JOIN organizations o ON om."organizationId" = o.id
+        JOIN modules m ON om."moduleId" = m.id
+        JOIN module_plans mp ON om."planId" = mp.id
+        ORDER BY o.name, m.name
+      `);
+      
+      res.json(results.rows);
+    } catch (error) {
+      console.error("Error fetching organization modules:", error);
+      res.status(500).json({ message: "Failed to fetch organization modules" });
+    }
+  });
+  
+  // Rota para alternar o status ativo/inativo de um módulo
+  app.put("/api/organization-modules/:id/toggle", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { active } = req.body;
+      
+      if (typeof active !== 'boolean') {
+        return res.status(400).json({ message: "Active status must be a boolean" });
+      }
+      
+      const [updated] = await db.update(organizationModules)
+        .set({ 
+          active, 
+          updatedAt: new Date() 
+        })
+        .where(eq(organizationModules.id, parseInt(id)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Organization module not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error toggling module status:", error);
+      res.status(500).json({ message: "Failed to toggle module status" });
     }
   });
   
