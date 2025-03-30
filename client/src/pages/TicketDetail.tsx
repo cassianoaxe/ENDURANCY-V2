@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
+import { SupportTicket } from '@shared/schema';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
@@ -128,15 +129,15 @@ const priorityColors: Record<string, string> = {
 };
 
 // Formatador de data/hora
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
+const formatDate = (date: Date | string) => {
+  const dateObj = date instanceof Date ? date : new Date(date);
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date);
+  }).format(dateObj);
 };
 
 // Formatador de status
@@ -183,10 +184,10 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     isLoading: isLoadingTicket, 
     error: ticketError,
     refetch 
-  } = useQuery<{
-    ticket: Ticket;
+  } = useQuery<SupportTicket & {
     comments: TicketComment[];
     attachments: TicketAttachment[];
+    organization?: string;
   }>({
     queryKey: [`/api/tickets/${id}`],
     enabled: !!id && !!user,
@@ -194,10 +195,10 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
   // Atualizar estados quando o ticket for carregado
   useEffect(() => {
-    if (ticketData?.ticket) {
-      setStatusValue(ticketData.ticket.status);
-      setPriorityValue(ticketData.ticket.priority);
-      setAssignToValue(ticketData.ticket.assignedToId?.toString() || 'none');
+    if (ticketData) {
+      setStatusValue(ticketData.status);
+      setPriorityValue(ticketData.priority);
+      setAssignToValue(ticketData.assignedToId?.toString() || 'none');
     }
   }, [ticketData]);
 
@@ -314,7 +315,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
   const isAdmin = user?.role === 'admin';
 
   // Verificar se o ticket está resolvido ou fechado
-  const isTicketClosed = ticketData?.ticket?.status === 'resolvido' || ticketData?.ticket?.status === 'fechado' || ticketData?.ticket?.status === 'cancelado';
+  const isTicketClosed = ticketData?.status === 'resolvido' || ticketData?.status === 'fechado' || ticketData?.status === 'cancelado';
 
   return (
     <div className="container mx-auto py-8">
@@ -329,7 +330,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         <div className="flex justify-center items-center py-20">
           <RefreshCw className="h-12 w-12 animate-spin text-primary" />
         </div>
-      ) : ticketData?.ticket ? (
+      ) : ticketData ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Coluna principal - Detalhes do ticket e comentários */}
           <div className="md:col-span-2 space-y-6">
@@ -337,20 +338,20 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl font-bold">#{ticketData.ticket.id}: {ticketData.ticket.title}</CardTitle>
+                    <CardTitle className="text-2xl font-bold">#{ticketData.id}: {ticketData.title}</CardTitle>
                     <CardDescription className="mt-2">
                       <span className="flex items-center">
                         <Tag className="h-4 w-4 mr-1" /> 
-                        Categoria: {ticketData.ticket.category}
+                        Categoria: {ticketData.category}
                       </span>
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
-                    <Badge className={statusColors[ticketData.ticket.status]}>
-                      {formatStatus(ticketData.ticket.status)}
+                    <Badge className={statusColors[ticketData.status]}>
+                      {formatStatus(ticketData.status)}
                     </Badge>
-                    <Badge className={priorityColors[ticketData.ticket.priority]}>
-                      Prioridade: {ticketData.ticket.priority}
+                    <Badge className={priorityColors[ticketData.priority]}>
+                      Prioridade: {ticketData.priority}
                     </Badge>
                   </div>
                 </div>
@@ -360,7 +361,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-2">Descrição</h3>
                     <div className="bg-muted p-4 rounded-md whitespace-pre-wrap">
-                      {ticketData.ticket.description}
+                      {ticketData.description}
                     </div>
                   </div>
                   
@@ -468,7 +469,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
           {/* Coluna lateral - Informações e ações */}
           <div className="space-y-6">
             {/* Componente de IA com tratamento de erros melhorado */}
-            {ticketData.ticket && (
+            {ticketData && (
               <ErrorBoundary
                 onError={(error) => {
                   console.error('Erro no componente de IA:', error);
@@ -495,7 +496,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                 }
               >
                 <TicketAiSuggestions
-                  ticketId={ticketData.ticket.id}
+                  ticketId={ticketData.id}
                   onAddComment={(comment) => {
                     setComment(comment);
                   }}
@@ -523,22 +524,22 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                           <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                           Criado em:
                         </span>
-                        <span>{formatDate(ticketData.ticket.createdAt)}</span>
+                        <span>{formatDate(ticketData.createdAt)}</span>
                       </li>
                       <li className="text-sm flex justify-between">
                         <span className="flex items-center">
                           <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                           Atualizado em:
                         </span>
-                        <span>{formatDate(ticketData.ticket.updatedAt)}</span>
+                        <span>{formatDate(ticketData.updatedAt)}</span>
                       </li>
-                      {ticketData.ticket.resolvedAt && (
+                      {ticketData.resolvedAt && (
                         <li className="text-sm flex justify-between">
                           <span className="flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
                             Resolvido em:
                           </span>
-                          <span>{formatDate(ticketData.ticket.resolvedAt)}</span>
+                          <span>{formatDate(ticketData.resolvedAt)}</span>
                         </li>
                       )}
                     </ul>
@@ -548,7 +549,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                     <h3 className="text-sm font-medium text-muted-foreground">Organização</h3>
                     <p className="mt-2 text-sm flex items-center">
                       <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {ticketData.ticket.organization || 'Não especificada'}
+                      {ticketData.organization || `Organização #${ticketData.organizationId}`}
                     </p>
                   </div>
                   <Separator />
@@ -556,8 +557,8 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                     <h3 className="text-sm font-medium text-muted-foreground">Atribuído a</h3>
                     <p className="mt-2 text-sm flex items-center">
                       <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {ticketData.ticket.assignedToId 
-                        ? "ID: " + ticketData.ticket.assignedToId 
+                      {ticketData.assignedToId 
+                        ? "ID: " + ticketData.assignedToId 
                         : 'Não atribuído'}
                     </p>
                   </div>
