@@ -23,7 +23,10 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronLeft,
-  Clock
+  Clock,
+  ArrowUp,
+  ArrowDown,
+  Brain
 } from "lucide-react";
 
 // Interface para itens de menu e submenu
@@ -52,7 +55,21 @@ const menuItems: MenuItem[] = [
   },
   { icon: Building2, label: "Organizações", path: "/organizations" },
   { icon: InboxIcon, label: "Solicitações", path: "/requests" },
-  { icon: Wallet, label: "Financeiro", path: "/financial" },
+  { 
+    icon: Wallet, 
+    label: "Financeiro", 
+    submenu: [
+      { icon: DollarSign, label: "Dashboard Financeiro", path: "/financial" },
+      { icon: ArrowUp, label: "Contas a Pagar", path: "/financial/payables" },
+      { icon: ArrowDown, label: "Contas a Receber", path: "/financial/receivables" },
+      { icon: BarChart, label: "DRE", path: "/financial/reports" },
+      { icon: Clock, label: "Fluxo de Caixa", path: "/financial/cashflow" },
+      { icon: Calendar, label: "Calendário Financeiro", path: "/financial/calendar" },
+      { icon: CreditCard, label: "Conciliação Bancária", path: "/financial/bankreconciliation" },
+      { icon: Brain, label: "Análise com IA", path: "/financial/aianalysis" },
+      { icon: Settings, label: "Configurações", path: "/financial/settings" }
+    ]
+  },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Settings, label: "Configurações", path: "/settings" },
@@ -64,7 +81,8 @@ export default function Sidebar() {
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
-    "Módulos": false
+    "Módulos": false,
+    "Financeiro": true // Começar com o menu financeiro expandido por padrão
   });
   
   // Controla se a sidebar está colapsada/retraída
