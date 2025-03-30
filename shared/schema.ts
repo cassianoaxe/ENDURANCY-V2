@@ -16,12 +16,17 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const planTierEnum = pgEnum('plan_tier', ['free', 'seed', 'grow', 'pro']);
+
 export const plans = pgTable("plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  tier: planTierEnum("tier").notNull(),
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   features: text("features").array().notNull(),
+  maxRecords: integer("max_records").notNull(), // Limite de registros (pacientes/plantas)
+  trialDays: integer("trial_days").default(0), // Dias de teste (15 para freemium)
   isModulePlan: boolean("is_module_plan").default(false), // Indica se o plano está associado a um módulo específico
   moduleId: integer("module_id"), // Referência ao módulo (apenas se for um plano de módulo)
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -35,8 +40,12 @@ export const organizations = pgTable("organizations", {
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
   website: text("website").notNull().default(''),
-  plan: text("plan").notNull(),
+  planId: integer("plan_id").notNull(), // ID do plano contratado
+  planTier: planTierEnum("plan_tier").default("free"), // Nível do plano (free, seed, grow, pro)
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
+  recordCount: integer("record_count").default(0), // Contagem de registros (pacientes/plantas)
+  planStartDate: timestamp("plan_start_date").defaultNow(), // Data de início do plano
+  planExpiryDate: timestamp("plan_expiry_date"), // Data de expiração do trial ou plano
   email: text("email").notNull(),
   adminCpf: text("admin_cpf").notNull(),
   password: text("password").notNull(),
@@ -49,6 +58,8 @@ export const organizations = pgTable("organizations", {
   bankBranch: text("bank_branch").notNull(),
   bankAccount: text("bank_account").notNull(),
   termsAccepted: boolean("terms_accepted").notNull(),
+  stripeCustomerId: text("stripe_customer_id"), // ID do cliente no Stripe
+  stripeSubscriptionId: text("stripe_subscription_id"), // ID da assinatura no Stripe
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   orgCode: text("org_code").unique(),
@@ -94,7 +105,26 @@ export const patients = pgTable("patients", {
   emergencyContact: text("emergency_contact"),
   healthInsurance: text("health_insurance"),
   healthInsuranceNumber: text("health_insurance_number"),
+  isActive: boolean("is_active").default(true), // Se o registro está ativo (conta para limite do plano)
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela para plantas de cannabis
+export const plants = pgTable("plants", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  strain: text("strain").notNull(), // Variedade/cepa
+  status: text("status").notNull(), // semente, muda, vegetativa, floração, colheita
+  plantedDate: timestamp("planted_date").notNull(),
+  harvestDate: timestamp("harvest_date"),
+  location: text("location").notNull(), // Local de cultivo (indoor, outdoor, estufa)
+  thcContent: decimal("thc_content", { precision: 5, scale: 2 }),
+  cbdContent: decimal("cbd_content", { precision: 5, scale: 2 }),
+  notes: text("notes"),
+  batchId: text("batch_id"), // Lote
+  isActive: boolean("is_active").default(true), // Se o registro está ativo (conta para limite do plano)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const appointments = pgTable("appointments", {
@@ -109,8 +139,10 @@ export const appointments = pgTable("appointments", {
 
 // Define o enum para tipos de módulos
 export const moduleTypeEnum = pgEnum('module_type', [
-  'compras', 'cultivo', 'producao', 'crm', 'rh', 
-  'juridico', 'social', 'transparencia', 'inteligencia_artificial'
+  'onboarding', 'analytics', 'dashboard', 'associados', 'vendas', 'financeiro', 'complypay', // Módulos básicos
+  'cultivo', 'producao', // Módulos de planos mais avançados
+  'tarefas', 'crm', 'social', 'rh', 'juridico', 'transparencia', 'inteligencia_artificial', 
+  'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente' // Add-ons
 ]);
 
 // Tabela de módulos disponíveis no sistema
@@ -236,6 +268,21 @@ export const insertPatientSchema = createInsertSchema(patients).pick({
   emergencyContact: true,
   healthInsurance: true,
   healthInsuranceNumber: true,
+  isActive: true,
+});
+
+export const insertPlantSchema = createInsertSchema(plants).pick({
+  organizationId: true,
+  strain: true,
+  status: true,
+  plantedDate: true,
+  harvestDate: true,
+  location: true,
+  thcContent: true,
+  cbdContent: true,
+  notes: true,
+  batchId: true,
+  isActive: true,
 });
 
 export const insertAppointmentSchema = createInsertSchema(appointments).pick({
@@ -260,6 +307,8 @@ export type Doctor = typeof doctors.$inferSelect;
 export type InsertDoctor = z.infer<typeof insertDoctorSchema>;
 export type Patient = typeof patients.$inferSelect;
 export type InsertPatient = z.infer<typeof insertPatientSchema>;
+export type Plant = typeof plants.$inferSelect;
+export type InsertPlant = z.infer<typeof insertPlantSchema>;
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 
