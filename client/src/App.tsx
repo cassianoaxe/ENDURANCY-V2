@@ -115,34 +115,38 @@ function AppContent() {
     );
   }
   
-  // Check if the path is for creating a new ticket
-  if (currentPath === '/tickets/new') {
-    return (
-      <Layout>
-        <CreateTicket />
-      </Layout>
-    );
-  }
-  
-  // Check if the path matches a ticket view pattern (/tickets/123)
-  if (currentPath.match(/^\/tickets\/\d+$/)) {
-    const ticketId = currentPath.split('/')[2];
-    console.log("Visualizando ticket com ID:", ticketId);
-    return (
-      <Layout>
-        <TicketDetail params={{ id: ticketId }} />
-      </Layout>
-    );
-  }
-  
-  // Check if the path is for the tickets list
-  if (currentPath === '/tickets') {
-    console.log("Acessando lista de tickets");
-    return (
-      <Layout>
-        <Tickets />
-      </Layout>
-    );
+  // Handle ticket routes
+  if (currentPath.startsWith('/tickets')) {
+    // Check if the path is for creating a new ticket
+    if (currentPath === '/tickets/new') {
+      return (
+        <Layout>
+          <CreateTicket />
+        </Layout>
+      );
+    }
+    
+    // Check if the path matches a ticket view pattern (/tickets/123)
+    const ticketMatch = currentPath.match(/^\/tickets\/(\d+)$/);
+    if (ticketMatch) {
+      const ticketId = ticketMatch[1];
+      console.log("Visualizando ticket com ID:", ticketId);
+      return (
+        <Layout>
+          <TicketDetail params={{ id: ticketId }} />
+        </Layout>
+      );
+    }
+    
+    // Default tickets list
+    if (currentPath === '/tickets') {
+      console.log("Acessando lista de tickets");
+      return (
+        <Layout>
+          <Tickets />
+        </Layout>
+      );
+    }
   }
   
   // Role-specific dashboards
