@@ -751,20 +751,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch module plans" });
     }
   });
-  
-  app.get("/api/module-plans/:moduleId", async (req, res) => {
-    try {
-      const { moduleId } = req.params;
-      const plansList = await db.select()
-        .from(modulePlans)
-        .where(eq(modulePlans.module_id, parseInt(moduleId)));
-      
-      res.json(plansList);
-    } catch (error) {
-      console.error("Error fetching module plans for module:", error);
-      res.status(500).json({ message: "Failed to fetch module plans" });
-    }
-  });
 
   app.put("/api/modules/:id/status", authenticate, async (req, res) => {
     try {
@@ -1053,59 +1039,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error toggling module status:", error);
       res.status(500).json({ message: "Failed to toggle module status" });
-    }
-  });
-  
-  // Rota para atualizar o plano de um módulo da organização
-  app.put("/api/organization-modules/:id/plan", authenticate, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { planId } = req.body;
-      
-      if (!planId || isNaN(parseInt(planId))) {
-        return res.status(400).json({ message: "Novo ID do plano é obrigatório" });
-      }
-      
-      // Verificar se o módulo da organização existe
-      const existingModule = await db.select()
-        .from(organizationModules)
-        .where(eq(organizationModules.id, parseInt(id)))
-        .limit(1);
-      
-      if (existingModule.length === 0) {
-        return res.status(404).json({ message: "Módulo da organização não encontrado" });
-      }
-      
-      // Verificar se o plano existe
-      const existingPlan = await db.select()
-        .from(modulePlans)
-        .where(eq(modulePlans.id, parseInt(planId)))
-        .limit(1);
-      
-      if (existingPlan.length === 0) {
-        return res.status(404).json({ message: "Plano não encontrado" });
-      }
-      
-      // Verificar se o plano pertence ao mesmo módulo
-      if (existingPlan[0].module_id !== existingModule[0].moduleId) {
-        return res.status(400).json({ 
-          message: "O plano selecionado não pertence ao mesmo módulo" 
-        });
-      }
-      
-      // Atualizar o plano do módulo
-      const [updated] = await db.update(organizationModules)
-        .set({ 
-          planId: parseInt(planId),
-          updatedAt: new Date() 
-        })
-        .where(eq(organizationModules.id, parseInt(id)))
-        .returning();
-      
-      res.json(updated);
-    } catch (error) {
-      console.error("Error updating organization module plan:", error);
-      res.status(500).json({ message: "Falha ao atualizar o plano do módulo" });
     }
   });
   
