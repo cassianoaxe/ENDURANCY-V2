@@ -34,6 +34,8 @@ import {
   processModulePayment, 
   checkPaymentStatus 
 } from "./services/payments";
+import { createSubscription, cancelSubscription, updateSubscriptionPlan } from './services/subscriptions';
+import { handleStripeWebhook } from './services/webhooks';
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -938,6 +940,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create payment intent" });
     }
   });
+
+  // API de Assinaturas
+  app.post('/api/subscriptions/create', authenticate, async (req, res) => {
+    try {
+      const { planId, organizationId } = req.body;
+      
+      if (!planId || !organizationId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Plan ID and organization ID are required" 
+        });
+      }
+      
+      const result = await createSubscription(planId, organizationId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to create subscription",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post('/api/subscriptions/cancel', authenticate, async (req, res) => {
+    try {
+      const { subscriptionId } = req.body;
+      
+      if (!subscriptionId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Subscription ID is required" 
+        });
+      }
+      
+      const result = await cancelSubscription(subscriptionId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to cancel subscription",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.post('/api/subscriptions/update', authenticate, async (req, res) => {
+    try {
+      const { subscriptionId, planId } = req.body;
+      
+      if (!subscriptionId || !planId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Subscription ID and plan ID are required" 
+        });
+      }
+      
+      const result = await updateSubscriptionPlan(subscriptionId, planId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error updating subscription plan:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to update subscription plan",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  app.get('/api/subscriptions/:organizationId', authenticate, async (req, res) => {
+    try {
+      const organizationId = parseInt(req.params.organizationId);
+      
+      if (isNaN(organizationId)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Valid organization ID is required" 
+        });
+      }
+      
+      // Buscar assinatura da organização
+      const organization = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId))
+        .limit(1);
+      
+      if (organization.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Organization not found" 
+        });
+      }
+      
+      const org = organization[0];
+      
+      if (!org.stripeCustomerId || !org.stripeSubscriptionId) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Organization does not have an active subscription" 
+        });
+      }
+      
+      // Buscar detalhes da assinatura no Stripe
+      const subscriptionDetails = await getSubscriptionDetails(org.stripeSubscriptionId);
+      
+      res.json({
+        success: true,
+        subscription: subscriptionDetails
+      });
+    } catch (error) {
+      console.error("Error fetching subscription details:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch subscription details",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
   
   app.post("/api/payments/confirm-plan-payment", authenticate, async (req, res) => {
     try {
@@ -994,6 +1116,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking payment status:", error);
       res.status(500).json({ message: "Failed to check payment status" });
+    }
+  });
+  
+  // Serviços de assinatura já importados do topo do arquivo
+  
+  // Webhook do Stripe
+  app.post('/api/webhooks/stripe', async (req, res) => {
+    try {
+      await handleStripeWebhook(req, res);
+    } catch (error) {
+      console.error("Error handling Stripe webhook:", error);
+      res.status(500).json({ message: "Failed to handle webhook" });
     }
   });
 

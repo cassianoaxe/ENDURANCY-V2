@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
 import { db } from '../db';
-import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules, costCenters, financialCategories, financialTransactions, products } from '@shared/schema';
+import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules, costCenters, financialCategories, financialTransactions, products, chartOfAccounts } from '@shared/schema';
 import { log } from '../vite';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
@@ -28,7 +28,8 @@ export type ImportEntityType =
   | 'cost_centers'
   | 'financial_categories'
   | 'financial_transactions'
-  | 'products';
+  | 'products'
+  | 'chart_of_accounts';
 
 // Formatos de arquivo de importação suportados
 export type ImportFileFormat = 'csv' | 'xlsx' | 'xls' | 'json';
@@ -526,6 +527,9 @@ class EntityProcessor {
             break;
           case 'products':
             await this.processProduct(normalizedEntity);
+            break;
+          case 'chart_of_accounts':
+            await this.processChartOfAccount(normalizedEntity);
             break;
           default:
             throw new Error(`Tipo de entidade não suportado: ${this.entityType}`);
@@ -1321,6 +1325,11 @@ class EntityProcessor {
         });
     }
   }
+
+  /**
+   * Processa um item do plano de contas para importação
+   */
+
 }
 
 // Singleton para o serviço de importação
