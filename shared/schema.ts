@@ -780,3 +780,41 @@ export const insertProductSchema = createInsertSchema(products).pick({
 // Tipos para o sistema de produtos
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+// Enum para tipo de conta no plano de contas
+export const accountTypeEnum = pgEnum('account_type', ['ativo', 'passivo', 'receita', 'despesa', 'patrimonio']);
+
+// Tabela de plano de contas
+export const chartOfAccounts = pgTable("chart_of_accounts", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  code: text("code").notNull(), // Código da conta (ex: 1.1.01.001)
+  name: text("name").notNull(),
+  description: text("description"),
+  type: accountTypeEnum("type").notNull(), // Tipo da conta (ativo, passivo, receita, despesa, patrimônio)
+  parentId: integer("parent_id"), // ID da conta pai (para contas hierárquicas)
+  isActive: boolean("is_active").default(true),
+  level: integer("level").notNull(), // Nível hierárquico (1, 2, 3, etc)
+  isAnalytical: boolean("is_analytical").default(false), // Se é uma conta analítica (pode receber lançamentos)
+  additionalData: jsonb("additional_data"), // Dados adicionais específicos de cada organização
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schema para inserção no plano de contas
+export const insertChartOfAccountsSchema = createInsertSchema(chartOfAccounts).pick({
+  organizationId: true,
+  code: true,
+  name: true,
+  description: true,
+  type: true,
+  parentId: true,
+  isActive: true,
+  level: true,
+  isAnalytical: true,
+  additionalData: true
+});
+
+// Tipos para o sistema de plano de contas
+export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
+export type InsertChartOfAccount = z.infer<typeof insertChartOfAccountsSchema>;
