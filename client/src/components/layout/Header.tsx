@@ -61,7 +61,13 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem 
+                onClick={() => {
+                  window.history.pushState({}, '', '/profile');
+                  window.dispatchEvent(new Event('popstate'));
+                }}
+                className="cursor-pointer"
+              >
                 <User className="mr-2 h-4 w-4" />
                 Perfil
               </DropdownMenuItem>
