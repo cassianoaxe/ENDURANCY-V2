@@ -24,6 +24,15 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   
+  // Verificar parâmetros da URL para ativar a aba correta
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['profile', 'security', 'plan'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
+  
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/profile"],
     queryFn: async () => {
