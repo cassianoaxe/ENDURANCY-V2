@@ -9,6 +9,9 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(id: number, userData: Partial<User>): Promise<User | undefined>;
+  updateUserPassword(id: number, newPassword: string): Promise<boolean>;
+  updateUserPhoto(id: number, photoPath: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -28,6 +31,45 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+  
+  async updateUserProfile(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        ...userData,
+        // Remove sensitive fields if they are somehow included
+        password: undefined,
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser || undefined;
+  }
+  
+  async updateUserPassword(id: number, newPassword: string): Promise<boolean> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        password: newPassword,
+        lastPasswordChange: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return !!updatedUser;
+  }
+  
+  async updateUserPhoto(id: number, photoPath: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        profilePhoto: photoPath,
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser || undefined;
   }
 }
 
