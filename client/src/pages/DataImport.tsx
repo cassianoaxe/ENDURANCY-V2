@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -28,11 +28,20 @@ import {
   MonitorPlay,
   BrainCircuit,
   Sparkles,
+  Target,
   AlertTriangle,
   CheckCircle2,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+
+// Tipos de dados para organização
+interface Organization {
+  id: number;
+  name: string;
+  status: string;
+}
 
 // Tipos de dados que podem ser importados
 const importTypes = [
@@ -48,6 +57,7 @@ const importTypes = [
 export default function DataImport() {
   const [activeTab, setActiveTab] = useState('file-upload');
   const [selectedImportType, setSelectedImportType] = useState('');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [apiEndpoint, setApiEndpoint] = useState('');
   const [jsonData, setJsonData] = useState('');
@@ -77,6 +87,15 @@ export default function DataImport() {
   } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
+  
+  // Buscar organizações para o seletor
+  const { data: organizations, isLoading: isLoadingOrganizations } = useQuery<Organization[]>({
+    queryKey: ['/api/organizations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/organizations');
+      return response.json();
+    }
+  });
 
   // Manipulador de upload de arquivo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,6 +214,15 @@ export default function DataImport() {
       });
       return;
     }
+    
+    if (!selectedOrganizationId) {
+      toast({
+        title: "Erro",
+        description: "Selecione uma organização de destino para a importação",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (activeTab === 'file-upload' && !file) {
       toast({
@@ -241,6 +269,9 @@ export default function DataImport() {
 
     try {
       const formData = new FormData();
+      
+      // Adiciona o ID da organização de destino
+      formData.append('organizationId', selectedOrganizationId);
       
       if (activeTab === 'file-upload' && file) {
         formData.append('file', file);
@@ -504,6 +535,47 @@ export default function DataImport() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          
+          {/* Seletor de Organização de Destino */}
+          <div className="space-y-2">
+            <Label htmlFor="target-organization" className="flex items-center">
+              <Target className="h-4 w-4 mr-2 text-indigo-600" />
+              Organização de Destino
+              <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-800 text-xs">Obrigatório</Badge>
+            </Label>
+            <Select 
+              value={selectedOrganizationId} 
+              onValueChange={setSelectedOrganizationId}
+              disabled={isLoadingOrganizations}
+            >
+              <SelectTrigger id="target-organization" className="w-full">
+                <SelectValue placeholder={isLoadingOrganizations ? "Carregando organizações..." : "Selecione a organização de destino"} />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations && organizations.map(org => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    <div className="flex items-center">
+                      <Building2 className="h-4 w-4 mr-2 text-gray-500" />
+                      <span>{org.name}</span>
+                      {org.status !== 'active' && (
+                        <Badge variant="outline" className="ml-2 bg-red-50 text-red-800 text-xs">
+                          {org.status}
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+                {(!organizations || organizations.length === 0) && !isLoadingOrganizations && (
+                  <div className="p-2 text-center text-sm text-gray-500">
+                    Nenhuma organização encontrada
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-gray-500">
+              Esta é a organização para onde os dados serão importados. Este passo é essencial para migrar corretamente os clientes do sistema legado para o Endurancy.
+            </p>
           </div>
 
           <Tabs defaultValue="file-upload" value={activeTab} onValueChange={setActiveTab} className="w-full">
