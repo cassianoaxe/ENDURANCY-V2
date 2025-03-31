@@ -1,0 +1,11 @@
+{
+  "deploymentTarget": "web",
+  "ignorePorts": false,
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "webview": {
+    "distRoot": "./dist",
+    "baseURL": "app"
+  }
+}
