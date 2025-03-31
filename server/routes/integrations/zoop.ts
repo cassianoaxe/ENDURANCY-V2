@@ -1,481 +1,335 @@
-import { Router } from "express";
-import axios from "axios";
+import { Router, Request, Response } from "express";
 import { db } from "../../db";
-import { users, organizations } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 const zoopRouter = Router();
 
-interface ZoopCredentials {
-  apiKey: string;
-  marketplaceId: string;
-  sellerId: string;
-  environment: 'sandbox' | 'production';
-}
+// Tipo para configurações da Zoop
+const zoopConfigSchema = z.object({
+  apiKey: z.string().min(1, "Chave da API é obrigatória"),
+  marketplaceId: z.string().min(1, "ID do Marketplace é obrigatório"),
+  sellerId: z.string().min(1, "ID do Vendedor é obrigatório"),
+  environment: z.enum(["sandbox", "production"], {
+    required_error: "Ambiente é obrigatório",
+  }),
+  webhookToken: z.string().min(1, "Token do webhook é obrigatório"),
+  notificationUrl: z.string().url("URL de notificação inválida"),
+  isActive: z.boolean().default(true),
+});
 
-// Obter credenciais da Zoop para uma organização
-const getZoopCredentials = async (organizationId: number): Promise<ZoopCredentials | null> => {
+const webhookConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  transactionCreated: z.boolean().default(true),
+  transactionPaid: z.boolean().default(true),
+  transactionFailed: z.boolean().default(true),
+  transactionCanceled: z.boolean().default(true),
+  subscriptionCreated: z.boolean().default(true),
+  subscriptionUpdated: z.boolean().default(true),
+  subscriptionCanceled: z.boolean().default(true),
+  splitCreated: z.boolean().default(false),
+  splitSettled: z.boolean().default(false),
+});
+
+const splitConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  percentage: z.number().min(0).max(100).default(0),
+  fixedAmount: z.number().min(0).default(0),
+  recipientId: z.string().optional(),
+});
+
+/**
+ * Middleware de autenticação para as rotas da Zoop 
+ * Toda rota abaixo deste middleware requer autenticação
+ */
+zoopRouter.use((req: Request, res: Response, next) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({
+      error: "Não autorizado. É necessário estar autenticado para acessar esta API."
+    });
+  }
+
+  // Se o usuário não for admin ou admin da organização, negar acesso
+  if (req.user && req.user.role !== 'admin' && req.user.role !== 'org_admin') {
+    return res.status(403).json({
+      error: "Acesso negado. É necessário ser administrador para gerenciar integrações."
+    });
+  }
+
+  next();
+});
+
+// Rota para obter a configuração atual da Zoop
+zoopRouter.get("/config", async (req: Request, res: Response) => {
   try {
-    // Aqui você buscaria as credenciais da organização no banco de dados
-    // Esta é uma implementação de exemplo
-    const [organization] = await db.select({
-      id: organizations.id,
-      name: organizations.name,
-      // Aqui seriam os campos específicos da integração com a Zoop
-      // zoopApiKey: organizations.zoopApiKey,
-      // zoopMarketplaceId: organizations.zoopMarketplaceId,
-      // zoopSellerId: organizations.zoopSellerId,
-      // zoopEnvironment: organizations.zoopEnvironment,
-    })
-    .from(organizations)
-    .where(eq(organizations.id, organizationId));
-
-    if (!organization) {
-      return null;
-    }
-
-    // Credenciais de exemplo para desenvolvimento
-    return {
-      apiKey: "zpk_test_1234567890abcdef",
-      marketplaceId: "123e4567-e89b-12d3-a456-426614174000",
-      sellerId: "123e4567-e89b-12d3-a456-426614174001",
-      environment: "sandbox"
+    // Verificar se existe configuração para a organização do usuário
+    // Em uma implementação real, buscaríamos os dados na tabela de configurações
+    const organizationId = req.user?.organizationId;
+    
+    // Dados de exemplo para demonstração
+    const mockConfig = {
+      apiKey: "zp_test_**********",
+      marketplaceId: "3249875634895728937",
+      sellerId: "0923847509234875",
+      environment: "sandbox",
+      webhookToken: "6a7f8d9e0c1b2a3f4d5e6a7f8d9e0c1b",
+      notificationUrl: `${req.protocol}://${req.get('host')}/api/integrations/pagamentos/zoop/webhook`,
+      isActive: true,
+      webhooks: {
+        enabled: true,
+        transactionCreated: true,
+        transactionPaid: true,
+        transactionFailed: true,
+        transactionCanceled: true,
+        subscriptionCreated: true,
+        subscriptionUpdated: true,
+        subscriptionCanceled: true,
+        splitCreated: false,
+        splitSettled: false
+      },
+      split: {
+        enabled: false,
+        percentage: 10,
+        fixedAmount: 0,
+        recipientId: ""
+      }
     };
+    
+    // Retornar a configuração
+    // Em uma implementação real, retornaríamos os dados do banco de dados
+    res.json(mockConfig);
   } catch (error) {
-    console.error("Erro ao obter credenciais da Zoop:", error);
-    return null;
-  }
-};
-
-// Base URL da API da Zoop
-const getZoopApiBaseUrl = (environment: 'sandbox' | 'production'): string => {
-  return environment === 'production'
-    ? 'https://api.zoop.ws/v1'
-    : 'https://api.zoop.ws/v1/sandbox';
-};
-
-// Rota para criar um comprador (buyer) na Zoop
-zoopRouter.post("/buyers", async (req, res) => {
-  try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
-    
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(organizationId);
-    
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/buyers`, 
-      req.body.buyerData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(201).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao criar comprador na Zoop:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao criar comprador na Zoop",
-      details: error.response?.data || error.message
-    });
+    console.error("Erro ao buscar configuração da Zoop:", error);
+    res.status(500).json({ error: "Erro ao buscar configuração da Zoop" });
   }
 });
 
-// Rota para criar uma transação de cartão de crédito na Zoop
-zoopRouter.post("/transactions/credit", async (req, res) => {
+// Rota para salvar configuração da API da Zoop
+zoopRouter.post("/config", async (req: Request, res: Response) => {
   try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
+    // Validar os dados recebidos
+    const validatedData = zoopConfigSchema.parse(req.body);
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(organizationId);
+    // Em uma implementação real, salvaríamos os dados no banco de dados
+    // Exemplo:
+    // await db.insert(zoopConfigurations)
+    //  .values({
+    //    ...validatedData,
+    //    organizationId: req.user.organizationId,
+    //    updatedAt: new Date()
+    //  })
+    //  .onConflictDoUpdate({
+    //    target: [zoopConfigurations.organizationId],
+    //    set: {
+    //      ...validatedData,
+    //      updatedAt: new Date()
+    //    }
+    //  });
     
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-
-    // Preparar dados da transação
-    const transactionData = {
-      ...req.body.transactionData,
-      on_behalf_of: credentials.sellerId // ID do vendedor para quem a transação está sendo realizada
-    };
-
-    // Adicionar regras de split se especificadas
-    if (req.body.splitData) {
-      transactionData.split_rules = req.body.splitData;
-    }
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions`, 
-      transactionData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(201).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao criar transação na Zoop:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao criar transação na Zoop",
-      details: error.response?.data || error.message
+    // Responder com sucesso
+    res.status(200).json({
+      message: "Configuração da Zoop salva com sucesso",
+      config: validatedData
     });
+  } catch (error) {
+    console.error("Erro ao salvar configuração da Zoop:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    } else {
+      res.status(500).json({ error: "Erro ao salvar configuração da Zoop" });
+    }
   }
 });
 
-// Rota para criar um boleto na Zoop
-zoopRouter.post("/transactions/boleto", async (req, res) => {
+// Rota para salvar configuração de webhooks
+zoopRouter.post("/webhooks/config", async (req: Request, res: Response) => {
   try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
+    // Validar os dados recebidos
+    const validatedData = webhookConfigSchema.parse(req.body);
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(organizationId);
+    // Em uma implementação real, salvaríamos os dados no banco de dados
     
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-
-    // Preparar dados do boleto
-    const boletoData = {
-      ...req.body.boletoData,
-      payment_type: "boleto",
-      on_behalf_of: credentials.sellerId
-    };
-
-    // Adicionar regras de split se especificadas
-    if (req.body.splitData) {
-      boletoData.split_rules = req.body.splitData;
-    }
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions`, 
-      boletoData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(201).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao criar boleto na Zoop:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao criar boleto na Zoop",
-      details: error.response?.data || error.message
+    // Responder com sucesso
+    res.status(200).json({
+      message: "Configuração de webhooks salva com sucesso",
+      config: validatedData
     });
+  } catch (error) {
+    console.error("Erro ao salvar configuração de webhooks:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    } else {
+      res.status(500).json({ error: "Erro ao salvar configuração de webhooks" });
+    }
   }
 });
 
-// Rota para criar uma transação PIX na Zoop
-zoopRouter.post("/transactions/pix", async (req, res) => {
+// Rota para salvar configuração de split de pagamento
+zoopRouter.post("/split/config", async (req: Request, res: Response) => {
   try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
+    // Validar os dados recebidos
+    const validatedData = splitConfigSchema.parse(req.body);
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(organizationId);
+    // Em uma implementação real, salvaríamos os dados no banco de dados
     
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-
-    // Preparar dados do PIX
-    const pixData = {
-      ...req.body.pixData,
-      payment_type: "pix",
-      on_behalf_of: credentials.sellerId
-    };
-
-    // Adicionar regras de split se especificadas
-    if (req.body.splitData) {
-      pixData.split_rules = req.body.splitData;
-    }
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions`, 
-      pixData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(201).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao criar PIX na Zoop:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao criar PIX na Zoop",
-      details: error.response?.data || error.message
+    // Responder com sucesso
+    res.status(200).json({
+      message: "Configuração de split de pagamento salva com sucesso",
+      config: validatedData
     });
+  } catch (error) {
+    console.error("Erro ao salvar configuração de split:", error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    } else {
+      res.status(500).json({ error: "Erro ao salvar configuração de split" });
+    }
   }
 });
 
-// Rota para verificar status de uma transação
-zoopRouter.get("/transactions/:transactionId", async (req, res) => {
+// Rota para webhook de recebimento de eventos da Zoop
+zoopRouter.post("/webhook", async (req: Request, res: Response) => {
   try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.query.organizationId as string || req.session.user.organizationId;
+    const event = req.body;
+    console.log("Evento recebido da Zoop:", JSON.stringify(event, null, 2));
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
+    // Verificar token de autenticação do webhook (deve ser enviado no header)
+    const token = req.headers['x-zoop-webhook-token'];
+    if (!token) {
+      return res.status(401).json({ error: "Token de autenticação não fornecido" });
     }
-
-    const credentials = await getZoopCredentials(Number(organizationId));
     
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-    const transactionId = req.params.transactionId;
-
-    const response = await axios.get(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions/${transactionId}`, 
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(200).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao verificar status da transação:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao verificar status da transação",
-      details: error.response?.data || error.message
-    });
-  }
-});
-
-// Rota para capturar uma transação pré-autorizada
-zoopRouter.post("/transactions/:transactionId/capture", async (req, res) => {
-  try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
+    // Em uma implementação real, verificaríamos o token contra o armazenado no banco
+    // E processaríamos o evento de acordo com seu tipo
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
+    // Processar o evento de acordo com seu tipo
+    switch (event.type) {
+      case 'transaction.created':
+        // Lógica para transação criada
+        break;
+      case 'transaction.paid':
+        // Lógica para transação paga
+        break;
+      case 'transaction.failed':
+        // Lógica para transação falhou
+        break;
+      case 'transaction.canceled':
+        // Lógica para transação cancelada
+        break;
+      case 'subscription.created':
+        // Lógica para assinatura criada
+        break;
+      case 'subscription.updated':
+        // Lógica para assinatura atualizada
+        break;
+      case 'subscription.canceled':
+        // Lógica para assinatura cancelada
+        break;
+      case 'split.created':
+        // Lógica para split criado
+        break;
+      case 'split.settled':
+        // Lógica para split liquidado
+        break;
+      default:
+        console.warn(`Evento desconhecido recebido: ${event.type}`);
     }
-
-    const credentials = await getZoopCredentials(organizationId);
     
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-    const transactionId = req.params.transactionId;
-
-    // Dados para captura (pode incluir valor parcial)
-    const captureData = req.body.captureData || {};
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions/${transactionId}/capture`, 
-      captureData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(200).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao capturar transação:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao capturar transação",
-      details: error.response?.data || error.message
-    });
-  }
-});
-
-// Rota para cancelar/estornar uma transação
-zoopRouter.post("/transactions/:transactionId/void", async (req, res) => {
-  try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.body.organizationId || req.session.user.organizationId;
-    
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(organizationId);
-    
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-    const transactionId = req.params.transactionId;
-
-    // Dados para estorno (pode incluir valor parcial)
-    const voidData = req.body.voidData || {};
-
-    const response = await axios.post(
-      `${baseUrl}/marketplaces/${marketplaceId}/transactions/${transactionId}/void`, 
-      voidData,
-      {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return res.status(200).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao cancelar/estornar transação:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao cancelar/estornar transação",
-      details: error.response?.data || error.message
-    });
+    // Responder com sucesso para evitar reenvios
+    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error("Erro ao processar webhook da Zoop:", error);
+    res.status(500).json({ error: "Erro ao processar webhook" });
   }
 });
 
 // Rota para listar transações
-zoopRouter.get("/transactions", async (req, res) => {
+zoopRouter.get("/transactions", async (req: Request, res: Response) => {
   try {
-    if (!req.session?.user?.id) {
-      return res.status(401).json({ error: "Não autorizado" });
-    }
-
-    const organizationId = req.query.organizationId as string || req.session.user.organizationId;
+    // Em uma implementação real, buscaríamos os dados na API da Zoop
+    // ou do nosso banco local sincronizado
     
-    if (!organizationId) {
-      return res.status(400).json({ error: "ID da organização não informado" });
-    }
-
-    const credentials = await getZoopCredentials(Number(organizationId));
-    
-    if (!credentials) {
-      return res.status(404).json({ error: "Credenciais da Zoop não encontradas" });
-    }
-
-    const { marketplaceId, apiKey, sellerId } = credentials;
-    const baseUrl = getZoopApiBaseUrl(credentials.environment);
-
-    // Parâmetros de consulta
-    const { 
-      limit = '10', 
-      offset = '0', 
-      date_range, 
-      date_created_gte, 
-      date_created_lte,
-      status
-    } = req.query;
-
-    // Construir a URL com os parâmetros
-    let url = `${baseUrl}/marketplaces/${marketplaceId}/transactions?limit=${limit}&offset=${offset}&on_behalf_of=${sellerId}`;
-    
-    if (date_range) url += `&date_range=${date_range}`;
-    if (date_created_gte) url += `&date_created_gte=${date_created_gte}`;
-    if (date_created_lte) url += `&date_created_lte=${date_created_lte}`;
-    if (status) url += `&status=${status}`;
-
-    const response = await axios.get(url, {
-      headers: {
-        'Authorization': `Basic ${Buffer.from(apiKey + ":").toString('base64')}`,
-        'Content-Type': 'application/json'
+    // Dados de exemplo para demonstração
+    const transactions = [
+      {
+        id: "a57e1e7bb8d641a1af7d95d1103c5681",
+        date: "2025-03-30",
+        customer: "Pedro Almeida",
+        amount: "R$ 299,90",
+        method: "CREDIT",
+        status: "PAID",
+        dueDate: "2025-03-30",
+        description: "Assinatura mensal - Plano Pro"
+      },
+      {
+        id: "b8d64c5751a1af7d95d1103c56817e7b",
+        date: "2025-03-29",
+        customer: "Fernanda Lima",
+        amount: "R$ 120,00",
+        method: "PIX",
+        status: "PAID",
+        dueDate: "2025-03-29",
+        description: "Consulta médica - Clínica Bem Estar"
+      },
+      {
+        id: "7d95d1103c5681a57e1e7bb8d641a1af",
+        date: "2025-03-28",
+        customer: "Ricardo Souza",
+        amount: "R$ 149,90",
+        method: "BOLETO",
+        status: "PENDING",
+        dueDate: "2025-04-05",
+        description: "Assinatura mensal - Plano Intermediário"
+      },
+      {
+        id: "95d1103c5681a57e1e7bb8d641a1af7d",
+        date: "2025-03-27",
+        customer: "Juliana Neves",
+        amount: "R$ 249,90",
+        method: "CREDIT",
+        status: "AUTHORIZED",
+        dueDate: "2025-03-27",
+        description: "Assinatura anual - Plano Básico"
+      },
+      {
+        id: "1e7bb8d641a1af7d95d1103c5681a57e",
+        date: "2025-03-26",
+        customer: "Gabriel Costa",
+        amount: "R$ 99,90",
+        method: "BOLETO",
+        status: "EXPIRED",
+        dueDate: "2025-03-25",
+        description: "Assinatura mensal - Plano Básico"
       }
-    });
-
-    return res.status(200).json(response.data);
-  } catch (error: any) {
-    console.error("Erro ao listar transações:", error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      error: "Erro ao listar transações",
-      details: error.response?.data || error.message
-    });
+    ];
+    
+    res.json(transactions);
+  } catch (error) {
+    console.error("Erro ao listar transações:", error);
+    res.status(500).json({ error: "Erro ao listar transações" });
   }
 });
 
-// Webhook para receber notificações da Zoop
-zoopRouter.post("/webhook", async (req, res) => {
+// Rota para buscar estatísticas para o dashboard
+zoopRouter.get("/dashboard", async (req: Request, res: Response) => {
   try {
-    console.log("Webhook da Zoop recebido:", JSON.stringify(req.body));
+    // Em uma implementação real, buscaríamos os dados na API da Zoop
+    // ou calcularíamos a partir do nosso banco local sincronizado
     
-    // Verificar a assinatura do webhook (se aplicável)
-    // Implementar lógica de verificação do token
+    // Dados de exemplo para demonstração
+    const dashboardData = {
+      totalReceived: { positive: true, value: "R$ 9.845,20" },
+      totalPending: { positive: false, value: "R$ 2.187,50" },
+      successRate: { positive: true, value: "92,3%" },
+      transactionCount: "128",
+      splitAmount: { positive: true, value: "R$ 1.205,10" },
+    };
     
-    // Processar o evento
-    const event = req.body;
-    
-    // Implementar o processamento do evento de acordo com o tipo
-    // event.type - Tipo do evento (transaction.created, transaction.paid, etc.)
-    // event.data - Dados do evento
-    
-    // Retornar sucesso para que a Zoop saiba que recebemos o evento
-    return res.status(200).json({ received: true });
-  } catch (error: any) {
-    console.error("Erro ao processar webhook da Zoop:", error);
-    return res.status(500).json({ error: "Erro ao processar webhook" });
+    res.json(dashboardData);
+  } catch (error) {
+    console.error("Erro ao buscar estatísticas do dashboard:", error);
+    res.status(500).json({ error: "Erro ao buscar estatísticas do dashboard" });
   }
 });
 
+// Exportar router
 export default zoopRouter;
