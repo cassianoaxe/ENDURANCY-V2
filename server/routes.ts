@@ -14,7 +14,9 @@ import {
   supportTickets, ticketComments, ticketAttachments,
   insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema,
   // Imports para o sistema de notificações
-  notifications, insertNotificationSchema
+  notifications, insertNotificationSchema,
+  // Imports para perfil de usuário
+  updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
@@ -66,10 +68,10 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-// Configure multer for file uploads
-const upload = multer({
+// Configure multer for document uploads
+const documentUpload = multer({
   storage: multer.diskStorage({
-    destination: './uploads',
+    destination: './uploads/documents',
     filename: function (req, file, cb) {
       cb(null, `${Date.now()}-${file.originalname}`);
     }
@@ -82,6 +84,28 @@ const upload = multer({
     } else {
       cb(new Error('Invalid file type'));
     }
+  }
+});
+
+// Configure multer for profile photo uploads
+const profilePhotoUpload = multer({
+  storage: multer.diskStorage({
+    destination: './uploads/profile-photos',
+    filename: function (req, file, cb) {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    }
+  }),
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.gif'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo inválido. Apenas imagens (jpg, jpeg, png, gif) são permitidas.'));
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // limita a 5MB
   }
 });
 
@@ -405,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations", upload.single('document'), async (req, res) => {
+  app.post("/api/organizations", documentUpload.single('document'), async (req, res) => {
     try {
       const organizationData = req.body;
       const file = req.file;
@@ -2627,7 +2651,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para criar um novo ticket
-  app.post("/api/tickets", authenticate, upload.array('attachments'), async (req, res) => {
+  app.post("/api/tickets", authenticate, documentUpload.array('attachments'), async (req, res) => {
     try {
       // Obter e validar dados do ticket
       const ticketData = insertSupportTicketSchema.parse({
@@ -3044,6 +3068,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rotas de perfil de usuário
+  
+  // Rota para obter perfil do usuário
+  app.get("/api/profile", authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Buscar dados atualizados do usuário
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Remover senha e outros dados sensíveis
+      const { password, ...userInfo } = user;
+      
+      res.json(userInfo);
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error);
+      res.status(500).json({ message: "Falha ao buscar dados do perfil" });
+    }
+  });
+  
+  // Rota para atualizar dados do perfil do usuário
+  app.put("/api/profile", authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Validar os dados recebidos
+      const profileData = req.body;
+      
+      // Remove campos que não devem ser atualizados pelo usuário
+      delete profileData.id;
+      delete profileData.password;
+      delete profileData.role;
+      delete profileData.username;
+      delete profileData.organizationId;
+      
+      // Atualizar o perfil
+      const updatedUser = await storage.updateUserProfile(userId, profileData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Remover senha e outros dados sensíveis
+      const { password, ...userInfo } = updatedUser;
+      
+      // Atualizar os dados na sessão
+      req.user = { ...req.user, ...userInfo };
+      
+      res.json(userInfo);
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+      res.status(500).json({ message: "Falha ao atualizar perfil" });
+    }
+  });
+  
+  // Rota para alterar senha
+  app.post("/api/profile/change-password", authenticate, async (req: Request & {user?: any}, res) => {
+    try {
+      const userId = req.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Senha atual e nova senha são obrigatórias" });
+      }
+      
+      // Buscar usuário para verificar a senha atual
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Verificar se a senha atual está correta (em produção, usar hash)
+      if (user.password !== currentPassword) {
+        return res.status(400).json({ message: "Senha atual incorreta" });
+      }
+      
+      // Atualizar a senha
+      const success = await storage.updateUserPassword(userId, newPassword);
+      
+      if (!success) {
+        return res.status(500).json({ message: "Falha ao atualizar senha" });
+      }
+      
+      res.json({ message: "Senha alterada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao alterar senha:", error);
+      res.status(500).json({ message: "Falha ao alterar senha" });
+    }
+  });
+  
+  // Rota para upload de foto de perfil
+  app.post("/api/profile/photo", authenticate, profilePhotoUpload.single('photo'), async (req: Request & {user?: any}, res) => {
+    try {
+      const userId = req.user.id;
+      const file = req.file;
+      
+      if (!file) {
+        return res.status(400).json({ message: "Nenhuma foto enviada" });
+      }
+      
+      // Atualizar o caminho da foto no banco de dados
+      const updatedUser = await storage.updateUserPhoto(userId, file.path);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Remover senha e outros dados sensíveis
+      const { password, ...userInfo } = updatedUser;
+      
+      // Atualizar os dados na sessão
+      req.user = { ...req.user, ...userInfo };
+      
+      res.json({ 
+        message: "Foto de perfil atualizada com sucesso",
+        profilePhoto: file.path,
+        user: userInfo
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload de foto:", error);
+      res.status(500).json({ message: "Falha ao fazer upload de foto" });
+    }
+  });
+  
   // Rota para a API da Zoop
   return httpServer;
 }

@@ -29,6 +29,7 @@ import TicketDetail from "@/pages/TicketDetail";
 import CreateTicket from "@/pages/CreateTicket";
 import SupportDashboard from "@/pages/SupportDashboard";
 import Documentation from "@/pages/Documentation";
+import UserProfile from "@/pages/UserProfile";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -305,6 +306,15 @@ function AppContent() {
   // Organization confirmation page
   if (currentPath === '/organization-confirmation') {
     return <OrganizationConfirmation />;
+  }
+  
+  // User profile page
+  if (currentPath === '/profile') {
+    return (
+      <Layout>
+        <UserProfile />
+      </Layout>
+    );
   }
 
   // Admin-specific routes require admin privileges
