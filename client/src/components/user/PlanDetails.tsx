@@ -16,6 +16,7 @@ interface Organization {
   id: number;
   name: string;
   planId: number;
+  planTier?: 'free' | 'seed' | 'grow' | 'pro';
   registrationsCount: number;
   registrationsLimit: number;
   activationDate: string;
@@ -71,6 +72,228 @@ export function PlanDetails() {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [selectedAction, setSelectedAction] = useState<'add' | 'remove'>('add');
   const [reason, setReason] = useState('');
+  
+  // Mock data para visualização
+  const mockOrganization: Organization = {
+    id: 1,
+    name: "Organização Exemplo",
+    planId: 2,
+    planTier: "seed",
+    registrationsCount: 750,
+    registrationsLimit: 1000,
+    activationDate: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString()
+  };
+  
+  const mockCurrentPlan: Plan = {
+    id: 2,
+    name: "Plano Seed",
+    description: "Ideal para associações de pequeno porte com até 1.000 cadastros",
+    price: 499.00,
+    tier: "seed",
+    registrationsLimit: 1000,
+    features: [
+      "Até 1.000 cadastros",
+      "7 módulos básicos inclusos",
+      "Suporte técnico 5x8",
+      "Armazenamento de 5GB",
+      "Integrações básicas"
+    ],
+    isPopular: false,
+    isFeatured: false
+  };
+  
+  const mockAvailablePlans: Plan[] = [
+    {
+      id: 1,
+      name: "Trial",
+      description: "Versão gratuita por 15 dias para testes",
+      price: 0.00,
+      tier: "free",
+      registrationsLimit: 100,
+      features: [
+        "Até 100 cadastros",
+        "7 módulos básicos inclusos",
+        "Suporte técnico via email",
+        "Armazenamento de 1GB",
+        "Validade de 15 dias"
+      ],
+      isPopular: false,
+      isFeatured: false
+    },
+    {
+      id: 2,
+      name: "Plano Seed",
+      description: "Ideal para associações de pequeno porte com até 1.000 cadastros",
+      price: 499.00,
+      tier: "seed",
+      registrationsLimit: 1000,
+      features: [
+        "Até 1.000 cadastros",
+        "7 módulos básicos inclusos",
+        "Suporte técnico 5x8",
+        "Armazenamento de 5GB",
+        "Integrações básicas"
+      ],
+      isPopular: false,
+      isFeatured: false
+    },
+    {
+      id: 3,
+      name: "Plano Grow",
+      description: "Para associações em crescimento com até 5.000 cadastros e módulos adicionais",
+      price: 999.00,
+      tier: "grow",
+      registrationsLimit: 5000,
+      features: [
+        "Até 5.000 cadastros",
+        "9 módulos inclusos",
+        "Suporte técnico 8x5",
+        "Armazenamento de 15GB",
+        "Integrações avançadas",
+        "Módulos Cultivo e Produção"
+      ],
+      isPopular: true,
+      isFeatured: false
+    },
+    {
+      id: 4,
+      name: "Plano Pro",
+      description: "Solução completa para grandes associações com todos os recursos disponíveis",
+      price: 2999.00,
+      tier: "pro",
+      registrationsLimit: 10000,
+      features: [
+        "Até 10.000 cadastros",
+        "Todos os módulos inclusos",
+        "Suporte técnico 24x7",
+        "Armazenamento de 50GB",
+        "Todas as integrações",
+        "Módulos premium inclusos",
+        "Relatórios avançados",
+        "API personalizada"
+      ],
+      isPopular: false,
+      isFeatured: true
+    }
+  ];
+  
+  const mockActiveModules: Module[] = [
+    {
+      id: 1,
+      name: "Onboarding",
+      description: "Módulo de boas-vindas e introdução ao sistema",
+      type: "onboarding",
+      price: 0,
+      isActive: true,
+      isIncludedInPlan: true,
+      isAddon: false
+    },
+    {
+      id: 2,
+      name: "Analytics",
+      description: "Análises e métricas de desempenho",
+      type: "analytics",
+      price: 0,
+      isActive: true,
+      isIncludedInPlan: true,
+      isAddon: false
+    },
+    {
+      id: 3,
+      name: "Dashboard",
+      description: "Painéis personalizáveis para visualização de dados",
+      type: "dashboard",
+      price: 0,
+      isActive: true,
+      isIncludedInPlan: true,
+      isAddon: false
+    },
+    {
+      id: 4,
+      name: "Associados",
+      description: "Gerenciamento completo de membros da associação",
+      type: "associados",
+      price: 0,
+      isActive: true,
+      isIncludedInPlan: true,
+      isAddon: false
+    },
+    {
+      id: 5,
+      name: "Vendas",
+      description: "Controle de vendas e faturamento",
+      type: "vendas",
+      price: 0,
+      isActive: true,
+      isIncludedInPlan: true,
+      isAddon: false
+    },
+    {
+      id: 10,
+      name: "CRM",
+      description: "Gestão de relacionamento com clientes",
+      type: "crm",
+      price: 99.00,
+      isActive: true,
+      isIncludedInPlan: false,
+      isAddon: true
+    }
+  ];
+  
+  const mockModuleRequests: ModuleRequest[] = [
+    {
+      id: 1,
+      organizationId: 1,
+      moduleId: 8,
+      action: 'add',
+      reason: 'Precisamos adicionar este módulo para melhorar a gestão de pessoal',
+      status: 'pendente',
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  const mockAvailableModules: Module[] = [
+    {
+      id: 6,
+      name: "Tarefas",
+      description: "Controle de tarefas e atividades da equipe",
+      type: "tarefas",
+      price: 99.00,
+      isActive: true,
+      isIncludedInPlan: false,
+      isAddon: true
+    },
+    {
+      id: 7,
+      name: "Social",
+      description: "Integração com redes sociais e comunicação",
+      type: "social",
+      price: 99.00,
+      isActive: true,
+      isIncludedInPlan: false,
+      isAddon: true
+    },
+    {
+      id: 8,
+      name: "RH",
+      description: "Gerenciamento de recursos humanos",
+      type: "rh",
+      price: 99.00,
+      isActive: true,
+      isIncludedInPlan: false,
+      isAddon: true
+    },
+    {
+      id: 9,
+      name: "Jurídico",
+      description: "Controle de processos e documentação legal",
+      type: "juridico",
+      price: 99.00,
+      isActive: true,
+      isIncludedInPlan: false,
+      isAddon: true
+    }
+  ];
 
   // Fetch organization information
   const { data: organization, isLoading: isLoadingOrg } = useQuery({
@@ -244,6 +467,14 @@ export function PlanDetails() {
     setModuleDialogOpen(true);
   };
 
+  // Usar dados mockados quando não houver dados reais
+  const finalOrganization = organization || mockOrganization;
+  const finalCurrentPlan = currentPlan || mockCurrentPlan;
+  const finalAvailablePlans = availablePlans || mockAvailablePlans;
+  const finalActiveModules = (activeModules && activeModules.length > 0) ? activeModules : mockActiveModules;
+  const finalAvailableModules = (availableModules && availableModules.length > 0) ? availableModules : mockAvailableModules;
+  const finalModuleRequests = moduleRequests || mockModuleRequests;
+
   if (isLoadingOrg || isLoadingPlan || isLoadingPlans || isLoadingActiveModules || isLoadingAvailableModules) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -252,8 +483,8 @@ export function PlanDetails() {
     );
   }
 
-  const usagePercentage = organization?.registrationsCount 
-    ? Math.min(Math.round((organization.registrationsCount / organization.registrationsLimit) * 100), 100)
+  const usagePercentage = finalOrganization?.registrationsCount 
+    ? Math.min(Math.round((finalOrganization.registrationsCount / finalOrganization.registrationsLimit) * 100), 100)
     : 0;
 
   return (
@@ -266,29 +497,29 @@ export function PlanDetails() {
               <Package className="h-5 w-5" />
               Seu Plano Atual
             </span>
-            {currentPlan?.tier === 'free' && (
+            {finalCurrentPlan?.tier === 'free' && (
               <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
                 Versão Trial
               </Badge>
             )}
-            {currentPlan?.tier === 'seed' && (
+            {finalCurrentPlan?.tier === 'seed' && (
               <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
                 Plano Seed
               </Badge>
             )}
-            {currentPlan?.tier === 'grow' && (
+            {finalCurrentPlan?.tier === 'grow' && (
               <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
                 Plano Grow
               </Badge>
             )}
-            {currentPlan?.tier === 'pro' && (
+            {finalCurrentPlan?.tier === 'pro' && (
               <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
                 Plano Pro
               </Badge>
             )}
           </CardTitle>
           <CardDescription>
-            {currentPlan?.description}
+            {finalCurrentPlan?.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -296,16 +527,16 @@ export function PlanDetails() {
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Preço Mensal</h4>
               <p className="text-xl font-bold">
-                {currentPlan?.tier === 'free' 
+                {finalCurrentPlan?.tier === 'free' 
                   ? 'Gratuito' 
-                  : `R$ ${currentPlan?.price.toFixed(2)}`}
+                  : `R$ ${finalCurrentPlan?.price.toFixed(2)}`}
               </p>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Data de Ativação</h4>
               <p className="text-lg">
-                {organization?.activationDate 
-                  ? new Date(organization.activationDate).toLocaleDateString('pt-BR')
+                {finalOrganization?.activationDate 
+                  ? new Date(finalOrganization.activationDate).toLocaleDateString('pt-BR')
                   : 'N/A'}
               </p>
             </div>
@@ -313,7 +544,7 @@ export function PlanDetails() {
 
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span>Uso de cadastros ({organization?.registrationsCount} de {organization?.registrationsLimit})</span>
+              <span>Uso de cadastros ({finalOrganization?.registrationsCount} de {finalOrganization?.registrationsLimit})</span>
               <span>{usagePercentage}%</span>
             </div>
             <Progress value={usagePercentage} className={`h-2 ${usagePercentage > 80 ? 'bg-red-100' : 'bg-gray-100'}`} />
@@ -328,7 +559,7 @@ export function PlanDetails() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Recursos incluídos</h4>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {currentPlan?.features.map((feature: string, index: number) => (
+              {finalCurrentPlan?.features.map((feature: string, index: number) => (
                 <li key={index} className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
                   <span className="text-sm">{feature}</span>
@@ -338,14 +569,14 @@ export function PlanDetails() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          {currentPlan?.tier !== 'pro' && (
+          {finalCurrentPlan?.tier !== 'pro' && (
             <Button 
               onClick={() => {
                 // Filtrar planos que são de nível superior ao atual
-                const upgradePlans = availablePlans?.filter((p: Plan) => {
-                  if (currentPlan?.tier === 'free') return ['seed', 'grow', 'pro'].includes(p.tier);
-                  if (currentPlan?.tier === 'seed') return ['grow', 'pro'].includes(p.tier);
-                  if (currentPlan?.tier === 'grow') return ['pro'].includes(p.tier);
+                const upgradePlans = finalAvailablePlans?.filter((p: Plan) => {
+                  if (finalCurrentPlan?.tier === 'free') return ['seed', 'grow', 'pro'].includes(p.tier);
+                  if (finalCurrentPlan?.tier === 'seed') return ['grow', 'pro'].includes(p.tier);
+                  if (finalCurrentPlan?.tier === 'grow') return ['pro'].includes(p.tier);
                   return false;
                 });
                 
@@ -373,15 +604,15 @@ export function PlanDetails() {
       </Card>
 
       {/* Available Plans for Upgrade */}
-      {currentPlan?.tier !== 'pro' && !planUpgradeRequest && (
+      {finalCurrentPlan?.tier !== 'pro' && !planUpgradeRequest && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Planos Disponíveis para Upgrade</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availablePlans?.filter((plan: Plan) => {
+            {finalAvailablePlans?.filter((plan: Plan) => {
               // Só mostrar planos que são de nível superior ao atual
-              if (currentPlan?.tier === 'free') return ['seed', 'grow', 'pro'].includes(plan.tier);
-              if (currentPlan?.tier === 'seed') return ['grow', 'pro'].includes(plan.tier);
-              if (currentPlan?.tier === 'grow') return ['pro'].includes(plan.tier);
+              if (finalCurrentPlan?.tier === 'free') return ['seed', 'grow', 'pro'].includes(plan.tier);
+              if (finalCurrentPlan?.tier === 'seed') return ['grow', 'pro'].includes(plan.tier);
+              if (finalCurrentPlan?.tier === 'grow') return ['pro'].includes(plan.tier);
               return false;
             }).map((plan: Plan) => (
               <Card key={plan.id} className={`border ${plan.isPopular ? 'border-primary' : ''}`}>
@@ -426,13 +657,13 @@ export function PlanDetails() {
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Módulos Ativos</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeModules?.length === 0 && (
+          {finalActiveModules?.length === 0 && (
             <p className="text-muted-foreground col-span-full">
               Nenhum módulo adicional ativado. Solicite a ativação de módulos para expandir as funcionalidades.
             </p>
           )}
           
-          {activeModules?.map((module: Module) => (
+          {finalActiveModules?.map((module: Module) => (
             <Card key={module.id}>
               <CardHeader>
                 <CardTitle>{module.name}</CardTitle>
@@ -456,7 +687,7 @@ export function PlanDetails() {
                   <Button 
                     variant="outline" 
                     onClick={() => handleOpenModuleDialog(module, 'remove')}
-                    disabled={!!moduleRequests?.find((req: ModuleRequest) => req.moduleId === module.id)}
+                    disabled={!!finalModuleRequests?.find((req: ModuleRequest) => req.moduleId === module.id)}
                     className="w-full"
                   >
                     <Slash className="h-4 w-4 mr-2" />
@@ -473,13 +704,13 @@ export function PlanDetails() {
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Módulos Disponíveis</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableModules?.length === 0 && (
+          {finalAvailableModules?.length === 0 && (
             <p className="text-muted-foreground col-span-full">
               Nenhum módulo adicional disponível para o seu plano atual.
             </p>
           )}
           
-          {availableModules?.map((module: Module) => (
+          {finalAvailableModules?.map((module: Module) => (
             <Card key={module.id}>
               <CardHeader>
                 <CardTitle>{module.name}</CardTitle>
@@ -494,7 +725,7 @@ export function PlanDetails() {
                 <Button 
                   variant="outline" 
                   onClick={() => handleOpenModuleDialog(module, 'add')}
-                  disabled={!!moduleRequests?.find((req: ModuleRequest) => req.moduleId === module.id)}
+                  disabled={!!finalModuleRequests?.find((req: ModuleRequest) => req.moduleId === module.id)}
                   className="w-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -507,12 +738,12 @@ export function PlanDetails() {
       </div>
 
       {/* Module requests in progress */}
-      {moduleRequests && moduleRequests.length > 0 && (
+      {finalModuleRequests && finalModuleRequests.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Solicitações de Módulos em Andamento</h3>
           <div className="space-y-2">
-            {moduleRequests.map((request: ModuleRequest) => {
-              const module = [...(activeModules || []), ...(availableModules || [])].find((m: Module) => m.id === request.moduleId);
+            {finalModuleRequests.map((request: ModuleRequest) => {
+              const module = [...(finalActiveModules || []), ...(finalAvailableModules || [])].find((m: Module) => m.id === request.moduleId);
               return (
                 <Card key={request.id} className="border-amber-200">
                   <CardContent className="pt-4">
