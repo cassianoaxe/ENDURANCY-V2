@@ -41,7 +41,6 @@ import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
-import UserModules from "@/pages/organization/UserModules";
 import DataImport from "@/pages/DataImport";
 
 // Import onboarding course pages
@@ -228,10 +227,6 @@ function AppContent() {
     
     if (currentPath === '/organization/onboarding/Production') {
       return <Production />;
-    }
-    
-    if (currentPath === '/organization/modules') {
-      return <UserModules />;
     }
     
     return <NotFound />;
