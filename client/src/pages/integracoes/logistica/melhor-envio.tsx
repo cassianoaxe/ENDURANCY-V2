@@ -17,11 +17,11 @@ import {
   Package,
   ChevronLeft,
   Save,
-  HelpCircle,
   AlertCircle,
   Settings,
   RefreshCw,
   Loader2,
+  Activity,
   Copy
 } from "lucide-react";
 import {
@@ -484,21 +484,9 @@ export default function MelhorEnvioIntegration() {
         <div>
           <h3 className="font-medium text-blue-800">Sobre esta integração</h3>
           <p className="text-blue-700 text-sm mt-1">
-            A integração com o Melhor Envio permite calcular fretes das principais transportadoras brasileiras, 
-            gerar etiquetas de envio, rastrear pacotes e gerenciar todo o processo logístico. Com esta integração, 
-            você pode automatizar o envio de produtos e oferecer as melhores opções de frete para seus clientes.
-          </p>
-        </div>
-      </div>
-      
-      <div className="bg-yellow-50 p-4 rounded-lg mb-8 flex items-start">
-        <HelpCircle className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
-        <div>
-          <h3 className="font-medium text-yellow-800">Papel do Administrador</h3>
-          <p className="text-yellow-700 text-sm mt-1">
-            Como administrador, sua função é configurar a integração Melhor Envio para que as organizações possam 
-            utilizá-la com suas próprias credenciais. Você não realiza operações logísticas como cotação de fretes, 
-            rastreamento ou gestão de envios, que são responsabilidades das próprias organizações.
+            A integração com o Melhor Envio é baseada na API oficial que permite calcular fretes, 
+            gerar etiquetas de envio e rastrear pacotes. Esta integração facilita a conexão com as 
+            principais transportadoras brasileiras através de uma única API.
           </p>
         </div>
       </div>
@@ -791,7 +779,7 @@ export default function MelhorEnvioIntegration() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Map className="h-4 w-4" />
+                                  <Activity className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -1120,7 +1108,7 @@ export default function MelhorEnvioIntegration() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <Map className="h-12 w-12 text-gray-300 mb-4" />
+                      <Activity className="h-12 w-12 text-gray-300 mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-1">Nenhum rastreamento encontrado</h3>
                       <p className="text-sm text-gray-500 max-w-md mb-4">
                         Digite um código de rastreio válido para verificar o status de entrega do seu pacote.
