@@ -80,7 +80,7 @@ export default function UserProfile() {
       <h1 className="text-3xl font-bold mb-8">Seu Perfil</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[600px] grid-cols-3">
+        <TabsList className={`grid w-full md:w-[600px] ${user.role === 'org_admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
             <span>Informações</span>
@@ -89,10 +89,12 @@ export default function UserProfile() {
             <Key className="h-4 w-4" />
             <span>Segurança</span>
           </TabsTrigger>
-          <TabsTrigger value="plan" className="flex items-center gap-2">
-            <PackageCheck className="h-4 w-4" />
-            <span>Meu Plano</span>
-          </TabsTrigger>
+          {user.role === 'org_admin' && (
+            <TabsTrigger value="plan" className="flex items-center gap-2">
+              <PackageCheck className="h-4 w-4" />
+              <span>Meu Plano</span>
+            </TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">
@@ -106,9 +108,11 @@ export default function UserProfile() {
           <PasswordChangeForm />
         </TabsContent>
         
-        <TabsContent value="plan" className="mt-6">
-          <PlanDetails />
-        </TabsContent>
+        {user.role === 'org_admin' && (
+          <TabsContent value="plan" className="mt-6">
+            <PlanDetails />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
