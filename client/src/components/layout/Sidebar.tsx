@@ -30,7 +30,14 @@ import {
   TicketIcon,
   MessageSquareText,
   BookOpen,
-  Upload
+  Upload,
+  Plug,
+  MessageSquare,
+  Truck,
+  ReceiptText,
+  GitBranch,
+  Bot,
+  LucideIcon
 } from "lucide-react";
 
 // Interface para itens de menu e submenu
@@ -83,6 +90,52 @@ const menuItems: MenuItem[] = [
       { icon: Settings, label: "Configurações", path: "/financial/settings" }
     ]
   },
+  { 
+    icon: Plug, 
+    label: "Integrações", 
+    submenu: [
+      { icon: CreditCard, label: "Pagamentos", 
+        submenu: [
+          { icon: CreditCard, label: "Asaas", path: "/integracoes/pagamentos/asaas" },
+          { icon: CreditCard, label: "Zoop", path: "/integracoes/pagamentos/zoop" }
+        ]
+      },
+      { icon: Truck, label: "Envios", 
+        submenu: [
+          { icon: Truck, label: "Melhor Envio", path: "/integracoes/envios/melhor-envio" },
+          { icon: Truck, label: "Azul", path: "/integracoes/envios/azul" },
+          { icon: Truck, label: "Correios", path: "/integracoes/envios/correios" }
+        ]
+      },
+      { icon: ReceiptText, label: "Financeiro", 
+        submenu: [
+          { icon: ReceiptText, label: "Conta Azul", path: "/integracoes/financeiro/conta-azul" }
+        ]
+      },
+      { icon: MessageSquare, label: "Comunicação", 
+        submenu: [
+          { icon: MessageSquare, label: "WhatsApp", path: "/integracoes/comunicacao/whatsapp" }
+        ]
+      },
+      { icon: Users, label: "CRM", 
+        submenu: [
+          { icon: Users, label: "Kentro", path: "/integracoes/crm/kentro" }
+        ]
+      },
+      { icon: Brain, label: "Inteligência Artificial", 
+        submenu: [
+          { icon: Bot, label: "ChatGPT", path: "/integracoes/ia/chatgpt" },
+          { icon: Bot, label: "Claude", path: "/integracoes/ia/claude" }
+        ]
+      },
+      { icon: GitBranch, label: "Desenvolvimento", 
+        submenu: [
+          { icon: GitBranch, label: "GitHub", path: "/integracoes/desenvolvimento/github" }
+        ]
+      },
+      { icon: Link, label: "Todas Integrações", path: "/integracoes" }
+    ]
+  },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Upload, label: "Importação de Dados", path: "/data-import" },
@@ -98,7 +151,8 @@ export default function Sidebar() {
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
     "Módulos": false,
     "Tickets de Suporte": false,
-    "Financeiro": true // Começar com o menu financeiro expandido por padrão
+    "Financeiro": true, // Começar com o menu financeiro expandido por padrão
+    "Integrações": false
   });
   
   // Controla se a sidebar está colapsada/retraída
@@ -109,15 +163,45 @@ export default function Sidebar() {
     const handleNavigation = () => {
       setCurrentPath(window.location.pathname);
       
-      // Auto-expand submenu if current path matches
-      menuItems.forEach(item => {
-        if (item.submenu) {
-          const hasActiveChild = item.submenu.some(subItem => subItem.path === window.location.pathname);
-          if (hasActiveChild) {
-            setExpandedMenus(prev => ({ ...prev, [item.label]: true }));
+      // Auto-expand parent menus if current path matches any submenu path
+      const expandParentMenus = () => {
+        // Função para verificar e expandir um menu baseado no path atual
+        const checkAndExpandMenu = (items: MenuItem[], parentLabel?: string) => {
+          for (const item of items) {
+            if (item.path === currentPath && parentLabel) {
+              // Se este item é o atual e tem um parent, expande o parent
+              setExpandedMenus(prev => ({ ...prev, [parentLabel]: true }));
+              return true;
+            }
+            
+            if (item.submenu) {
+              // Se este item tem submenu, cheque se o path atual está nele
+              if (item.submenu.some(sub => sub.path === currentPath)) {
+                // Se o path atual está no submenu direto, expande este menu
+                if (item.label) {
+                  setExpandedMenus(prev => ({ ...prev, [item.label]: true }));
+                }
+                if (parentLabel) {
+                  setExpandedMenus(prev => ({ ...prev, [parentLabel]: true }));
+                }
+                return true;
+              }
+              
+              // Verifica recursivamente nos submenus aninhados
+              const found = checkAndExpandMenu(item.submenu, item.label);
+              if (found && parentLabel) {
+                setExpandedMenus(prev => ({ ...prev, [parentLabel]: true }));
+                return true;
+              }
+            }
           }
-        }
-      });
+          return false;
+        };
+        
+        checkAndExpandMenu(menuItems);
+      };
+      
+      expandParentMenus();
     };
 
     // Chame imediatamente para configurar o estado inicial
@@ -125,7 +209,7 @@ export default function Sidebar() {
 
     window.addEventListener('popstate', handleNavigation);
     return () => window.removeEventListener('popstate', handleNavigation);
-  }, []);
+  }, [currentPath]);
 
   // Toggle menu expansion
   const toggleMenu = (label: string) => {
@@ -144,17 +228,104 @@ export default function Sidebar() {
   // Check if a menu item should be displayed as active
   const isMenuActive = (item: MenuItem): boolean => {
     if (item.path) {
-      return item.path === currentPath;
+      return item.path === currentPath || currentPath.startsWith(item.path);
     }
     
     if (item.submenu) {
-      return item.submenu.some(subItem => 
-        (subItem.path === currentPath) || 
-        (currentPath.startsWith(subItem.path || ''))
-      );
+      return item.submenu.some(subItem => {
+        if (subItem.path && (subItem.path === currentPath || currentPath.startsWith(subItem.path))) {
+          return true;
+        }
+        
+        // Verificar submenus aninhados
+        if (subItem.submenu) {
+          return subItem.submenu.some(deepSubItem => 
+            deepSubItem.path === currentPath || 
+            (deepSubItem.path && currentPath.startsWith(deepSubItem.path))
+          );
+        }
+        
+        return false;
+      });
     }
     
     return false;
+  };
+
+  // Renderizar item com submenu aninhado
+  const renderMenuItem = (item: MenuItem, level: number = 0) => {
+    const Icon = item.icon;
+    const isActive = isMenuActive(item);
+    const hasSubmenu = item.submenu && item.submenu.length > 0;
+    const isExpanded = hasSubmenu && expandedMenus[item.label];
+    const isNested = level > 0;
+    
+    return (
+      <div key={item.label + level} className="flex flex-col">
+        {/* Menu principal ou submenu */}
+        {item.path ? (
+          // Item sem submenu
+          <a 
+            href={item.path}
+            onClick={(e) => handleNavigation(e, item.path || '/')}
+            className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg transition-colors text-sm 
+              ${isNested ? 'ml-' + (level * 4) : ''}
+              ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Icon size={isNested ? 16 : 18} />
+              {!collapsed && <span>{item.label}</span>}
+            </div>
+          </a>
+        ) : (
+          // Item com submenu
+          <button 
+            onClick={() => toggleMenu(item.label)}
+            className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg transition-colors text-sm 
+              ${isNested ? 'ml-' + (level * 4) : ''}
+              ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
+          >
+            <div className="flex items-center gap-3">
+              <Icon size={isNested ? 16 : 18} />
+              {!collapsed && <span>{item.label}</span>}
+            </div>
+            {!collapsed && hasSubmenu && (
+              isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />
+            )}
+          </button>
+        )}
+        
+        {/* Renderizar submenu */}
+        {!collapsed && hasSubmenu && isExpanded && (
+          <div className={`pl-${isNested ? (level * 2) : 9} pr-2 py-1 flex flex-col gap-1`}>
+            {item.submenu?.map((subItem) => {
+              // Se o subitem também tiver submenu, renderiza recursivamente
+              if (subItem.submenu && subItem.submenu.length > 0) {
+                return renderMenuItem(subItem, level + 1);
+              }
+              
+              // Renderiza um link normal se não tiver submenu
+              const SubIcon = subItem.icon;
+              const isSubActive = subItem.path === currentPath || 
+                (subItem.path && currentPath.startsWith(subItem.path));
+              
+              return (
+                <a 
+                  key={subItem.path || subItem.label} 
+                  href={subItem.path}
+                  onClick={(e) => handleNavigation(e, subItem.path || '/')}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm 
+                    ${isSubActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
+                >
+                  <SubIcon size={16} />
+                  <span>{subItem.label}</span>
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -179,70 +350,7 @@ export default function Sidebar() {
       </div>
       
       <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'}`}>
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = isMenuActive(item);
-          const hasSubmenu = item.submenu && item.submenu.length > 0;
-          const isExpanded = hasSubmenu && expandedMenus[item.label];
-          
-          return (
-            <div key={item.label} className="flex flex-col">
-              {/* Menu principal */}
-              {item.path ? (
-                // Item sem submenu
-                <a 
-                  href={item.path}
-                  onClick={(e) => handleNavigation(e, item.path || '/')}
-                  className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg transition-colors text-sm 
-                    ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} />
-                    {!collapsed && <span>{item.label}</span>}
-                  </div>
-                </a>
-              ) : (
-                // Item com submenu
-                <button 
-                  onClick={() => toggleMenu(item.label)}
-                  className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 rounded-lg transition-colors text-sm 
-                    ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon size={18} />
-                    {!collapsed && <span>{item.label}</span>}
-                  </div>
-                  {!collapsed && hasSubmenu && (
-                    isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />
-                  )}
-                </button>
-              )}
-              
-              {/* Submenu */}
-              {!collapsed && hasSubmenu && isExpanded && (
-                <div className="pl-9 pr-2 py-1 flex flex-col gap-1">
-                  {item.submenu?.map((subItem) => {
-                    const SubIcon = subItem.icon;
-                    const isSubActive = subItem.path === currentPath;
-                    
-                    return (
-                      <a 
-                        key={subItem.path} 
-                        href={subItem.path}
-                        onClick={(e) => handleNavigation(e, subItem.path || '/')}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm 
-                          ${isSubActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
-                      >
-                        <SubIcon size={16} />
-                        <span>{subItem.label}</span>
-                      </a>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {menuItems.map((item) => renderMenuItem(item))}
       </nav>
     </div>
   );
