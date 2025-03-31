@@ -54,7 +54,6 @@ const importTypes = [
   { id: 'patients', label: 'Pacientes', icon: Users },
   { id: 'appointments', label: 'Consultas', icon: CalendarClock },
   { id: 'plants', label: 'Plantas', icon: Activity },
-  { id: 'modules', label: 'Módulos', icon: MonitorPlay },
   { id: 'financial_transactions', label: 'Transações Financeiras', icon: DollarSign },
   { id: 'financial_categories', label: 'Categorias Financeiras', icon: FolderTree },
   { id: 'financial_reports', label: 'Relatórios Financeiros', icon: FileBarChart },
