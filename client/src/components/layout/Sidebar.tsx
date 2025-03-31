@@ -100,11 +100,11 @@ const menuItems: MenuItem[] = [
           { icon: CreditCard, label: "Zoop", path: "/integracoes/pagamentos/zoop" }
         ]
       },
-      { icon: Truck, label: "Envios", 
+      { icon: Truck, label: "Logística", 
         submenu: [
-          { icon: Truck, label: "Melhor Envio", path: "/integracoes/envios/melhor-envio" },
-          { icon: Truck, label: "Azul", path: "/integracoes/envios/azul" },
-          { icon: Truck, label: "Correios", path: "/integracoes/envios/correios" }
+          { icon: Truck, label: "Melhor Envio", path: "/integracoes/logistica/melhor-envio" },
+          { icon: Truck, label: "Azul", path: "/integracoes/logistica/azul-cargo" },
+          { icon: Truck, label: "Correios", path: "/integracoes/logistica/correios" }
         ]
       },
       { icon: ReceiptText, label: "Financeiro", 
