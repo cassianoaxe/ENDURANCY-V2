@@ -384,6 +384,20 @@ export const financialCategories = pgTable("financial_categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Centros de custo
+export const costCenters = pgTable("cost_centers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  code: text("code").notNull(),
+  description: text("description"),
+  budget: decimal("budget", { precision: 15, scale: 2 }).default("0"),
+  isActive: boolean("is_active").default(true),
+  parentId: integer("parent_id"), // Para centros de custo hierárquicos
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Colaboradores (funcionários)
 export const employees = pgTable("employees", {
   id: serial("id").primaryKey(),
@@ -495,6 +509,16 @@ export const insertFinancialCategorySchema = createInsertSchema(financialCategor
   isDefault: true,
 });
 
+export const insertCostCenterSchema = createInsertSchema(costCenters).pick({
+  organizationId: true,
+  name: true,
+  code: true,
+  description: true,
+  budget: true,
+  isActive: true,
+  parentId: true,
+});
+
 export const insertEmployeeSchema = createInsertSchema(employees).pick({
   organizationId: true,
   name: true,
@@ -573,6 +597,8 @@ export type FinancialTransaction = typeof financialTransactions.$inferSelect;
 export type InsertFinancialTransaction = z.infer<typeof insertFinancialTransactionSchema>;
 export type FinancialCategory = typeof financialCategories.$inferSelect;
 export type InsertFinancialCategory = z.infer<typeof insertFinancialCategorySchema>;
+export type CostCenter = typeof costCenters.$inferSelect;
+export type InsertCostCenter = z.infer<typeof insertCostCenterSchema>;
 export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type Payroll = typeof payroll.$inferSelect;

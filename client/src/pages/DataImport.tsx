@@ -56,6 +56,7 @@ const importTypes = [
   { id: 'plants', label: 'Plantas', icon: Activity },
   { id: 'financial_transactions', label: 'Transações Financeiras', icon: DollarSign },
   { id: 'financial_categories', label: 'Categorias Financeiras', icon: FolderTree },
+  { id: 'cost_centers', label: 'Centros de Custo', icon: Target },
   { id: 'financial_reports', label: 'Relatórios Financeiros', icon: FileBarChart },
 ];
 
