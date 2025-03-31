@@ -2671,9 +2671,9 @@ SESSION_SECRET=your_secret_key
                         <span className="font-semibold">Solução:</span>
                       </p>
                       <ol className="list-decimal pl-6 space-y-1 text-gray-700">
-                        <li>Verificar e garantir a importação correta dos tipos do Drizzle: <code>import { json } from "drizzle-orm/pg-core"</code></li>
+                        <li>Verificar e garantir a importação correta dos tipos do Drizzle: <code>{`import { json } from "drizzle-orm/pg-core"`}</code></li>
                         <li>Assegurar que as propriedades no insert schema correspondam exatamente às colunas da tabela</li>
-                        <li>Para campos do tipo JSON, usar o tipo <code>json("nome_coluna")</code> importado de drizzle-orm/pg-core</li>
+                        <li>Para campos do tipo JSON, usar o tipo <code>{`json("nome_coluna")`}</code> importado de drizzle-orm/pg-core</li>
                         <li>Garantir consistência entre os nomes de colunas na tabela (snake_case) e os nomes de propriedades nos schemas (camelCase)</li>
                         <li>Após correções no schema, reiniciar o servidor para aplicar as mudanças</li>
                       </ol>
