@@ -1,30 +1,37 @@
 import React, { useState } from "react";
 import { Link } from "wouter";
 import {
-  Truck,
-  ChevronLeft,
-  Save,
-  Info,
-  HelpCircle,
-  BarChart4,
-  ListChecks,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
+  BarChart4,
+  Info,
+  ExternalLink,
   Clock,
-  Filter,
-  ToggleLeft,
+  Truck,
   Download,
-  RefreshCw,
   FileText,
   MapPin,
-  Settings,
-  Package,
-  Ruler,
-  Map,
+  Filter,
+  XCircle,
   Search,
+  Ruler,
+  Package,
+  ChevronLeft,
+  Save,
+  HelpCircle,
+  AlertCircle,
+  Settings,
+  RefreshCw,
+  Loader2,
   Copy
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -72,14 +79,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -492,74 +491,195 @@ export default function MelhorEnvioIntegration() {
         </div>
       </div>
       
+      <div className="bg-yellow-50 p-4 rounded-lg mb-8 flex items-start">
+        <HelpCircle className="h-5 w-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
+        <div>
+          <h3 className="font-medium text-yellow-800">Papel do Administrador</h3>
+          <p className="text-yellow-700 text-sm mt-1">
+            Como administrador, sua função é configurar a integração Melhor Envio para que as organizações possam 
+            utilizá-la com suas próprias credenciais. Você não realiza operações logísticas como cotação de fretes, 
+            rastreamento ou gestão de envios, que são responsabilidades das próprias organizações.
+          </p>
+        </div>
+      </div>
+      
       <Tabs 
-        defaultValue="dashboard" 
+        defaultValue="overview" 
         value={currentTab} 
         onValueChange={setCurrentTab}
         className="space-y-4"
       >
-        <TabsList className="grid grid-cols-5 w-full md:w-[750px]">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="shipments">Envios</TabsTrigger>
-          <TabsTrigger value="calculate">Calcular Frete</TabsTrigger>
-          <TabsTrigger value="track">Rastreamento</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full md:w-[600px]">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
+          <TabsTrigger value="docs">Documentação</TabsTrigger>
         </TabsList>
         
-        {/* Dashboard */}
-        <TabsContent value="dashboard">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Visão Geral */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <StatCard 
-              title="Total de Envios" 
-              value={dashboardData.totalShipments} 
-              icon={Package}
-              description="Envios gerados no período"
-            />
-            <StatCard 
-              title="Envios Pendentes" 
-              value={dashboardData.pendingShipments} 
-              icon={Clock}
-              description="Aguardando postagem"
-            />
-            <StatCard 
-              title="Em Trânsito" 
-              value={dashboardData.inTransitShipments} 
-              icon={Truck}
-              description="Envios em transporte"
-            />
-            <StatCard 
-              title="Entregues" 
-              value={dashboardData.deliveredShipments} 
+              title="Status da API" 
+              value={{ positive: true, value: "Operacional" }} 
               icon={CheckCircle2}
-              description="Envios entregues com sucesso"
+              description="Todos os serviços estão funcionando normalmente"
             />
             <StatCard 
-              title="Tempo Médio de Entrega" 
-              value={dashboardData.averageDeliveryTime} 
-              icon={Clock}
-              description="Média dos últimos 30 dias"
-            />
-            <StatCard 
-              title="Custos de Envio" 
-              value={dashboardData.shippingCosts} 
+              title="Organizações Utilizando" 
+              value="8" 
               icon={BarChart4}
-              description="Total gasto com fretes"
+              description="Organizações com a integração ativa"
+            />
+            <StatCard 
+              title="Versão da API" 
+              value="v2.0.7" 
+              icon={Info}
+              description="Última atualização: 15/03/2025"
             />
           </div>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Envios (Últimos 30 dias)</CardTitle>
-              <CardDescription>
-                Acompanhe os dados de envio da sua organização
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full bg-gray-100 rounded-md flex items-center justify-center">
-                <p className="text-gray-500">Gráfico de envios por status</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sobre a Integração</CardTitle>
+                <CardDescription>
+                  Informações sobre o Melhor Envio e suas funcionalidades
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">O que é o Melhor Envio?</h3>
+                  <p className="text-gray-600 text-sm">
+                    O Melhor Envio é uma plataforma que conecta empresas a diversas transportadoras, 
+                    facilitando a cotação, contratação e gestão de fretes. 
+                    A integração permite calcular fretes, gerar etiquetas, rastrear pacotes e 
+                    automatizar o processo logístico.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Principais Benefícios</h3>
+                  <ul className="text-gray-600 text-sm space-y-2">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Integração com múltiplas transportadoras (Correios, Jadlog, Azul Cargo, etc.)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Cálculo de frete em tempo real com base em dimensões e peso</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Geração e impressão de etiquetas com código de rastreio</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Rastreamento de pacotes com histórico de eventos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Automatização do processo de envio com webhooks</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="pt-2">
+                  <Button variant="outline" className="gap-1" asChild>
+                    <a href="https://melhorenvio.com.br" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Visitar site oficial
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Status dos Serviços</CardTitle>
+                  <CardDescription>
+                    Monitoramento do estado atual da API
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium">API de Cotação</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Operacional</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium">API de Etiquetas</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Operacional</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium">API de Rastreamento</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Operacional</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium">Webhooks</span>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Operacional</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Changelogs Recentes</CardTitle>
+                  <CardDescription>
+                    Últimas atualizações e melhorias na API
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-5">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-medium">Versão 2.0.7</h4>
+                        <span className="text-xs text-gray-500">15/03/2025</span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Melhorias no sistema de rastreamento e adição de novos webhooks 
+                        para atualizações em tempo real.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-medium">Versão 2.0.6</h4>
+                        <span className="text-xs text-gray-500">28/02/2025</span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Correção de bugs na API de cotação e adição de suporte para 
+                        novos serviços da Jadlog.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <h4 className="font-medium">Versão 2.0.5</h4>
+                        <span className="text-xs text-gray-500">15/01/2025</span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Adição de novas transportadoras e atualização dos algoritmos 
+                        de cálculo de frete para maior precisão.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
         
         {/* Envios */}
