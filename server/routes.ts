@@ -819,6 +819,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para adicionar um novo módulo
+  app.post("/api/modules", authenticate, async (req, res) => {
+    try {
+      const { name, description, icon_name, type, status, is_active } = req.body;
+      
+      // Validar os campos obrigatórios
+      if (!name) {
+        return res.status(400).json({ message: "Nome do módulo é obrigatório" });
+      }
+      
+      // Verificar se já existe um módulo com o mesmo nome
+      const existingModule = await db.select()
+        .from(modules)
+        .where(eq(modules.name, name))
+        .limit(1);
+        
+      if (existingModule.length > 0) {
+        return res.status(400).json({ message: "Já existe um módulo com este nome" });
+      }
+      
+      // Gerar slug a partir do nome
+      const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      // Criar novo módulo
+      const [createdModule] = await db.insert(modules)
+        .values({
+          name,
+          description: description || null,
+          icon_name: icon_name || 'Layers',
+          slug,
+          type: type || 'core',
+          status: status || 'active',
+          is_active: is_active !== undefined ? is_active : true,
+          created_at: new Date(),
+          updated_at: new Date()
+        })
+        .returning();
+      
+      res.status(201).json(createdModule);
+    } catch (error) {
+      console.error("Error creating module:", error);
+      res.status(500).json({ message: "Falha ao criar o módulo" });
+    }
+  });
+  
+  // Rota para excluir um módulo
+  app.delete("/api/modules/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verificar se o módulo existe
+      const existingModule = await db.select()
+        .from(modules)
+        .where(eq(modules.id, parseInt(id)))
+        .limit(1);
+        
+      if (existingModule.length === 0) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      // Verificar se existem planos vinculados a este módulo
+      const linkedPlans = await db.select()
+        .from(modulePlans)
+        .where(eq(modulePlans.module_id, parseInt(id)));
+      
+      if (linkedPlans.length > 0) {
+        return res.status(400).json({ 
+          message: "Não é possível excluir um módulo que possui planos vinculados. Remova os planos primeiro." 
+        });
+      }
+      
+      // Verificar se existem organizações utilizando este módulo
+      const linkedOrgs = await db.select()
+        .from(organizationModules)
+        .where(eq(organizationModules.moduleId, parseInt(id)));
+      
+      if (linkedOrgs.length > 0) {
+        return res.status(400).json({ 
+          message: "Não é possível excluir um módulo que está sendo utilizado por organizações. Desative o módulo em vez de excluí-lo." 
+        });
+      }
+      
+      // Excluir o módulo
+      await db.delete(modules)
+        .where(eq(modules.id, parseInt(id)));
+      
+      res.json({ success: true, message: "Módulo excluído com sucesso" });
+    } catch (error) {
+      console.error("Error deleting module:", error);
+      res.status(500).json({ message: "Falha ao excluir o módulo" });
+    }
+  });
+  
   // Rota para buscar todos os módulos por organização com dados combinados
   app.get("/api/organization-modules/all", authenticate, async (req, res) => {
     try {
