@@ -59,6 +59,7 @@ import AzulCargoIntegration from "@/pages/integracoes/logistica/azul-cargo";
 import CorreiosIntegration from "@/pages/integracoes/logistica/correios";
 import ChatGPTIntegration from "@/pages/integracoes/ia/chatgpt";
 import ClaudeIntegration from "@/pages/integracoes/ia/claude";
+import KentroIntegration from "@/pages/integracoes/crm/kentro";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -316,7 +317,7 @@ function AppContent() {
     '/integracoes', '/integracoes/comunicacao/whatsapp', 
     '/integracoes/pagamentos/asaas', '/integracoes/pagamentos/zoop',
     '/integracoes/logistica/melhor-envio', '/integracoes/logistica/azul-cargo', '/integracoes/logistica/correios',
-    '/integracoes/ia/chatgpt', '/integracoes/ia/claude'
+    '/integracoes/ia/chatgpt', '/integracoes/ia/claude', '/integracoes/crm/kentro'
   ];
   
   // Lista de rotas do módulo financeiro
@@ -385,6 +386,7 @@ function AppContent() {
       case '/integracoes/logistica/correios': Component = CorreiosIntegration; break;
       case '/integracoes/ia/chatgpt': Component = ChatGPTIntegration; break;
       case '/integracoes/ia/claude': Component = ClaudeIntegration; break;
+      case '/integracoes/crm/kentro': Component = KentroIntegration; break;
       
       // Rotas do módulo financeiro
       case '/financial': Component = Financial; break;
