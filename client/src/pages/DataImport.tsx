@@ -31,6 +31,9 @@ import {
   Target,
   AlertTriangle,
   CheckCircle2,
+  DollarSign,
+  FolderTree,
+  FileBarChart,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +55,9 @@ const importTypes = [
   { id: 'appointments', label: 'Consultas', icon: CalendarClock },
   { id: 'plants', label: 'Plantas', icon: Activity },
   { id: 'modules', label: 'Módulos', icon: MonitorPlay },
+  { id: 'financial_transactions', label: 'Transações Financeiras', icon: DollarSign },
+  { id: 'financial_categories', label: 'Categorias Financeiras', icon: FolderTree },
+  { id: 'financial_reports', label: 'Relatórios Financeiros', icon: FileBarChart },
 ];
 
 export default function DataImport() {
