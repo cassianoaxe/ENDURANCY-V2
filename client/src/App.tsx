@@ -41,6 +41,7 @@ import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
+import DataImport from "@/pages/DataImport";
 
 // Import onboarding course pages
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
@@ -299,7 +300,7 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
-    '/administrators', '/settings', '/support-dashboard', '/documentation'
+    '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import'
   ];
   
   // Lista de rotas do módulo financeiro
@@ -356,6 +357,7 @@ function AppContent() {
       case '/settings': Component = Settings; break;
       case '/support-dashboard': Component = SupportDashboard; break;
       case '/documentation': Component = Documentation; break;
+      case '/data-import': Component = DataImport; break;
       
       // Rotas do módulo financeiro
       case '/financial': Component = Financial; break;
