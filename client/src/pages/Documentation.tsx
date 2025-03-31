@@ -2652,6 +2652,32 @@ SESSION_SECRET=your_secret_key
                         <li>Consultar a documentação do Drizzle para migrações complexas</li>
                       </ol>
                     </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-base mb-2">Erros de tipos no Drizzle Schema</h4>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Sintoma:</span> Erros de compilação ou runtime relacionados a tipos no schema (como "Cannot find name 'json'" ou "Type 'boolean' is not assignable to type 'never'").
+                      </p>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Possíveis causas:</span>
+                      </p>
+                      <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-2">
+                        <li>Importação ausente de tipos do Drizzle ORM</li>
+                        <li>Referência incorreta a nomes de campos no schema</li>
+                        <li>Incompatibilidade entre definição de schema e operações de insert</li>
+                        <li>Nomes de propriedades no schema e no insert schema não coincidem</li>
+                      </ul>
+                      <p className="text-gray-700 mb-2">
+                        <span className="font-semibold">Solução:</span>
+                      </p>
+                      <ol className="list-decimal pl-6 space-y-1 text-gray-700">
+                        <li>Verificar e garantir a importação correta dos tipos do Drizzle: <code>import { json } from "drizzle-orm/pg-core"</code></li>
+                        <li>Assegurar que as propriedades no insert schema correspondam exatamente às colunas da tabela</li>
+                        <li>Para campos do tipo JSON, usar o tipo <code>json("nome_coluna")</code> importado de drizzle-orm/pg-core</li>
+                        <li>Garantir consistência entre os nomes de colunas na tabela (snake_case) e os nomes de propriedades nos schemas (camelCase)</li>
+                        <li>Após correções no schema, reiniciar o servidor para aplicar as mudanças</li>
+                      </ol>
+                    </div>
                   </div>
                 </section>
 
