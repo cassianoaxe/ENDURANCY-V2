@@ -34,7 +34,7 @@ import {
   processModulePayment, 
   checkPaymentStatus 
 } from "./services/payments";
-import { createSubscription, cancelSubscription, updateSubscriptionPlan } from './services/subscriptions';
+import { createSubscription, cancelSubscription, updateSubscriptionPlan, getSubscriptionDetails } from './services/subscriptions';
 import { handleStripeWebhook } from './services/webhooks';
 
 // Extend express-session with custom user property
