@@ -778,6 +778,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para editar um módulo
+  app.put("/api/modules/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, icon_name, type, status } = req.body;
+      
+      // Validar os campos obrigatórios
+      if (!name) {
+        return res.status(400).json({ message: "Nome do módulo é obrigatório" });
+      }
+      
+      // Verificar se o módulo existe
+      const existingModule = await db.select()
+        .from(modules)
+        .where(eq(modules.id, parseInt(id)))
+        .limit(1);
+        
+      if (existingModule.length === 0) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      // Atualizar o módulo
+      const [updatedModule] = await db.update(modules)
+        .set({
+          name,
+          description: description || null,
+          icon_name: icon_name || null,
+          type: type || 'core',
+          status: status || 'active',
+          updated_at: new Date()
+        })
+        .where(eq(modules.id, parseInt(id)))
+        .returning();
+      
+      res.json(updatedModule);
+    } catch (error) {
+      console.error("Error updating module:", error);
+      res.status(500).json({ message: "Falha ao atualizar o módulo" });
+    }
+  });
+  
   // Rota para buscar todos os módulos por organização com dados combinados
   app.get("/api/organization-modules/all", authenticate, async (req, res) => {
     try {
