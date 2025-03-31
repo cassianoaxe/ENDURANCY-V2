@@ -71,16 +71,18 @@ export default function Header() {
                 <User className="mr-2 h-4 w-4" />
                 Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => {
-                  window.history.pushState({}, '', '/profile?tab=plan');
-                  window.dispatchEvent(new Event('popstate'));
-                }}
-                className="cursor-pointer"
-              >
-                <PackageCheck className="mr-2 h-4 w-4" />
-                Meu Plano
-              </DropdownMenuItem>
+              {user?.role === 'org_admin' && (
+                <DropdownMenuItem 
+                  onClick={() => {
+                    window.history.pushState({}, '', '/profile?tab=plan');
+                    window.dispatchEvent(new Event('popstate'));
+                  }}
+                  className="cursor-pointer"
+                >
+                  <PackageCheck className="mr-2 h-4 w-4" />
+                  Meu Plano
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={logout} 
