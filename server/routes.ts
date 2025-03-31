@@ -16,6 +16,8 @@ import {
   // Imports para o sistema de notificações
   notifications, insertNotificationSchema
 } from "@shared/schema";
+// Importar rotas administrativas
+import adminRouter from "./routes/admin";
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -2144,6 +2146,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rotas Administrativas
+  app.use('/api/admin', adminRouter);
+  
   const httpServer = createServer(app);
 
   // =========================================================
