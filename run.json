@@ -1,0 +1,7 @@
+{
+  "run": "NODE_ENV=production node dist/index.js",
+  "build": "node build_client.js && node build_server.js",
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
