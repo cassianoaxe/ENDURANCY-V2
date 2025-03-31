@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
 import { db } from '../db';
-import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules } from '@shared/schema';
+import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules, costCenters, financialCategories, financialTransactions } from '@shared/schema';
 import { log } from '../vite';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
@@ -24,7 +24,10 @@ export type ImportEntityType =
   | 'patients'
   | 'appointments'
   | 'plants'
-  | 'modules';
+  | 'modules'
+  | 'cost_centers'
+  | 'financial_categories'
+  | 'financial_transactions';
 
 // Formatos de arquivo de importação suportados
 export type ImportFileFormat = 'csv' | 'xlsx' | 'xls' | 'json';
@@ -510,6 +513,15 @@ class EntityProcessor {
             break;
           case 'modules':
             await this.processModule(normalizedEntity);
+            break;
+          case 'cost_centers':
+            await this.processCostCenter(normalizedEntity);
+            break;
+          case 'financial_categories':
+            await this.processFinancialCategory(normalizedEntity);
+            break;
+          case 'financial_transactions':
+            await this.processFinancialTransaction(normalizedEntity);
             break;
           default:
             throw new Error(`Tipo de entidade não suportado: ${this.entityType}`);
@@ -1034,6 +1046,182 @@ class EntityProcessor {
           });
       }
     }
+  }
+
+  /**
+   * Processa um centro de custo para importação
+   */
+  private async processCostCenter(entity: any) {
+    // Mapear campos obrigatórios
+    if (!entity.name) {
+      throw new Error('O nome do centro de custo é obrigatório');
+    }
+    
+    if (!entity.code) {
+      throw new Error('O código do centro de custo é obrigatório');
+    }
+    
+    if (!entity.organization_id) {
+      throw new Error('O ID da organização é obrigatório');
+    }
+    
+    // Verificar se a organização existe
+    const orgExists = await db.select({ id: organizations.id })
+      .from(organizations)
+      .where(({ eq }) => eq(organizations.id, entity.organization_id))
+      .limit(1);
+    
+    if (orgExists.length === 0) {
+      throw new Error(`Organização com ID ${entity.organization_id} não encontrada`);
+    }
+    
+    // Verificar se já existe um centro de custo com o mesmo código na mesma organização
+    const existingCenters = await db.select({ id: costCenters.id })
+      .from(costCenters)
+      .where(({ eq, and }) => 
+        and(
+          eq(costCenters.code, entity.code),
+          eq(costCenters.organizationId, entity.organization_id)
+        )
+      )
+      .limit(1);
+    
+    if (existingCenters.length > 0) {
+      // Atualizar centro de custo existente
+      await db.update(costCenters)
+        .set({
+          name: entity.name,
+          description: entity.description || null,
+          budget: entity.budget || 0,
+          isActive: entity.is_active !== undefined ? entity.is_active : true,
+          parentId: entity.parent_id || null
+        })
+        .where(({ eq }) => eq(costCenters.id, existingCenters[0].id));
+    } else {
+      // Criar novo centro de custo
+      await db.insert(costCenters)
+        .values({
+          name: entity.name,
+          code: entity.code,
+          description: entity.description || null,
+          budget: entity.budget || 0,
+          isActive: entity.is_active !== undefined ? entity.is_active : true,
+          parentId: entity.parent_id || null,
+          organizationId: entity.organization_id
+        });
+    }
+  }
+
+  /**
+   * Processa uma categoria financeira para importação
+   */
+  private async processFinancialCategory(entity: any) {
+    // Mapear campos obrigatórios
+    if (!entity.name) {
+      throw new Error('O nome da categoria financeira é obrigatório');
+    }
+    
+    if (!entity.type) {
+      throw new Error('O tipo da categoria financeira é obrigatório (receita/despesa)');
+    }
+    
+    if (!entity.organization_id) {
+      throw new Error('O ID da organização é obrigatório');
+    }
+    
+    // Verificar se a organização existe
+    const orgExists = await db.select({ id: organizations.id })
+      .from(organizations)
+      .where(({ eq }) => eq(organizations.id, entity.organization_id))
+      .limit(1);
+    
+    if (orgExists.length === 0) {
+      throw new Error(`Organização com ID ${entity.organization_id} não encontrada`);
+    }
+    
+    // Verificar se já existe uma categoria com o mesmo nome na mesma organização
+    const existingCategories = await db.select({ id: financialCategories.id })
+      .from(financialCategories)
+      .where(({ eq, and }) => 
+        and(
+          eq(financialCategories.name, entity.name),
+          eq(financialCategories.organizationId, entity.organization_id)
+        )
+      )
+      .limit(1);
+    
+    if (existingCategories.length > 0) {
+      // Atualizar categoria existente
+      await db.update(financialCategories)
+        .set({
+          description: entity.description || null,
+          type: entity.type, // receita ou despesa
+          isDefault: entity.is_default !== undefined ? entity.is_default : false
+        })
+        .where(({ eq }) => eq(financialCategories.id, existingCategories[0].id));
+    } else {
+      // Criar nova categoria
+      await db.insert(financialCategories)
+        .values({
+          name: entity.name,
+          description: entity.description || null,
+          type: entity.type, // receita ou despesa
+          isDefault: entity.is_default !== undefined ? entity.is_default : false,
+          organizationId: entity.organization_id
+        });
+    }
+  }
+
+  /**
+   * Processa uma transação financeira para importação
+   */
+  private async processFinancialTransaction(entity: any) {
+    // Mapear campos obrigatórios
+    if (!entity.description) {
+      throw new Error('A descrição da transação financeira é obrigatória');
+    }
+    
+    if (!entity.type) {
+      throw new Error('O tipo da transação é obrigatório (receita/despesa)');
+    }
+    
+    if (!entity.amount) {
+      throw new Error('O valor da transação é obrigatório');
+    }
+    
+    if (!entity.due_date) {
+      throw new Error('A data de vencimento é obrigatória');
+    }
+    
+    if (!entity.organization_id) {
+      throw new Error('O ID da organização é obrigatório');
+    }
+    
+    // Verificar se a organização existe
+    const orgExists = await db.select({ id: organizations.id })
+      .from(organizations)
+      .where(({ eq }) => eq(organizations.id, entity.organization_id))
+      .limit(1);
+    
+    if (orgExists.length === 0) {
+      throw new Error(`Organização com ID ${entity.organization_id} não encontrada`);
+    }
+    
+    // Criar nova transação (sem verificar duplicação pois transações podem ser repetidas)
+    await db.insert(financialTransactions)
+      .values({
+        description: entity.description,
+        type: entity.type, // receita ou despesa
+        category: entity.category || 'Diversos',
+        amount: entity.amount,
+        status: entity.status || 'pendente',
+        dueDate: entity.due_date instanceof Date ? entity.due_date : new Date(entity.due_date),
+        paymentDate: entity.payment_date ? (entity.payment_date instanceof Date ? entity.payment_date : new Date(entity.payment_date)) : null,
+        documentNumber: entity.document_number || null,
+        paymentMethod: entity.payment_method || null,
+        notes: entity.notes || null,
+        organizationId: entity.organization_id
+      });
   }
 }
 
