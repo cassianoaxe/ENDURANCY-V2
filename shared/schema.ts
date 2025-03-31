@@ -13,6 +13,10 @@ export const users = pgTable("users", {
   name: text("name").notNull().default(""),
   email: text("email").notNull().default(""),
   organizationId: integer("organization_id"),
+  profilePhoto: text("profile_photo"),
+  phoneNumber: text("phone_number"),
+  bio: text("bio"),
+  lastPasswordChange: timestamp("last_password_change"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -192,6 +196,26 @@ export const insertUserSchema = createInsertSchema(users).pick({
   name: true,
   email: true,
   organizationId: true,
+  profilePhoto: true,
+  phoneNumber: true,
+  bio: true,
+});
+
+export const updateProfileSchema = createInsertSchema(users).pick({
+  name: true,
+  email: true,
+  phoneNumber: true,
+  bio: true,
+  profilePhoto: true,
+});
+
+export const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "A senha atual é obrigatória"),
+  newPassword: z.string().min(6, "A nova senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "A confirmação de senha é obrigatória"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
 });
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
