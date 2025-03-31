@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, LogOut, Layers
+  Menu, ChevronLeft, LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -31,13 +31,7 @@ export default function OrganizationSidebar() {
       title: "VISÃO GERAL",
       path: "/organization/dashboard",
       active: currentPath === "/organization/dashboard",
-      isActive: currentPath === "/organization/dashboard"
-    },
-    {
-      title: "MÓDULOS",
-      path: "/organization/modules",
-      active: currentPath === "/organization/modules",
-      isActive: currentPath === "/organization/modules"
+      isActive: true
     },
     {
       title: "TAREFAS",
@@ -233,12 +227,7 @@ export default function OrganizationSidebar() {
                   onClick={() => navigateTo(item.path)}
                   title={item.title}
                 >
-                  {(() => {
-                    // Determine icon based on menu item
-                    if (item.title === "VISÃO GERAL") return <LayoutDashboard size={18} />;
-                    if (item.title === "MÓDULOS") return <Layers size={18} />;
-                    return <LayoutDashboard size={18} />;
-                  })()}
+                  <LayoutDashboard size={18} />
                 </div>
               )}
             </div>
