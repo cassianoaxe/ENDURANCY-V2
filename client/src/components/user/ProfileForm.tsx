@@ -51,7 +51,10 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("PUT", "/api/profile", formData);
+      // Remover o email do objeto formData antes de enviar para evitar que seja alterado
+      const { email, ...dataToSend } = formData;
+      
+      const response = await apiRequest("PUT", "/api/profile", dataToSend);
       
       if (response.ok) {
         const updatedUser = await response.json();
@@ -196,9 +199,13 @@ export function ProfileForm({ user, onProfileUpdate }: ProfileFormProps) {
                 name="email"
                 type="email"
                 value={formData.email}
-                onChange={handleInputChange}
-                placeholder="seu.email@exemplo.com"
+                disabled
+                title="O e-mail só pode ser alterado por um administrador da organização"
+                className="bg-gray-100 cursor-not-allowed"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                O e-mail só pode ser alterado por um administrador da organização
+              </p>
             </div>
           </div>
 

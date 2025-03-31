@@ -3104,6 +3104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const userId = req.session.user.id;
+      const userRole = req.session.user.role;
       
       // Validar os dados recebidos
       const profileData = req.body;
@@ -3114,6 +3115,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       delete profileData.role;
       delete profileData.username;
       delete profileData.organizationId;
+      
+      // Verificar se o usuário está tentando alterar o e-mail e não tem permissão
+      if (
+        profileData.email && 
+        profileData.email !== req.session.user.email && 
+        userRole !== 'admin' && 
+        userRole !== 'org_admin' && 
+        userRole !== 'manager'
+      ) {
+        // Remove o e-mail do objeto de atualização se o usuário não tem permissão
+        delete profileData.email;
+        console.log(`Usuário ${userId} tentou modificar seu e-mail, mas não tem permissão.`);
+      }
       
       // Atualizar o perfil
       const updatedUser = await storage.updateUserProfile(userId, profileData);
