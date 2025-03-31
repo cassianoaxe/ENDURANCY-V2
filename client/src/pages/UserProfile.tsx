@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileForm } from "@/components/user/ProfileForm";
 import { PasswordChangeForm } from "@/components/user/PasswordChangeForm";
-import { Loader2, User as UserIcon, Key, Settings } from "lucide-react";
+import { PlanDetails } from "@/components/user/PlanDetails";
+import { Loader2, User as UserIcon, Key, PackageCheck } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 // Definimos a interface User internamente para evitar problemas de importação
@@ -70,7 +71,7 @@ export default function UserProfile() {
       <h1 className="text-3xl font-bold mb-8">Seu Perfil</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[400px] grid-cols-2">
+        <TabsList className="grid w-full md:w-[600px] grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
             <span>Informações</span>
@@ -78,6 +79,10 @@ export default function UserProfile() {
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Key className="h-4 w-4" />
             <span>Segurança</span>
+          </TabsTrigger>
+          <TabsTrigger value="plan" className="flex items-center gap-2">
+            <PackageCheck className="h-4 w-4" />
+            <span>Meu Plano</span>
           </TabsTrigger>
         </TabsList>
         
@@ -90,6 +95,10 @@ export default function UserProfile() {
         
         <TabsContent value="security" className="mt-6">
           <PasswordChangeForm />
+        </TabsContent>
+        
+        <TabsContent value="plan" className="mt-6">
+          <PlanDetails />
         </TabsContent>
       </Tabs>
     </div>
