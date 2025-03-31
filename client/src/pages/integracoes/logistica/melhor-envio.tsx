@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import {
   Truck,
@@ -22,7 +22,8 @@ import {
   Package,
   Ruler,
   Map,
-  Search
+  Search,
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -978,7 +979,7 @@ export default function MelhorEnvioIntegration() {
                       
                       <h4 className="font-medium mb-4">Histórico de Movimentações</h4>
                       <div className="space-y-4">
-                        {trackingResults.history.map((item, index) => (
+                        {trackingResults.history.map((item: {date: string, status: string, location: string}, index: number) => (
                           <div key={index} className="flex gap-4">
                             <div className="flex flex-col items-center">
                               <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
