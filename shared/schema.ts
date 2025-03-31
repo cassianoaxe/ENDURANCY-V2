@@ -726,3 +726,57 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
 // Tipos para o sistema de notificações
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Enum para definir o status do produto
+export const productStatusEnum = pgEnum('product_status', ['ativo', 'inativo', 'em_falta', 'descontinuado']);
+
+// Tabela de produtos
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  sku: text("sku").notNull(),
+  barcode: text("barcode"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  cost: decimal("cost", { precision: 10, scale: 2 }),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }),
+  stock: integer("stock").default(0),
+  minStock: integer("min_stock").default(0),
+  category: text("category"),
+  brand: text("brand"),
+  supplier: text("supplier"),
+  weight: decimal("weight", { precision: 10, scale: 3 }),
+  dimensions: text("dimensions"),
+  imageUrl: text("image_url"),
+  hasVariants: boolean("has_variants").default(false),
+  status: productStatusEnum("status").default("ativo"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schema para inserção de produtos
+export const insertProductSchema = createInsertSchema(products).pick({
+  organizationId: true,
+  name: true, 
+  description: true,
+  sku: true,
+  barcode: true,
+  price: true,
+  cost: true,
+  taxRate: true,
+  stock: true,
+  minStock: true,
+  category: true,
+  brand: true,
+  supplier: true,
+  weight: true,
+  dimensions: true,
+  imageUrl: true,
+  hasVariants: true,
+  status: true
+});
+
+// Tipos para o sistema de produtos
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
