@@ -11,10 +11,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Check, CreditCard, Info, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Check, CreditCard, Info, AlertCircle, CheckCircle2, ArrowLeft, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Plan, ModulePlan } from "@shared/schema";
 import { stripePromise, createPlanPaymentIntent, createModulePaymentIntent, confirmPlanPayment, confirmModulePayment } from "@/lib/stripeClient";
+import SubscriptionForm from "@/components/subscription/SubscriptionForm";
 
 // Componente de formulário de pagamento
 function CheckoutForm({ clientSecret, successUrl }: { clientSecret: string, successUrl: string }) {
@@ -137,6 +138,7 @@ export default function Checkout() {
   const itemId = parseInt(urlParams.get('itemId') || '0', 10);
   const organizationId = parseInt(urlParams.get('organizationId') || '0', 10);
   const returnUrl = urlParams.get('returnUrl') || '/';
+  const paymentMode = urlParams.get('mode') || 'onetime'; // 'onetime' ou 'subscription'
   
   // Buscar detalhes do plano ou módulo
   const { data: planData } = useQuery<Plan>({
@@ -237,13 +239,59 @@ export default function Checkout() {
                   <AlertTitle>Erro de processamento</AlertTitle>
                   <AlertDescription>{processingError}</AlertDescription>
                 </Alert>
+              ) : paymentMode === 'subscription' && planData ? (
+                // Usar formulário de assinatura para pagamentos recorrentes
+                <SubscriptionForm 
+                  plan={planData} 
+                  organizationId={organizationId} 
+                  onSuccess={() => {
+                    toast({
+                      title: "Assinatura ativada!",
+                      description: "Sua assinatura foi ativada com sucesso.",
+                    });
+                    setParams(returnUrl || '/');
+                  }} 
+                />
               ) : clientSecret ? (
+                // Usar formulário de pagamento único
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
                   <CheckoutForm clientSecret={clientSecret} successUrl={returnUrl || '/'} />
                 </Elements>
               ) : (
                 <div className="flex justify-center p-6">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              )}
+              
+              {type === 'plan' && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="text-sm font-medium mb-2">Opções de pagamento:</div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      variant={paymentMode === 'onetime' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        const newParams = new URLSearchParams(params.split('?')[1] || '');
+                        newParams.set('mode', 'onetime');
+                        setParams(`${params.split('?')[0]}?${newParams.toString()}`);
+                      }}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pagamento único
+                    </Button>
+                    <Button 
+                      variant={paymentMode === 'subscription' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        const newParams = new URLSearchParams(params.split('?')[1] || '');
+                        newParams.set('mode', 'subscription');
+                        setParams(`${params.split('?')[0]}?${newParams.toString()}`);
+                      }}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Assinatura mensal
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
