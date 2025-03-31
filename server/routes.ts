@@ -18,6 +18,7 @@ import {
 } from "@shared/schema";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
+import zoopRouter from "./routes/integrations/zoop";
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -2995,6 +2996,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Falha ao gerar sugestões para o ticket" });
     }
   });
+
+  // Rota para a API da Zoop
+  app.use("/api/integrations/zoop", zoopRouter);
 
   return httpServer;
 }

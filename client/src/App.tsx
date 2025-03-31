@@ -48,6 +48,12 @@ import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
 
+// Import integrations
+import Integracoes from "@/pages/integracoes";
+// Import specific integrations
+import WhatsAppIntegration from "@/pages/integracoes/comunicacao/whatsapp";
+import AsaasIntegration from "@/pages/integracoes/pagamentos/asaas";
+
 // Simple AppContent component with no external routing library
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -300,7 +306,8 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
-    '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import'
+    '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
+    '/integracoes'
   ];
   
   // Lista de rotas do módulo financeiro
@@ -358,6 +365,11 @@ function AppContent() {
       case '/support-dashboard': Component = SupportDashboard; break;
       case '/documentation': Component = Documentation; break;
       case '/data-import': Component = DataImport; break;
+      
+      // Rotas de integracoes
+      case '/integracoes': Component = Integracoes; break;
+      case '/integracoes/comunicacao/whatsapp': Component = WhatsAppIntegration; break;
+      case '/integracoes/pagamentos/asaas': Component = AsaasIntegration; break;
       
       // Rotas do módulo financeiro
       case '/financial': Component = Financial; break;
