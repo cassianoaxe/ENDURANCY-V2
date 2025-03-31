@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Upload, 
   Database, 
@@ -25,6 +26,10 @@ import {
   Activity,
   Building2,
   MonitorPlay,
+  BrainCircuit,
+  Sparkles,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -59,6 +64,18 @@ export default function DataImport() {
     errorCount: 0,
     errors: [],
   });
+  const [aiAnalysisEnabled, setAiAnalysisEnabled] = useState(true);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<{
+    recommendations: Array<string>;
+    dataSummary: string;
+    detectedIssues: Array<{
+      severity: 'low' | 'medium' | 'high';
+      description: string;
+      suggestion: string;
+    }>;
+    autoCorrections: number;
+  } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
   // Manipulador de upload de arquivo
@@ -82,6 +99,89 @@ export default function DataImport() {
       } else {
         setJsonData('');
       }
+    }
+  };
+
+  // Analisar dados com IA
+  const analyzeDataWithAI = async () => {
+    if (!file && !jsonData && !apiEndpoint) {
+      toast({
+        title: "Dados não encontrados",
+        description: "Por favor, forneça dados para análise através de upload de arquivo, entrada JSON ou API.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAiAnalysisResult(null);
+
+    try {
+      // Preparar os dados para envio
+      const formData = new FormData();
+      
+      if (activeTab === 'file-upload' && file) {
+        formData.append('file', file);
+        formData.append('type', selectedImportType);
+      } else if (activeTab === 'api-import') {
+        formData.append('apiEndpoint', apiEndpoint);
+        formData.append('type', selectedImportType);
+      } else if (activeTab === 'json-input') {
+        formData.append('jsonData', jsonData);
+        formData.append('type', selectedImportType);
+      }
+
+      // Processar análise
+      // Simulação: Normalmente chamaria o backend
+      setTimeout(() => {
+        // Dados simulados para demonstração
+        const mockAnalysisResult = {
+          recommendations: [
+            "Recomendamos adicionar validação para CPF em registros de pacientes",
+            "Considere normalizar os nomes de campos para melhor compatibilidade",
+            "Encontramos possíveis duplicidades em 12 registros"
+          ],
+          dataSummary: `Analisamos ${selectedImportType === 'patients' ? '3.245 registros de pacientes' : 
+                         selectedImportType === 'organizations' ? '42 registros de organizações' : 
+                         selectedImportType === 'doctors' ? '187 registros de médicos' : 
+                         '953 registros'} e identificamos algumas oportunidades de melhoria.`,
+          detectedIssues: [
+            {
+              severity: 'high' as const,
+              description: "CPFs inválidos detectados em 18 registros",
+              suggestion: "Aplique validação de CPF padrão antes da importação"
+            },
+            {
+              severity: 'medium' as const,
+              description: "Campos de nome incompletos em 5 registros",
+              suggestion: "Verifique e complete os dados ausentes"
+            },
+            {
+              severity: 'low' as const,
+              description: "Datas em formato inconsistente",
+              suggestion: "Padronize para formato ISO 8601 (YYYY-MM-DD)"
+            }
+          ],
+          autoCorrections: 14
+        };
+        
+        setAiAnalysisResult(mockAnalysisResult);
+        setIsAnalyzing(false);
+        
+        toast({
+          title: "Análise concluída",
+          description: "Nossa IA encontrou oportunidades de melhoria nos seus dados",
+        });
+      }, 2500);
+      
+    } catch (error: any) {
+      setIsAnalyzing(false);
+      
+      toast({
+        title: "Erro na análise",
+        description: error.message || "Não foi possível analisar os dados",
+        variant: "destructive",
+      });
     }
   };
 
@@ -123,6 +223,18 @@ export default function DataImport() {
       return;
     }
 
+    // Se a análise AI estiver habilitada e não foi executada, pergunte ao usuário
+    if (aiAnalysisEnabled && !aiAnalysisResult && !isAnalyzing) {
+      const shouldAnalyze = window.confirm(
+        "Você habilitou a análise de IA mas ainda não analisou os dados. Deseja analisar os dados antes de importar?"
+      );
+      
+      if (shouldAnalyze) {
+        await analyzeDataWithAI();
+        return;
+      }
+    }
+
     // Inicio da importação
     setImportStatus('processing');
     setImportProgress(0);
@@ -139,6 +251,12 @@ export default function DataImport() {
       } else if (activeTab === 'json-input') {
         formData.append('jsonData', jsonData);
         formData.append('type', selectedImportType);
+      }
+
+      // Adicionar os resultados da análise IA, se disponíveis
+      if (aiAnalysisEnabled && aiAnalysisResult) {
+        formData.append('aiAnalysis', JSON.stringify(aiAnalysisResult));
+        formData.append('applyAutoCorrections', 'true');
       }
 
       // Simular processamento com progresso
@@ -253,6 +371,110 @@ export default function DataImport() {
       </div>
 
       {renderImportStatus()}
+      
+      {/* Exibir resultados da análise de IA */}
+      {isAnalyzing && (
+        <div className="mb-8">
+          <Card className="w-full bg-blue-50 border-blue-200">
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-2">
+                <BrainCircuit className="h-5 w-5 text-blue-500 animate-pulse" />
+                <h3 className="text-lg font-medium text-blue-800">Analisando seus dados...</h3>
+              </div>
+              <Progress value={45} className="h-2 mt-4" />
+              <p className="text-sm text-blue-700 mt-2">
+                Nossa IA está processando seus dados. Isso pode levar alguns segundos.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {aiAnalysisResult && !isAnalyzing && (
+        <div className="mb-8">
+          <Card className="w-full overflow-hidden">
+            <CardHeader className="bg-indigo-50 border-b border-indigo-100">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-indigo-500" />
+                  <CardTitle className="text-indigo-800">Análise de IA Concluída</CardTitle>
+                </div>
+                <Badge variant="outline" className="bg-indigo-100 text-indigo-800">
+                  {aiAnalysisResult.autoCorrections} Correções Automáticas
+                </Badge>
+              </div>
+              <CardDescription className="text-indigo-700">
+                {aiAnalysisResult.dataSummary}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="pt-6 space-y-6">
+              {/* Recomendações */}
+              <div>
+                <h4 className="text-base font-medium mb-2 flex items-center">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                  Recomendações
+                </h4>
+                <ul className="space-y-1.5 pl-6 list-disc text-sm">
+                  {aiAnalysisResult.recommendations.map((rec, i) => (
+                    <li key={i} className="text-gray-700">{rec}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Problemas detectados */}
+              <div>
+                <h4 className="text-base font-medium mb-2 flex items-center">
+                  <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
+                  Problemas Detectados
+                </h4>
+                <div className="space-y-3">
+                  {aiAnalysisResult.detectedIssues.map((issue, i) => (
+                    <div key={i} className={`p-3 rounded-md ${
+                      issue.severity === 'high' ? 'bg-red-50 border border-red-100' :
+                      issue.severity === 'medium' ? 'bg-amber-50 border border-amber-100' :
+                      'bg-blue-50 border border-blue-100'
+                    }`}>
+                      <div className="flex items-start">
+                        <div className={`rounded-full p-1 mr-2 ${
+                          issue.severity === 'high' ? 'bg-red-100 text-red-500' :
+                          issue.severity === 'medium' ? 'bg-amber-100 text-amber-500' :
+                          'bg-blue-100 text-blue-500'
+                        }`}>
+                          <AlertCircle className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className={`font-medium ${
+                            issue.severity === 'high' ? 'text-red-700' :
+                            issue.severity === 'medium' ? 'text-amber-700' :
+                            'text-blue-700'
+                          }`}>{issue.description}</p>
+                          <p className="text-sm mt-1 text-gray-600">
+                            <span className="font-medium">Sugestão:</span> {issue.suggestion}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+            
+            <CardFooter className="bg-gray-50 border-t px-6 py-4">
+              <div className="flex justify-between items-center w-full">
+                <Button variant="outline" onClick={() => setAiAnalysisResult(null)}>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Descartar Análise
+                </Button>
+                <Button onClick={processImport}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Continuar com Importação
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
 
       <Card className="w-full">
         <CardHeader>
@@ -398,6 +620,28 @@ export default function DataImport() {
               </div>
             </div>
           </div>
+          
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
+            <div className="flex items-start">
+              <BrainCircuit className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-800">Análise com Inteligência Artificial</h4>
+                <p className="text-sm text-blue-700 mb-2">
+                  Nossa IA pode analisar seus dados antes da importação para detectar problemas, sugerir correções e otimizar o processo.
+                </p>
+                <div className="flex items-center mt-1">
+                  <Switch
+                    id="ai-analysis"
+                    checked={aiAnalysisEnabled}
+                    onCheckedChange={setAiAnalysisEnabled}
+                  />
+                  <Label htmlFor="ai-analysis" className="ml-2">
+                    {aiAnalysisEnabled ? "Ativado" : "Desativado"}
+                  </Label>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={() => {
@@ -410,19 +654,45 @@ export default function DataImport() {
             <XCircle className="h-4 w-4 mr-2" />
             Limpar
           </Button>
-          <Button onClick={processImport} disabled={importStatus === 'processing'}>
-            {importStatus === 'processing' ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Processando...
-              </>
-            ) : (
-              <>
-                <Upload className="h-4 w-4 mr-2" />
-                Iniciar Importação
-              </>
+          <div className="flex space-x-2">
+            {aiAnalysisEnabled && (
+              <Button 
+                variant="outline" 
+                onClick={analyzeDataWithAI} 
+                disabled={isAnalyzing || !selectedImportType || (activeTab === 'file-upload' && !file) || (activeTab === 'api-import' && !apiEndpoint) || (activeTab === 'json-input' && !jsonData)}
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <BrainCircuit className="h-4 w-4 mr-2 animate-pulse" />
+                    Analisando...
+                  </>
+                ) : (
+                  <>
+                    <BrainCircuit className="h-4 w-4 mr-2" />
+                    Analisar com IA
+                  </>
+                )}
+              </Button>
             )}
-          </Button>
+            
+            <Button 
+              onClick={processImport} 
+              disabled={importStatus === 'processing' || isAnalyzing}
+            >
+              {importStatus === 'processing' ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Iniciar Importação
+                </>
+              )}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
       
