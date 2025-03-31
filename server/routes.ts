@@ -3071,9 +3071,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de perfil de usuário
   
   // Rota para obter perfil do usuário
-  app.get("/api/profile", authenticate, async (req: Request & {user?: any}, res) => {
+  app.get("/api/profile", authenticate, async (req: Request, res) => {
     try {
-      const userId = req.user.id;
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const userId = req.session.user.id;
       
       // Buscar dados atualizados do usuário
       const user = await storage.getUser(userId);
@@ -3093,9 +3097,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para atualizar dados do perfil do usuário
-  app.put("/api/profile", authenticate, async (req: Request & {user?: any}, res) => {
+  app.put("/api/profile", authenticate, async (req: Request, res) => {
     try {
-      const userId = req.user.id;
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const userId = req.session.user.id;
       
       // Validar os dados recebidos
       const profileData = req.body;
@@ -3118,7 +3126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userInfo } = updatedUser;
       
       // Atualizar os dados na sessão
-      req.user = { ...req.user, ...userInfo };
+      req.session.user = { ...req.session.user, ...userInfo };
       
       res.json(userInfo);
     } catch (error) {
@@ -3128,9 +3136,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para alterar senha
-  app.post("/api/profile/change-password", authenticate, async (req: Request & {user?: any}, res) => {
+  app.post("/api/profile/change-password", authenticate, async (req: Request, res) => {
     try {
-      const userId = req.user.id;
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const userId = req.session.user.id;
       const { currentPassword, newPassword } = req.body;
       
       if (!currentPassword || !newPassword) {
@@ -3164,9 +3176,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para upload de foto de perfil
-  app.post("/api/profile/photo", authenticate, profilePhotoUpload.single('photo'), async (req: Request & {user?: any}, res) => {
+  app.post("/api/profile/photo", authenticate, profilePhotoUpload.single('photo'), async (req: Request, res) => {
     try {
-      const userId = req.user.id;
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const userId = req.session.user.id;
       const file = req.file;
       
       if (!file) {
@@ -3184,7 +3200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userInfo } = updatedUser;
       
       // Atualizar os dados na sessão
-      req.user = { ...req.user, ...userInfo };
+      req.session.user = { ...req.session.user, ...userInfo };
       
       res.json({ 
         message: "Foto de perfil atualizada com sucesso",
