@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -217,7 +217,7 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     type: true,
     cnpj: true,
     website: true,
-    plan: true,
+    planId: true,
     status: true,
     email: true,
     adminCpf: true,
@@ -796,7 +796,7 @@ export const chartOfAccounts = pgTable("chart_of_accounts", {
   isActive: boolean("is_active").default(true),
   level: integer("level").notNull(), // Nível hierárquico (1, 2, 3, etc)
   isAnalytical: boolean("is_analytical").default(false), // Se é uma conta analítica (pode receber lançamentos)
-  additionalData: jsonb("additional_data"), // Dados adicionais específicos de cada organização
+  additionalData: json("additional_data"), // Dados adicionais específicos de cada organização
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
