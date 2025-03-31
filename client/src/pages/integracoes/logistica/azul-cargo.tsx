@@ -388,7 +388,7 @@ export default function AzulCargo() {
           </div>
         </div>
         
-        <Badge variant={connectionStatus === 'success' ? "success" : connectionStatus === 'error' ? "destructive" : "outline"}>
+        <Badge variant={connectionStatus === 'success' ? "default" : connectionStatus === 'error' ? "destructive" : "outline"}>
           {connectionStatus === 'success' ? "Conectado" : connectionStatus === 'error' ? "Desconectado" : "Status da conexão"}
         </Badge>
       </div>
