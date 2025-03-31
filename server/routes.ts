@@ -19,6 +19,7 @@ import {
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
 import zoopRouter from "./routes/integrations/zoop";
+import integrationsRouter from "./routes/integrations";
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -2283,6 +2284,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Rotas Administrativas
   app.use('/api/admin', adminRouter);
+  
+  // Rotas de integração da Zoop
+  app.use("/api/integrations/zoop", zoopRouter);
+  
+  // Rotas de outras integrações
+  app.use("/api/integrations", integrationsRouter);
   
   const httpServer = createServer(app);
 
