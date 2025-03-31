@@ -310,13 +310,13 @@ export default function MelhorEnvioIntegration() {
   });
   
   // Inicializar formulário para configuração da API
-  const apiConfigForm = useForm({
+  const apiConfigForm = useForm<z.infer<typeof apiConfigSchema>>({
     resolver: zodResolver(apiConfigSchema),
     defaultValues: {
       clientId: "",
       clientSecret: "",
       accessToken: "",
-      environment: "sandbox",
+      environment: "sandbox" as const,
       callbackUrl: `${window.location.origin}/api/integrations/logistica/melhor-envio/webhook`
     }
   });

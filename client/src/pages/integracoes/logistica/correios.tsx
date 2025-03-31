@@ -137,14 +137,14 @@ export default function CorreiosIntegration() {
   const [currentTab, setCurrentTab] = useState("overview");
   
   // Inicializar formulário para configuração da API
-  const apiConfigForm = useForm({
+  const apiConfigForm = useForm<z.infer<typeof apiConfigSchema>>({
     resolver: zodResolver(apiConfigSchema),
     defaultValues: {
       cartaoPostagem: "",
       codigoAdministrativo: "",
       usuario: "",
       senha: "",
-      environment: "homologacao",
+      environment: "homologacao" as const,
       contrato: ""
     }
   });
