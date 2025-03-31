@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
 import { db } from '../db';
-import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules, costCenters, financialCategories, financialTransactions } from '@shared/schema';
+import { organizations, doctors, patients, appointments, plants, users, modules, organizationModules, costCenters, financialCategories, financialTransactions, products } from '@shared/schema';
 import { log } from '../vite';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
@@ -27,7 +27,8 @@ export type ImportEntityType =
   | 'modules'
   | 'cost_centers'
   | 'financial_categories'
-  | 'financial_transactions';
+  | 'financial_transactions'
+  | 'products';
 
 // Formatos de arquivo de importação suportados
 export type ImportFileFormat = 'csv' | 'xlsx' | 'xls' | 'json';
@@ -522,6 +523,9 @@ class EntityProcessor {
             break;
           case 'financial_transactions':
             await this.processFinancialTransaction(normalizedEntity);
+            break;
+          case 'products':
+            await this.processProduct(normalizedEntity);
             break;
           default:
             throw new Error(`Tipo de entidade não suportado: ${this.entityType}`);
@@ -1222,6 +1226,100 @@ class EntityProcessor {
         notes: entity.notes || null,
         organizationId: entity.organization_id
       });
+  }
+  
+  /**
+   * Processa um produto para importação
+   */
+  private async processProduct(entity: any) {
+    // Mapear campos obrigatórios
+    if (!entity.name) {
+      throw new Error('O nome do produto é obrigatório');
+    }
+    
+    if (!entity.sku) {
+      throw new Error('O SKU do produto é obrigatório');
+    }
+    
+    if (!entity.description) {
+      throw new Error('A descrição do produto é obrigatória');
+    }
+    
+    if (!entity.price) {
+      throw new Error('O preço do produto é obrigatório');
+    }
+    
+    if (!entity.organization_id) {
+      throw new Error('O ID da organização é obrigatório');
+    }
+    
+    // Verificar se a organização existe
+    const orgExists = await db.select({ id: organizations.id })
+      .from(organizations)
+      .where(({ eq }) => eq(organizations.id, entity.organization_id))
+      .limit(1);
+    
+    if (orgExists.length === 0) {
+      throw new Error(`Organização com ID ${entity.organization_id} não encontrada`);
+    }
+    
+    // Verificar se já existe um produto com o mesmo SKU na mesma organização
+    const existingProducts = await db.select({ id: products.id })
+      .from(products)
+      .where(({ eq, and }) => 
+        and(
+          eq(products.sku, entity.sku),
+          eq(products.organizationId, entity.organization_id)
+        )
+      )
+      .limit(1);
+    
+    if (existingProducts.length > 0) {
+      // Atualizar produto existente
+      await db.update(products)
+        .set({
+          name: entity.name,
+          description: entity.description,
+          price: entity.price,
+          cost: entity.cost || null,
+          taxRate: entity.tax_rate || null,
+          stock: entity.stock || 0,
+          minStock: entity.min_stock || 0,
+          category: entity.category || null,
+          brand: entity.brand || null,
+          supplier: entity.supplier || null,
+          weight: entity.weight || null,
+          dimensions: entity.dimensions || null,
+          imageUrl: entity.image_url || null,
+          hasVariants: entity.has_variants || false,
+          status: entity.status || 'ativo',
+          barcode: entity.barcode || null
+        })
+        .where(({ eq }) => eq(products.id, existingProducts[0].id));
+    } else {
+      // Criar novo produto
+      await db.insert(products)
+        .values({
+          name: entity.name,
+          description: entity.description,
+          sku: entity.sku,
+          price: entity.price,
+          cost: entity.cost || null,
+          taxRate: entity.tax_rate || null,
+          stock: entity.stock || 0,
+          minStock: entity.min_stock || 0,
+          category: entity.category || null,
+          brand: entity.brand || null,
+          supplier: entity.supplier || null,
+          weight: entity.weight || null,
+          dimensions: entity.dimensions || null,
+          imageUrl: entity.image_url || null,
+          hasVariants: entity.has_variants || false,
+          status: entity.status || 'ativo',
+          barcode: entity.barcode || null,
+          organizationId: entity.organization_id
+        });
+    }
   }
 }
 

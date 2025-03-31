@@ -34,6 +34,7 @@ import {
   DollarSign,
   FolderTree,
   FileBarChart,
+  Package,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +59,7 @@ const importTypes = [
   { id: 'financial_categories', label: 'Categorias Financeiras', icon: FolderTree },
   { id: 'cost_centers', label: 'Centros de Custo', icon: Target },
   { id: 'financial_reports', label: 'Relatórios Financeiros', icon: FileBarChart },
+  { id: 'products', label: 'Produtos', icon: Package },
 ];
 
 export default function DataImport() {
@@ -161,16 +163,38 @@ export default function DataImport() {
       setTimeout(() => {
         // Dados simulados para demonstração
         const mockAnalysisResult = {
-          recommendations: [
+          recommendations: selectedImportType === 'products' ? [
+            "Recomendamos padronizar as categorias de produtos",
+            "Considere adicionar códigos SKU únicos para cada produto",
+            "Verificamos inconsistências nos valores de preço em alguns produtos",
+            "Faltam imagens para 32 produtos - considere adicionar"
+          ] : [
             "Recomendamos adicionar validação para CPF em registros de pacientes",
             "Considere normalizar os nomes de campos para melhor compatibilidade",
             "Encontramos possíveis duplicidades em 12 registros"
           ],
           dataSummary: `Analisamos ${selectedImportType === 'patients' ? '3.245 registros de pacientes' : 
                          selectedImportType === 'organizations' ? '42 registros de organizações' : 
-                         selectedImportType === 'doctors' ? '187 registros de médicos' : 
+                         selectedImportType === 'doctors' ? '187 registros de médicos' :
+                         selectedImportType === 'products' ? '478 registros de produtos' :
                          '953 registros'} e identificamos algumas oportunidades de melhoria.`,
-          detectedIssues: [
+          detectedIssues: selectedImportType === 'products' ? [
+            {
+              severity: 'high' as const,
+              description: "Códigos de produto duplicados em 7 registros",
+              suggestion: "Verifique e corrija os códigos SKU para garantir unicidade"
+            },
+            {
+              severity: 'medium' as const,
+              description: "Preços negativos ou zerados em 3 produtos",
+              suggestion: "Verifique e corrija os valores de preço antes da importação"
+            },
+            {
+              severity: 'low' as const,
+              description: "Categorias indefinidas em 12 produtos",
+              suggestion: "Defina categorias apropriadas para facilitar a navegação no catálogo"
+            }
+          ] : [
             {
               severity: 'high' as const,
               description: "CPFs inválidos detectados em 18 registros",
