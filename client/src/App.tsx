@@ -53,6 +53,7 @@ import Integracoes from "@/pages/integracoes";
 // Import specific integrations
 import WhatsAppIntegration from "@/pages/integracoes/comunicacao/whatsapp";
 import AsaasIntegration from "@/pages/integracoes/pagamentos/asaas";
+import MelhorEnvioIntegration from "@/pages/integracoes/logistica/melhor-envio";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -307,7 +308,7 @@ function AppContent() {
     '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
-    '/integracoes'
+    '/integracoes', '/integracoes/comunicacao/whatsapp', '/integracoes/pagamentos/asaas', '/integracoes/logistica/melhor-envio'
   ];
   
   // Lista de rotas do módulo financeiro
@@ -370,6 +371,7 @@ function AppContent() {
       case '/integracoes': Component = Integracoes; break;
       case '/integracoes/comunicacao/whatsapp': Component = WhatsAppIntegration; break;
       case '/integracoes/pagamentos/asaas': Component = AsaasIntegration; break;
+      case '/integracoes/logistica/melhor-envio': Component = MelhorEnvioIntegration; break;
       
       // Rotas do módulo financeiro
       case '/financial': Component = Financial; break;
