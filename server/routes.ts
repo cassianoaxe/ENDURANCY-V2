@@ -15,6 +15,8 @@ import {
   insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema,
   // Imports para o sistema de notificações
   notifications, insertNotificationSchema,
+  // Imports para solicitações de planos e módulos
+  planChangeRequests, moduleRequests,
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
@@ -26,7 +28,7 @@ import integrationsRouter from './routes/integrations/index';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
-import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
+import { eq, and, sql, desc, asc, gte, lte, inArray, notInArray } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -3224,6 +3226,493 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao fazer upload de foto:", error);
       res.status(500).json({ message: "Falha ao fazer upload de foto" });
+    }
+  });
+  
+  // Rota para obter informações da organização atual do usuário
+  app.get("/api/organization/current", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, user.organizationId));
+      
+      if (!org) {
+        return res.status(404).json({ error: "Organização não encontrada" });
+      }
+      
+      // Calcular contagem de registros (pacientes/plantas)
+      const [planDetails] = await db.select().from(plans).where(eq(plans.id, org.planId));
+      
+      const responseData = {
+        id: org.id,
+        name: org.name,
+        planId: org.planId,
+        planTier: org.planTier,
+        registrationsCount: org.recordCount || 0,
+        registrationsLimit: planDetails?.maxRecords || 0,
+        activationDate: org.activationDate || new Date().toISOString(),
+      };
+      
+      res.json(responseData);
+    } catch (error) {
+      console.error("Erro ao buscar organização:", error);
+      res.status(500).json({ error: "Erro ao buscar informações da organização" });
+    }
+  });
+  
+  // Rota para obter o plano atual da organização
+  app.get("/api/plans/current", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, user.organizationId));
+      
+      if (!org) {
+        return res.status(404).json({ error: "Organização não encontrada" });
+      }
+      
+      const [planDetails] = await db.select().from(plans).where(eq(plans.id, org.planId));
+      
+      if (!planDetails) {
+        return res.status(404).json({ error: "Plano não encontrado" });
+      }
+      
+      // Formatar os features que são armazenados como array
+      const formattedPlan = {
+        ...planDetails,
+        price: Number(planDetails.price),
+        features: planDetails.features || [],
+        registrationsLimit: planDetails.maxRecords,
+      };
+      
+      res.json(formattedPlan);
+    } catch (error) {
+      console.error("Erro ao buscar plano atual:", error);
+      res.status(500).json({ error: "Erro ao buscar informações do plano" });
+    }
+  });
+  
+  // Rota para obter todos os planos disponíveis
+  app.get("/api/plans/available", authenticate, async (req: Request, res) => {
+    try {
+      // Buscar apenas planos que não são de módulos específicos
+      const availablePlans = await db.select().from(plans).where(eq(plans.isModulePlan, false));
+      
+      // Formatar os planos para o formato esperado pelo frontend
+      const formattedPlans = availablePlans.map(plan => ({
+        ...plan,
+        price: Number(plan.price),
+        features: plan.features || [],
+        registrationsLimit: plan.maxRecords,
+        isPopular: plan.tier === 'grow', // Marcar o plano Grow como o mais popular
+        isFeatured: plan.tier === 'pro', // Marcar o plano Pro como featured
+      }));
+      
+      res.json(formattedPlans);
+    } catch (error) {
+      console.error("Erro ao buscar planos disponíveis:", error);
+      res.status(500).json({ error: "Erro ao buscar planos disponíveis" });
+    }
+  });
+  
+  // Rota para obter módulos ativos da organização
+  app.get("/api/modules/active", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      // Buscar os módulos contratados pela organização
+      const orgModules = await db
+        .select()
+        .from(organizationModules)
+        .where(eq(organizationModules.organizationId, user.organizationId))
+        .where(eq(organizationModules.active, true));
+      
+      if (orgModules.length === 0) {
+        return res.json([]);
+      }
+      
+      // Buscar detalhes de cada módulo
+      const moduleIds = orgModules.map(m => m.moduleId);
+      const moduleDetails = await db
+        .select()
+        .from(modules)
+        .where(inArray(modules.id, moduleIds));
+      
+      // Buscar o plano atual da organização para saber quais módulos estão incluídos no plano
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, user.organizationId));
+      const [planDetails] = await db.select().from(plans).where(eq(plans.id, org.planId));
+      
+      // Módulos incluídos no plano: 
+      // - Plano Free: onboarding, analytics, dashboard, associados, vendas, financeiro, complypay
+      // - Plano Seed: os mesmos do Free
+      // - Plano Grow: os mesmos do Seed + cultivo, producao
+      // - Plano Pro: todos os do Grow + os mesmos módulos adicionais
+      
+      let includedModuleTypes = ['onboarding', 'analytics', 'dashboard', 'associados', 'vendas', 'financeiro', 'complypay'];
+      
+      if (['grow', 'pro'].includes(planDetails.tier)) {
+        includedModuleTypes = [...includedModuleTypes, 'cultivo', 'producao'];
+      }
+      
+      // Formatar os módulos para o formato esperado pelo frontend
+      const formattedModules = moduleDetails.map(module => {
+        const orgModule = orgModules.find(om => om.moduleId === module.id);
+        const isIncludedInPlan = includedModuleTypes.includes(module.type);
+        
+        return {
+          id: module.id,
+          name: module.name,
+          description: module.description,
+          type: module.type,
+          price: Number(orgModule?.price || 0),
+          isActive: true,
+          isIncludedInPlan,
+          isAddon: !isIncludedInPlan,
+        };
+      });
+      
+      res.json(formattedModules);
+    } catch (error) {
+      console.error("Erro ao buscar módulos ativos:", error);
+      res.status(500).json({ error: "Erro ao buscar módulos ativos" });
+    }
+  });
+  
+  // Rota para obter módulos disponíveis para contratação
+  app.get("/api/modules/available", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      // Buscar os módulos já contratados pela organização
+      const orgModules = await db
+        .select()
+        .from(organizationModules)
+        .where(eq(organizationModules.organizationId, user.organizationId));
+      
+      const contractedModuleIds = orgModules.map(m => m.moduleId);
+      
+      // Buscar todos os módulos disponíveis para contratação
+      const availableModules = await db
+        .select()
+        .from(modules)
+        .where(eq(modules.is_active, true))
+        .where(notInArray(modules.id, contractedModuleIds.length > 0 ? contractedModuleIds : [0]));
+      
+      // Buscar planos disponíveis para cada módulo
+      const moduleIds = availableModules.map(m => m.id);
+      const modulePlansData = moduleIds.length > 0 ? await db
+        .select()
+        .from(modulePlans)
+        .where(inArray(modulePlans.module_id, moduleIds))
+        .where(eq(modulePlans.is_active, true)) : [];
+      
+      // Formatar os módulos para o formato esperado pelo frontend
+      const formattedModules = availableModules.map(module => {
+        const modulePrice = modulePlansData
+          .filter(mp => mp.module_id === module.id)
+          .sort((a, b) => Number(a.price) - Number(b.price))[0]?.price || 99.00;
+        
+        return {
+          id: module.id,
+          name: module.name,
+          description: module.description,
+          type: module.type,
+          price: Number(modulePrice),
+          isActive: true,
+          isIncludedInPlan: false,
+          isAddon: true,
+        };
+      });
+      
+      res.json(formattedModules);
+    } catch (error) {
+      console.error("Erro ao buscar módulos disponíveis:", error);
+      res.status(500).json({ error: "Erro ao buscar módulos disponíveis" });
+    }
+  });
+  
+  // Rota para obter solicitação de mudança de plano atual (se existir)
+  app.get("/api/plan-requests/current", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      // Buscar solicitações pendentes de mudança de plano para esta organização
+      const [pendingRequest] = await db
+        .select()
+        .from(planChangeRequests)
+        .where(eq(planChangeRequests.organizationId, user.organizationId))
+        .where(eq(planChangeRequests.status, 'pendente'));
+      
+      if (!pendingRequest) {
+        return res.status(404).json({ error: "Nenhuma solicitação pendente encontrada" });
+      }
+      
+      // Buscar detalhes do plano atual e solicitado
+      const [currentPlan] = await db.select().from(plans).where(eq(plans.id, pendingRequest.currentPlanId));
+      const [requestedPlan] = await db.select().from(plans).where(eq(plans.id, pendingRequest.requestedPlanId));
+      
+      const response = {
+        ...pendingRequest,
+        currentPlan: {
+          id: currentPlan.id,
+          name: currentPlan.name,
+          tier: currentPlan.tier,
+        },
+        requestedPlan: {
+          id: requestedPlan.id,
+          name: requestedPlan.name,
+          tier: requestedPlan.tier,
+        }
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Erro ao buscar solicitação de plano:", error);
+      res.status(500).json({ error: "Erro ao buscar solicitação de plano" });
+    }
+  });
+  
+  // Rota para criar uma nova solicitação de mudança de plano
+  app.post("/api/plan-requests", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(403).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      const { planId, reason } = req.body;
+      
+      if (!planId || !reason) {
+        return res.status(400).json({ error: "Plano e motivo são obrigatórios" });
+      }
+      
+      // Verificar se já existe uma solicitação pendente
+      const [existingRequest] = await db
+        .select()
+        .from(planChangeRequests)
+        .where(eq(planChangeRequests.organizationId, user.organizationId))
+        .where(eq(planChangeRequests.status, 'pendente'));
+      
+      if (existingRequest) {
+        return res.status(409).json({ error: "Já existe uma solicitação pendente para esta organização" });
+      }
+      
+      // Buscar detalhes da organização e do plano atual
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, user.organizationId));
+      
+      // Verificar se o plano solicitado existe
+      const [planDetails] = await db.select().from(plans).where(eq(plans.id, planId));
+      
+      if (!planDetails) {
+        return res.status(404).json({ error: "Plano solicitado não encontrado" });
+      }
+      
+      // Criar a solicitação
+      const [newRequest] = await db.insert(planChangeRequests).values({
+        organizationId: user.organizationId,
+        currentPlanId: org.planId,
+        requestedPlanId: planId,
+        reason,
+        status: 'pendente',
+        createdAt: new Date(),
+      }).returning();
+      
+      // Criar uma notificação para administradores
+      await db.insert(notifications).values({
+        title: "Nova solicitação de upgrade de plano",
+        message: `A organização ${org.name} solicitou upgrade para o plano ${planDetails.name}`,
+        type: "info",
+        userId: 1, // ID do administrador do sistema
+        organizationId: user.organizationId,
+        isRead: false,
+        createdAt: new Date(),
+      });
+      
+      res.status(201).json(newRequest);
+    } catch (error) {
+      console.error("Erro ao criar solicitação de plano:", error);
+      res.status(500).json({ error: "Erro ao criar solicitação de plano" });
+    }
+  });
+  
+  // Rota para obter solicitações de módulos atuais
+  app.get("/api/module-requests/current", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(404).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      // Buscar solicitações pendentes de módulos para esta organização
+      const pendingRequests = await db
+        .select()
+        .from(moduleRequests)
+        .where(eq(moduleRequests.organizationId, user.organizationId))
+        .where(eq(moduleRequests.status, 'pendente'));
+      
+      if (pendingRequests.length === 0) {
+        return res.status(404).json({ error: "Nenhuma solicitação pendente encontrada" });
+      }
+      
+      // Formatar as solicitações
+      const formattedRequests = pendingRequests.map(request => ({
+        ...request,
+        createdAt: request.createdAt.toISOString(),
+      }));
+      
+      res.json(formattedRequests);
+    } catch (error) {
+      console.error("Erro ao buscar solicitações de módulos:", error);
+      res.status(500).json({ error: "Erro ao buscar solicitações de módulos" });
+    }
+  });
+  
+  // Rota para criar uma nova solicitação de módulo
+  app.post("/api/module-requests", authenticate, async (req: Request, res) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ message: "Não autenticado" });
+      }
+      
+      const user = req.session.user;
+      
+      if (!user.organizationId) {
+        return res.status(403).json({ error: "Usuário não está associado a uma organização" });
+      }
+      
+      const { moduleId, action, reason } = req.body;
+      
+      if (!moduleId || !action || !reason) {
+        return res.status(400).json({ error: "Módulo, ação e motivo são obrigatórios" });
+      }
+      
+      if (!['add', 'remove'].includes(action)) {
+        return res.status(400).json({ error: "Ação inválida. Use 'add' ou 'remove'" });
+      }
+      
+      // Verificar se já existe uma solicitação pendente para este módulo
+      const [existingRequest] = await db
+        .select()
+        .from(moduleRequests)
+        .where(eq(moduleRequests.organizationId, user.organizationId))
+        .where(eq(moduleRequests.moduleId, moduleId))
+        .where(eq(moduleRequests.status, 'pendente'));
+      
+      if (existingRequest) {
+        return res.status(409).json({ error: "Já existe uma solicitação pendente para este módulo" });
+      }
+      
+      // Buscar detalhes da organização
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, user.organizationId));
+      
+      // Verificar se o módulo existe
+      const [moduleDetails] = await db.select().from(modules).where(eq(modules.id, moduleId));
+      
+      if (!moduleDetails) {
+        return res.status(404).json({ error: "Módulo não encontrado" });
+      }
+      
+      // Verificar se a ação é válida
+      if (action === 'add') {
+        // Verificar se o módulo já está ativo
+        const [existingModule] = await db
+          .select()
+          .from(organizationModules)
+          .where(eq(organizationModules.organizationId, user.organizationId))
+          .where(eq(organizationModules.moduleId, moduleId))
+          .where(eq(organizationModules.active, true));
+        
+        if (existingModule) {
+          return res.status(409).json({ error: "Este módulo já está ativo para sua organização" });
+        }
+      } else {
+        // Verificar se o módulo está ativo
+        const [existingModule] = await db
+          .select()
+          .from(organizationModules)
+          .where(eq(organizationModules.organizationId, user.organizationId))
+          .where(eq(organizationModules.moduleId, moduleId));
+        
+        if (!existingModule) {
+          return res.status(404).json({ error: "Este módulo não está ativo para sua organização" });
+        }
+      }
+      
+      // Criar a solicitação
+      const [newRequest] = await db.insert(moduleRequests).values({
+        organizationId: user.organizationId,
+        moduleId,
+        action,
+        reason,
+        status: 'pendente',
+        createdAt: new Date(),
+      }).returning();
+      
+      // Criar uma notificação para administradores
+      await db.insert(notifications).values({
+        title: `Nova solicitação de ${action === 'add' ? 'adição' : 'remoção'} de módulo`,
+        message: `A organização ${org.name} solicitou ${action === 'add' ? 'adicionar' : 'remover'} o módulo ${moduleDetails.name}`,
+        type: "info",
+        userId: 1, // ID do administrador do sistema
+        organizationId: user.organizationId,
+        isRead: false,
+        createdAt: new Date(),
+      });
+      
+      res.status(201).json(newRequest);
+    } catch (error) {
+      console.error("Erro ao criar solicitação de módulo:", error);
+      res.status(500).json({ error: "Erro ao criar solicitação de módulo" });
     }
   });
   
