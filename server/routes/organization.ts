@@ -76,7 +76,7 @@ organizationRouter.get('/plan', isOrgAdmin, async (req: Request, res: Response) 
           organization.plan.tier === 'pro' ? "API avançada com maior limite de requisições" : undefined
         ].filter(Boolean) as string[]
       },
-      expiresAt: organization.planExpiresAt?.toISOString() || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      expiresAt: organization.planExpiryDate?.toISOString() || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       registrationsUsed,
       registrationsTotal: organization.plan.maxRecords,
       activeModules: activeOrgModules.map(orgModule => ({
