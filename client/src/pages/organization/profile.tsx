@@ -311,20 +311,8 @@ export default function OrganizationProfile() {
       console.log("Usuário atual:", JSON.stringify(user));
       
       try {
-        // Prossegue com a requisição para obter os dados da organização
-        const response = await fetch(`/api/organizations/${organizationId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Importante para enviar cookies
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Erro ao buscar organização: ${response.status} - ${errorText}`);
-          throw new Error(`Erro ao buscar dados da organização: ${response.status} - ${errorText}`);
-        }
+        // Use apiRequest instead of fetch directly to ensure cookies are properly sent
+        const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
         
         const data = await response.json();
         console.log("Dados da organização recebidos:", data);
@@ -334,7 +322,8 @@ export default function OrganizationProfile() {
         throw error;
       }
     },
-    enabled: !!organizationId && !!user
+    enabled: !!organizationId && !!user,
+    retry: 1, // Only retry once to avoid excessive requests on authentication issues
   });
 
   const [profileForm, setProfileForm] = useState<Partial<Organization>>({});
@@ -404,14 +393,15 @@ export default function OrganizationProfile() {
     formData.append('logo', file);
     
     try {
-      // Usando fetch diretamente porque apiRequest não suporta FormData adequadamente
+      // Using fetch directly because FormData requires special handling
       const response = await fetch(
         `/api/organizations/${organizationId}/logo`,
         { 
           method: "POST", 
           body: formData,
-          credentials: 'include', // Incluir cookies de sessão na requisição
-          // Não definir Content-Type para permitir que o navegador configure o boundary
+          credentials: 'include', // Include session cookies
+          cache: 'no-cache',
+          // Don't set Content-Type to allow the browser to set the boundary for FormData
         }
       );
       

@@ -69,15 +69,16 @@ declare module 'express-session' {
 const PostgresStore = pgSession(session);
 
 // Authentication middleware
-// Middleware de autenticação aprimorado com verificação de sessão e logs detalhados
+// Enhanced authentication middleware with session verification and detailed logging
 const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Verificar se está vindo o cabeçalho Cookie
+    // Check if the Cookie header is present
     if (!req.headers.cookie) {
-      console.warn("Requisição sem cookie:", req.path);
+      console.warn("Request without cookie:", req.path);
+      return res.status(401).json({ message: "No authorization cookie found" });
     }
     
-    // Informações detalhadas sobre o estado da sessão para depuração
+    // Detailed information about the session state for debugging
     console.log("Auth check session:", { 
       hasSession: !!req.session,
       hasUser: !!req.session?.user,
@@ -87,32 +88,44 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       method: req.method
     });
     
-    // Verifica se a sessão existe e tem um usuário válido
+    // Check if the session exists and has a valid user
     if (!req.session) {
-      console.log("Sessão não existe para:", req.path);
-      return res.status(401).json({ message: "Sessão expirada ou inexistente" });
+      console.log("Session doesn't exist for:", req.path);
+      return res.status(401).json({ message: "Session expired or non-existent" });
     }
     
     if (!req.session.user) {
-      console.log("Usuário não autenticado na sessão para:", req.path);
+      console.log("User not authenticated in session for:", req.path);
       return res.status(401).json({ message: "Não autenticado" });
     }
     
-    // Atualiza o cookie de sessão para garantir que ele não expire
+    // Update the session cookie to ensure it doesn't expire
     req.session.touch();
     
-    // Registra acesso autenticado bem-sucedido
-    console.log("Acesso autenticado:", {
+    // Save the session explicitly to ensure changes are persisted
+    await new Promise<void>((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    
+    // Log successful authenticated access
+    console.log("Authenticated access:", {
       userID: req.session.user.id,
       role: req.session.user.role,
       path: req.path
     });
     
-    // Continua para a próxima função/rota
+    // Continue to the next function/route
     next();
   } catch (error) {
-    console.error("Erro no middleware de autenticação:", error);
-    res.status(500).json({ message: "Erro de autenticação" });
+    console.error("Error in authentication middleware:", error);
+    res.status(500).json({ message: "Authentication error" });
   }
 };
 
@@ -188,8 +201,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: true, // Garantir persistência
-    saveUninitialized: true, // Alterado para true para garantir que os cookies sejam enviados
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something stored
     name: 'connect.sid', // Nome padrão para maximizar compatibilidade
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias

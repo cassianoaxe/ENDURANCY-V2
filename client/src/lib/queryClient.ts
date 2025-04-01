@@ -12,11 +12,20 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  const headers: HeadersInit = {
+    'Accept': 'application/json',
+  };
+  
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // Important: This ensures cookies are included in the request
+    cache: "no-cache", // Prevent caching issues
   });
 
   await throwIfResNotOk(res);
@@ -31,6 +40,10 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: "no-cache", // Prevent caching issues
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
