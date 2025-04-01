@@ -363,8 +363,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
+      // Verificar se é um org_admin sem organização vinculada
+      let updatedUser = { ...user };
+      if (user.role === 'org_admin' && !user.organizationId) {
+        // Buscar a primeira organização disponível
+        const orgsFound = await db.select().from(organizations).where(eq(organizations.status, 'active'));
+        
+        if (orgsFound.length > 0) {
+          // Atualizar o usuário com a organização
+          const [updated] = await db.update(users)
+            .set({ organizationId: orgsFound[0].id })
+            .where(eq(users.id, user.id))
+            .returning();
+          
+          if (updated) {
+            updatedUser = updated;
+            console.log("Updated org_admin with organizationId:", orgsFound[0].id);
+          }
+        }
+      }
+      
       // Remove password from user object before sending to client
-      const { password: _, ...userWithoutPassword } = user;
+      const { password: _, ...userWithoutPassword } = updatedUser;
       
       // Set user in session
       req.session.user = userWithoutPassword;
