@@ -534,6 +534,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para detalhe de uma organização específica
+  app.get("/api/organizations/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`Buscando detalhes da organização com ID: ${id}`);
+      
+      const [organization] = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, parseInt(id)));
+      
+      if (!organization) {
+        console.log(`Organização com ID ${id} não encontrada`);
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      console.log(`Organização encontrada: ${organization.name}`);
+      res.json(organization);
+    } catch (error) {
+      console.error("Error fetching organization details:", error);
+      res.status(500).json({ message: "Failed to fetch organization details" });
+    }
+  });
+  
   // Rota para visualizar o documento de uma organização
   app.get("/api/organizations/:id/document", authenticate, async (req, res) => {
     try {
