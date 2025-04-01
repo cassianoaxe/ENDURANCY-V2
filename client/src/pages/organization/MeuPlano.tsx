@@ -17,7 +17,7 @@ interface Plan {
   description: string;
   price: string;
   billingCycle: string;
-  registrationLimit: number;
+  maxRecords: number;
   features: string[];
   is_popular?: boolean;
   tier: 'free' | 'seed' | 'grow' | 'pro';
@@ -374,7 +374,7 @@ export default function MeuPlano() {
                         <div>
                           <div className="font-medium mb-2">Limite de Cadastros</div>
                           <Badge variant="outline" className="text-base font-normal">
-                            Até {plan.registrationLimit.toLocaleString()} cadastros
+                            Até {plan.maxRecords.toLocaleString()} cadastros
                           </Badge>
                         </div>
                         <div>
