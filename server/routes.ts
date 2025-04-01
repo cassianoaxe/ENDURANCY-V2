@@ -24,8 +24,9 @@ import adminRouter from "./routes/admin";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
-// Importar rotas de grupos de usuários e permissões
-import { userGroupsRouter } from './routes/user-groups';
+// Importar rotas de grupos de usuários, permissões e convites
+import { registerUserGroupRoutes } from './routes/user-groups';
+import { registerUserInvitationRoutes } from './routes/user-invitations';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -2851,7 +2852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/integrations", integrationsRouter);
   
   // Rotas de grupos de usuários e permissões
-  app.use("/api/user-groups", userGroupsRouter);
+  // User group routes are registered directly via registerUserGroupRoutes(app);
   
   const httpServer = createServer(app);
 
@@ -3725,5 +3726,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para a API da Zoop
+  
+  // Register user groups and invitations routes
+  registerUserGroupRoutes(app);
+  registerUserInvitationRoutes(app);
+  
   return httpServer;
 }
