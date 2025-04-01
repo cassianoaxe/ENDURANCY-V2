@@ -4,12 +4,12 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Array<'admin' | 'org_admin' | 'doctor' | 'patient'>;
+  allowedRoles?: Array<'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee'>;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  allowedRoles = ['admin', 'org_admin', 'doctor', 'patient']
+  allowedRoles = ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee']
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -54,6 +54,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
               redirectPath = '/doctor/dashboard';
             } else if (user?.role === 'patient') {
               redirectPath = '/patient/dashboard';
+            } else if (user?.role === 'manager') {
+              redirectPath = '/organization/dashboard';
+            } else if (user?.role === 'employee') {
+              redirectPath = '/organization/dashboard';
             }
             
             window.history.pushState({}, '', redirectPath);

@@ -51,10 +51,15 @@ declare module 'express-session' {
     user: {
       id: number;
       username: string;
-      role: 'admin' | 'org_admin' | 'doctor' | 'patient';
+      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee';
       name: string;
       email: string;
       organizationId: number | null;
+      profilePhoto?: string | null;
+      phoneNumber?: string | null;
+      bio?: string | null;
+      lastPasswordChange?: Date | null;
+      createdAt?: Date;
     };
   }
 }
