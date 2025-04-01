@@ -63,18 +63,42 @@ declare module 'express-session' {
 const PostgresStore = pgSession(session);
 
 // Authentication middleware
-const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  console.log("Auth check session:", { 
-    hasSession: !!req.session,
-    hasUser: !!req.session?.user,
-    sessionID: req.sessionID,
-    user: req.session?.user || null
-  });
-  
-  if (req.session && req.session.user) {
+// Middleware de autenticação aprimorado com verificação de sessão e logs detalhados
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Informações detalhadas sobre o estado da sessão para depuração
+    console.log("Auth check session:", { 
+      hasSession: !!req.session,
+      hasUser: !!req.session?.user,
+      sessionID: req.sessionID,
+      cookies: req.headers.cookie,
+      path: req.path,
+      method: req.method
+    });
+    
+    // Verifica se a sessão existe e tem um usuário válido
+    if (!req.session) {
+      console.log("Sessão não existe para:", req.path);
+      return res.status(401).json({ message: "Sessão expirada ou inexistente" });
+    }
+    
+    if (!req.session.user) {
+      console.log("Usuário não autenticado na sessão para:", req.path);
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    
+    // Registra acesso autenticado bem-sucedido
+    console.log("Acesso autenticado:", {
+      userID: req.session.user.id,
+      role: req.session.user.role,
+      path: req.path
+    });
+    
+    // Continua para a próxima função/rota
     next();
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
+  } catch (error) {
+    console.error("Erro no middleware de autenticação:", error);
+    res.status(500).json({ message: "Erro de autenticação" });
   }
 };
 
@@ -143,25 +167,33 @@ const logoUpload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
-  app.use(
-    session({
-      store: new PostgresStore({
-        pool,
-        tableName: 'session', // Table to store sessions
-        createTableIfMissing: true,
-      }),
-      secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-        secure: false, // Set to false to ensure it works in both prod and dev
-        httpOnly: true,
-        sameSite: 'lax', // Improves CSRF security while allowing redirects from external sites
-        path: '/'
-      },
-    })
-  );
+  const sessionConfig = {
+    store: new PostgresStore({
+      pool,
+      tableName: 'session', // Table to store sessions
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
+    resave: true, // Modificado para true para garantir persistência
+    saveUninitialized: false,
+    name: 'endurancy_sid', // Nome personalizado do cookie para evitar colisões
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
+      secure: false, // Set to false to ensure it works in both prod and dev
+      httpOnly: true,
+      sameSite: 'lax' as const, // Tipado explicitamente para evitar erro
+      path: '/' // Disponível em todas as rotas
+    },
+  };
+  
+  console.log("Configurando sessão com as seguintes opções:", {
+    resave: sessionConfig.resave, 
+    saveUninitialized: sessionConfig.saveUninitialized,
+    cookiePath: sessionConfig.cookie.path,
+    cookieMaxAge: sessionConfig.cookie.maxAge,
+  });
+  
+  app.use(session(sessionConfig));
   
   // Initialize user table with an admin user if it doesn't exist
   const initializeAdmin = async () => {
@@ -364,7 +396,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set user in session
         req.session.user = userWithoutPassword;
         
-        console.log("Login successful for:", { username, role: user.role, orgId: orgsFound[0].id });
+        // Salvar explicitamente a sessão para garantir que as alterações sejam persistidas
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error saving session:", err);
+              reject(err);
+            } else {
+              console.log("Session saved successfully, sessionID:", req.sessionID);
+              console.log("Session user data:", req.session.user);
+              resolve();
+            }
+          });
+        });
+        
+        console.log("Login successful for:", { username, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
         res.json(userWithoutPassword);
         return;
       }
@@ -398,7 +444,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set user in session
       req.session.user = userWithoutPassword;
       
-      console.log("Login successful for:", { username, role: user.role });
+      // Salvar explicitamente a sessão para garantir que as alterações sejam persistidas
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session:", err);
+            reject(err);
+          } else {
+            console.log("Session saved successfully, sessionID:", req.sessionID);
+            console.log("Session user data:", req.session.user);
+            resolve();
+          }
+        });
+      });
+      
+      console.log("Login successful for:", { username, role: user.role, sessionID: req.sessionID });
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
@@ -411,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
-      res.clearCookie('connect.sid');
+      res.clearCookie('endurancy_sid', { path: '/' });
       res.json({ message: "Logged out successfully" });
     });
   });
