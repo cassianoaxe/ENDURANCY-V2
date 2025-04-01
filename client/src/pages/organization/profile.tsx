@@ -143,6 +143,127 @@ export default function OrganizationProfile() {
     groupId: "",
   });
   
+  // Handle plan upgrade
+  const handleUpgradePlan = async () => {
+    if (!selectedPlan) {
+      toast({
+        title: "Selecione um plano",
+        description: "Por favor, selecione um plano para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    upgradePlanMutation.mutate(selectedPlan);
+  };
+  
+  // Handle add module
+  const handleAddModule = async () => {
+    if (!selectedModule) {
+      toast({
+        title: "Selecione um módulo",
+        description: "Por favor, selecione um módulo para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Find appropriate plan for the module
+    const modulePlan = modulePlans.find(plan => 
+      plan.module_id === selectedModule && plan.name === "Básico"
+    );
+    
+    addModuleMutation.mutate({ 
+      moduleId: selectedModule, 
+      modulePlanId: modulePlan?.id || null
+    });
+  };
+  
+  // Handle invite user
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inviteData.email) {
+      toast({
+        title: "Email necessário",
+        description: "Por favor, insira um email válido",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createInvitationMutation.mutate({
+      email: inviteData.email,
+      role: inviteData.role,
+      groupId: inviteData.groupId ? inviteData.groupId : null
+    });
+  };
+  
+  // Handle delete invitation
+  const handleDeleteInvitation = async (invitationId: number) => {
+    try {
+      await apiRequest("DELETE", `/api/user-invitations/${invitationId}`, {});
+      
+      toast({
+        title: "Convite excluído",
+        description: "O convite foi excluído com sucesso",
+      });
+      
+      // Refresh invitations data
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir convite",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao excluir o convite",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle resend invitation
+  const handleResendInvitation = async (invitationId: number) => {
+    try {
+      await apiRequest("POST", `/api/user-invitations/${invitationId}/resend`, {});
+      
+      toast({
+        title: "Convite reenviado",
+        description: "O convite foi reenviado com sucesso",
+      });
+      
+      // Refresh invitations data
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+    } catch (error) {
+      toast({
+        title: "Erro ao reenviar convite",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao reenviar o convite",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Toggle module activation
+  const handleToggleModule = async (orgModuleId: number, currentStatus: boolean) => {
+    try {
+      await apiRequest("PUT", `/api/organization-modules/${orgModuleId}/toggle`, {
+        isActive: !currentStatus
+      });
+      
+      toast({
+        title: `Módulo ${currentStatus ? "desativado" : "ativado"}`,
+        description: `O módulo foi ${currentStatus ? "desativado" : "ativado"} com sucesso`,
+      });
+      
+      // Refresh organization modules data
+      queryClient.invalidateQueries({ queryKey: ['/api/organization-modules', organizationId] });
+    } catch (error) {
+      toast({
+        title: `Erro ao ${currentStatus ? "desativar" : "ativar"} módulo`,
+        description: error instanceof Error ? error.message : `Ocorreu um erro ao ${currentStatus ? "desativar" : "ativar"} o módulo`,
+        variant: "destructive",
+      });
+    }
+  };
+  
   // Use user from auth context
   const organizationId = user?.organizationId;
   
@@ -307,15 +428,10 @@ export default function OrganizationProfile() {
       if (!organizationId) throw new Error("ID da organização não disponível");
       if (!user) throw new Error("Usuário não autenticado");
       
-      console.log("Tentando buscar dados da organização:", organizationId);
-      console.log("Usuário atual:", JSON.stringify(user));
-      
       try {
         // Use apiRequest instead of fetch directly to ensure cookies are properly sent
         const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
-        
         const data = await response.json();
-        console.log("Dados da organização recebidos:", data);
         return data;
       } catch (error) {
         console.error("Erro ao buscar organização:", error);
