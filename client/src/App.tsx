@@ -21,6 +21,7 @@ import Plans from "@/pages/Plans";
 import Modules from "@/pages/Modules";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
+import OrganizationDetail from "@/pages/Organization";
 import Requests from "@/pages/Requests";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
@@ -130,6 +131,16 @@ function AppContent() {
     return (
       <Layout>
         <OrderView />
+      </Layout>
+    );
+  }
+  
+  // Check if the path matches an organization detail pattern (/organizations/123)
+  const orgDetailMatch = currentPath.match(/^\/organizations\/(\d+)$/);
+  if (orgDetailMatch && userRole === 'admin') {
+    return (
+      <Layout>
+        <OrganizationDetail />
       </Layout>
     );
   }
