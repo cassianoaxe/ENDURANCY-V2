@@ -1405,7 +1405,7 @@ export default function OrganizationProfile() {
                             <SelectValue placeholder="Selecione um grupo (opcional)" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Sem grupo</SelectItem>
+                            <SelectItem value="nenhum">Sem grupo</SelectItem>
                             {userGroups.map(group => (
                               <SelectItem key={group.id} value={group.id.toString()}>
                                 {group.name}
@@ -1432,7 +1432,7 @@ export default function OrganizationProfile() {
                         onClick={() => createInvitationMutation.mutate({
                           email: inviteData.email,
                           role: inviteData.role,
-                          groupId: inviteData.groupId || null
+                          groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId || null
                         })}
                         disabled={!inviteData.email || createInvitationMutation.isPending}
                       >
