@@ -2,10 +2,21 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, ArrowUpRight, Copy, Check, Settings, Database, CreditCard, Leaf } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { 
+  Search, Building2, Users, ArrowUpRight, Copy, Check, Settings, 
+  Database, CreditCard, Leaf, Ban, Power, Mail, PenLine, MoreHorizontal
+} from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Organization, Plan } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuLabel, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function Organizations() {
   // Navigation function to replace wouter
@@ -16,13 +27,105 @@ export default function Organizations() {
   
   const { toast } = useToast();
   const [copiedOrgCode, setCopiedOrgCode] = useState<string | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [suspendReason, setSuspendReason] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    website: '',
+    address: '',
+    city: '',
+    state: '',
+  });
   
-  const { data: allOrganizations, isLoading } = useQuery<Organization[]>({
+  const { data: allOrganizations, isLoading, refetch } = useQuery<Organization[]>({
     queryKey: ['/api/organizations']
   });
   
   const { data: plans } = useQuery<Plan[]>({
     queryKey: ['/api/plans']
+  });
+  
+  // Mutation para suspender/reativar organizações
+  const toggleOrgStatusMutation = useMutation({
+    mutationFn: async ({ id, status, reason }: { id: number, status: string, reason?: string }) => {
+      const response = await apiRequest('PUT', `/api/organizations/${id}/status`, { status, reason });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Status atualizado",
+        description: selectedOrg?.status === "active" 
+          ? "Organização suspensa com sucesso" 
+          : "Organização reativada com sucesso",
+      });
+      setIsSuspendDialogOpen(false);
+      setSuspendReason('');
+      setSelectedOrg(null);
+      // Recarregar dados
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Falha ao atualizar status: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation para editar organização
+  const updateOrgMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const response = await apiRequest('PUT', `/api/organizations/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Organização atualizada",
+        description: "Dados da organização foram atualizados com sucesso",
+      });
+      setIsEditDialogOpen(false);
+      setSelectedOrg(null);
+      // Recarregar dados
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Falha ao atualizar organização: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation para enviar email de boas-vindas
+  const sendWelcomeEmailMutation = useMutation({
+    mutationFn: async ({ id, message }: { id: number, message: string }) => {
+      const response = await apiRequest('POST', `/api/organizations/${id}/send-welcome-email`, { message });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email enviado",
+        description: "Email de boas-vindas enviado com sucesso",
+      });
+      setIsEmailDialogOpen(false);
+      setEmailMessage('');
+      setSelectedOrg(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Falha ao enviar email: ${error.message}`,
+        variant: "destructive"
+      });
+    }
   });
   
   // Filtrar apenas organizações aprovadas para exibição nesta página
@@ -46,6 +149,43 @@ export default function Organizations() {
       description: `URL de acesso para ${orgCode} foi copiado para a área de transferência.`,
     });
     setTimeout(() => setCopiedOrgCode(null), 3000);
+  };
+
+  // Funções para lidar com alterações em formulários
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSuspendSubmit = () => {
+    if (selectedOrg) {
+      toggleOrgStatusMutation.mutate({
+        id: selectedOrg.id,
+        status: 'suspended',
+        reason: suspendReason
+      });
+    }
+  };
+
+  const handleEditSubmit = () => {
+    if (selectedOrg) {
+      updateOrgMutation.mutate({
+        id: selectedOrg.id,
+        data: formData
+      });
+    }
+  };
+
+  const handleEmailSubmit = () => {
+    if (selectedOrg) {
+      sendWelcomeEmailMutation.mutate({
+        id: selectedOrg.id,
+        message: emailMessage
+      });
+    }
   };
 
   return (
@@ -225,6 +365,73 @@ export default function Organizations() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                                <MoreHorizontal className="h-3 w-3" />
+                                Ações
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[200px]">
+                              <DropdownMenuLabel>Gerenciar organização</DropdownMenuLabel>
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedOrg(org);
+                                  setFormData({
+                                    name: org.name || '',
+                                    email: org.email || '',
+                                    phone: org.phone || '',
+                                    website: org.website || '',
+                                    address: org.address || '',
+                                    city: org.city || '',
+                                    state: org.state || '',
+                                  });
+                                  setIsEditDialogOpen(true);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <PenLine className="mr-2 h-4 w-4" />
+                                Editar dados
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedOrg(org);
+                                  setIsEmailDialogOpen(true);
+                                  setEmailMessage(`Olá ${org.adminName || 'Administrador'},\n\nSeja bem-vindo ao Endurancy! Seu acesso à plataforma foi configurado e você já pode acessar o sistema.\n\nDados de acesso:\n- URL: ${window.location.origin}/login/${org.orgCode}\n- Usuário: ${org.email || 'seu e-mail cadastrado'}\n\nAcesse agora mesmo e configure sua senha de acesso no primeiro login.\n\nAtenciosamente,\nEquipe Endurancy.`);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Mail className="mr-2 h-4 w-4" />
+                                Enviar email de boas-vindas
+                              </DropdownMenuItem>
+                              {org.status === 'active' ? (
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setSelectedOrg(org);
+                                    setIsSuspendDialogOpen(true);
+                                  }}
+                                  className="cursor-pointer text-red-600"
+                                >
+                                  <Ban className="mr-2 h-4 w-4" />
+                                  Suspender
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem 
+                                  onClick={() => {
+                                    setSelectedOrg(org);
+                                    toggleOrgStatusMutation.mutate({ 
+                                      id: org.id, 
+                                      status: 'active' 
+                                    });
+                                  }}
+                                  className="cursor-pointer text-green-600"
+                                >
+                                  <Power className="mr-2 h-4 w-4" />
+                                  Reativar
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           <Button 
                             variant="outline" 
                             size="sm"
