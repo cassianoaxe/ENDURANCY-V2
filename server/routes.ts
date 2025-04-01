@@ -188,8 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
     resave: true, // Garantir persistência
-    saveUninitialized: false,
-    name: 'endurancy_sid', // Nome personalizado do cookie para evitar colisões
+    saveUninitialized: true, // Alterado para true para garantir que os cookies sejam enviados
+    name: 'connect.sid', // Nome padrão para maximizar compatibilidade
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
       secure: false, // Set to false to ensure it works in both prod and dev
@@ -492,7 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).json({ message: "Logout failed" });
       }
-      res.clearCookie('endurancy_sid', { path: '/' });
+      res.clearCookie('connect.sid', { path: '/' });
       res.json({ message: "Logged out successfully" });
     });
   });
