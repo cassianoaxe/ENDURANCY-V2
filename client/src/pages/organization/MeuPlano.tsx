@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 import { OrganizationSidebar } from '@/components/organization/OrganizationSidebar';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 interface Plan {
   id: number;
@@ -41,7 +42,15 @@ interface OrganizationPlan {
   activeModules: Module[];
 }
 
-export default function MeuPlano() {
+export default function MeuPlanoWrapper() {
+  return (
+    <AuthProvider>
+      <MeuPlanoContent />
+    </AuthProvider>
+  );
+}
+
+function MeuPlanoContent() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("plano-atual");
   const [changePlanModalOpen, setChangePlanModalOpen] = useState(false);
