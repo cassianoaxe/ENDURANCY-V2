@@ -16,6 +16,7 @@ import * as z from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -46,7 +47,15 @@ const formSchema = z.object({
 
 type OrganizationSettings = z.infer<typeof formSchema>;
 
-export default function Configuracoes() {
+export default function ConfiguracoesWrapper() {
+  return (
+    <AuthProvider>
+      <ConfiguracoesContent />
+    </AuthProvider>
+  );
+}
+
+function ConfiguracoesContent() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("geral");
   
