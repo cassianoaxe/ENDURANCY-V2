@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, FileText, Package, FileCheck, 
-  ChevronUp, ArrowUpRight, Wallet, LineChart
+  ChevronUp, ArrowUpRight, Wallet, LineChart, Leaf
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,12 @@ export default function OrganizationDashboard() {
     <OrganizationLayout>
       <div className="container px-0">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-gray-500 text-sm">Visão geral da organização, pacientes e produtos na plataforma Endurancy</p>
+          <div className="flex items-center gap-2">
+            <Leaf className="h-6 w-6 text-green-600" />
+            <div>
+              <h1 className="text-2xl font-bold">Dashboard</h1>
+              <p className="text-gray-500 text-sm">Visão geral da organização, pacientes e produtos na plataforma Endurancy</p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button 
