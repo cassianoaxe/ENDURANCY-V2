@@ -46,19 +46,9 @@ export default function OrganizationProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   const { toast } = useToast();
-  const { user: authUser } = useAuth();
+  const { user, isLoading: isUserLoading } = useAuth();
   
-  const { data: user, isLoading: isUserLoading } = useQuery<User>({
-    queryKey: ["/api/profile"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/profile");
-      if (!response.ok) {
-        throw new Error("Falha ao carregar dados do perfil");
-      }
-      return response.json();
-    }
-  });
-
+  // Usar diretamente o user do contexto de autenticação
   const organizationId = user?.organizationId;
 
   const { data: organization, isLoading: isOrgLoading, error } = useQuery<Organization>({
