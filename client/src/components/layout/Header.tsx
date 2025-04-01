@@ -1,5 +1,5 @@
 import React from "react";
-import { Sun, User, LogOut, PackageCheck } from "lucide-react";
+import { Sun, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsPopover from "@/components/features/NotificationsPopover";
@@ -71,18 +71,6 @@ export default function Header() {
                 <User className="mr-2 h-4 w-4" />
                 Perfil
               </DropdownMenuItem>
-              {user?.role === 'org_admin' && (
-                <DropdownMenuItem 
-                  onClick={() => {
-                    window.history.pushState({}, '', '/profile?tab=plan');
-                    window.dispatchEvent(new Event('popstate'));
-                  }}
-                  className="cursor-pointer"
-                >
-                  <PackageCheck className="mr-2 h-4 w-4" />
-                  Meu Plano
-                </DropdownMenuItem>
-              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={logout} 

@@ -310,28 +310,6 @@ function AppContent() {
   
   // User profile page
   if (currentPath === '/profile') {
-    // Se for usuário org_admin, usar um layout específico para evitar confusão com a sidebar de admin
-    if (userRole === 'org_admin') {
-      // Se estiver acessando a tab de plano, usar o layout da organização
-      if (window.location.search.includes('tab=plan')) {
-        const OrgLayout = React.lazy(() => import('./components/layout/OrgLayout'));
-        return (
-          <Suspense fallback={<div className="flex justify-center items-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-            <OrgLayout>
-              <UserProfile />
-            </OrgLayout>
-          </Suspense>
-        );
-      }
-      
-      return (
-        <Layout>
-          <UserProfile />
-        </Layout>
-      );
-    }
-    
-    // Para admin, não mostrar a aba de planos
     return (
       <Layout>
         <UserProfile />
