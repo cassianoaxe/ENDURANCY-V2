@@ -132,10 +132,7 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#f2f7f2]">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-[#e6f7e6] rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#4CAF50]">
-            <path d="M6.01489 18.4254C9.46368 21.8742 15.0945 21.9693 18.6556 18.4082C22.2166 14.8472 22.1216 9.21636 18.6728 5.76757L6.01489 18.4254Z" fill="currentColor"/>
-            <path d="M17.9794 4.91556C14.6219 1.55808 9.33926 1.46929 5.86512 4.94344C2.39097 8.41758 2.47976 13.7002 5.83724 17.0577L17.9794 4.91556Z" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
+          <span className="text-3xl font-bold text-[#4CAF50]">E</span>
         </div>
         <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
         <p className="text-gray-500 mt-1">Plataforma de Controle e Regulação</p>

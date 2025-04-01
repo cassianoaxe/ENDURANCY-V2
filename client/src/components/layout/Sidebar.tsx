@@ -336,10 +336,7 @@ export default function Sidebar() {
           onClick={(e) => handleNavigation(e, '/')}
           className="flex items-center gap-2"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-green-600">
-            <path d="M6.01489 18.4254C9.46368 21.8742 15.0945 21.9693 18.6556 18.4082C22.2166 14.8472 22.1216 9.21636 18.6728 5.76757L6.01489 18.4254Z" fill="currentColor"/>
-            <path d="M17.9794 4.91556C14.6219 1.55808 9.33926 1.46929 5.86512 4.94344C2.39097 8.41758 2.47976 13.7002 5.83724 17.0577L17.9794 4.91556Z" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
+          <Leaf className="h-6 w-6 text-green-600" />
           {!collapsed && <span className="text-xl font-semibold">Endurancy</span>}
         </a>
         
