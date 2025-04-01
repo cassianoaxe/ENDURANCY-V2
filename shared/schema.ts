@@ -3,7 +3,10 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Define a role enum para os diferentes tipos de usuário
-export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient']);
+export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee']);
+
+// Enum para o status de convites
+export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'expired']);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -844,3 +847,92 @@ export const insertChartOfAccountsSchema = createInsertSchema(chartOfAccounts).p
 // Tipos para o sistema de plano de contas
 export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
 export type InsertChartOfAccount = z.infer<typeof insertChartOfAccountsSchema>;
+
+// Enums para grupos de usuários e permissões
+export const permissionTypeEnum = pgEnum('permission_type', [
+  'view', 'edit', 'create', 'delete', 'approve', 'full_access'
+]);
+
+// Tabela de grupos de usuários (templates de permissão)
+export const userGroups = pgTable("user_groups", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de permissões por grupo
+export const groupPermissions = pgTable("group_permissions", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  permissionType: permissionTypeEnum("permission_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela para associar usuários a grupos
+export const userGroupMemberships = pgTable("user_group_memberships", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  assignedBy: integer("assigned_by").notNull(), // ID do usuário que atribuiu o grupo
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+});
+
+// Tabelas para convites de usuários
+export const userInvitations = pgTable("user_invitations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  email: text("email").notNull(),
+  role: roleEnum("role").notNull(),
+  groupId: integer("group_id"), // Grupo ao qual o usuário será associado (opcional)
+  invitedBy: integer("invited_by").notNull(), // ID do usuário que enviou o convite
+  token: text("token").notNull().unique(), // Token único para o convite
+  status: text("status").notNull().default("pending"), // pending, accepted, expired
+  expiresAt: timestamp("expires_at").notNull(), // Data de expiração do convite
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Schemas para inserção
+export const insertUserGroupSchema = createInsertSchema(userGroups).pick({
+  organizationId: true,
+  name: true,
+  description: true,
+  isDefault: true,
+});
+
+export const insertGroupPermissionSchema = createInsertSchema(groupPermissions).pick({
+  groupId: true,
+  moduleId: true,
+  permissionType: true,
+});
+
+export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships).pick({
+  userId: true,
+  groupId: true,
+  assignedBy: true,
+});
+
+export const insertUserInvitationSchema = createInsertSchema(userInvitations).pick({
+  organizationId: true,
+  email: true,
+  role: true,
+  groupId: true,
+  invitedBy: true,
+  token: true,
+  status: true,
+  expiresAt: true,
+});
+
+// Tipos para grupos e permissões
+export type UserGroup = typeof userGroups.$inferSelect;
+export type InsertUserGroup = z.infer<typeof insertUserGroupSchema>;
+export type GroupPermission = typeof groupPermissions.$inferSelect;
+export type InsertGroupPermission = z.infer<typeof insertGroupPermissionSchema>;
+export type UserGroupMembership = typeof userGroupMemberships.$inferSelect;
+export type InsertUserGroupMembership = z.infer<typeof insertUserGroupMembershipSchema>;
+export type UserInvitation = typeof userInvitations.$inferSelect;
+export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
