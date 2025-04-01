@@ -232,7 +232,11 @@ function AppContent() {
     }
     
     if (currentPath === '/organization/meu-plano') {
-      return <MeuPlano />;
+      return (
+        <Layout>
+          <MeuPlano />
+        </Layout>
+      );
     }
     
     return <NotFound />;
