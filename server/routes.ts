@@ -71,6 +71,11 @@ const PostgresStore = pgSession(session);
 // Middleware de autenticação aprimorado com verificação de sessão e logs detalhados
 const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Verificar se está vindo o cabeçalho Cookie
+    if (!req.headers.cookie) {
+      console.warn("Requisição sem cookie:", req.path);
+    }
+    
     // Informações detalhadas sobre o estado da sessão para depuração
     console.log("Auth check session:", { 
       hasSession: !!req.session,
@@ -91,6 +96,9 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
       console.log("Usuário não autenticado na sessão para:", req.path);
       return res.status(401).json({ message: "Não autenticado" });
     }
+    
+    // Atualiza o cookie de sessão para garantir que ele não expire
+    req.session.touch();
     
     // Registra acesso autenticado bem-sucedido
     console.log("Acesso autenticado:", {
@@ -179,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: true, // Modificado para true para garantir persistência
+    resave: true, // Garantir persistência
     saveUninitialized: false,
     name: 'endurancy_sid', // Nome personalizado do cookie para evitar colisões
     cookie: {
@@ -198,7 +206,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     cookieMaxAge: sessionConfig.cookie.maxAge,
   });
   
+  // Garantir que o middleware de sessão seja aplicado corretamente
   app.use(session(sessionConfig));
+  
+  // Debug de cookies em cada requisição
+  app.use((req, res, next) => {
+    console.log("Cookie na requisição:", req.headers.cookie);
+    console.log("Session ID:", req.sessionID);
+    next();
+  });
   
   // Initialize user table with an admin user if it doesn't exist
   const initializeAdmin = async () => {
@@ -482,10 +498,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/auth/me", (req, res) => {
-    if (req.session.user) {
-      res.json(req.session.user);
+    console.log("Verificando autenticação:", {
+      hasSession: !!req.session,
+      sessionID: req.sessionID,
+      cookies: req.headers.cookie
+    });
+    
+    if (req.session && req.session.user) {
+      // Atualiza o cookie de sessão para garantir que ele não expire
+      req.session.touch();
+      
+      // Salvar explicitamente as alterações na sessão
+      req.session.save((err) => {
+        if (err) {
+          console.error("Erro ao salvar a sessão:", err);
+          return res.status(500).json({ message: "Erro de sessão" });
+        }
+        console.log("Usuário autenticado:", req.session.user);
+        res.json(req.session.user);
+      });
     } else {
-      res.status(401).json({ message: "Not authenticated" });
+      console.log("Usuário não autenticado");
+      res.status(401).json({ message: "Não autenticado" });
     }
   });
   
