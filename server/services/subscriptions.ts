@@ -17,15 +17,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
  */
 export async function getOrCreateStripeCustomer(organizationId: number): Promise<string> {
   try {
+    console.log(`Buscando organização com ID: ${organizationId}`);
     // Buscar a organização
-    const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+    const orgs = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+    console.log(`Resultado da consulta: ${JSON.stringify(orgs, null, 2)}`);
     
-    if (!organization) {
+    if (!orgs || orgs.length === 0) {
+      console.error(`Organização com ID ${organizationId} não encontrada`);
       throw new Error('Organização não encontrada');
     }
     
+    const organization = orgs[0];
+    
+    console.log(`Organização encontrada: ${organization.name}`);
+    
     // Se já tiver um customer ID, retornar
     if (organization.stripeCustomerId) {
+      console.log(`Retornando Stripe Customer ID existente: ${organization.stripeCustomerId}`);
       return organization.stripeCustomerId;
     }
     
