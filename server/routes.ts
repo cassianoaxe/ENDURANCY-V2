@@ -64,7 +64,14 @@ const PostgresStore = pgSession(session);
 
 // Authentication middleware
 const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  if (req.session.user) {
+  console.log("Auth check session:", { 
+    hasSession: !!req.session,
+    hasUser: !!req.session?.user,
+    sessionID: req.sessionID,
+    user: req.session?.user || null
+  });
+  
+  if (req.session && req.session.user) {
     next();
   } else {
     res.status(401).json({ message: "Unauthorized" });
