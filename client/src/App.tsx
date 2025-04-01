@@ -211,7 +211,10 @@ function AppContent() {
     }
     
     if (currentPath === '/organization/dashboard') {
-      return <OrganizationDashboard />;
+      console.log("Renderizando o Dashboard da Organização com ícone Leaf");
+      // Forçar recarregamento do componente
+      const DashboardWithKey = () => <OrganizationDashboard key={Date.now()} />;
+      return <DashboardWithKey />;
     }
     
     if (currentPath === '/organization/onboarding') {

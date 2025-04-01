@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, LogOut
+  Menu, ChevronLeft, LogOut, Leaf
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -134,15 +134,15 @@ export default function OrganizationSidebar() {
       <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white font-bold">
-              E
+            <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white">
+              <Leaf className="h-5 w-5" />
             </div>
             <span className="font-semibold text-lg">Endurancy</span>
           </div>
         )}
         {collapsed && (
-          <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white font-bold mx-auto">
-            E
+          <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white mx-auto">
+            <Leaf className="h-5 w-5" />
           </div>
         )}
         <Button 
