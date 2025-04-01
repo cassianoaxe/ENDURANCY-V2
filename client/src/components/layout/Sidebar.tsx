@@ -37,15 +37,8 @@ import {
   ReceiptText,
   GitBranch,
   Bot,
-  LucideIcon,
-  Star,
-  StarOff,
-  History,
-  Lightbulb,
-  Bookmark,
-  Info
+  LucideIcon
 } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
 
 // Interface para itens de menu e submenu
 interface MenuItem {
@@ -151,110 +144,19 @@ const menuItems: MenuItem[] = [
   { icon: BookOpen, label: "Documentação", path: "/documentation" }
 ];
 
-// Interface para rastrear histórico de navegação
-interface NavHistory {
-  path: string;
-  label: string;
-  timestamp: number;
-  count: number;
-}
-
 export default function Sidebar() {
-  // Hook para acessar dados do usuário autenticado
-  const { user } = useAuth();
-  
   // Get current path for active state
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
-  
   // Estado para controle dos menus expandidos
-  const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>(() => {
-    // Carregar do localStorage se disponível
-    const savedExpandedMenus = localStorage.getItem('endurancy_expanded_menus');
-    return savedExpandedMenus ? JSON.parse(savedExpandedMenus) : {
-      "Módulos": false,
-      "Tickets de Suporte": false,
-      "Financeiro": true, // Começar com o menu financeiro expandido por padrão
-      "Integrações": false
-    };
+  const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
+    "Módulos": false,
+    "Tickets de Suporte": false,
+    "Financeiro": true, // Começar com o menu financeiro expandido por padrão
+    "Integrações": false
   });
   
   // Controla se a sidebar está colapsada/retraída
-  const [collapsed, setCollapsed] = React.useState<boolean>(() => {
-    // Carregar do localStorage se disponível
-    const savedCollapsed = localStorage.getItem('endurancy_sidebar_collapsed');
-    return savedCollapsed ? JSON.parse(savedCollapsed) : false;
-  });
-  
-  // Estado para rastrear itens acessados recentemente
-  const [recentItems, setRecentItems] = React.useState<NavHistory[]>(() => {
-    const savedItems = localStorage.getItem('endurancy_recent_items');
-    return savedItems ? JSON.parse(savedItems) : [];
-  });
-  
-  // Estado para marcadores favoritos
-  const [favorites, setFavorites] = React.useState<string[]>(() => {
-    const savedFavorites = localStorage.getItem('endurancy_favorites');
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
-  
-  // Estado para exibir dicas contextuais
-  const [showTip, setShowTip] = React.useState<boolean>(true);
-  
-  // Gerar dica contextual baseada no papel do usuário e navegação recente
-  const contextualTip = React.useMemo(() => {
-    if (!user) return null;
-    
-    const userRole = user.role;
-    const tips = {
-      admin: [
-        "Você pode gerenciar todas as organizações na página Organizações.",
-        "Confira as solicitações de novas organizações na seção Solicitações.",
-        "Monitore a saúde do sistema no Dashboard de Analytics.",
-        "Configure as integrações globais na seção Integrações."
-      ],
-      org_admin: [
-        "Adicione novos membros à sua organização na seção Usuários.",
-        "Gerencie os módulos ativos para sua organização em Módulos.",
-        "Visualize sua assinatura atual na página Meu Plano.",
-        "Configure as integrações específicas da sua organização em Integrações."
-      ],
-      doctor: [
-        "Crie novos registros de pacientes na seção Pacientes.",
-        "Acompanhe suas consultas no Calendário.",
-        "Gerencie seus atendimentos na Dashboard."
-      ],
-      patient: [
-        "Acesse suas consultas agendadas na seção Consultas.",
-        "Atualize seu perfil médico em Meu Perfil.",
-        "Veja seu histórico de tratamentos na Dashboard."
-      ]
-    };
-    
-    // Seleciona uma dica aleatória baseada no papel do usuário
-    const roleTips = tips[userRole] || tips.admin;
-    const randomIndex = Math.floor(Math.random() * roleTips.length);
-    return roleTips[randomIndex];
-  }, [user]);
-
-  // Salvar o estado de colapso no localStorage quando mudar
-  React.useEffect(() => {
-    localStorage.setItem('endurancy_sidebar_collapsed', JSON.stringify(collapsed));
-  }, [collapsed]);
-
-  // Salvar expansão de menus no localStorage quando mudar
-  React.useEffect(() => {
-    localStorage.setItem('endurancy_expanded_menus', JSON.stringify(expandedMenus));
-  }, [expandedMenus]);
-
-  // Salvar itens recentes no localStorage quando mudar
-  React.useEffect(() => {
-    localStorage.setItem('endurancy_recent_items', JSON.stringify(recentItems));
-  }, [recentItems]);
-
-  // Salvar favoritos no localStorage quando mudar
-  React.useEffect(() => {
-    localStorage.setItem('endurancy_favorites', JSON.stringify(favorites));
-  }, [favorites]);
+  const [collapsed, setCollapsed] = React.useState(false);
 
   // Update current path when URL changes
   React.useEffect(() => {
@@ -300,9 +202,6 @@ export default function Sidebar() {
       };
       
       expandParentMenus();
-      
-      // Registrar o item no histórico de navegação
-      registerNavigation(window.location.pathname);
     };
 
     // Chame imediatamente para configurar o estado inicial
@@ -311,61 +210,6 @@ export default function Sidebar() {
     window.addEventListener('popstate', handleNavigation);
     return () => window.removeEventListener('popstate', handleNavigation);
   }, [currentPath]);
-  
-  // Função para registrar um item no histórico de navegação
-  const registerNavigation = (path: string) => {
-    // Encontrar o item de menu correspondente ao path
-    let menuItem: MenuItem | undefined;
-    
-    const findMenuItem = (items: MenuItem[]): MenuItem | undefined => {
-      for (const item of items) {
-        if (item.path === path) {
-          return item;
-        }
-        if (item.submenu) {
-          const found = findMenuItem(item.submenu);
-          if (found) return found;
-        }
-      }
-      return undefined;
-    };
-    
-    menuItem = findMenuItem(menuItems);
-    
-    if (!menuItem || !menuItem.path) return; // Não registrar se não encontrar o item
-    
-    setRecentItems(prev => {
-      const now = Date.now();
-      const existingItemIndex = prev.findIndex(item => item.path === path);
-      
-      if (existingItemIndex >= 0) {
-        // Atualizar item existente
-        const updatedItems = [...prev];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          timestamp: now,
-          count: updatedItems[existingItemIndex].count + 1
-        };
-        
-        // Reordenar com os mais recentes no topo
-        return updatedItems.sort((a, b) => b.timestamp - a.timestamp);
-      } else {
-        // Adicionar novo item
-        const newItems = [
-          { 
-            path, 
-            label: menuItem?.label || path, 
-            timestamp: now,
-            count: 1
-          }, 
-          ...prev
-        ];
-        
-        // Manter apenas os 10 mais recentes
-        return newItems.slice(0, 10);
-      }
-    });
-  };
 
   // Toggle menu expansion
   const toggleMenu = (label: string) => {
@@ -484,74 +328,6 @@ export default function Sidebar() {
     );
   };
 
-  // Função para adicionar ou remover um item dos favoritos
-  const toggleFavorite = (path: string) => {
-    if (favorites.includes(path)) {
-      setFavorites(prev => prev.filter(p => p !== path));
-    } else {
-      setFavorites(prev => [...prev, path]);
-    }
-  };
-
-  // Encontrar um item de menu pelo path
-  const findMenuItemByPath = (path: string): MenuItem | undefined => {
-    const findItem = (items: MenuItem[]): MenuItem | undefined => {
-      for (const item of items) {
-        if (item.path === path) {
-          return item;
-        }
-        if (item.submenu) {
-          const found = findItem(item.submenu);
-          if (found) return found;
-        }
-      }
-      return undefined;
-    };
-    
-    return findItem(menuItems);
-  };
-
-  // Renderizar um item de menu recente ou favorito
-  const renderSmartMenuItem = (path: string, label: string, count?: number) => {
-    const menuItem = findMenuItemByPath(path);
-    if (!menuItem) return null;
-    
-    const Icon = menuItem.icon;
-    const isActive = path === currentPath || 
-      (path && currentPath.startsWith(path));
-      
-    return (
-      <div className="flex items-center gap-2 group" key={path}>
-        <a 
-          href={path}
-          onClick={(e) => handleNavigation(e, path)}
-          className={`flex items-center gap-3 flex-1 px-3 py-2 rounded-lg transition-colors text-sm
-            ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
-        >
-          <Icon size={16} />
-          <span>{label}</span>
-          {count !== undefined && (
-            <span className="ml-auto text-xs text-gray-400">{count}</span>
-          )}
-        </a>
-        
-        {/* Estrela para favoritar/desfavoritar */}
-        {!collapsed && (
-          <button 
-            onClick={() => toggleFavorite(path)}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-          >
-            {favorites.includes(path) ? (
-              <Star size={14} className="fill-yellow-400 text-yellow-400" />
-            ) : (
-              <StarOff size={14} />
-            )}
-          </button>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className={`${collapsed ? 'w-[70px]' : 'w-[260px]'} h-screen bg-white border-r fixed left-0 top-0 transition-all duration-300 overflow-auto`}>
       <div className="p-4 border-b flex justify-between items-center">
@@ -573,59 +349,6 @@ export default function Sidebar() {
         </button>
       </div>
       
-      {/* Dica contextual baseada no papel do usuário */}
-      {!collapsed && contextualTip && showTip && (
-        <div className="mx-4 mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100 text-xs text-blue-700 relative">
-          <div className="flex items-start gap-2">
-            <Lightbulb size={16} className="text-blue-500 shrink-0 mt-0.5" />
-            <div>
-              <p>{contextualTip}</p>
-            </div>
-            <button 
-              onClick={() => setShowTip(false)} 
-              className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Favoritos */}
-      {!collapsed && favorites.length > 0 && (
-        <div className="mt-3 px-4">
-          <div className="flex items-center mb-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Favoritos</h3>
-            <div className="flex-grow border-t border-gray-200 ml-2"></div>
-          </div>
-          <div className="space-y-1 mb-3">
-            {favorites.map(path => {
-              const menuItem = findMenuItemByPath(path);
-              return menuItem && renderSmartMenuItem(path, menuItem.label);
-            })}
-          </div>
-        </div>
-      )}
-      
-      {/* Recentes */}
-      {!collapsed && recentItems.length > 0 && (
-        <div className="mt-2 px-4">
-          <div className="flex items-center mb-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Recentes</h3>
-            <div className="flex-grow border-t border-gray-200 ml-2"></div>
-          </div>
-          <div className="space-y-1 mb-3">
-            {recentItems.slice(0, 5).map(item => 
-              renderSmartMenuItem(item.path, item.label, item.count)
-            )}
-          </div>
-        </div>
-      )}
-      
-      {/* Menu principal */}
       <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'}`}>
         {menuItems.map((item) => renderMenuItem(item))}
       </nav>
