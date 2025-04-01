@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { 
   Loader2, Upload, User, Building, Mail, Phone, Info, 
   CreditCard, Tag, Package, Users, Check, AlertTriangle, 
-  Calendar, Puzzle, PlusCircle, UserPlus, Star, ArrowRight
+  Calendar, Puzzle, PlusCircle, UserPlus, Star, ArrowRight,
+  X, SendHorizonal, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 
 interface Organization {
@@ -133,7 +137,9 @@ export default function OrganizationProfile() {
   const [isAddingModule, setIsAddingModule] = useState(false);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const [isUpgradingPlan, setIsUpgradingPlan] = useState(false);
+  const [isConfirmingPlanChange, setIsConfirmingPlanChange] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   
   // States for user invitations
   const [isInviting, setIsInviting] = useState(false);
@@ -905,7 +911,7 @@ export default function OrganizationProfile() {
                           </div>
                         </div>
                         
-                        {/* Plan upgrade dialog */}
+                        {/* Plan selection dialog */}
                         <Dialog open={isUpgradingPlan} onOpenChange={setIsUpgradingPlan}>
                           <DialogContent className="sm:max-w-[900px]">
                             <DialogHeader>
@@ -915,51 +921,53 @@ export default function OrganizationProfile() {
                               </DialogDescription>
                             </DialogHeader>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                              {plans.map((plan) => (
-                                <Card 
-                                  key={plan.id} 
-                                  className={`flex flex-col border-2 transition-all hover:shadow-md ${selectedPlan === plan.id ? 'border-primary' : 'border-gray-200'}`}
-                                >
-                                  <CardHeader className="pb-2">
-                                    {plan.isPopular && (
-                                      <Badge className="w-fit mb-2">Mais Popular</Badge>
-                                    )}
-                                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                                    <CardDescription className="flex items-baseline gap-1">
-                                      <span className="text-2xl font-bold">R${plan.price}</span>
-                                      <span className="text-sm font-normal">/{plan.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
-                                    </CardDescription>
-                                  </CardHeader>
-                                  <CardContent className="flex-grow">
-                                    <p className="text-sm mb-4">{plan.description}</p>
-                                    <ul className="space-y-2">
-                                      <li className="flex items-center gap-2 text-sm">
-                                        <Check className="h-4 w-4 text-primary" />
-                                        Até {plan.maxRegistrations} cadastros
-                                      </li>
-                                      {plan.features.map((feature, index) => (
-                                        <li key={index} className="flex items-center gap-2 text-sm">
+                            <ScrollArea className="h-[400px] pr-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                                {plans.map((plan) => (
+                                  <Card 
+                                    key={plan.id} 
+                                    className={`flex flex-col border-2 transition-all hover:shadow-md ${selectedPlan === plan.id ? 'border-primary' : 'border-gray-200'}`}
+                                  >
+                                    <CardHeader className="pb-2">
+                                      {plan.isPopular && (
+                                        <Badge className="w-fit mb-2">Mais Popular</Badge>
+                                      )}
+                                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                                      <CardDescription className="flex items-baseline gap-1">
+                                        <span className="text-2xl font-bold">R${plan.price}</span>
+                                        <span className="text-sm font-normal">/{plan.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
+                                      </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                      <p className="text-sm mb-4">{plan.description}</p>
+                                      <ul className="space-y-2">
+                                        <li className="flex items-center gap-2 text-sm">
                                           <Check className="h-4 w-4 text-primary" />
-                                          {feature}
+                                          Até {plan.maxRegistrations} cadastros
                                         </li>
-                                      ))}
-                                    </ul>
-                                  </CardContent>
-                                  <CardFooter>
-                                    <Button 
-                                      variant={selectedPlan === plan.id ? "default" : "outline"} 
-                                      className="w-full" 
-                                      onClick={() => setSelectedPlan(plan.id)}
-                                    >
-                                      {selectedPlan === plan.id ? 'Selecionado' : 'Selecionar'}
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                              ))}
-                            </div>
+                                        {plan.features.map((feature, index) => (
+                                          <li key={index} className="flex items-center gap-2 text-sm">
+                                            <Check className="h-4 w-4 text-primary" />
+                                            {feature}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </CardContent>
+                                    <CardFooter>
+                                      <Button 
+                                        variant={selectedPlan === plan.id ? "default" : "outline"} 
+                                        className="w-full" 
+                                        onClick={() => setSelectedPlan(plan.id)}
+                                      >
+                                        {selectedPlan === plan.id ? 'Selecionado' : 'Selecionar'}
+                                      </Button>
+                                    </CardFooter>
+                                  </Card>
+                                ))}
+                              </div>
+                            </ScrollArea>
                             
-                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4">
+                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4 mt-4">
                               <div className="flex items-center text-sm text-gray-500">
                                 <Info className="h-4 w-4 mr-2" />
                                 <span>Você pode alterar seu plano a qualquer momento</span>
@@ -969,19 +977,130 @@ export default function OrganizationProfile() {
                                   Cancelar
                                 </Button>
                                 <Button 
-                                  disabled={!selectedPlan || upgradePlanMutation.isPending} 
-                                  onClick={() => selectedPlan && upgradePlanMutation.mutate(selectedPlan)}
+                                  disabled={!selectedPlan} 
+                                  onClick={() => {
+                                    if (selectedPlan) {
+                                      setIsUpgradingPlan(false);
+                                      setIsConfirmingPlanChange(true);
+                                    }
+                                  }}
                                 >
-                                  {upgradePlanMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Processando...
-                                    </>
-                                  ) : (
-                                    'Confirmar mudança de plano'
-                                  )}
+                                  Continuar
                                 </Button>
                               </div>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {/* Plan change confirmation dialog */}
+                        <Dialog open={isConfirmingPlanChange} onOpenChange={setIsConfirmingPlanChange}>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirmar mudança de plano</DialogTitle>
+                              <DialogDescription>
+                                Revise os detalhes e confirme a mudança de plano.
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            {selectedPlan && (
+                              <div className="space-y-4 my-4">
+                                <div className="flex justify-between items-center p-4 border rounded-lg bg-muted/50">
+                                  <div>
+                                    <p className="font-medium">Plano atual</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {organization.planId 
+                                        ? plans.find(p => p.id === organization.planId)?.name || "Plano desconhecido"
+                                        : "Plano trial"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium">
+                                      {organization.planId 
+                                        ? `R$${plans.find(p => p.id === organization.planId)?.price || 0}`
+                                        : "R$0"}
+                                      <span className="text-sm font-normal">/mês</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex justify-center my-2">
+                                  <ArrowRight className="text-primary" />
+                                </div>
+                                
+                                <div className="flex justify-between items-center p-4 border rounded-lg bg-primary/5 border-primary/20">
+                                  <div>
+                                    <p className="font-medium">Novo plano</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {plans.find(p => p.id === selectedPlan)?.name || "Plano desconhecido"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium">
+                                      R${plans.find(p => p.id === selectedPlan)?.price || 0}
+                                      <span className="text-sm font-normal">/mês</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {organization.planId && selectedPlan && (
+                                  <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200 flex items-start gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="font-medium text-yellow-700">Alteração no valor</p>
+                                      <p className="text-sm text-yellow-600">
+                                        {(plans.find(p => p.id === selectedPlan)?.price || 0) > 
+                                         (plans.find(p => p.id === organization.planId)?.price || 0)
+                                          ? "Você será cobrado proporcionalmente pela diferença entre os planos."
+                                          : "O valor excedente do plano anterior será creditado em sua próxima fatura."}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-start space-x-2 pt-2">
+                                  <Checkbox 
+                                    id="terms" 
+                                    checked={termsAccepted}
+                                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                                  />
+                                  <div className="grid gap-1.5 leading-none">
+                                    <label
+                                      htmlFor="terms"
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                      Aceito os termos e condições
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                      Concordo com os termos de serviço e políticas de mudança de plano da Endurancy.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  setIsConfirmingPlanChange(false);
+                                  setIsUpgradingPlan(true);
+                                }}
+                              >
+                                Voltar
+                              </Button>
+                              <Button 
+                                disabled={!termsAccepted || upgradePlanMutation.isPending} 
+                                onClick={() => selectedPlan && upgradePlanMutation.mutate(selectedPlan)}
+                              >
+                                {upgradePlanMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processando...
+                                  </>
+                                ) : (
+                                  'Confirmar mudança de plano'
+                                )}
+                              </Button>
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
