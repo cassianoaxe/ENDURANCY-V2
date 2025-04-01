@@ -6,10 +6,15 @@ import { useToast } from "@/hooks/use-toast";
 interface User {
   id: number;
   username: string;
-  role: 'admin' | 'org_admin' | 'doctor' | 'patient';
+  role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee';
   name: string;
   email: string;
   organizationId: number | null;
+  profilePhoto?: string | null;
+  phoneNumber?: string | null;
+  bio?: string | null;
+  lastPasswordChange?: Date | null;
+  createdAt?: Date;
 }
 
 // Contexto de autenticação
@@ -17,7 +22,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient', orgCode?: string) => Promise<void>;
+  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee', orgCode?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -60,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Função de login
-  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient', orgCode?: string) => {
+  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee', orgCode?: string) => {
     try {
       // Determina o endpoint com base no tipo de usuário
       const endpoint = userType === 'doctor' || userType === 'patient' 
