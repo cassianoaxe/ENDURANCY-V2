@@ -55,21 +55,13 @@ export default function OrganizationProfile() {
     queryKey: ["/api/organizations", organizationId],
     queryFn: async () => {
       if (!organizationId) throw new Error("ID da organização não disponível");
-      
-      // Verifica se já estamos autenticados
-      const authCheck = await apiRequest("GET", "/api/auth/me");
-      if (!authCheck.ok) {
-        throw new Error("Usuário não autenticado");
-      }
+      if (!user) throw new Error("Usuário não autenticado");
       
       // Prossegue com a requisição para obter os dados da organização
       const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
-      if (!response.ok) {
-        throw new Error(`Falha ao carregar dados da organização: ${await response.text()}`);
-      }
       return response.json();
     },
-    enabled: !!organizationId
+    enabled: !!organizationId && !!user
   });
 
   const [profileForm, setProfileForm] = useState<Partial<Organization>>({});
@@ -100,25 +92,15 @@ export default function OrganizationProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!organizationId) return;
+    if (!organizationId || !user) return;
     
     setIsSubmitting(true);
     try {
-      // Verificar autenticação primeiro
-      const authCheck = await apiRequest("GET", "/api/auth/me");
-      if (!authCheck.ok) {
-        throw new Error("Usuário não autenticado");
-      }
-      
       const response = await apiRequest(
         "PUT", 
         `/api/organizations/${organizationId}`, 
         profileForm
       );
-      
-      if (!response.ok) {
-        throw new Error(`Falha ao atualizar os dados da organização: ${await response.text()}`);
-      }
       
       const updatedOrg = await response.json();
       
@@ -142,19 +124,13 @@ export default function OrganizationProfile() {
   };
 
   const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !organizationId) return;
+    if (!e.target.files || e.target.files.length === 0 || !organizationId || !user) return;
     
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('logo', file);
     
     try {
-      // Verificar autenticação primeiro
-      const authCheck = await apiRequest("GET", "/api/auth/me");
-      if (!authCheck.ok) {
-        throw new Error("Usuário não autenticado");
-      }
-      
       // Usando fetch diretamente porque apiRequest não suporta FormData adequadamente
       const response = await fetch(
         `/api/organizations/${organizationId}/logo`,
