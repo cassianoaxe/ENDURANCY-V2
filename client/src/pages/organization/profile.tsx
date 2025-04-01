@@ -517,8 +517,6 @@ export default function OrganizationProfile() {
                 <TabsTrigger value="plan">Plano e Assinatura</TabsTrigger>
                 <TabsTrigger value="modules">Módulos</TabsTrigger>
                 <TabsTrigger value="users">Usuários e Convites</TabsTrigger>
-                <TabsTrigger value="admin">Administração</TabsTrigger>
-                <TabsTrigger value="documents">Documentos</TabsTrigger>
               </TabsList>
 
               <TabsContent value="profile">
@@ -1336,101 +1334,7 @@ export default function OrganizationProfile() {
                 </Dialog>
               </TabsContent>
 
-              <TabsContent value="admin">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Configurações Administrativas</CardTitle>
-                    <CardDescription>
-                      Gerencie as configurações administrativas da sua organização
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col gap-4">
-                      <div className="border p-4 rounded-md">
-                        <h3 className="text-lg font-medium">Usuários Administradores</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          Lista de usuários com permissões administrativas nesta organização
-                        </p>
-                        <Button 
-                          variant="outline"
-                          onClick={() => {
-                            window.history.pushState({}, '', '/organization/administrators');
-                            window.dispatchEvent(new Event('popstate'));
-                          }}
-                        >
-                          Gerenciar Administradores
-                        </Button>
-                      </div>
-                      
-                      <div className="border p-4 rounded-md">
-                        <h3 className="text-lg font-medium">Plano e Assinatura</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          Gerencie o plano e a assinatura da sua organização
-                        </p>
-                        <Button 
-                          variant="outline"
-                          onClick={() => {
-                            window.history.pushState({}, '', '/organization/meu-plano');
-                            window.dispatchEvent(new Event('popstate'));
-                          }}
-                        >
-                          Gerenciar Plano
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
 
-              <TabsContent value="documents">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Documentos</CardTitle>
-                    <CardDescription>
-                      Documentos da organização para fins legais e de compliance
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col gap-4">
-                      <div className="border p-4 rounded-md">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-lg font-medium">Documentos Cadastrais</h3>
-                            <p className="text-sm text-gray-500">
-                              Documentos necessários para registro e operação
-                            </p>
-                          </div>
-                          <Button variant="outline">Gerenciar</Button>
-                        </div>
-                      </div>
-                      
-                      <div className="border p-4 rounded-md">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-lg font-medium">Certificações</h3>
-                            <p className="text-sm text-gray-500">
-                              Certificados, licenças e outras documentações
-                            </p>
-                          </div>
-                          <Button variant="outline">Gerenciar</Button>
-                        </div>
-                      </div>
-                      
-                      <div className="border p-4 rounded-md">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="text-lg font-medium">Relatórios</h3>
-                            <p className="text-sm text-gray-500">
-                              Relatórios periódicos e documentação de compliance
-                            </p>
-                          </div>
-                          <Button variant="outline">Gerenciar</Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           </div>
         </div>
