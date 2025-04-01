@@ -49,6 +49,7 @@ import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
 import MeuPlano from "@/pages/organization/MeuPlano";
+import Configuracoes from "@/pages/organization/Configuracoes";
 
 // Import integrations
 import Integracoes from "@/pages/integracoes";
@@ -232,11 +233,11 @@ function AppContent() {
     }
     
     if (currentPath === '/organization/meu-plano') {
-      return (
-        <Layout>
-          <MeuPlano />
-        </Layout>
-      );
+      return <MeuPlano />;
+    }
+    
+    if (currentPath === '/organization/configuracoes') {
+      return <Configuracoes />;
     }
     
     return <NotFound />;
