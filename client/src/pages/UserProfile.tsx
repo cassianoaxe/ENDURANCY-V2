@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileForm } from "@/components/user/ProfileForm";
 import { PasswordChangeForm } from "@/components/user/PasswordChangeForm";
 import { Loader2, User as UserIcon, Key, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Definimos a interface User internamente para evitar problemas de importação
 interface User {
@@ -23,29 +24,34 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   
-  const { data: user, isLoading, error } = useQuery<User>({
-    queryKey: ["/api/profile"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/profile");
-      if (!response.ok) {
-        throw new Error("Falha ao carregar dados do perfil");
-      }
-      return response.json();
-    }
-  });
+  // Usar o contexto de autenticação para obter os dados do usuário
+  const { user, isLoading } = useAuth();
+  const error = !user;
 
-  const handleProfileUpdate = (updatedUser: Partial<User>) => {
-    // Atualizar o cache do React Query
-    queryClient.setQueryData(["/api/profile"], (oldData: User | undefined) => {
-      if (!oldData) return updatedUser;
-      return { ...oldData, ...updatedUser };
-    });
-    
-    // Atualizar também o cache do usuário autenticado
-    queryClient.setQueryData(["/api/auth/me"], (oldData: User | undefined) => {
-      if (!oldData) return updatedUser;
-      return { ...oldData, ...updatedUser };
-    });
+  const handleProfileUpdate = async (updatedUser: Partial<User>) => {
+    try {
+      // Enviar atualização para o servidor
+      const response = await apiRequest("PUT", "/api/profile", updatedUser);
+      if (!response.ok) {
+        throw new Error("Falha ao atualizar perfil");
+      }
+
+      const updatedData = await response.json();
+      
+      // Atualizar o cache do React Query
+      queryClient.setQueryData(["/api/profile"], (oldData: User | undefined) => {
+        if (!oldData) return updatedData;
+        return { ...oldData, ...updatedData };
+      });
+      
+      // Atualizar também o cache do usuário autenticado
+      queryClient.setQueryData(["/api/auth/me"], (oldData: User | undefined) => {
+        if (!oldData) return updatedData;
+        return { ...oldData, ...updatedData };
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+    }
   };
 
   if (isLoading) {
