@@ -3121,8 +3121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         profileData.email && 
         profileData.email !== req.session.user.email && 
         userRole !== 'admin' && 
-        userRole !== 'org_admin' && 
-        userRole !== 'manager'
+        userRole !== 'org_admin'
       ) {
         // Remove o e-mail do objeto de atualização se o usuário não tem permissão
         delete profileData.email;
