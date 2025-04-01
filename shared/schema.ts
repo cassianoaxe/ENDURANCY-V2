@@ -44,7 +44,7 @@ export const organizations = pgTable("organizations", {
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
   website: text("website").notNull().default(''),
-  planId: integer("plan_id").notNull().references(() => plans.id), // ID do plano contratado
+  planId: integer("plan_id").notNull(), // ID do plano contratado
   planTier: planTierEnum("plan_tier").default("free"), // Nível do plano (free, seed, grow, pro)
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
   recordCount: integer("record_count").default(0), // Contagem de registros (pacientes/plantas)
@@ -180,9 +180,9 @@ export const modulePlans = pgTable("module_plans", {
 // Tabela de associação entre organizações e módulos contratados
 export const organizationModules = pgTable("organization_modules", {
   id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull().references(() => organizations.id),
-  moduleId: integer("module_id").notNull().references(() => modules.id),
-  planId: integer("plan_id").references(() => plans.id), // plano contratado para este módulo
+  organizationId: integer("organization_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  planId: integer("plan_id"), // plano contratado para este módulo
   active: boolean("active").default(true), // se o módulo está ativo para esta organização
   billingDay: integer("billing_day"), // dia de cobrança da assinatura
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -723,12 +723,6 @@ export type InsertTicketAttachment = z.infer<typeof insertTicketAttachmentSchema
 // Enums para o sistema de notificações
 export const notificationTypeEnum = pgEnum('notification_type', ['info', 'warning', 'success', 'error']);
 
-// Enum para tipo de solicitação
-export const requestTypeEnum = pgEnum('request_type', ['plano', 'módulo', 'integração', 'cancelamento']);
-
-// Enum para status da solicitação
-export const requestStatusEnum = pgEnum('request_status', ['pendente', 'aprovada', 'negada', 'cancelada']);
-
 // Tabela de notificações
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
@@ -848,34 +842,3 @@ export const insertChartOfAccountsSchema = createInsertSchema(chartOfAccounts).p
 // Tipos para o sistema de plano de contas
 export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
 export type InsertChartOfAccount = z.infer<typeof insertChartOfAccountsSchema>;
-
-// Tabela de solicitações (requests)
-export const requests = pgTable("requests", {
-  id: serial("id").primaryKey(),
-  type: requestTypeEnum("type").notNull(),
-  organizationId: integer("organization_id").notNull(),
-  createdById: integer("created_by_id").notNull(),
-  data: json("data"), // Dados da solicitação em formato JSON
-  status: requestStatusEnum("status").notNull().default("pendente"),
-  description: text("description").notNull(),
-  notes: text("notes"), // Notas adicionais
-  approvedById: integer("approved_by_id"), // ID do admin que aprovou/rejeitou
-  approvedAt: timestamp("approved_at"), // Data de aprovação/rejeição
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Schema para inserção de solicitações
-export const insertRequestSchema = createInsertSchema(requests).pick({
-  type: true,
-  organizationId: true,
-  createdById: true,
-  data: true,
-  status: true,
-  description: true,
-  notes: true,
-});
-
-// Tipos para o sistema de solicitações
-export type Request = typeof requests.$inferSelect;
-export type InsertRequest = z.infer<typeof insertRequestSchema>;
