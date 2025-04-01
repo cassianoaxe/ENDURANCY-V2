@@ -30,7 +30,7 @@ import CreateTicket from "@/pages/CreateTicket";
 import SupportDashboard from "@/pages/SupportDashboard";
 import Documentation from "@/pages/Documentation";
 import UserProfile from "@/pages/UserProfile";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";

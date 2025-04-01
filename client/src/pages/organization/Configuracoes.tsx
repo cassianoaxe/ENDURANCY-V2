@@ -16,7 +16,7 @@ import * as z from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/hooks/use-auth';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -47,12 +47,8 @@ const formSchema = z.object({
 
 type OrganizationSettings = z.infer<typeof formSchema>;
 
-export default function ConfiguracoesWrapper() {
-  return (
-    <AuthProvider>
-      <ConfiguracoesContent />
-    </AuthProvider>
-  );
+export default function Configuracoes() {
+  return <ConfiguracoesContent />;
 }
 
 function ConfiguracoesContent() {
@@ -85,7 +81,7 @@ function ConfiguracoesContent() {
   });
   
   // Atualizar formulário quando os dados chegarem
-  useState(() => {
+  useEffect(() => {
     if (organizationData) {
       form.reset({
         name: organizationData.name,
@@ -99,7 +95,7 @@ function ConfiguracoesContent() {
         theme: organizationData.theme,
       });
     }
-  });
+  }, [organizationData, form]);
   
   // Mutação para atualizar configurações da organização
   const updateSettingsMutation = useMutation({
