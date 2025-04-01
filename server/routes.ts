@@ -1085,6 +1085,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organização não encontrada" });
       }
       
+      // Se a organização não tiver um logo, definir o caminho para o logo padrão
+      if (!organization.logo) {
+        organization.logo = '/uploads/logos/default-logo.svg';
+      }
+      
       res.json(organization);
     } catch (error) {
       console.error("Erro ao buscar organização:", error);

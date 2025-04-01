@@ -42,6 +42,7 @@ import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
+import OrganizationProfile from "@/pages/organization/profile";
 import DataImport from "@/pages/DataImport";
 
 // Import onboarding course pages
@@ -231,6 +232,10 @@ function AppContent() {
     
     if (currentPath === '/organization/onboarding/Production') {
       return <Production />;
+    }
+    
+    if (currentPath === '/organization/profile') {
+      return <OrganizationProfile />;
     }
     
     return <NotFound />;
