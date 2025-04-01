@@ -150,7 +150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxAge: 24 * 60 * 60 * 1000, // 1 day
         secure: false, // Set to false to ensure it works in both prod and dev
         httpOnly: true,
-        sameSite: 'lax' // Improves CSRF security while allowing redirects from external sites
+        sameSite: 'lax', // Improves CSRF security while allowing redirects from external sites
+        path: '/'
       },
     })
   );
