@@ -1,5 +1,5 @@
 import React from "react";
-import { Sun, User, LogOut } from "lucide-react";
+import { Sun, User, LogOut, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsPopover from "@/components/features/NotificationsPopover";
@@ -37,6 +37,7 @@ export default function Header() {
     <header className="h-16 fixed top-0 right-0 left-[240px] bg-white border-b z-10">
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Leaf className="h-4 w-4 text-green-600 mr-1" />
           {getBreadcrumbs().map((crumb, index, array) => (
             <div key={index} className="flex items-center">
               <span>{crumb}</span>
