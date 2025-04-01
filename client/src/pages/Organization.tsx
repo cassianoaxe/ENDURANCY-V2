@@ -38,12 +38,15 @@ export default function OrganizationDetail() {
   const [activeTab, setActiveTab] = useState("informacoes");
   const [orgId, setOrgId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   
   // Estados para os diálogos
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [isAddModuleDialogOpen, setIsAddModuleDialogOpen] = useState(false);
+  const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
   
   // Estados para formulários
   const [suspendReason, setSuspendReason] = useState('');
@@ -173,6 +176,45 @@ export default function OrganizationDetail() {
         description: `Falha ao atualizar organização: ${error.message}`,
         variant: "destructive"
       });
+    }
+  });
+  
+  // Mutation para upload de logo
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      if (!orgId) throw new Error("ID da organização não disponível");
+      
+      const response = await fetch(`/api/organizations/${orgId}/logo`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao fazer upload da logo');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Logo atualizada",
+        description: "Logo da organização foi atualizada com sucesso",
+      });
+      setIsLogoDialogOpen(false);
+      setLogoFile(null);
+      setIsUploadingLogo(false);
+      // Recarregar dados
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', orgId] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: `Falha ao atualizar logo: ${error.message}`,
+        variant: "destructive"
+      });
+      setIsUploadingLogo(false);
     }
   });
 
@@ -314,6 +356,54 @@ export default function OrganizationDetail() {
     e.preventDefault();
     sendWelcomeEmailMutation.mutate(emailMessage);
   };
+  
+  // Handler para upload de logo
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validar tipo de arquivo
+    const acceptedTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'];
+    if (!acceptedTypes.includes(file.type)) {
+      toast({
+        title: "Formato de arquivo inválido",
+        description: "Por favor, selecione uma imagem nos formatos JPG, PNG, SVG ou GIF.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setLogoFile(file);
+  };
+  
+  const handleLogoUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!logoFile) {
+      toast({
+        title: "Selecione um arquivo",
+        description: "Por favor, selecione uma imagem para fazer o upload",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Criar FormData para o upload
+    const formData = new FormData();
+    formData.append('logo', logoFile);
+    
+    setIsUploadingLogo(true);
+    uploadLogoMutation.mutate(formData);
+  };
 
   // Handler para adicionar módulo
   const handleAddModule = (e: React.FormEvent) => {
@@ -437,6 +527,37 @@ export default function OrganizationDetail() {
         {/* Tab de Informações */}
         <TabsContent value="informacoes" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Card de Logo da Organização */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Logo da Organização
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center space-y-4">
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-32 w-32 rounded-md border">
+                    <AvatarImage 
+                      src={organization.logo ? `/uploads/logos/${organization.logo}` : ''} 
+                      alt={organization.name} 
+                    />
+                    <AvatarFallback className="text-2xl bg-muted rounded-md">
+                      {organization.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setIsLogoDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Upload className="h-4 w-4" /> Alterar Logo
+                </Button>
+              </CardContent>
+            </Card>
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -1014,6 +1135,77 @@ export default function OrganizationDetail() {
               >
                 {addModuleMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Adicionar Módulo
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog para upload de logo */}
+      <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Logo da Organização</DialogTitle>
+            <DialogDescription>
+              Faça upload de uma nova logo para a organização {organization?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleLogoUpload} className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="logo">Logo</Label>
+              <Input
+                id="logo"
+                name="logo"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Formatos aceitos: JPG, PNG, SVG. Tamanho máximo: 2MB.
+              </p>
+            </div>
+            
+            {logoFile && (
+              <div className="flex justify-center py-2">
+                <Avatar className="h-24 w-24 rounded-md">
+                  <AvatarImage 
+                    src={URL.createObjectURL(logoFile)} 
+                    alt="Preview" 
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="rounded-md">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+            
+            <DialogFooter className="mt-6">
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => {
+                  setIsLogoDialogOpen(false);
+                  setLogoFile(null);
+                }}
+                disabled={isUploadingLogo}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                disabled={!logoFile || isUploadingLogo}
+              >
+                {isUploadingLogo ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>Enviar Logo</>
+                )}
               </Button>
             </DialogFooter>
           </form>
