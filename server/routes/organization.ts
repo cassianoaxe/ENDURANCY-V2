@@ -6,6 +6,9 @@ import {
 } from "@shared/schema";
 import { eq, and, count, desc, asc } from 'drizzle-orm';
 import { notificationService } from '../services/notificationService';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const organizationRouter = Router();
 
@@ -385,5 +388,185 @@ function getModuleFeatures(moduleType: string): string[] {
     'Relatórios avançados'
   ];
 }
+
+// Rota para obter as configurações da organização
+organizationRouter.get('/settings', isOrgAdmin, async (req: Request, res: Response) => {
+  try {
+    if (!req.session.user?.organizationId) {
+      return res.status(400).json({ message: "Usuário não está associado a uma organização" });
+    }
+
+    const organizationId = req.session.user.organizationId;
+    
+    // Buscar a organização
+    const organization = await db.query.organizations.findFirst({
+      where: eq(organizations.id, organizationId)
+    });
+
+    if (!organization) {
+      return res.status(404).json({ message: "Organização não encontrada" });
+    }
+
+    // Formatar e retornar os dados
+    const response = {
+      id: organization.id,
+      name: organization.name,
+      email: organization.email,
+      phone: organization.phone || "",
+      address: organization.address || "",
+      city: organization.city || "",
+      state: organization.state || "",
+      postalCode: organization.postalCode || "",
+      logoUrl: organization.logoUrl || null,
+      sendNotifications: organization.sendNotifications !== false, // padrão é true se não estiver definido
+      theme: organization.theme || "system"
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Erro ao obter configurações da organização:", error);
+    res.status(500).json({ message: "Falha ao obter configurações da organização" });
+  }
+});
+
+// Rota para atualizar as configurações da organização
+organizationRouter.put('/settings', isOrgAdmin, async (req: Request, res: Response) => {
+  try {
+    if (!req.session.user?.organizationId) {
+      return res.status(400).json({ message: "Usuário não está associado a uma organização" });
+    }
+
+    const organizationId = req.session.user.organizationId;
+    
+    // Extrair dados do corpo da requisição
+    const { 
+      name, email, phone, address, city, state, postalCode, 
+      sendNotifications, theme 
+    } = req.body;
+    
+    // Validar dados básicos
+    if (!name || !email) {
+      return res.status(400).json({ message: "Nome e email são obrigatórios" });
+    }
+
+    // Atualizar a organização
+    const [updatedOrganization] = await db.update(organizations)
+      .set({ 
+        name, 
+        email, 
+        phone, 
+        address, 
+        city, 
+        state, 
+        postalCode, 
+        sendNotifications, 
+        theme,
+        updatedAt: new Date() 
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+
+    if (!updatedOrganization) {
+      return res.status(404).json({ message: "Organização não encontrada" });
+    }
+
+    res.json({
+      message: "Configurações atualizadas com sucesso",
+      organization: {
+        id: updatedOrganization.id,
+        name: updatedOrganization.name,
+        email: updatedOrganization.email,
+        phone: updatedOrganization.phone,
+        address: updatedOrganization.address,
+        city: updatedOrganization.city,
+        state: updatedOrganization.state,
+        postalCode: updatedOrganization.postalCode,
+        logoUrl: updatedOrganization.logoUrl,
+        sendNotifications: updatedOrganization.sendNotifications,
+        theme: updatedOrganization.theme
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar configurações da organização:", error);
+    res.status(500).json({ message: "Falha ao atualizar configurações da organização" });
+  }
+});
+
+// Rota para upload de logo da organização
+
+// Configurar o multer para armazenar os uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = './uploads/logos';
+    // Criar diretório se não existir
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Gerar nome único para o arquivo
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'org-logo-' + uniqueSuffix + ext);
+  }
+});
+
+// Configurar o upload
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // limite de 2MB
+  fileFilter: function(req, file, cb) {
+    // Validar tipos de arquivo
+    const filetypes = /jpeg|jpg|png|gif/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    
+    cb(new Error("Apenas arquivos de imagem são permitidos!"));
+  }
+});
+
+// Rota para upload de logo
+organizationRouter.post('/logo', isOrgAdmin, upload.single('logo'), async (req: Request, res: Response) => {
+  try {
+    if (!req.session.user?.organizationId) {
+      return res.status(400).json({ message: "Usuário não está associado a uma organização" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Nenhum arquivo enviado" });
+    }
+
+    const organizationId = req.session.user.organizationId;
+    
+    // Caminho do arquivo
+    const logoUrl = `/uploads/logos/${req.file.filename}`;
+    
+    // Atualizar o logoUrl na organização
+    const [updatedOrganization] = await db.update(organizations)
+      .set({ 
+        logoUrl,
+        updatedAt: new Date() 
+      })
+      .where(eq(organizations.id, organizationId))
+      .returning();
+
+    if (!updatedOrganization) {
+      return res.status(404).json({ message: "Organização não encontrada" });
+    }
+
+    res.json({
+      message: "Logo atualizada com sucesso",
+      logoUrl
+    });
+  } catch (error) {
+    console.error("Erro ao fazer upload de logo:", error);
+    res.status(500).json({ message: "Falha ao fazer upload de logo" });
+  }
+});
 
 export default organizationRouter;
