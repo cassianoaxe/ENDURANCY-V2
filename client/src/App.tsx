@@ -30,7 +30,7 @@ import CreateTicket from "@/pages/CreateTicket";
 import SupportDashboard from "@/pages/SupportDashboard";
 import Documentation from "@/pages/Documentation";
 import UserProfile from "@/pages/UserProfile";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -48,8 +48,6 @@ import DataImport from "@/pages/DataImport";
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
-import MeuPlano from "@/pages/organization/MeuPlano";
-import Configuracoes from "@/pages/organization/Configuracoes";
 
 // Import integrations
 import Integracoes from "@/pages/integracoes";
@@ -230,14 +228,6 @@ function AppContent() {
     
     if (currentPath === '/organization/onboarding/Production') {
       return <Production />;
-    }
-    
-    if (currentPath === '/organization/meu-plano') {
-      return <MeuPlano />;
-    }
-    
-    if (currentPath === '/organization/configuracoes') {
-      return <Configuracoes />;
     }
     
     return <NotFound />;
