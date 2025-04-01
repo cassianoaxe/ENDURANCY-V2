@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { OrganizationSidebar } from '@/components/organization/OrganizationSidebar';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -126,11 +127,7 @@ export default function Configuracoes() {
       const formData = new FormData();
       formData.append("logo", file);
       
-      const response = await apiRequest("POST", "/api/organization/logo", formData, {
-        headers: {
-          // Não definir Content-Type aqui, o navegador definirá automaticamente com boundary para FormData
-        }
-      });
+      const response = await apiRequest("POST", "/api/organization/logo", formData);
       return response.json();
     },
     onSuccess: () => {
@@ -159,25 +156,40 @@ export default function Configuracoes() {
     }
   };
   
-  return (
-    <div className="container mx-auto py-6">
-      <div className="flex flex-col space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Configurações da Organização</h1>
-          <p className="text-muted-foreground">
-            Gerencie as configurações da sua organização
-          </p>
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <OrganizationSidebar />
+        <div className="flex-1 p-6">
+          <div className="flex items-center justify-center min-h-[80vh]">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Carregando" />
+          </div>
         </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="flex min-h-screen">
+      <OrganizationSidebar />
+      <div className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Configurações da Organização</h1>
+            <p className="text-muted-foreground">
+              Gerencie as configurações da sua organização
+            </p>
+          </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full max-w-md">
-            <TabsTrigger value="geral">Geral</TabsTrigger>
-            <TabsTrigger value="aparencia">Aparência</TabsTrigger>
-            <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
-            <TabsTrigger value="integracao">Integrações</TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-4 w-full max-w-md">
+              <TabsTrigger value="geral">Geral</TabsTrigger>
+              <TabsTrigger value="aparencia">Aparência</TabsTrigger>
+              <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+              <TabsTrigger value="integracao">Integrações</TabsTrigger>
+            </TabsList>
           
-          <TabsContent value="geral" className="mt-6">
+            <TabsContent value="geral" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Informações Gerais</CardTitle>
@@ -343,7 +355,7 @@ export default function Configuracoes() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="aparencia" className="mt-6">
+            <TabsContent value="aparencia" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Aparência</CardTitle>
@@ -413,7 +425,7 @@ export default function Configuracoes() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="notificacoes" className="mt-6">
+            <TabsContent value="notificacoes" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Configurações de Notificações</CardTitle>
@@ -507,7 +519,7 @@ export default function Configuracoes() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="integracao" className="mt-6">
+            <TabsContent value="integracao" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Integrações</CardTitle>
@@ -587,6 +599,7 @@ export default function Configuracoes() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );
