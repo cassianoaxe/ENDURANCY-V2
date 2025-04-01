@@ -55,9 +55,17 @@ export default function OrganizationProfile() {
     queryKey: ["/api/organizations", organizationId],
     queryFn: async () => {
       if (!organizationId) throw new Error("ID da organização não disponível");
+      
+      // Verifica se já estamos autenticados
+      const authCheck = await apiRequest("GET", "/api/auth/me");
+      if (!authCheck.ok) {
+        throw new Error("Usuário não autenticado");
+      }
+      
+      // Prossegue com a requisição para obter os dados da organização
       const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
       if (!response.ok) {
-        throw new Error("Falha ao carregar dados da organização");
+        throw new Error(`Falha ao carregar dados da organização: ${await response.text()}`);
       }
       return response.json();
     },
@@ -96,6 +104,12 @@ export default function OrganizationProfile() {
     
     setIsSubmitting(true);
     try {
+      // Verificar autenticação primeiro
+      const authCheck = await apiRequest("GET", "/api/auth/me");
+      if (!authCheck.ok) {
+        throw new Error("Usuário não autenticado");
+      }
+      
       const response = await apiRequest(
         "PUT", 
         `/api/organizations/${organizationId}`, 
@@ -103,7 +117,7 @@ export default function OrganizationProfile() {
       );
       
       if (!response.ok) {
-        throw new Error("Falha ao atualizar os dados da organização");
+        throw new Error(`Falha ao atualizar os dados da organização: ${await response.text()}`);
       }
       
       const updatedOrg = await response.json();
@@ -135,6 +149,12 @@ export default function OrganizationProfile() {
     formData.append('logo', file);
     
     try {
+      // Verificar autenticação primeiro
+      const authCheck = await apiRequest("GET", "/api/auth/me");
+      if (!authCheck.ok) {
+        throw new Error("Usuário não autenticado");
+      }
+      
       // Usando fetch diretamente porque apiRequest não suporta FormData adequadamente
       const response = await fetch(
         `/api/organizations/${organizationId}/logo`,
@@ -147,7 +167,8 @@ export default function OrganizationProfile() {
       );
       
       if (!response.ok) {
-        throw new Error("Falha ao fazer upload do logo");
+        const errorText = await response.text();
+        throw new Error(`Falha ao fazer upload do logo: ${errorText}`);
       }
       
       const result = await response.json();
@@ -157,6 +178,9 @@ export default function OrganizationProfile() {
         if (!oldData) return;
         return { ...oldData, logo: result.logoUrl };
       });
+      
+      // Atualize também o cache do usuário se necessário
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
       toast({
         title: "Sucesso!",
