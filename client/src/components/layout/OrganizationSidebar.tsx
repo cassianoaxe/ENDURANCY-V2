@@ -5,14 +5,23 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, LogOut, Leaf
+  Menu, ChevronLeft, LogOut, Leaf, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { Organization } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function OrganizationSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const currentPath = window.location.pathname;
+  
+  // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
+  const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
+    queryKey: ['/api/organizations', user?.organizationId],
+    enabled: !!user?.organizationId,
+  });
 
   // Function to navigate to a path
   const navigateTo = (path: string) => {
@@ -132,18 +141,43 @@ export default function OrganizationSidebar() {
     )}>
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
-        {!collapsed && (
+        {!collapsed ? (
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center">
+            {isOrgLoading ? (
+              <div className="h-8 w-8 rounded-md bg-gray-100 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              </div>
+            ) : organization?.logo ? (
+              <Avatar className="h-8 w-8 rounded-md">
+                <AvatarImage src={organization.logo} alt={organization.name} />
+                <AvatarFallback className="rounded-md bg-[#e6f7e6]">
+                  <Leaf className="h-5 w-5 text-green-600" />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center">
+                <Leaf className="h-5 w-5 text-green-600" />
+              </div>
+            )}
+            <span className="font-semibold text-lg">{organization?.name || "Endurancy"}</span>
+          </div>
+        ) : (
+          isOrgLoading ? (
+            <div className="h-8 w-8 rounded-md bg-gray-100 flex items-center justify-center mx-auto">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            </div>
+          ) : organization?.logo ? (
+            <Avatar className="h-8 w-8 rounded-md mx-auto">
+              <AvatarImage src={organization.logo} alt={organization.name} />
+              <AvatarFallback className="rounded-md bg-[#e6f7e6]">
+                <Leaf className="h-5 w-5 text-green-600" />
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center mx-auto">
               <Leaf className="h-5 w-5 text-green-600" />
             </div>
-            <span className="font-semibold text-lg">Endurancy</span>
-          </div>
-        )}
-        {collapsed && (
-          <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center mx-auto">
-            <Leaf className="h-5 w-5 text-green-600" />
-          </div>
+          )
         )}
         <Button 
           variant="ghost" 
@@ -175,8 +209,17 @@ export default function OrganizationSidebar() {
             </div>
             <div className="px-1 mt-2">
               <div className="text-xs text-gray-500 mb-1">Plano Atual</div>
-              <div className="bg-green-50 text-green-700 text-xs rounded-full px-2 py-1 font-medium inline-flex">
-                Plano Premium
+              <div className={`text-xs rounded-full px-2 py-1 font-medium inline-flex ${
+                organization?.planTier === 'pro' ? 'bg-purple-50 text-purple-700' :
+                organization?.planTier === 'grow' ? 'bg-blue-50 text-blue-700' :
+                organization?.planTier === 'seed' ? 'bg-green-50 text-green-700' :
+                'bg-gray-50 text-gray-700'
+              }`}>
+                {organization?.planTier === 'pro' ? 'Plano Pro' :
+                  organization?.planTier === 'grow' ? 'Plano Grow' :
+                  organization?.planTier === 'seed' ? 'Plano Seed' :
+                  organization?.planTier === 'free' ? 'Plano Free' :
+                  isOrgLoading ? 'Carregando...' : 'Não Definido'}
               </div>
             </div>
           </div>

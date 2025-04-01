@@ -110,6 +110,28 @@ const profilePhotoUpload = multer({
   }
 });
 
+// Configure multer for organization logo uploads
+const logoUpload = multer({
+  storage: multer.diskStorage({
+    destination: './uploads/logos',
+    filename: function (req, file, cb) {
+      cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`);
+    }
+  }),
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.gif', '.svg'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo inválido. Apenas imagens (jpg, jpeg, png, gif, svg) são permitidas.'));
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // limita a 5MB
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   app.use(
@@ -1035,6 +1057,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao buscar organização atual:", error);
       res.status(500).json({ message: "Falha ao buscar dados da organização" });
+    }
+  });
+  
+  // Rota para obter dados de uma organização específica
+  app.get("/api/organizations/:id", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar permissão
+      if (req.session?.user?.role !== 'admin' && 
+          req.session?.user?.role !== 'org_admin' && 
+          req.session?.user?.organizationId !== id) {
+        return res.status(403).json({ message: "Sem permissão para acessar esta organização" });
+      }
+      
+      // Buscar organização
+      const [organization] = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, id));
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      res.json(organization);
+    } catch (error) {
+      console.error("Erro ao buscar organização:", error);
+      res.status(500).json({ message: "Falha ao buscar dados da organização" });
+    }
+  });
+  
+  // Rota para atualizar dados de uma organização
+  app.put("/api/organizations/:id", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar permissão
+      if (req.session?.user?.role !== 'admin' && 
+          (req.session?.user?.role !== 'org_admin' || req.session?.user?.organizationId !== id)) {
+        return res.status(403).json({ message: "Sem permissão para atualizar esta organização" });
+      }
+      
+      const { 
+        name, legalName, cnpj, email, phoneNumber, 
+        address, city, state, zipCode, website, description 
+      } = req.body;
+      
+      // Verificar campos obrigatórios
+      if (!name) {
+        return res.status(400).json({ message: "Nome da organização é obrigatório" });
+      }
+      
+      // Validar formato do e-mail
+      if (email && !email.includes('@')) {
+        return res.status(400).json({ message: "Formato de e-mail inválido" });
+      }
+      
+      // Atualizar organização
+      const [updatedOrganization] = await db.update(organizations)
+        .set({
+          name,
+          legalName,
+          cnpj,
+          email,
+          phoneNumber,
+          address,
+          city,
+          state,
+          zipCode,
+          website,
+          description,
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, id))
+        .returning();
+      
+      if (!updatedOrganization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      res.json(updatedOrganization);
+    } catch (error) {
+      console.error("Erro ao atualizar organização:", error);
+      res.status(500).json({ message: "Falha ao atualizar dados da organização" });
+    }
+  });
+  
+  // Rota para upload de logo da organização
+  app.post("/api/organizations/:id/logo", authenticate, logoUpload.single('logo'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar permissão
+      if (req.session?.user?.role !== 'admin' && 
+          (req.session?.user?.role !== 'org_admin' || req.session?.user?.organizationId !== id)) {
+        return res.status(403).json({ message: "Sem permissão para atualizar esta organização" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado" });
+      }
+      
+      // Caminho relativo para o logo
+      const logoUrl = `/uploads/logos/${req.file.filename}`;
+      
+      // Atualizar caminho do logo na organização
+      const [updatedOrganization] = await db.update(organizations)
+        .set({
+          logo: logoUrl,
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, id))
+        .returning();
+      
+      if (!updatedOrganization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      res.json({ 
+        message: "Logo atualizado com sucesso",
+        logoUrl
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload de logo:", error);
+      res.status(500).json({ message: "Falha ao fazer upload do logo da organização" });
     }
   });
   
