@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
-import OrganizationSidebar from '@/components/organization/OrganizationSidebar';
+import { OrganizationSidebar } from '@/components/organization/OrganizationSidebar';
 
 interface Plan {
   id: number;

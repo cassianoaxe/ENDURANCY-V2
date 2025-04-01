@@ -50,7 +50,7 @@ function SidebarItem({
   );
 }
 
-export default function OrganizationSidebar() {
+export function OrganizationSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
 
