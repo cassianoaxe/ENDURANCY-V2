@@ -723,6 +723,12 @@ export type InsertTicketAttachment = z.infer<typeof insertTicketAttachmentSchema
 // Enums para o sistema de notificações
 export const notificationTypeEnum = pgEnum('notification_type', ['info', 'warning', 'success', 'error']);
 
+// Enum para tipo de solicitação
+export const requestTypeEnum = pgEnum('request_type', ['plano', 'módulo', 'integração', 'cancelamento']);
+
+// Enum para status da solicitação
+export const requestStatusEnum = pgEnum('request_status', ['pendente', 'aprovada', 'negada', 'cancelada']);
+
 // Tabela de notificações
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
@@ -842,3 +848,34 @@ export const insertChartOfAccountsSchema = createInsertSchema(chartOfAccounts).p
 // Tipos para o sistema de plano de contas
 export type ChartOfAccount = typeof chartOfAccounts.$inferSelect;
 export type InsertChartOfAccount = z.infer<typeof insertChartOfAccountsSchema>;
+
+// Tabela de solicitações (requests)
+export const requests = pgTable("requests", {
+  id: serial("id").primaryKey(),
+  type: requestTypeEnum("type").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  createdById: integer("created_by_id").notNull(),
+  data: json("data"), // Dados da solicitação em formato JSON
+  status: requestStatusEnum("status").notNull().default("pendente"),
+  description: text("description").notNull(),
+  notes: text("notes"), // Notas adicionais
+  approvedById: integer("approved_by_id"), // ID do admin que aprovou/rejeitou
+  approvedAt: timestamp("approved_at"), // Data de aprovação/rejeição
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schema para inserção de solicitações
+export const insertRequestSchema = createInsertSchema(requests).pick({
+  type: true,
+  organizationId: true,
+  createdById: true,
+  data: true,
+  status: true,
+  description: true,
+  notes: true,
+});
+
+// Tipos para o sistema de solicitações
+export type Request = typeof requests.$inferSelect;
+export type InsertRequest = z.infer<typeof insertRequestSchema>;
