@@ -18,6 +18,7 @@ import {
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
+import { inArray } from "drizzle-orm";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
 // Importar rotas de integração
@@ -1007,6 +1008,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating module payment intent:", error);
       res.status(500).json({ message: "Failed to create payment intent" });
+    }
+  });
+
+  // API para gerenciamento de organizações e planos
+  
+  // Rota para obter dados da organização atual
+  app.get("/api/organizations/current", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Organização não disponível" });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      // Buscar organização
+      const [organization] = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId));
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      res.json(organization);
+    } catch (error) {
+      console.error("Erro ao buscar organização atual:", error);
+      res.status(500).json({ message: "Falha ao buscar dados da organização" });
+    }
+  });
+  
+  // Rota para trocar o plano da organização
+  app.post("/api/organizations/change-plan", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      // Verificar se o usuário é admin da organização
+      if (req.session.user.role !== 'admin' && req.session.user.role !== 'org_admin') {
+        return res.status(403).json({ message: "Permissão negada. Apenas administradores podem alterar o plano." });
+      }
+      
+      const { planId } = req.body;
+      const organizationId = req.session.user.organizationId;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "ID do plano é obrigatório" });
+      }
+      
+      // Verificar se o plano existe
+      const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
+      
+      if (!plan) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      // Atualizar o plano da organização
+      await db.update(organizations)
+        .set({ 
+          planId: planId,
+          planTier: plan.tier,
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, organizationId));
+      
+      // Criar um registro de transação financeira
+      await db.insert(financialTransactions).values({
+        organizationId: organizationId,
+        type: 'receita',
+        amount: plan.price.toString(),
+        description: `Upgrade de plano para ${plan.name}`,
+        status: 'pago',
+        categoryId: 1, // ID da categoria de receitas de assinaturas
+        date: new Date(),
+        notes: `Alteração de plano realizada pelo usuário ${req.session.user.name} (ID: ${req.session.user.id})`,
+      });
+      
+      // Buscar organização atualizada
+      const [updatedOrganization] = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, organizationId));
+      
+      res.json(updatedOrganization);
+    } catch (error) {
+      console.error("Erro ao trocar plano:", error);
+      res.status(500).json({ message: "Falha ao trocar o plano da organização" });
+    }
+  });
+  
+  // Rota para buscar módulos ativos da organização
+  app.get("/api/organizations/modules/active", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      // Buscar os IDs dos módulos ativos para a organização
+      const activeModuleEntries = await db.select()
+        .from(organizationModules)
+        .where(and(
+          eq(organizationModules.organizationId, organizationId),
+          eq(organizationModules.active, true)
+        ));
+      
+      if (!activeModuleEntries.length) {
+        return res.json([]);
+      }
+      
+      const moduleIds = activeModuleEntries.map(entry => entry.moduleId);
+      
+      // Buscar detalhes dos módulos
+      const activeModules = await db.select()
+        .from(modules)
+        .where(inArray(modules.id, moduleIds));
+      
+      res.json(activeModules);
+    } catch (error) {
+      console.error("Erro ao buscar módulos ativos:", error);
+      res.status(500).json({ message: "Falha ao buscar módulos ativos da organização" });
+    }
+  });
+  
+  // Rota para adicionar um módulo à organização
+  app.post("/api/organizations/modules/add", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      // Verificar se o usuário é admin da organização
+      if (req.session.user.role !== 'admin' && req.session.user.role !== 'org_admin') {
+        return res.status(403).json({ message: "Permissão negada. Apenas administradores podem adicionar módulos." });
+      }
+      
+      const { moduleId, planId } = req.body;
+      const organizationId = req.session.user.organizationId;
+      
+      if (!moduleId) {
+        return res.status(400).json({ message: "ID do módulo é obrigatório" });
+      }
+      
+      // Verificar se o módulo existe
+      const [module] = await db.select().from(modules).where(eq(modules.id, moduleId));
+      
+      if (!module) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      // Verificar se a organização já tem este módulo
+      const [existingModule] = await db.select()
+        .from(organizationModules)
+        .where(and(
+          eq(organizationModules.organizationId, organizationId),
+          eq(organizationModules.moduleId, moduleId)
+        ));
+      
+      if (existingModule) {
+        // Se o módulo já existe mas está inativo, apenas reativar
+        if (!existingModule.active) {
+          await db.update(organizationModules)
+            .set({ 
+              active: true,
+              updatedAt: new Date()
+            })
+            .where(eq(organizationModules.id, existingModule.id));
+          
+          res.json({ message: "Módulo reativado com sucesso" });
+        } else {
+          return res.status(400).json({ message: "Este módulo já está ativo para esta organização" });
+        }
+      } else {
+        // Adicionar o novo módulo
+        await db.insert(organizationModules).values({
+          organizationId,
+          moduleId,
+          planId: planId || null,
+          active: true,
+        });
+        
+        // Criar um registro de transação financeira
+        await db.insert(financialTransactions).values({
+          organizationId: organizationId,
+          type: 'receita',
+          amount: '99.00', // Preço padrão do módulo
+          description: `Adição do módulo ${module.name}`,
+          status: 'pago',
+          categoryId: 1, // ID da categoria de receitas de assinaturas
+          date: new Date(),
+          notes: `Adição de módulo realizada pelo usuário ${req.session.user.name} (ID: ${req.session.user.id})`,
+        });
+        
+        res.json({ message: "Módulo adicionado com sucesso" });
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar módulo:", error);
+      res.status(500).json({ message: "Falha ao adicionar módulo à organização" });
     }
   });
 

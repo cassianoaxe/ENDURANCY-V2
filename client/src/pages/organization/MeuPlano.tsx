@@ -1,0 +1,570 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import OrganizationLayout from '@/components/layout/OrganizationLayout';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Check, CreditCard, Shield, Gift, ArrowRight, Package, ArrowUpRight, Leaf, BarChart, AlertCircle } from 'lucide-react';
+import { useLocation } from 'wouter';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { Plan, Module, ModulePlan, Organization } from '@shared/schema';
+
+export default function MeuPlano() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+  const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
+  const [showAddModuleDialog, setShowAddModuleDialog] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  // Buscar informações da organização atual
+  const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
+    queryKey: ['/api/organizations/current'],
+    enabled: !!user,
+  });
+
+  // Buscar detalhes do plano atual
+  const { data: currentPlan, isLoading: isPlanLoading } = useQuery<Plan>({
+    queryKey: ['/api/plans', organization?.planId],
+    enabled: !!organization?.planId,
+  });
+
+  // Buscar todos os planos disponíveis
+  const { data: availablePlans, isLoading: isPlansLoading } = useQuery<Plan[]>({
+    queryKey: ['/api/plans'],
+    enabled: !!user,
+  });
+
+  // Buscar módulos ativos da organização
+  const { data: activeModules, isLoading: isModulesLoading } = useQuery<Module[]>({
+    queryKey: ['/api/organizations/modules/active'],
+    enabled: !!user && !!user.organizationId,
+  });
+
+  // Buscar módulos disponíveis
+  const { data: availableModules, isLoading: isAvailableModulesLoading } = useQuery<Module[]>({
+    queryKey: ['/api/modules'],
+    enabled: !!user,
+  });
+
+  // Mutação para trocar de plano
+  const changePlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      const res = await apiRequest('POST', '/api/organizations/change-plan', { planId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plans'] });
+      setShowChangePlanDialog(false);
+      toast({
+        title: 'Plano atualizado com sucesso',
+        description: 'Seu novo plano foi ativado na sua organização.',
+        variant: 'default',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao trocar de plano',
+        description: error.message || 'Não foi possível completar a operação. Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Iniciar processo de troca de plano
+  const handlePlanChange = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setShowChangePlanDialog(true);
+  };
+
+  // Confirmar troca de plano (checkout)
+  const confirmPlanChange = () => {
+    if (!selectedPlan) return;
+    
+    setIsUpgrading(true);
+    
+    // Se o plano for gratuito, fazer troca direta
+    if (selectedPlan.price === "0.00" || parseFloat(selectedPlan.price.toString()) === 0) {
+      changePlanMutation.mutate(selectedPlan.id);
+      return;
+    }
+    
+    // Se for plano pago, redirecionar para checkout
+    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/organization/meu-plano`);
+  };
+
+  // Inicia processo de adição de módulo
+  const handleAddModule = (module: Module) => {
+    setSelectedModule(module);
+    setShowAddModuleDialog(true);
+  };
+
+  // Confirma adição de módulo (checkout)
+  const confirmAddModule = () => {
+    if (!selectedModule) return;
+    
+    // Redirecionar para checkout com o módulo selecionado
+    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/organization/meu-plano`);
+  };
+
+  const isLoading = isOrgLoading || isPlanLoading || isPlansLoading || isModulesLoading || isAvailableModulesLoading;
+
+  // Filtrar módulos disponíveis que não estão ativos
+  const getAvailableModules = () => {
+    if (!availableModules || !activeModules) return [];
+    
+    // Obter IDs dos módulos ativos
+    const activeModuleIds = activeModules.map(m => m.id);
+    
+    // Filtrar para obter apenas módulos que podem ser adicionados
+    return availableModules.filter(m => !activeModuleIds.includes(m.id) && m.is_active);
+  };
+
+  // Formatar preço
+  const formatPrice = (price: number | string) => {
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numericPrice);
+  };
+
+  if (isLoading) {
+    return (
+      <OrganizationLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Carregando informações do plano...</p>
+          </div>
+        </div>
+      </OrganizationLayout>
+    );
+  }
+
+  return (
+    <OrganizationLayout>
+      <div className="container px-0">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#e6f7e6] rounded-lg">
+              <Leaf className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold mb-1">Meu Plano</h1>
+              <p className="text-gray-500">Gerencie seu plano atual e adicione novos módulos para expandir suas funcionalidades.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Seção do Plano Atual */}
+        <Card className="mb-8 border border-green-100 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg">Plano Atual: {currentPlan?.name || 'Plano Padrão'}</CardTitle>
+                <CardDescription className="mt-1">
+                  {currentPlan?.description || 'Seu plano padrão da plataforma Endurancy'}
+                </CardDescription>
+              </div>
+              <Badge className={`text-sm py-1 px-3 
+                ${currentPlan?.tier === 'free' ? 'bg-gray-100 text-gray-700' : 
+                currentPlan?.tier === 'seed' ? 'bg-green-100 text-green-700' : 
+                currentPlan?.tier === 'grow' ? 'bg-blue-100 text-blue-700' : 
+                'bg-purple-100 text-purple-700'}`}
+              >
+                {currentPlan?.tier === 'free' ? 'Gratuito' : 
+                 currentPlan?.tier === 'seed' ? 'Seed' : 
+                 currentPlan?.tier === 'grow' ? 'Grow' : 'Pro'}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium">Detalhes do Plano</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500">Preço mensal</span>
+                    <span className="text-sm font-medium">{formatPrice(currentPlan?.price || 0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500">Limite de cadastros</span>
+                    <span className="text-sm font-medium">{currentPlan?.maxRecords || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-500">Período de teste</span>
+                    <span className="text-sm font-medium">{currentPlan?.trialDays || 0} dias</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3 md:col-span-2">
+                <h3 className="text-sm font-medium">Recursos Inclusos</h3>
+                <div className="grid md:grid-cols-2 gap-y-2">
+                  {currentPlan?.features && Array.isArray(currentPlan.features) && 
+                    currentPlan.features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+            
+            <Separator className="my-6" />
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium mb-1">Deseja mudar seu plano?</h3>
+                <p className="text-sm text-gray-500">Faça upgrade para um plano com mais recursos ou faça downgrade se precisar.</p>
+              </div>
+              <Button onClick={() => window.location.hash = 'planos'} className="gap-2">
+                <ArrowUpRight className="h-4 w-4" />
+                Ver Todos os Planos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Seção de Módulos Ativos */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Módulos Ativos</CardTitle>
+            <CardDescription>Módulos disponíveis na sua organização</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {activeModules && activeModules.length > 0 ? (
+                activeModules.map((module) => (
+                  <Card key={module.id} className="border overflow-hidden bg-gray-50">
+                    <CardHeader className="p-4 pb-3 bg-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
+                            {module.icon_name === 'Leaf' ? (
+                              <Leaf className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Package className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
+                          <CardTitle className="text-base">{module.name}</CardTitle>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700">Ativo</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-3">
+                      <p className="text-sm text-gray-500">{module.description}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full py-8 text-center">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                    <AlertCircle className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-1">Nenhum módulo adicional ativo</h3>
+                  <p className="text-gray-500 max-w-md mx-auto">
+                    Seu plano inclui os módulos básicos. Adicione novos módulos para expandir as funcionalidades da sua organização.
+                  </p>
+                  <Button className="mt-4" onClick={() => window.location.hash = 'modulos'}>
+                    Ver Módulos Disponíveis
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Abas de Planos e Módulos */}
+        <div id="planos">
+          <Tabs defaultValue="planos" className="mb-8">
+            <TabsList className="mb-4">
+              <TabsTrigger value="planos">Todos os Planos</TabsTrigger>
+              <TabsTrigger value="modulos" id="modulos">Módulos Adicionais</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="planos">
+              <h2 className="text-xl font-bold mb-6">Planos Disponíveis</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                {availablePlans ? availablePlans
+                  .filter(plan => plan.isModulePlan !== true)
+                  .map((plan) => (
+                    <Card 
+                      key={plan.id} 
+                      className={`border overflow-hidden hover:shadow-md transition-all ${
+                        plan.id === organization?.planId ? 'ring-2 ring-primary' : ''
+                      }`}
+                    >
+                      <CardHeader className={`
+                        p-6 pb-4
+                        ${plan.tier === 'free' ? 'bg-gray-50' : 
+                        plan.tier === 'seed' ? 'bg-green-50' : 
+                        plan.tier === 'grow' ? 'bg-blue-50' : 
+                        'bg-purple-50'}
+                      `}>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-xl">{plan.name}</CardTitle>
+                            <CardDescription className="mt-1">{plan.description}</CardDescription>
+                          </div>
+                          <Badge className={`
+                            ${plan.tier === 'free' ? 'bg-gray-100 text-gray-700' : 
+                            plan.tier === 'seed' ? 'bg-green-100 text-green-700' : 
+                            plan.tier === 'grow' ? 'bg-blue-100 text-blue-700' : 
+                            'bg-purple-100 text-purple-700'}
+                          `}>
+                            {plan.tier === 'free' ? 'Gratuito' : 
+                            plan.tier === 'seed' ? 'Seed' : 
+                            plan.tier === 'grow' ? 'Grow' : 'Pro'}
+                          </Badge>
+                        </div>
+                        <div className="mt-3">
+                          <div className="text-3xl font-bold">
+                            {formatPrice(plan.price)}
+                            <span className="text-sm font-normal text-gray-500">/mês</span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">Limite de {plan.maxRecords} cadastros</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-3">
+                          {plan.features && Array.isArray(plan.features) && 
+                            plan.features.map((feature, index) => (
+                              <div key={index} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                                <span className="text-sm">{feature}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="p-6 pt-0">
+                        <Button 
+                          className="w-full"
+                          variant={plan.id === organization?.planId ? "outline" : "default"}
+                          disabled={changePlanMutation.isPending || plan.id === organization?.planId}
+                          onClick={() => handlePlanChange(plan)}
+                        >
+                          {plan.id === organization?.planId ? (
+                            'Plano Atual'
+                          ) : (
+                            <>
+                              {changePlanMutation.isPending && plan.id === selectedPlan?.id ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Alterando...
+                                </>
+                              ) : (
+                                plan.price === "0.00" || parseFloat(plan.price.toString()) === 0 || 
+                                (currentPlan && parseFloat(currentPlan.price.toString()) > parseFloat(plan.price.toString())) ? 
+                                'Fazer Downgrade' : 'Fazer Upgrade'
+                              )}
+                            </>
+                          )}
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                : (
+                  <div className="col-span-full py-8 text-center">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+                    <p className="text-gray-500">Carregando planos disponíveis...</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="modulos">
+              <h2 className="text-xl font-bold mb-6">Módulos Adicionais</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+                {getAvailableModules().length > 0 ? (
+                  getAvailableModules().map((module) => (
+                    <Card key={module.id} className="border overflow-hidden hover:shadow-md transition-all">
+                      <CardHeader className="p-6 pb-4 bg-gradient-to-br from-gray-50 to-white">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
+                            {module.icon_name === 'Leaf' ? (
+                              <Leaf className="h-5 w-5 text-primary" />
+                            ) : module.icon_name === 'BarChart' ? (
+                              <BarChart className="h-5 w-5 text-primary" />
+                            ) : (
+                              <Package className="h-5 w-5 text-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{module.name}</CardTitle>
+                            <CardDescription className="mt-0.5">Módulo adicional</CardDescription>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600">{module.description}</p>
+                      </CardHeader>
+                      <CardContent className="p-6 pt-1">
+                        <div className="flex items-center justify-between py-3 border-t border-b">
+                          <span className="text-sm font-medium">Preço mensal</span>
+                          <span className="font-bold">R$ 99,00</span>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="p-6 pt-0">
+                        <Button 
+                          className="w-full"
+                          onClick={() => handleAddModule(module)}
+                        >
+                          Adicionar Módulo
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full py-8 text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                      <Check className="h-6 w-6 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">Todos os módulos disponíveis já estão ativos</h3>
+                    <p className="text-gray-500 max-w-md mx-auto">
+                      Sua organização já possui todos os módulos disponíveis ativados.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Dialog de Confirmação de Troca de Plano */}
+        <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirmar Mudança de Plano</DialogTitle>
+              <DialogDescription>
+                Você está prestes a alterar seu plano atual para o plano {selectedPlan?.name}.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-2">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">{selectedPlan?.name}</p>
+                    <p className="text-sm text-gray-500">{selectedPlan?.description}</p>
+                  </div>
+                </div>
+                <p className="font-bold">{selectedPlan ? formatPrice(selectedPlan.price) : ''}/mês</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500 mb-2">O que acontece ao trocar de plano:</p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>A mudança será aplicada imediatamente após o pagamento (se aplicável)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>Você terá acesso aos recursos do novo plano</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                    <span>Valores serão ajustados proporcionalmente ao período restante</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <DialogFooter className="sm:justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setShowChangePlanDialog(false)}
+                disabled={isUpgrading}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={confirmPlanChange}
+                disabled={isUpgrading}
+                className="gap-2"
+              >
+                {isUpgrading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Confirmar Mudança
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de Confirmação de Adição de Módulo */}
+        <Dialog open={showAddModuleDialog} onOpenChange={setShowAddModuleDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar Novo Módulo</DialogTitle>
+              <DialogDescription>
+                Você está prestes a adicionar o módulo {selectedModule?.name} à sua organização.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-2">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Package className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">{selectedModule?.name}</p>
+                    <p className="text-sm text-gray-500">{selectedModule?.description}</p>
+                  </div>
+                </div>
+                <p className="font-bold">R$ 99,00/mês</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Benefícios deste módulo:</p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Gift className="h-4 w-4 text-primary mt-0.5" />
+                    <span>Funcionalidades adicionais específicas para sua organização</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Gift className="h-4 w-4 text-primary mt-0.5" />
+                    <span>Acesso imediato após a confirmação do pagamento</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Gift className="h-4 w-4 text-primary mt-0.5" />
+                    <span>Suporte prioritário para questões relacionadas ao módulo</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <DialogFooter className="sm:justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddModuleDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={confirmAddModule}
+                className="gap-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                Prosseguir para Pagamento
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </OrganizationLayout>
+  );
+}
