@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, ArrowUpRight, Copy, Check, Settings, Database, CreditCard } from "lucide-react";
+import { Search, Building2, Users, ArrowUpRight, Copy, Check, Settings, Database, CreditCard, Leaf } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { Organization, Plan } from "@shared/schema";
@@ -51,9 +51,14 @@ export default function Organizations() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Organizações</h1>
-          <p className="text-gray-600">Gerencie todas as organizações aprovadas na plataforma. As organizações pendentes estão disponíveis em "Solicitações".</p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            <Leaf className="h-6 w-6 text-green-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold mb-2">Organizações</h1>
+            <p className="text-gray-600">Gerencie todas as organizações aprovadas na plataforma. As organizações pendentes estão disponíveis em "Solicitações".</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -123,9 +128,10 @@ export default function Organizations() {
           <CardContent>
             <div className="text-2xl font-bold">
               {organizations && plans ? 
-                `R$ ${organizations.reduce((acc, org) => {
+                `R$ ${organizations.reduce((acc: number, org) => {
                   const plan = plans.find(p => p.id === org.planId);
-                  return acc + (plan?.price || 0);
+                  const price = typeof plan?.price === 'string' ? parseFloat(plan.price) : (plan?.price || 0);
+                  return acc + price;
                 }, 0).toLocaleString('pt-BR')}` : 
                 'Calculando...'
               }
