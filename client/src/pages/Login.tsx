@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, User, Eye, Info, ArrowRight, Building, Code } from 'lucide-react';
+import { Loader2, User, Eye, Info, ArrowRight, Building, Code, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
 import { useLocation } from 'wouter';
@@ -132,7 +132,7 @@ export default function Login() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#f2f7f2]">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-[#e6f7e6] rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl font-bold text-[#4CAF50]">E</span>
+          <Leaf className="h-8 w-8 text-green-600" />
         </div>
         <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
         <p className="text-gray-500 mt-1">Plataforma de Controle e Regulação</p>
