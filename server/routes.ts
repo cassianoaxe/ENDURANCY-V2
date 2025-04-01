@@ -15,15 +15,19 @@ import {
   insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema,
   // Imports para o sistema de notificações
   notifications, insertNotificationSchema,
+  // Imports para o sistema de solicitações
+  requests,
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
+// Importar rotas de organização
+import organizationRouter from "./routes/organization";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
-import * as notificationService from "./services/notificationService";
+import { notificationService } from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
 import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
@@ -3227,6 +3231,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Registrar rotas de organização
+  app.use('/api/organization', organizationRouter);
+
   // Rota para a API da Zoop
   return httpServer;
 }
