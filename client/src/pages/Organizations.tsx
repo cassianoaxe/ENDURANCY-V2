@@ -52,7 +52,7 @@ export default function Organizations() {
     <div className="p-6">
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
+          <div className="p-2 bg-[#e6f7e6] rounded-lg">
             <Leaf className="h-6 w-6 text-green-600" />
           </div>
           <div>

@@ -134,15 +134,15 @@ export default function OrganizationSidebar() {
       <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white">
-              <Leaf className="h-5 w-5" />
+            <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center">
+              <Leaf className="h-5 w-5 text-green-600" />
             </div>
             <span className="font-semibold text-lg">Endurancy</span>
           </div>
         )}
         {collapsed && (
-          <div className="h-8 w-8 rounded-md bg-green-600 flex items-center justify-center text-white mx-auto">
-            <Leaf className="h-5 w-5" />
+          <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center mx-auto">
+            <Leaf className="h-5 w-5 text-green-600" />
           </div>
         )}
         <Button 
