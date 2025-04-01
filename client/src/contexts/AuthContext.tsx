@@ -30,6 +30,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Verificando status de autenticação...");
         const response = await fetch('/api/auth/me', {
           credentials: 'include', // Incluir cookies na requisição
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-cache' // Prevent browser caching
         });
         
         if (response.ok) {
@@ -73,8 +80,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         credentials: 'include', // Importante para salvar o cookie de sessão
+        cache: 'no-cache', // Prevent caching
         body: JSON.stringify(requestBody),
       });
 
@@ -119,7 +131,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Iniciando logout");
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
         credentials: 'include', // Importante para acessar e limpar cookies
+        cache: 'no-cache'
       });
       console.log("Logout completo no servidor");
       setUser(null);
