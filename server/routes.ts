@@ -1531,7 +1531,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const result = await createSubscription(planId, organizationId);
+      // Verificar se a organização existe antes de tentar criar a assinatura
+      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+      
+      if (!organization) {
+        return res.status(404).json({
+          success: false,
+          message: "Organização não encontrada"
+        });
+      }
+      
+      const result = await createSubscription(organizationId, planId);
       res.json(result);
     } catch (error) {
       console.error("Error creating subscription:", error);
