@@ -47,7 +47,7 @@ organizationRouter.get('/plan', isOrgAdmin, async (req: Request, res: Response) 
     const activeOrgModules = await db.query.organizationModules.findMany({
       where: and(
         eq(organizationModules.organizationId, organizationId),
-        eq(organizationModules.isActive, true)
+        eq(organizationModules.active, true)
       ),
       with: {
         module: true
@@ -67,7 +67,7 @@ organizationRouter.get('/plan', isOrgAdmin, async (req: Request, res: Response) 
       plan: {
         ...organization.plan,
         features: [
-          `Até ${organization.plan.registrationLimit.toLocaleString()} cadastros`,
+          `Até ${organization.plan.maxRecords.toLocaleString()} cadastros`,
           "Módulos básicos incluídos: Onboarding, Analytics, Dashboard, Associados, Vendas, Financeiro, ComplyPay",
           "Acesso à API de integração",
           "Suporte por e-mail",
@@ -78,7 +78,7 @@ organizationRouter.get('/plan', isOrgAdmin, async (req: Request, res: Response) 
       },
       expiresAt: organization.planExpiresAt?.toISOString() || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       registrationsUsed,
-      registrationsTotal: organization.plan.registrationLimit,
+      registrationsTotal: organization.plan.maxRecords,
       activeModules: activeOrgModules.map(orgModule => ({
         ...orgModule.module,
         features: getModuleFeatures(orgModule.module.type)
@@ -191,7 +191,7 @@ organizationRouter.post('/request-module-activation', isOrgAdmin, async (req: Re
       )
     });
 
-    if (existingOrgModule && existingOrgModule.isActive) {
+    if (existingOrgModule && existingOrgModule.active) {
       return res.status(400).json({ message: "Módulo já está ativo para esta organização" });
     }
 
