@@ -15,19 +15,15 @@ import {
   insertSupportTicketSchema, insertTicketCommentSchema, insertTicketAttachmentSchema,
   // Imports para o sistema de notificações
   notifications, insertNotificationSchema,
-  // Imports para o sistema de solicitações
-  requests,
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
-// Importar rotas de organização
-import organizationRouter from "./routes/organization";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
-import { notificationService } from "./services/notificationService";
+import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
 import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
@@ -363,28 +359,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // Verificar se é um org_admin sem organização vinculada
-      let updatedUser = { ...user };
-      if (user.role === 'org_admin' && !user.organizationId) {
-        // Buscar a primeira organização disponível
-        const orgsFound = await db.select().from(organizations).where(eq(organizations.status, 'active'));
-        
-        if (orgsFound.length > 0) {
-          // Atualizar o usuário com a organização
-          const [updated] = await db.update(users)
-            .set({ organizationId: orgsFound[0].id })
-            .where(eq(users.id, user.id))
-            .returning();
-          
-          if (updated) {
-            updatedUser = updated;
-            console.log("Updated org_admin with organizationId:", orgsFound[0].id);
-          }
-        }
-      }
-      
       // Remove password from user object before sending to client
-      const { password: _, ...userWithoutPassword } = updatedUser;
+      const { password: _, ...userWithoutPassword } = user;
       
       // Set user in session
       req.session.user = userWithoutPassword;
@@ -3251,9 +3227,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Registrar rotas de organização
-  app.use('/api/organization', organizationRouter);
-
   // Rota para a API da Zoop
   return httpServer;
 }
