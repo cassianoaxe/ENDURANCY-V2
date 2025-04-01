@@ -34,7 +34,7 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 fixed top-0 right-0 left-[240px] bg-white border-b z-10">
+    <header className="h-16 fixed top-0 right-0 left-[240px] bg-white border-b z-20">
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Leaf className="h-4 w-4 text-green-600 mr-1" />
