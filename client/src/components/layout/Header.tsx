@@ -64,7 +64,9 @@ export default function Header() {
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuItem 
                 onClick={() => {
-                  window.history.pushState({}, '', '/profile');
+                  const isOrgPath = window.location.pathname.startsWith('/organization');
+                  const profilePath = isOrgPath ? '/organization/profile' : '/profile';
+                  window.history.pushState({}, '', profilePath);
                   window.dispatchEvent(new Event('popstate'));
                 }}
                 className="cursor-pointer"

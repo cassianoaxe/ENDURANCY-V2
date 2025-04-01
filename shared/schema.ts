@@ -62,6 +62,7 @@ export const organizations = pgTable("organizations", {
   bankBranch: text("bank_branch").notNull(),
   bankAccount: text("bank_account").notNull(),
   termsAccepted: boolean("terms_accepted").notNull(),
+  logo: text("logo"), // Caminho para o arquivo de logo
   stripeCustomerId: text("stripe_customer_id"), // ID do cliente no Stripe
   stripeSubscriptionId: text("stripe_subscription_id"), // ID da assinatura no Stripe
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -255,6 +256,7 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     bankBranch: true,
     bankAccount: true,
     termsAccepted: true,
+    logo: true,
   })
   .extend({
     // Custom validation to ensure passwords match

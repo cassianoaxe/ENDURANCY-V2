@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Endurancy Default Logo</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="leaf-logo">
+            <circle id="bg" fill="#e6f7e6" cx="100" cy="100" r="100"></circle>
+            <path d="M150,50 C130,80 100,100 70,110 C50,116 30,118 30,140 C30,170 60,170 80,160 C100,150 110,130 120,110 C125,100 130,90 140,80 C150,70 170,60 170,60 C170,60 160,70 150,90 C140,110 130,140 110,160 C90,180 60,190 40,170 C20,150 30,120 50,110 C70,100 100,100 120,90 C140,80 150,50 150,50 Z" id="leaf" fill="#22c55e" fill-rule="nonzero"></path>
+        </g>
+    </g>
+</svg>
