@@ -27,10 +27,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        console.log("Verificando status de autenticação...");
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include', // Incluir cookies na requisição
+        });
+        
         if (response.ok) {
           const userData = await response.json();
+          console.log("Usuário autenticado:", userData);
           setUser(userData);
+        } else {
+          console.log("Usuário não autenticado. Status:", response.status);
+          const errorText = await response.text();
+          console.log("Erro de autenticação:", errorText);
         }
       } catch (error) {
         console.error('Failed to check authentication status', error);
@@ -57,20 +66,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (orgCode) {
         requestBody.orgCode = orgCode;
       }
+      
+      console.log("Tentando login com:", { username, userType, hasOrgCode: !!orgCode });
         
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Importante para salvar o cookie de sessão
         body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Login falhou: ${response.status} - ${errorText}`);
         throw new Error('Login failed');
       }
 
       const userData = await response.json();
+      console.log("Login bem-sucedido. Dados do usuário:", userData);
       setUser(userData);
       
       // Redirecionar com base no papel do usuário
@@ -101,9 +116,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
+      console.log("Iniciando logout");
       await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'include', // Importante para acessar e limpar cookies
       });
+      console.log("Logout completo no servidor");
       setUser(null);
       
       // Use window.history instead of wouter
