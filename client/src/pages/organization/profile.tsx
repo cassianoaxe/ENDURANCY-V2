@@ -57,9 +57,32 @@ export default function OrganizationProfile() {
       if (!organizationId) throw new Error("ID da organização não disponível");
       if (!user) throw new Error("Usuário não autenticado");
       
-      // Prossegue com a requisição para obter os dados da organização
-      const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
-      return response.json();
+      console.log("Tentando buscar dados da organização:", organizationId);
+      console.log("Usuário atual:", JSON.stringify(user));
+      
+      try {
+        // Prossegue com a requisição para obter os dados da organização
+        const response = await fetch(`/api/organizations/${organizationId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Importante para enviar cookies
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Erro ao buscar organização: ${response.status} - ${errorText}`);
+          throw new Error(`Erro ao buscar dados da organização: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Dados da organização recebidos:", data);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar organização:", error);
+        throw error;
+      }
     },
     enabled: !!organizationId && !!user
   });
