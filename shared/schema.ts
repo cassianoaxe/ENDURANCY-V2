@@ -44,7 +44,7 @@ export const organizations = pgTable("organizations", {
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
   website: text("website").notNull().default(''),
-  planId: integer("plan_id").notNull(), // ID do plano contratado
+  planId: integer("plan_id").notNull().references(() => plans.id), // ID do plano contratado
   planTier: planTierEnum("plan_tier").default("free"), // Nível do plano (free, seed, grow, pro)
   status: text("status").notNull(), // 'active', 'pending', 'rejected'
   recordCount: integer("record_count").default(0), // Contagem de registros (pacientes/plantas)
@@ -180,9 +180,9 @@ export const modulePlans = pgTable("module_plans", {
 // Tabela de associação entre organizações e módulos contratados
 export const organizationModules = pgTable("organization_modules", {
   id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(),
-  moduleId: integer("module_id").notNull(),
-  planId: integer("plan_id"), // plano contratado para este módulo
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  moduleId: integer("module_id").notNull().references(() => modules.id),
+  planId: integer("plan_id").references(() => plans.id), // plano contratado para este módulo
   active: boolean("active").default(true), // se o módulo está ativo para esta organização
   billingDay: integer("billing_day"), // dia de cobrança da assinatura
   createdAt: timestamp("created_at").defaultNow().notNull(),
