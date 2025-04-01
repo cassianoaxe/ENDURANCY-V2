@@ -14,16 +14,23 @@ export async function apiRequest(
 ): Promise<Response> {
   const headers: HeadersInit = {
     'Accept': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   };
   
-  if (data) {
+  // Check if data is FormData
+  const isFormData = data instanceof FormData;
+  
+  // Only set Content-Type for non-FormData requests
+  if (data && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
 
   const res = await fetch(url, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: isFormData ? data as FormData : (data ? JSON.stringify(data) : undefined),
     credentials: "include", // Important: This ensures cookies are included in the request
     cache: "no-cache", // Prevent caching issues
   });
@@ -42,11 +49,15 @@ export const getQueryFn: <T>(options: {
       credentials: "include",
       headers: {
         'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
       cache: "no-cache", // Prevent caching issues
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      console.log(`401 Unauthorized for ${queryKey[0]}, returning null as configured`);
       return null;
     }
 
