@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, Upload, User, Building, Mail, Phone, Info } from "lucide-react";
+import { 
+  Loader2, Upload, User, Building, Mail, Phone, Info, 
+  CreditCard, Tag, Package, Users, Check, AlertTriangle, 
+  Calendar, Puzzle, PlusCircle, UserPlus, Star, ArrowRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +15,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 
 interface Organization {
@@ -29,6 +37,9 @@ interface Organization {
   description?: string;
   foundedAt?: string;
   planId?: number | null;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface User {
@@ -42,14 +53,253 @@ interface User {
   organizationId?: number | null;
 }
 
+interface Plan {
+  id: number;
+  name: string;
+  tier: string;
+  price: number;
+  description: string;
+  maxRegistrations: number;
+  billingCycle: string;
+  features: string[];
+  isPopular: boolean;
+  isActive: boolean;
+}
+
+interface Module {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  icon_name: string;
+  status: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+interface ModulePlan {
+  id: number;
+  module_id: number;
+  name: string;
+  description: string;
+  price: number;
+  billing_cycle: string;
+  features: string[];
+  max_users: number;
+  is_popular: boolean;
+  is_active: boolean;
+}
+
+interface UserGroup {
+  id: number;
+  name: string;
+  description: string;
+  organizationId: number;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+interface UserInvitation {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  groupId: number | null;
+  organizationId: number;
+  expiresAt: string;
+  createdBy: number;
+  createdAt: string;
+  groupName?: string;
+}
+
+interface OrganizationModule {
+  id: number;
+  organizationId: number;
+  moduleId: number;
+  modulePlanId: number | null;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+}
+
 export default function OrganizationProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
   const { toast } = useToast();
   const { user, isLoading: isUserLoading } = useAuth();
   
-  // Usar diretamente o user do contexto de autenticação
+  // States for plan and modules management
+  const [isAddingModule, setIsAddingModule] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [isUpgradingPlan, setIsUpgradingPlan] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  
+  // States for user invitations
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteData, setInviteData] = useState({
+    email: "",
+    role: "org_admin",
+    groupId: "",
+  });
+  
+  // Use user from auth context
   const organizationId = user?.organizationId;
+  
+  // Fetch available plans
+  const { data: plans = [], isLoading: isLoadingPlans } = useQuery<Plan[]>({
+    queryKey: ['/api/plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/plans');
+      if (!response.ok) throw new Error('Falha ao carregar planos');
+      return response.json();
+    }
+  });
+  
+  // Fetch modules
+  const { data: modules = [], isLoading: isLoadingModules } = useQuery<Module[]>({
+    queryKey: ['/api/modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/modules');
+      if (!response.ok) throw new Error('Falha ao carregar módulos');
+      return response.json();
+    }
+  });
+  
+  // Fetch organization's active modules
+  const { data: orgModules = [], isLoading: isLoadingOrgModules } = useQuery<OrganizationModule[]>({
+    queryKey: ['/api/organization-modules', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/organization-modules/${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar módulos da organização');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Fetch module plans
+  const { data: modulePlans = [], isLoading: isLoadingModulePlans } = useQuery<ModulePlan[]>({
+    queryKey: ['/api/module-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/module-plans');
+      if (!response.ok) throw new Error('Falha ao carregar planos dos módulos');
+      return response.json();
+    }
+  });
+  
+  // Fetch user groups
+  const { data: userGroups = [], isLoading: isLoadingGroups } = useQuery<UserGroup[]>({
+    queryKey: ['/api/user-groups', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/user-groups?organizationId=${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar grupos de usuários');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Fetch user invitations
+  const { data: userInvitations = [], isLoading: isLoadingInvitations } = useQuery<UserInvitation[]>({
+    queryKey: ['/api/user-invitations', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/user-invitations?organizationId=${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar convites de usuários');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Upgrade plan mutation
+  const upgradePlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/subscriptions/create", {
+        planId,
+        organizationId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Plano atualizado com sucesso",
+        description: "O plano da sua organização foi atualizado",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', organizationId] });
+      setIsUpgradingPlan(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar plano",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Add module mutation
+  const addModuleMutation = useMutation({
+    mutationFn: async ({ moduleId, modulePlanId }: { moduleId: number, modulePlanId: number | null }) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/organization-modules", {
+        organizationId,
+        moduleId,
+        modulePlanId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Módulo adicionado com sucesso",
+        description: "O módulo foi adicionado à sua organização",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organization-modules', organizationId] });
+      setIsAddingModule(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao adicionar módulo",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Create invitation mutation
+  const createInvitationMutation = useMutation({
+    mutationFn: async (data: { email: string, role: string, groupId: string | null }) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/user-invitations", {
+        email: data.email,
+        role: data.role,
+        groupId: data.groupId ? parseInt(data.groupId) : null,
+        organizationId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Convite enviado com sucesso",
+        description: "Um email foi enviado para o usuário com instruções para acesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+      setIsInviting(false);
+      setInviteData({
+        email: "",
+        role: "org_admin",
+        groupId: "",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao enviar convite",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Usar diretamente o user do contexto de autenticação
+  
 
   const { data: organization, isLoading: isOrgLoading, error } = useQuery<Organization>({
     queryKey: ["/api/organizations", organizationId],
@@ -274,6 +524,9 @@ export default function OrganizationProfile() {
             <Tabs defaultValue="profile" onValueChange={setActiveTab} value={activeTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="profile">Informações da Organização</TabsTrigger>
+                <TabsTrigger value="plan">Plano e Assinatura</TabsTrigger>
+                <TabsTrigger value="modules">Módulos</TabsTrigger>
+                <TabsTrigger value="users">Usuários e Convites</TabsTrigger>
                 <TabsTrigger value="admin">Administração</TabsTrigger>
                 <TabsTrigger value="documents">Documentos</TabsTrigger>
               </TabsList>
@@ -409,6 +662,688 @@ export default function OrganizationProfile() {
                     </CardFooter>
                   </form>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="plan">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Plano e Assinatura</CardTitle>
+                    <CardDescription>
+                      Gerencie o plano e a assinatura da sua organização
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {isLoadingPlans ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <>
+                        {/* Current Plan */}
+                        <div className="mb-6 bg-muted rounded-lg p-4">
+                          <h3 className="text-lg font-medium mb-2">Plano Atual</h3>
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                              {organization.planId ? (
+                                <>
+                                  {plans.find(p => p.id === organization.planId) ? (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+                                          {plans.find(p => p.id === organization.planId)?.tier}
+                                        </Badge>
+                                        <h4 className="text-xl font-bold">{plans.find(p => p.id === organization.planId)?.name}</h4>
+                                      </div>
+                                      <p className="text-gray-500 mt-2">{plans.find(p => p.id === organization.planId)?.description}</p>
+                                      <div className="mt-2 flex items-center text-primary">
+                                        <Check className="h-4 w-4 mr-2" />
+                                        <span>Até {plans.find(p => p.id === organization.planId)?.maxRegistrations} cadastros</span>
+                                      </div>
+                                      {plans.find(p => p.id === organization.planId)?.features?.map((feature, index) => (
+                                        <div key={index} className="mt-1 flex items-center text-primary">
+                                          <Check className="h-4 w-4 mr-2" />
+                                          <span>{feature}</span>
+                                        </div>
+                                      ))}
+                                    </>
+                                  ) : (
+                                    <p>Plano (ID: {organization.planId}) não encontrado</p>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+                                    Trial
+                                  </Badge>
+                                  <p className="text-gray-500">Você está usando a versão de avaliação gratuita</p>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsUpgradingPlan(true)}
+                              className="shrink-0"
+                            >
+                              Mudar de Plano
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Subscription Details */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">Detalhes da Assinatura</h3>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CreditCard className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Informações de pagamento</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  {organization.planId ? (
+                                    <>Próxima cobrança em: 15/05/2025</>
+                                  ) : (
+                                    <>Nenhum método de pagamento cadastrado</>
+                                  )}
+                                </p>
+                                <Button 
+                                  variant="link" 
+                                  className="px-0 h-auto text-sm mt-2" 
+                                  onClick={() => setActiveTab("billing")}
+                                >
+                                  Gerenciar pagamento
+                                </Button>
+                              </Card>
+                              
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Tag className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Uso atual</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  <span className="font-medium">250 / {organization.planId ? plans.find(p => p.id === organization.planId)?.maxRegistrations : "1,000"}</span> cadastros utilizados
+                                </p>
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                  <div 
+                                    className="bg-primary h-2.5 rounded-full" 
+                                    style={{ width: `${organization.planId ? (250 / plans.find(p => p.id === organization.planId)?.maxRegistrations! * 100) : 25}%` }}
+                                  ></div>
+                                </div>
+                                <Button 
+                                  variant="link" 
+                                  className="px-0 h-auto text-sm mt-2" 
+                                  onClick={() => setActiveTab("usage")}
+                                >
+                                  Ver detalhes de uso
+                                </Button>
+                              </Card>
+                              
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Calendar className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Ciclo de assinatura</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  {organization.planId ? (
+                                    <>
+                                      Cobrança {plans.find(p => p.id === organization.planId)?.billingCycle || "mensal"}<br />
+                                      Ativa desde: 15/04/2025
+                                    </>
+                                  ) : (
+                                    <>
+                                      Período de avaliação<br />
+                                      Restante: 10 dias
+                                    </>
+                                  )}
+                                </p>
+                              </Card>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Plan upgrade dialog */}
+                        <Dialog open={isUpgradingPlan} onOpenChange={setIsUpgradingPlan}>
+                          <DialogContent className="sm:max-w-[900px]">
+                            <DialogHeader>
+                              <DialogTitle>Escolha seu plano</DialogTitle>
+                              <DialogDescription>
+                                Selecione o plano que melhor se adapta às necessidades da sua organização.
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                              {plans.map((plan) => (
+                                <Card 
+                                  key={plan.id} 
+                                  className={`flex flex-col border-2 transition-all hover:shadow-md ${selectedPlan === plan.id ? 'border-primary' : 'border-gray-200'}`}
+                                >
+                                  <CardHeader className="pb-2">
+                                    {plan.isPopular && (
+                                      <Badge className="w-fit mb-2">Mais Popular</Badge>
+                                    )}
+                                    <CardTitle className="text-xl">{plan.name}</CardTitle>
+                                    <CardDescription className="flex items-baseline gap-1">
+                                      <span className="text-2xl font-bold">R${plan.price}</span>
+                                      <span className="text-sm font-normal">/{plan.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="flex-grow">
+                                    <p className="text-sm mb-4">{plan.description}</p>
+                                    <ul className="space-y-2">
+                                      <li className="flex items-center gap-2 text-sm">
+                                        <Check className="h-4 w-4 text-primary" />
+                                        Até {plan.maxRegistrations} cadastros
+                                      </li>
+                                      {plan.features.map((feature, index) => (
+                                        <li key={index} className="flex items-center gap-2 text-sm">
+                                          <Check className="h-4 w-4 text-primary" />
+                                          {feature}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </CardContent>
+                                  <CardFooter>
+                                    <Button 
+                                      variant={selectedPlan === plan.id ? "default" : "outline"} 
+                                      className="w-full" 
+                                      onClick={() => setSelectedPlan(plan.id)}
+                                    >
+                                      {selectedPlan === plan.id ? 'Selecionado' : 'Selecionar'}
+                                    </Button>
+                                  </CardFooter>
+                                </Card>
+                              ))}
+                            </div>
+                            
+                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4">
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Info className="h-4 w-4 mr-2" />
+                                <span>Você pode alterar seu plano a qualquer momento</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button variant="outline" onClick={() => setIsUpgradingPlan(false)}>
+                                  Cancelar
+                                </Button>
+                                <Button 
+                                  disabled={!selectedPlan || upgradePlanMutation.isPending} 
+                                  onClick={() => selectedPlan && upgradePlanMutation.mutate(selectedPlan)}
+                                >
+                                  {upgradePlanMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Processando...
+                                    </>
+                                  ) : (
+                                    'Confirmar mudança de plano'
+                                  )}
+                                </Button>
+                              </div>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="modules">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <div>
+                        <CardTitle>Módulos Disponíveis</CardTitle>
+                        <CardDescription>
+                          Gerencie os módulos adicionais para sua organização
+                        </CardDescription>
+                      </div>
+                      <Button onClick={() => setIsAddingModule(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Adicionar Módulo
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingModules || isLoadingOrgModules ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {modules.map(module => {
+                          const isActive = orgModules.some(m => m.moduleId === module.id);
+                          const orgModule = orgModules.find(m => m.moduleId === module.id);
+                          
+                          return (
+                            <Card key={module.id} className={`transition-all ${isActive ? 'border-2 border-green-200' : ''}`}>
+                              <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-2 rounded-md bg-primary/10">
+                                      <Puzzle className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <CardTitle className="text-base">{module.name}</CardTitle>
+                                  </div>
+                                  {isActive && (
+                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                                      Ativo
+                                    </Badge>
+                                  )}
+                                </div>
+                                <CardDescription className="mt-2">
+                                  {module.description}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                {isActive && orgModule ? (
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Plano:</span>
+                                      <span className="font-medium">
+                                        {orgModule.modulePlanId 
+                                          ? modulePlans.find(p => p.id === orgModule.modulePlanId)?.name || "Plano Básico" 
+                                          : "Plano Básico"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Início:</span>
+                                      <span className="font-medium">{new Date(orgModule.startDate).toLocaleDateString('pt-BR')}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Status:</span>
+                                      <span className="font-medium">{orgModule.status}</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-500">Este módulo não está ativo na sua organização.</p>
+                                )}
+                              </CardContent>
+                              <CardFooter>
+                                {isActive ? (
+                                  <div className="flex w-full gap-2">
+                                    <Button variant="outline" className="flex-1" onClick={() => {}}>
+                                      Configurar
+                                    </Button>
+                                    <Button variant="secondary" className="flex-1" onClick={() => {}}>
+                                      Gerenciar Plano
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button 
+                                    className="w-full" 
+                                    onClick={() => {
+                                      setSelectedModule(module.id);
+                                      setIsAddingModule(true);
+                                    }}
+                                  >
+                                    Adicionar Módulo
+                                  </Button>
+                                )}
+                              </CardFooter>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Add Module Dialog */}
+                <Dialog open={isAddingModule} onOpenChange={setIsAddingModule}>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Novo Módulo</DialogTitle>
+                      <DialogDescription>
+                        Selecione o módulo e o plano que deseja adicionar à sua organização.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="module">Módulo</Label>
+                        <Select
+                          value={selectedModule?.toString() || ""}
+                          onValueChange={(value) => setSelectedModule(parseInt(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um módulo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {modules
+                              .filter(m => !orgModules.some(om => om.moduleId === m.id))
+                              .map(module => (
+                                <SelectItem key={module.id} value={module.id.toString()}>
+                                  {module.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedModule && (
+                        <div className="space-y-2">
+                          <Label>Planos disponíveis</Label>
+                          <div className="grid grid-cols-1 gap-4">
+                            {modulePlans
+                              .filter(plan => plan.module_id === selectedModule)
+                              .map(plan => (
+                                <Card key={plan.id} className="border p-4">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-medium">{plan.name}</h4>
+                                      <p className="text-sm text-gray-500">{plan.description}</p>
+                                      <div className="mt-2">
+                                        <span className="text-lg font-bold">R${plan.price}</span>
+                                        <span className="text-sm text-gray-500">/{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}</span>
+                                      </div>
+                                      <ul className="mt-2 space-y-1">
+                                        {plan.features.slice(0, 3).map((feature, idx) => (
+                                          <li key={idx} className="flex items-center text-sm">
+                                            <Check className="h-4 w-4 mr-2 text-primary" />
+                                            {feature}
+                                          </li>
+                                        ))}
+                                        {plan.features.length > 3 && (
+                                          <li className="text-sm text-gray-500">+{plan.features.length - 3} recursos</li>
+                                        )}
+                                      </ul>
+                                    </div>
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={() => addModuleMutation.mutate({
+                                        moduleId: selectedModule, 
+                                        modulePlanId: plan.id
+                                      })}
+                                      disabled={addModuleMutation.isPending}
+                                    >
+                                      {addModuleMutation.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <>Selecionar</>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </Card>
+                              ))}
+                              
+                            {/* Free basic plan option */}
+                            <Card className="border p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">Plano Básico</h4>
+                                  <p className="text-sm text-gray-500">Versão básica com funcionalidades limitadas</p>
+                                  <div className="mt-2">
+                                    <span className="text-lg font-bold">Grátis</span>
+                                    <span className="text-sm text-gray-500">/mês</span>
+                                  </div>
+                                  <ul className="mt-2 space-y-1">
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Acesso básico ao módulo
+                                    </li>
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Funcionalidades limitadas
+                                    </li>
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Até 100 registros por mês
+                                    </li>
+                                  </ul>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => addModuleMutation.mutate({
+                                    moduleId: selectedModule, 
+                                    modulePlanId: null
+                                  })}
+                                  disabled={addModuleMutation.isPending}
+                                >
+                                  {addModuleMutation.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <>Selecionar</>
+                                  )}
+                                </Button>
+                              </div>
+                            </Card>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddingModule(false)}>
+                        Cancelar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </TabsContent>
+
+              <TabsContent value="users">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <div>
+                        <CardTitle>Usuários e Convites</CardTitle>
+                        <CardDescription>
+                          Gerencie os usuários e convites da sua organização
+                        </CardDescription>
+                      </div>
+                      <Button onClick={() => setIsInviting(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Convidar Usuário
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingInvitations ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Active Invitations */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Convites Pendentes</h3>
+                          {userInvitations.filter(inv => inv.status === 'pending').length === 0 ? (
+                            <p className="text-gray-500">Não há convites pendentes.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    <th className="py-3 text-left font-medium">Email</th>
+                                    <th className="py-3 text-left font-medium">Função</th>
+                                    <th className="py-3 text-left font-medium">Grupo</th>
+                                    <th className="py-3 text-left font-medium">Status</th>
+                                    <th className="py-3 text-left font-medium">Enviado em</th>
+                                    <th className="py-3 text-left font-medium">Expira em</th>
+                                    <th className="py-3 text-left font-medium">Ações</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {userInvitations.filter(inv => inv.status === 'pending').map(invitation => (
+                                    <tr key={invitation.id} className="border-b hover:bg-muted/50">
+                                      <td className="py-3">{invitation.email}</td>
+                                      <td className="py-3">
+                                        <Badge variant="outline" className="font-normal">
+                                          {invitation.role === 'org_admin' ? 'Administrador' : 
+                                           invitation.role === 'doctor' ? 'Médico' : 
+                                           invitation.role === 'manager' ? 'Gestor' : 'Usuário'}
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">{invitation.groupName || 'Sem grupo'}</td>
+                                      <td className="py-3">
+                                        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200">
+                                          Pendente
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">{new Date(invitation.createdAt).toLocaleDateString('pt-BR')}</td>
+                                      <td className="py-3">{new Date(invitation.expiresAt).toLocaleDateString('pt-BR')}</td>
+                                      <td className="py-3">
+                                        <div className="flex gap-2">
+                                          <Button variant="ghost" size="sm">
+                                            Reenviar
+                                          </Button>
+                                          <Button variant="ghost" size="sm" className="text-red-500">
+                                            Cancelar
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Historical Invitations */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Histórico de Convites</h3>
+                          {userInvitations.filter(inv => inv.status !== 'pending').length === 0 ? (
+                            <p className="text-gray-500">Não há convites finalizados.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    <th className="py-3 text-left font-medium">Email</th>
+                                    <th className="py-3 text-left font-medium">Função</th>
+                                    <th className="py-3 text-left font-medium">Status</th>
+                                    <th className="py-3 text-left font-medium">Enviado em</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {userInvitations.filter(inv => inv.status !== 'pending').map(invitation => (
+                                    <tr key={invitation.id} className="border-b hover:bg-muted/50">
+                                      <td className="py-3">{invitation.email}</td>
+                                      <td className="py-3">
+                                        <Badge variant="outline" className="font-normal">
+                                          {invitation.role === 'org_admin' ? 'Administrador' : 
+                                           invitation.role === 'doctor' ? 'Médico' : 
+                                           invitation.role === 'manager' ? 'Gestor' : 'Usuário'}
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">
+                                        {invitation.status === 'accepted' ? (
+                                          <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                                            Aceito
+                                          </Badge>
+                                        ) : (
+                                          <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200">
+                                            Expirado
+                                          </Badge>
+                                        )}
+                                      </td>
+                                      <td className="py-3">{new Date(invitation.createdAt).toLocaleDateString('pt-BR')}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Invite User Dialog */}
+                <Dialog open={isInviting} onOpenChange={setIsInviting}>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Convidar Novo Usuário</DialogTitle>
+                      <DialogDescription>
+                        Envie um convite por email para adicionar novos usuários à sua organização.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="usuario@exemplo.com"
+                          value={inviteData.email}
+                          onChange={(e) => setInviteData({...inviteData, email: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Função</Label>
+                        <Select
+                          value={inviteData.role}
+                          onValueChange={(value) => setInviteData({...inviteData, role: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma função" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="org_admin">Administrador</SelectItem>
+                            <SelectItem value="doctor">Médico</SelectItem>
+                            <SelectItem value="manager">Gestor</SelectItem>
+                            <SelectItem value="employee">Funcionário</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="group">Grupo (opcional)</Label>
+                        <Select
+                          value={inviteData.groupId}
+                          onValueChange={(value) => setInviteData({...inviteData, groupId: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um grupo (opcional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Sem grupo</SelectItem>
+                            {userGroups.map(group => (
+                              <SelectItem key={group.id} value={group.id.toString()}>
+                                {group.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Switch id="welcome-message" />
+                        <Label htmlFor="welcome-message">Enviar mensagem de boas-vindas personalizada</Label>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsInviting(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        onClick={() => createInvitationMutation.mutate({
+                          email: inviteData.email,
+                          role: inviteData.role,
+                          groupId: inviteData.groupId || null
+                        })}
+                        disabled={!inviteData.email || createInvitationMutation.isPending}
+                      >
+                        {createInvitationMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          'Enviar Convite'
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </TabsContent>
 
               <TabsContent value="admin">
