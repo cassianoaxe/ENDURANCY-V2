@@ -316,7 +316,15 @@ export default function Organizations() {
                 <tbody>
                   {organizations?.map((org) => (
                     <tr key={org.id} className="bg-white border-b">
-                      <td className="px-6 py-4 font-medium">{org.name}</td>
+                      <td className="px-6 py-4 font-medium">
+                        <button
+                          onClick={() => navigate(`/organizations/${org.id}`)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                        >
+                          {org.name}
+                          <ArrowUpRight className="h-3 w-3 ml-1" />
+                        </button>
+                      </td>
                       <td className="px-6 py-4">{org.type}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs rounded-full ${
@@ -445,7 +453,7 @@ export default function Organizations() {
                             variant="outline" 
                             size="sm"
                             className="flex items-center gap-1"
-                            onClick={() => navigate(`/organization/${org.id}`)}
+                            onClick={() => navigate(`/organizations/${org.id}`)}
                           >
                             <Database className="h-3 w-3" />
                             Detalhes
