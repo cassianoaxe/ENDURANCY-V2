@@ -1524,6 +1524,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { planId, organizationId } = req.body;
       
+      console.log(`API subscriptions/create - Recebido: planId=${planId}, organizationId=${organizationId}`);
+      
       if (!planId || !organizationId) {
         return res.status(400).json({ 
           success: false, 
@@ -1532,15 +1534,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar se a organização existe antes de tentar criar a assinatura
-      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+      console.log(`Verificando organização com ID ${organizationId}`);
+      const orgs = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+      console.log(`Consulta retornou ${orgs.length} organizações`);
       
-      if (!organization) {
+      if (!orgs || orgs.length === 0) {
+        console.error(`Organização com ID ${organizationId} não encontrada no banco de dados`);
         return res.status(404).json({
           success: false,
           message: "Organização não encontrada"
         });
       }
       
+      const organization = orgs[0];
+      console.log(`Organização encontrada: ${organization.name} (ID: ${organization.id})`);
+      
+      console.log(`Chamando createSubscription(${organizationId}, ${planId})`);
       const result = await createSubscription(organizationId, planId);
       res.json(result);
     } catch (error) {
