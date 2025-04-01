@@ -35,11 +35,30 @@ export function registerUserInvitationRoutes(app: any) {
           return res.status(403).json({ message: "Sem permissão para visualizar convites desta organização" });
         }
         
-        // Get invitations for the specified organization
-        invitations = await db
-          .select()
-          .from(userInvitations)
-          .where(eq(userInvitations.organizationId, parseInt(organizationId as string)));
+        try {
+          // Get invitations for the specified organization
+          invitations = await db
+            .select()
+            .from(userInvitations)
+            .where(eq(userInvitations.organizationId, parseInt(organizationId as string)));
+            
+          // Join with user groups to get group names
+          for (let i = 0; i < invitations.length; i++) {
+            if (invitations[i].groupId) {
+              const [group] = await db
+                .select()
+                .from(userGroups)
+                .where(eq(userGroups.id, invitations[i].groupId));
+              
+              if (group) {
+                invitations[i].groupName = group.name;
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao buscar convites:", error);
+          return res.status(500).json({ message: "Falha ao buscar convites" });
+        }
       } else if (req.session.user.role === "admin") {
         // Admin can see all invitations
         invitations = await db.select().from(userInvitations);
@@ -193,7 +212,7 @@ export function registerUserInvitationRoutes(app: any) {
           groupId: groupId || null,
           organizationId,
           expiresAt: expiresAt.toISOString(),
-          createdBy: req.session.user.id,
+          invitedBy: req.session.user.id,
           status: "pending"
         })
         .returning();
