@@ -9,13 +9,10 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { notifications, insertNotificationSchema, supportTickets, organizations, users } from "@shared/schema";
 import { InsertNotification, Notification } from "@shared/schema";
 
-// As funções do serviço de notificações serão utilizadas internamente
-// e exportadas como um único objeto no final do arquivo
-
 /**
  * Criar uma notificação para um usuário
  */
-async function createNotification(notificationData: InsertNotification): Promise<Notification> {
+export async function createNotification(notificationData: InsertNotification): Promise<Notification> {
   const [notification] = await db.insert(notifications)
     .values(notificationData)
     .returning();
@@ -26,7 +23,7 @@ async function createNotification(notificationData: InsertNotification): Promise
 /**
  * Criar uma notificação para um ticket de suporte
  */
-async function createTicketNotification(
+export async function createTicketNotification(
   ticketId: number, 
   type: 'info' | 'warning' | 'success' | 'error',
   title: string,
@@ -62,7 +59,7 @@ async function createTicketNotification(
 /**
  * Buscar notificações de um usuário
  */
-async function getUserNotifications(userId: number): Promise<Notification[]> {
+export async function getUserNotifications(userId: number): Promise<Notification[]> {
   const userNotifications = await db.select()
     .from(notifications)
     .where(eq(notifications.userId, userId))
@@ -74,7 +71,7 @@ async function getUserNotifications(userId: number): Promise<Notification[]> {
 /**
  * Buscar notificações não lidas de um usuário
  */
-async function getUnreadNotifications(userId: number): Promise<Notification[]> {
+export async function getUnreadNotifications(userId: number): Promise<Notification[]> {
   const unreadNotifications = await db.select()
     .from(notifications)
     .where(and(
@@ -89,7 +86,7 @@ async function getUnreadNotifications(userId: number): Promise<Notification[]> {
 /**
  * Marcar uma notificação como lida
  */
-async function markNotificationAsRead(notificationId: number): Promise<Notification> {
+export async function markNotificationAsRead(notificationId: number): Promise<Notification> {
   const [notification] = await db.update(notifications)
     .set({ isRead: true })
     .where(eq(notifications.id, notificationId))
@@ -105,7 +102,7 @@ async function markNotificationAsRead(notificationId: number): Promise<Notificat
 /**
  * Marcar todas as notificações de um usuário como lidas
  */
-async function markAllNotificationsAsRead(userId: number): Promise<number> {
+export async function markAllNotificationsAsRead(userId: number): Promise<number> {
   const result = await db.update(notifications)
     .set({ isRead: true })
     .where(and(
@@ -120,7 +117,7 @@ async function markAllNotificationsAsRead(userId: number): Promise<number> {
 /**
  * Buscar estatísticas de notificações para um usuário
  */
-async function getNotificationStats(userId: number): Promise<{
+export async function getNotificationStats(userId: number): Promise<{
   total: number;
   unread: number;
   byType: { [key: string]: number };
@@ -163,7 +160,7 @@ async function getNotificationStats(userId: number): Promise<{
  * Excluir notificações antigas (mais de 30 dias)
  * Para manter o sistema limpo e eficiente
  */
-async function cleanupOldNotifications(): Promise<number> {
+export async function cleanupOldNotifications(): Promise<number> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
@@ -178,7 +175,7 @@ async function cleanupOldNotifications(): Promise<number> {
  * Criar dados simulados de notificações para admins
  * (Usado apenas em ambiente de desenvolvimento)
  */
-async function createMockNotifications(): Promise<void> {
+export async function createMockNotifications(): Promise<void> {
   // Verificar se já existem notificações
   const [notificationCount] = await db.select({ count: sql<number>`count(*)` })
     .from(notifications);
@@ -266,7 +263,7 @@ async function createMockNotifications(): Promise<void> {
  * Gerar notificações de sistema, como alertas de tickets críticos ou expiração de prazos
  * Esta função seria chamada periodicamente por um job
  */
-async function generateSystemNotifications(): Promise<void> {
+export async function generateSystemNotifications(): Promise<void> {
   // Verificar tickets críticos sem resposta por mais de 2 horas
   const criticalTickets = await db.select({
     id: supportTickets.id,
@@ -312,19 +309,3 @@ async function generateSystemNotifications(): Promise<void> {
     }
   }
 }
-
-/**
- * Serviço unificado de notificações
- */
-export const notificationService = {
-  createNotification,
-  createTicketNotification,
-  getUserNotifications,
-  getUnreadNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  getNotificationStats,
-  cleanupOldNotifications,
-  createMockNotifications,
-  generateSystemNotifications
-};
