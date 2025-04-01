@@ -151,7 +151,7 @@ export default function Sidebar() {
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
     "Módulos": false,
     "Tickets de Suporte": false,
-    "Financeiro": true, // Começar com o menu financeiro expandido por padrão
+    "Financeiro": false, // Menu financeiro deve começar retraído como os outros
     "Integrações": false
   });
   
