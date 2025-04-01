@@ -149,9 +149,6 @@ export const moduleTypeEnum = pgEnum('module_type', [
   'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente' // Add-ons
 ]);
 
-// Define o enum para status de solicitações
-export const requestStatusEnum = pgEnum('request_status', ['pendente', 'aprovado', 'negado', 'cancelado']);
-
 // Tabela de módulos disponíveis no sistema
 export const modules = pgTable("modules", {
   id: serial("id").primaryKey(),
@@ -753,62 +750,6 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
 // Tipos para o sistema de notificações
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
-
-// Tabela de solicitações de mudança de plano
-export const planChangeRequests = pgTable("plan_change_requests", {
-  id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(),
-  currentPlanId: integer("current_plan_id").notNull(),
-  requestedPlanId: integer("requested_plan_id").notNull(),
-  reason: text("reason").notNull(),
-  status: requestStatusEnum("status").notNull().default("pendente"),
-  notes: text("notes"),
-  adminId: integer("admin_id"), // Admin que aprovou/rejeitou a solicitação
-  responseDate: timestamp("response_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Tabela de solicitações de módulos
-export const moduleRequests = pgTable("module_requests", {
-  id: serial("id").primaryKey(),
-  organizationId: integer("organization_id").notNull(),
-  moduleId: integer("module_id").notNull(),
-  planId: integer("plan_id"), // Se for associado a um plano específico
-  action: text("action").notNull(), // 'add' ou 'remove'
-  reason: text("reason").notNull(),
-  status: requestStatusEnum("status").notNull().default("pendente"),
-  notes: text("notes"),
-  adminId: integer("admin_id"), // Admin que aprovou/rejeitou a solicitação
-  responseDate: timestamp("response_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Schema para inserção de solicitações de mudança de plano
-export const insertPlanChangeRequestSchema = createInsertSchema(planChangeRequests).pick({
-  organizationId: true,
-  currentPlanId: true,
-  requestedPlanId: true,
-  reason: true,
-  notes: true,
-});
-
-// Schema para inserção de solicitações de módulos
-export const insertModuleRequestSchema = createInsertSchema(moduleRequests).pick({
-  organizationId: true,
-  moduleId: true,
-  planId: true,
-  action: true,
-  reason: true,
-  notes: true,
-});
-
-// Tipos para o sistema de solicitações
-export type PlanChangeRequest = typeof planChangeRequests.$inferSelect;
-export type InsertPlanChangeRequest = z.infer<typeof insertPlanChangeRequestSchema>;
-export type ModuleRequest = typeof moduleRequests.$inferSelect;
-export type InsertModuleRequest = z.infer<typeof insertModuleRequestSchema>;
 
 // Enum para definir o status do produto
 export const productStatusEnum = pgEnum('product_status', ['ativo', 'inativo', 'em_falta', 'descontinuado']);

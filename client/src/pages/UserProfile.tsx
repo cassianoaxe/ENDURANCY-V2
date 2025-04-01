@@ -3,8 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileForm } from "@/components/user/ProfileForm";
 import { PasswordChangeForm } from "@/components/user/PasswordChangeForm";
-import { PlanDetails } from "@/components/user/PlanDetails";
-import { Loader2, User as UserIcon, Key, PackageCheck } from "lucide-react";
+import { Loader2, User as UserIcon, Key, Settings } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 // Definimos a interface User internamente para evitar problemas de importação
@@ -23,15 +22,6 @@ interface User {
 export default function UserProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
-  
-  // Verificar parâmetros da URL para ativar a aba correta
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    if (tabParam && ['profile', 'security', 'plan'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-  }, []);
   
   const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/profile"],
@@ -80,7 +70,7 @@ export default function UserProfile() {
       <h1 className="text-3xl font-bold mb-8">Seu Perfil</h1>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-full md:w-[600px] ${user.role === 'org_admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <TabsList className="grid w-full md:w-[400px] grid-cols-2">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserIcon className="h-4 w-4" />
             <span>Informações</span>
@@ -89,12 +79,6 @@ export default function UserProfile() {
             <Key className="h-4 w-4" />
             <span>Segurança</span>
           </TabsTrigger>
-          {user.role === 'org_admin' && (
-            <TabsTrigger value="plan" className="flex items-center gap-2">
-              <PackageCheck className="h-4 w-4" />
-              <span>Meu Plano</span>
-            </TabsTrigger>
-          )}
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">
@@ -107,12 +91,6 @@ export default function UserProfile() {
         <TabsContent value="security" className="mt-6">
           <PasswordChangeForm />
         </TabsContent>
-        
-        {user.role === 'org_admin' && (
-          <TabsContent value="plan" className="mt-6">
-            <PlanDetails />
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   );
