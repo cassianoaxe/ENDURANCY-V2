@@ -97,8 +97,11 @@ export default function MeuPlano() {
       return;
     }
     
+    // Fechar o diálogo antes de redirecionar para checkout
+    setShowChangePlanDialog(false);
+    
     // Se for plano pago, redirecionar para checkout
-    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/organization/meu-plano`);
+    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
   };
 
   // Inicia processo de adição de módulo
@@ -111,8 +114,11 @@ export default function MeuPlano() {
   const confirmAddModule = () => {
     if (!selectedModule) return;
     
+    // Fechar o diálogo antes de redirecionar
+    setShowAddModuleDialog(false);
+    
     // Redirecionar para checkout com o módulo selecionado
-    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/organization/meu-plano`);
+    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
   };
 
   const isLoading = isOrgLoading || isPlanLoading || isPlansLoading || isModulesLoading || isAvailableModulesLoading;
