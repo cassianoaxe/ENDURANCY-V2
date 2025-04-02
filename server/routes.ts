@@ -26,7 +26,7 @@ import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
 // Importar rotas de grupos de usuários, permissões e convites
 import { registerUserGroupRoutes } from './routes/user-groups';
-import { registerUserInvitationRoutes } from './routes/user-invitations';
+import { registerUserInvitationsRoutes } from './routes/user-invitations';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -35,7 +35,7 @@ import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import { initializePlans } from "./services/stripe";
-import { sendTemplateEmail, EmailTemplate } from "./services/email";
+import { sendMail, isEmailServiceConfigured, sendTemplateEmail, EmailTemplate } from "./services/email";
 import { 
   createPlanPaymentIntent, 
   createModulePaymentIntent, 
@@ -3761,7 +3761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register user groups and invitations routes
   registerUserGroupRoutes(app);
-  registerUserInvitationRoutes(app);
+  registerUserInvitationsRoutes(app);
   
   return httpServer;
 }

@@ -33,6 +33,7 @@ import Documentation from "@/pages/Documentation";
 import UserProfile from "@/pages/UserProfile";
 import UserGroups from "@/pages/UserGroups";
 import UserInvitations from "@/pages/UserInvitations";
+import AcceptInvitation from "@/pages/AcceptInvitation";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -100,6 +101,14 @@ function AppContent() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Verificar se é uma rota de convite antes de verificar autenticação
+  const acceptInvitationMatch = currentPath.match(/^\/accept-invitation\/([^\/]+)$/);
+  if (acceptInvitationMatch) {
+    const token = acceptInvitationMatch[1];
+    // Esta rota não precisa de autenticação e deve estar acessível para usuários não logados
+    return <AcceptInvitation />;
   }
 
   // If not authenticated, handle login pages
