@@ -146,7 +146,7 @@ export default function OrganizationProfile() {
   const [inviteData, setInviteData] = useState({
     email: "",
     role: "org_admin",
-    groupId: "",
+    groupId: "nenhum",
   });
   
   // Handle plan upgrade
@@ -201,7 +201,7 @@ export default function OrganizationProfile() {
     createInvitationMutation.mutate({
       email: inviteData.email,
       role: inviteData.role,
-      groupId: inviteData.groupId ? inviteData.groupId : null
+      groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId
     });
   };
   
@@ -399,7 +399,7 @@ export default function OrganizationProfile() {
       await apiRequest("POST", "/api/user-invitations", {
         email: data.email,
         role: data.role,
-        groupId: data.groupId ? parseInt(data.groupId) : null,
+        groupId: data.groupId && data.groupId !== "nenhum" ? parseInt(data.groupId) : null,
         organizationId
       });
     },
@@ -413,7 +413,7 @@ export default function OrganizationProfile() {
       setInviteData({
         email: "",
         role: "org_admin",
-        groupId: "",
+        groupId: "nenhum",
       });
     },
     onError: (error: Error) => {
@@ -1551,7 +1551,7 @@ export default function OrganizationProfile() {
                         onClick={() => createInvitationMutation.mutate({
                           email: inviteData.email,
                           role: inviteData.role,
-                          groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId || null
+                          groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId
                         })}
                         disabled={!inviteData.email || createInvitationMutation.isPending}
                       >
