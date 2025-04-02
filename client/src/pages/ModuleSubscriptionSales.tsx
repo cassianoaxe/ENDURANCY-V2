@@ -52,6 +52,22 @@ const moduleDistributionData = [
   { name: 'Suporte', value: 15, color: '#9C27B0' },
 ];
 
+// Dados de distribuição de planos por módulo
+const modulesPlanDistribution = [
+  { module: 'Financeiro', plan: 'Básico', count: 15 },
+  { module: 'Financeiro', plan: 'Profissional', count: 35 },
+  { module: 'Financeiro', plan: 'Enterprise', count: 50 },
+  { module: 'RH', plan: 'Básico', count: 25 },
+  { module: 'RH', plan: 'Profissional', count: 45 },
+  { module: 'RH', plan: 'Enterprise', count: 30 },
+  { module: 'Logística', plan: 'Básico', count: 40 },
+  { module: 'Logística', plan: 'Profissional', count: 35 },
+  { module: 'Logística', plan: 'Enterprise', count: 25 },
+  { module: 'Suporte', plan: 'Básico', count: 20 },
+  { module: 'Suporte', plan: 'Profissional', count: 40 },
+  { module: 'Suporte', plan: 'Enterprise', count: 40 },
+];
+
 const recentSubscriptions = [
   { 
     id: 1, 
@@ -353,31 +369,147 @@ export default function ModuleSubscriptionSales() {
           </TabsContent>
 
           <TabsContent value="modules" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Desempenho de Módulos</CardTitle>
+                  <CardDescription>Análise de performance por módulo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={moduleDistributionData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
+                        <Legend />
+                        <Bar 
+                          dataKey="value" 
+                          name="Participação (%)" 
+                          fill="#3b82f6" 
+                        >
+                          {moduleDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receita por Módulo</CardTitle>
+                  <CardDescription>Distribuição da receita mensal por módulo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          { name: 'Financeiro', value: 12500 },
+                          { name: 'RH', value: 8200 },
+                          { name: 'Logística', value: 6400 },
+                          { name: 'Suporte', value: 5700 },
+                        ]}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
+                        <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
+                        <Legend />
+                        <Bar 
+                          dataKey="value" 
+                          name="Receita Mensal" 
+                          fill="#3b82f6" 
+                        >
+                          {moduleDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
             <Card>
               <CardHeader>
-                <CardTitle>Desempenho de Módulos</CardTitle>
-                <CardDescription>Análise de performance por módulo</CardDescription>
+                <CardTitle>Distribuição de Planos por Módulo</CardTitle>
+                <CardDescription>Análise detalhada de assinaturas de planos por módulo</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={moduleDistributionData}>
+                    <BarChart
+                      data={modulesPlanDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
+                      <XAxis dataKey="module" />
                       <YAxis />
-                      <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
+                      <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
                       <Legend />
                       <Bar 
-                        dataKey="value" 
-                        name="Participação (%)" 
-                        fill="#3b82f6" 
+                        dataKey="count" 
+                        name="Assinaturas" 
+                        fill="#8884d8" 
+                        stackId="a"
                       >
-                        {moduleDistributionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
+                        {modulesPlanDistribution.map((entry, index) => {
+                          let color;
+                          if (entry.plan === 'Básico') color = '#4CAF50';
+                          else if (entry.plan === 'Profissional') color = '#2196F3';
+                          else if (entry.plan === 'Enterprise') color = '#9C27B0';
+                          return <Cell key={`cell-${index}`} fill={color} />;
+                        })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
+                </div>
+                
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-3">Detalhamento de Planos por Módulo</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            Básico
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                            Profissional
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                            Enterprise
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {Array.from(new Set(modulesPlanDistribution.map(item => item.module))).map(module => (
+                          <tr key={module}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{module}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -443,40 +575,154 @@ export default function ModuleSubscriptionSales() {
           </TabsContent>
           
           <TabsContent value="plans" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Planos por Popularidade</CardTitle>
+                  <CardDescription>Distribuição de assinaturas por tipo de plano</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Básico', value: 30, color: '#4CAF50' },
+                            { name: 'Profissional', value: 45, color: '#2196F3' },
+                            { name: 'Enterprise', value: 25, color: '#9C27B0' },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {[
+                            { name: 'Básico', value: 30, color: '#4CAF50' },
+                            { name: 'Profissional', value: 45, color: '#2196F3' },
+                            { name: 'Enterprise', value: 25, color: '#9C27B0' },
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receita por Plano</CardTitle>
+                  <CardDescription>Distribuição da receita mensal por tipo de plano</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          { name: 'Básico', value: 4500 },
+                          { name: 'Profissional', value: 18200 },
+                          { name: 'Enterprise', value: 10100 },
+                        ]}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
+                        <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
+                        <Legend />
+                        <Bar 
+                          dataKey="value" 
+                          name="Receita" 
+                          fill="#3b82f6" 
+                        >
+                          {[
+                            { name: 'Básico', value: 4500, color: '#4CAF50' },
+                            { name: 'Profissional', value: 18200, color: '#2196F3' },
+                            { name: 'Enterprise', value: 10100, color: '#9C27B0' },
+                          ].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card>
               <CardHeader>
-                <CardTitle>Planos por Popularidade</CardTitle>
-                <CardDescription>Distribuição de assinaturas por tipo de plano</CardDescription>
+                <CardTitle>Distribuição de Planos por Módulo</CardTitle>
+                <CardDescription>Análise da relação entre planos e módulos assinados</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: 'Básico', value: 30, color: '#4CAF50' },
-                          { name: 'Profissional', value: 45, color: '#2196F3' },
-                          { name: 'Enterprise', value: 25, color: '#9C27B0' },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {[
-                          { name: 'Básico', value: 30, color: '#4CAF50' },
-                          { name: 'Profissional', value: 45, color: '#2196F3' },
-                          { name: 'Enterprise', value: 25, color: '#9C27B0' },
-                        ].map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
-                    </PieChart>
+                    <BarChart
+                      data={modulesPlanDistribution}
+                      layout="vertical"
+                      margin={{ top: 20, right: 30, left: 80, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis dataKey="module" type="category" />
+                      <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
+                      <Legend />
+                      <Bar 
+                        dataKey="count" 
+                        stackId="a" 
+                        name="Assinaturas" 
+                        fill="#3b82f6" 
+                      />
+                    </BarChart>
                   </ResponsiveContainer>
+                </div>
+                <div className="mt-8">
+                  <h3 className="text-lg font-medium mb-4">Detalhamento por Plano e Módulo</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plano Básico</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plano Profissional</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plano Enterprise</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {Array.from(new Set(modulesPlanDistribution.map(item => item.module))).map(module => {
+                          const basicCount = modulesPlanDistribution.find(
+                            item => item.module === module && item.plan === 'Básico'
+                          )?.count || 0;
+                          
+                          const proCount = modulesPlanDistribution.find(
+                            item => item.module === module && item.plan === 'Profissional'
+                          )?.count || 0;
+                          
+                          const entCount = modulesPlanDistribution.find(
+                            item => item.module === module && item.plan === 'Enterprise'
+                          )?.count || 0;
+                          
+                          const total = basicCount + proCount + entCount;
+                          
+                          return (
+                            <tr key={module}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{module}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{basicCount}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{proCount}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entCount}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{total}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </CardContent>
             </Card>
