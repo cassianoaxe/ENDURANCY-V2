@@ -98,6 +98,14 @@ function AppContent() {
       setCurrentPath('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
+  
+  // Se o usuário acessar a raiz, redirecionar para login
+  useEffect(() => {
+    if (currentPath === '/') {
+      window.history.pushState({}, '', '/login');
+      setCurrentPath('/login');
+    }
+  }, [currentPath]);
 
   // Render loading state
   if (isLoading) {
