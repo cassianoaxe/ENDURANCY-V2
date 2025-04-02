@@ -46,7 +46,7 @@ function SubscriptionCheckoutForm({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: window.location.href,
+          return_url: window.location.origin + '/login',
         },
         redirect: 'if_required',
       });
