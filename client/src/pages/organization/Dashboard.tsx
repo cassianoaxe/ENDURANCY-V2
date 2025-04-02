@@ -4,20 +4,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, FileText, Package, FileCheck, 
-  ChevronUp, ArrowUpRight, Wallet, LineChart, Leaf
+  ChevronUp, ArrowUpRight, Wallet, LineChart, Leaf, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { Organization } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function OrganizationDashboard() {
   const [activeTab, setActiveTab] = React.useState('visao-geral');
+  const { user } = useAuth();
+  
+  // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
+  const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
+    queryKey: ['/api/organizations', user?.organizationId],
+    enabled: !!user?.organizationId,
+  });
 
   return (
     <OrganizationLayout>
       <div className="container px-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Leaf className="h-6 w-6 text-green-600" />
+            {isOrgLoading ? (
+              <div className="h-6 w-6 rounded-md bg-gray-100 flex items-center justify-center">
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              </div>
+            ) : organization?.logo ? (
+              <Avatar className="h-6 w-6 rounded-md">
+                <AvatarImage src={organization.logo} alt={organization.name || "Organização"} />
+                <AvatarFallback className="rounded-md bg-[#e6f7e6]">
+                  <Leaf className="h-4 w-4 text-green-600" />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <Leaf className="h-6 w-6 text-green-600" />
+            )}
             <div>
               <h1 className="text-2xl font-bold">Dashboard</h1>
               <p className="text-gray-500 text-sm">Visão geral da organização, pacientes e produtos na plataforma Endurancy</p>
