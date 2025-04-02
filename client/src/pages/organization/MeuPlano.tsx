@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import OrganizationLayout from '@/components/layout/OrganizationLayout';
@@ -23,6 +23,10 @@ export default function MeuPlano() {
   const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
   const [showAddModuleDialog, setShowAddModuleDialog] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  
+  // Referências para os botões de fechar diálogo
+  const closeChangePlanDialogRef = useRef<HTMLButtonElement>(null);
+  const closeAddModuleDialogRef = useRef<HTMLButtonElement>(null);
 
   // Buscar informações da organização atual
   const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
@@ -97,9 +101,11 @@ export default function MeuPlano() {
       return;
     }
     
-    // Se for plano pago, redirecionar para checkout
-    // O diálogo será fechado automaticamente pelo DialogClose
-    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
+    // Fechar manualmente o diálogo e redirecionar para checkout
+    setShowChangePlanDialog(false);
+    
+    // Adicionar parâmetro indicando solicitação de mudança de plano para o painel administrativo
+    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
   };
 
   // Inicia processo de adição de módulo
@@ -112,9 +118,12 @@ export default function MeuPlano() {
   const confirmAddModule = () => {
     if (!selectedModule) return;
     
+    // Fechar manualmente o diálogo antes de redirecionar
+    setShowAddModuleDialog(false);
+    
     // Redirecionar para checkout com o módulo selecionado
-    // O diálogo será fechado automaticamente pelo DialogClose
-    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
+    // Adicionar parâmetro indicando solicitação de mudança de módulo para o painel administrativo
+    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
   };
 
   const isLoading = isOrgLoading || isPlanLoading || isPlansLoading || isModulesLoading || isAvailableModulesLoading;
@@ -480,33 +489,37 @@ export default function MeuPlano() {
             </div>
             
             <DialogFooter className="sm:justify-between">
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  disabled={isUpgrading}
-                >
-                  Cancelar
-                </Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button 
-                  onClick={confirmPlanChange}
-                  disabled={isUpgrading}
-                  className="gap-2"
-                >
-                  {isUpgrading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-4 w-4" />
-                      Confirmar Mudança
-                    </>
-                  )}
-                </Button>
-              </DialogClose>
+              <Button
+                variant="outline"
+                disabled={isUpgrading}
+                onClick={() => setShowChangePlanDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => {
+                  // Primeiro fechar o diálogo, depois chamar a função de confirmação
+                  setShowChangePlanDialog(false);
+                  // Pequeno atraso para garantir que o diálogo foi fechado
+                  setTimeout(() => {
+                    confirmPlanChange();
+                  }, 50);
+                }}
+                disabled={isUpgrading}
+                className="gap-2"
+              >
+                {isUpgrading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4" />
+                    Confirmar Mudança
+                  </>
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -553,22 +566,26 @@ export default function MeuPlano() {
             </div>
             
             <DialogFooter className="sm:justify-between">
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                >
-                  Cancelar
-                </Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button 
-                  onClick={confirmAddModule}
-                  className="gap-2"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Prosseguir para Pagamento
-                </Button>
-              </DialogClose>
+              <Button
+                variant="outline"
+                onClick={() => setShowAddModuleDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => {
+                  // Primeiro fechar o diálogo, depois chamar a função de confirmação
+                  setShowAddModuleDialog(false);
+                  // Pequeno atraso para garantir que o diálogo foi fechado
+                  setTimeout(() => {
+                    confirmAddModule();
+                  }, 50);
+                }}
+                className="gap-2"
+              >
+                <CreditCard className="h-4 w-4" />
+                Prosseguir para Pagamento
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
