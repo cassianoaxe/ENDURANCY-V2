@@ -4013,5 +4013,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserGroupRoutes(app);
   registerUserInvitationsRoutes(app);
   
+  // Rota para solicitações de mudança de plano
+  app.post("/api/plan-change-requests", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      const { planId } = req.body;
+      const organizationId = req.session.user.organizationId;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "ID do plano é obrigatório" });
+      }
+      
+      // Verificar se o plano existe
+      const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
+      
+      if (!plan) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      // Buscar organização
+      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      // Atualizar a organização para status 'pending_plan_change' e armazenar o plano solicitado
+      await db.update(organizations)
+        .set({
+          status: 'pending_plan_change', // Status específico para mudança de plano
+          requestedPlanId: planId, // Armazenar o ID do plano solicitado
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, organizationId));
+        
+      // Criar uma notificação para administradores
+      await db.insert(notifications).values({
+        userId: null, // Para todos administradores
+        title: "Nova solicitação de mudança de plano",
+        message: `Organização ${organization.name} solicitou mudança para o plano ${plan.name}`,
+        type: "info",
+        isRead: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+        
+      res.status(200).json({ 
+        success: true, 
+        message: "Solicitação de mudança de plano enviada com sucesso. Aguarde aprovação." 
+      });
+    } catch (error) {
+      console.error("Erro ao solicitar mudança de plano:", error);
+      res.status(500).json({ message: "Erro ao solicitar mudança de plano. Tente novamente mais tarde." });
+    }
+  });
+  
+  // Rota para obter todas as solicitações de mudança de plano (apenas para administradores)
+  app.get("/api/plan-change-requests", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ message: "Não autorizado. Apenas administradores podem visualizar solicitações." });
+      }
+      
+      // Buscar todas as organizações com status 'pending_plan_change'
+      const pendingRequests = await db.select({
+        id: organizations.id,
+        name: organizations.name,
+        type: organizations.type,
+        email: organizations.email,
+        currentPlanId: organizations.planId,
+        requestedPlanId: organizations.requestedPlanId,
+        status: organizations.status,
+        updatedAt: organizations.updatedAt
+      })
+      .from(organizations)
+      .where(eq(organizations.status, 'pending_plan_change'));
+      
+      // Complementar com informações dos planos solicitados
+      const requests = await Promise.all(pendingRequests.map(async (org) => {
+        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, org.currentPlanId));
+        const [requestedPlan] = await db.select().from(plans).where(eq(plans.id, org.requestedPlanId || 0));
+        
+        return {
+          ...org,
+          currentPlanName: currentPlan?.name || 'Desconhecido',
+          requestedPlanName: requestedPlan?.name || 'Desconhecido',
+          requestDate: org.updatedAt
+        };
+      }));
+      
+      res.status(200).json({ 
+        success: true,
+        totalRequests: requests.length,
+        requests 
+      });
+    } catch (error) {
+      console.error("Erro ao obter solicitações de mudança de plano:", error);
+      res.status(500).json({ message: "Erro ao obter solicitações de mudança de plano." });
+    }
+  });
+  
+  // Rota para aprovar ou rejeitar solicitação de mudança de plano
+  app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ message: "Não autorizado. Apenas administradores podem aprovar solicitações." });
+      }
+      
+      const { orgId } = req.params;
+      const { action } = req.body; // 'approve' ou 'reject'
+      
+      if (!action || (action !== 'approve' && action !== 'reject')) {
+        return res.status(400).json({ message: "Ação inválida. Use 'approve' ou 'reject'." });
+      }
+      
+      // Buscar a organização
+      const [organization] = await db.select().from(organizations).where(eq(organizations.id, parseInt(orgId, 10)));
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      if (organization.status !== 'pending_plan_change') {
+        return res.status(400).json({ message: "Esta organização não possui uma solicitação de mudança de plano pendente." });
+      }
+      
+      if (action === 'approve') {
+        // Aprovar a mudança de plano
+        await db.update(organizations)
+          .set({
+            planId: organization.requestedPlanId,
+            status: 'active',
+            requestedPlanId: null,
+            updatedAt: new Date()
+          })
+          .where(eq(organizations.id, parseInt(orgId, 10)));
+          
+        // Buscar o plano para notificação
+        const [plan] = await db.select().from(plans).where(eq(plans.id, organization.requestedPlanId || 0));
+        
+        // Criar notificação para o usuário
+        await db.insert(notifications).values({
+          userId: null, // Notificação para toda a organização
+          organizationId: parseInt(orgId, 10),
+          title: "Solicitação de mudança de plano aprovada",
+          message: `Sua solicitação para mudar para o plano ${plan?.name || 'solicitado'} foi aprovada!`,
+          type: "success",
+          isRead: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        res.status(200).json({
+          success: true,
+          message: `Solicitação de mudança de plano da organização ${organization.name} foi aprovada com sucesso.`
+        });
+      } else {
+        // Rejeitar a mudança de plano
+        await db.update(organizations)
+          .set({
+            status: 'active',
+            requestedPlanId: null,
+            updatedAt: new Date()
+          })
+          .where(eq(organizations.id, parseInt(orgId, 10)));
+          
+        // Criar notificação para o usuário
+        await db.insert(notifications).values({
+          userId: null, // Notificação para toda a organização
+          organizationId: parseInt(orgId, 10),
+          title: "Solicitação de mudança de plano rejeitada",
+          message: "Sua solicitação de mudança de plano foi rejeitada. Entre em contato com o suporte para mais informações.",
+          type: "error",
+          isRead: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        res.status(200).json({
+          success: true,
+          message: `Solicitação de mudança de plano da organização ${organization.name} foi rejeitada.`
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao processar solicitação de mudança de plano:", error);
+      res.status(500).json({ message: "Erro ao processar solicitação de mudança de plano." });
+    }
+  });
+  
   return httpServer;
 }
