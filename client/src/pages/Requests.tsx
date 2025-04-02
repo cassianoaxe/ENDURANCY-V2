@@ -444,10 +444,20 @@ export default function Requests() {
                                     onClick={() => {
                                       // Mostrar detalhes da mudança de plano
                                       console.log("Detalhe do request:", req);
-                                      toast({
-                                        title: "Detalhes da mudança de plano",
-                                        description: `Plano atual: ${req.currentPlanName || 'Desconhecido'} → Plano solicitado: ${req.requestedPlanName || 'Desconhecido'}`,
-                                      });
+                                      
+                                      // Verificar se é uma solicitação de mudança de plano
+                                      if (req.requestType === 'plan_change') {
+                                        const planChangeReq = req as any; // Cast temporário para acessar as propriedades
+                                        toast({
+                                          title: "Detalhes da mudança de plano",
+                                          description: `Plano atual: ${planChangeReq.currentPlanName || 'Desconhecido'} → Plano solicitado: ${planChangeReq.requestedPlanName || 'Desconhecido'}`,
+                                        });
+                                      } else {
+                                        toast({
+                                          title: "Detalhes da solicitação",
+                                          description: `Tipo: ${req.requestType === 'registration' ? 'Registro de organização' : req.requestType}`,
+                                        });
+                                      }
                                     }}
                                   >
                                     Ver Detalhes
