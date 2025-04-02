@@ -61,8 +61,20 @@ export default function MeuPlano() {
   // Mutação para solicitar troca de plano (envia para aprovação do administrador)
   const requestPlanChangeMutation = useMutation({
     mutationFn: async (planId: number) => {
-      const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
-      return await res.json();
+      try {
+        const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
+        const data = await res.json();
+        
+        // Se a resposta não for bem-sucedida, lançar um erro
+        if (!res.ok) {
+          throw new Error(data.message || 'Erro ao solicitar mudança de plano');
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Erro na solicitação:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       console.log("Solicitação de mudança de plano enviada com sucesso:", data);
@@ -81,12 +93,16 @@ export default function MeuPlano() {
       setIsUpgrading(false);
       setShowChangePlanDialog(false);
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       console.error("Erro ao solicitar mudança de plano:", error);
       setIsUpgrading(false);
+      
+      // Obter mensagem de erro mais específica
+      const errorMsg = error.message || 'Não foi possível completar a operação. Tente novamente mais tarde.';
+      
       toast({
         title: 'Erro ao solicitar mudança de plano',
-        description: error.message || 'Não foi possível completar a operação. Tente novamente mais tarde.',
+        description: errorMsg,
         variant: 'destructive',
       });
     },

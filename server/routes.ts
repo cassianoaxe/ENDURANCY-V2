@@ -1641,6 +1641,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organização não encontrada" });
       }
       
+      console.log("Plano atual:", organization.planId, "Plano solicitado:", planId);
+      
+      // Verificar se está tentando mudar para o mesmo plano
+      if (organization.planId === planId) {
+        return res.status(400).json({ 
+          message: "O plano solicitado é o mesmo que você já possui" 
+        });
+      }
+      
       // Atualizar a organização para status 'pending_plan_change' e armazenar o plano solicitado
       await db.update(organizations)
         .set({
@@ -4328,59 +4337,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerUserGroupRoutes(app);
   registerUserInvitationsRoutes(app);
   
-  // Rota para solicitações de mudança de plano
-  app.post("/api/plan-change-requests", authenticate, async (req, res) => {
-    try {
-      if (!req.session || !req.session.user || !req.session.user.organizationId) {
-        return res.status(401).json({ message: "Não autorizado" });
-      }
-      
-      const { planId } = req.body;
-      const organizationId = req.session.user.organizationId;
-      
-      if (!planId) {
-        return res.status(400).json({ message: "ID do plano é obrigatório" });
-      }
-      
-      // Verificar se o plano existe
-      const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
-      
-      if (!plan) {
-        return res.status(404).json({ message: "Plano não encontrado" });
-      }
-      
-      // Buscar organização
-      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
-      if (!organization) {
-        return res.status(404).json({ message: "Organização não encontrada" });
-      }
-      
-      // Atualizar a organização para status 'pending_plan_change' e armazenar o plano solicitado
-      await db.update(organizations)
-        .set({
-          status: 'pending_plan_change', // Status específico para mudança de plano
-          requestedPlanId: planId, // Armazenar o ID do plano solicitado
-          updatedAt: new Date()
-        })
-        .where(eq(organizations.id, organizationId));
-        
-      // Criar uma notificação para administradores
-      await db.insert(notifications).values({
-        title: "Nova solicitação de mudança de plano",
-        message: `Organização ${organization.name} solicitou mudança para o plano ${plan.name}`,
-        type: "info",
-        isRead: false,
-        createdAt: new Date()
-      });
-      res.status(200).json({ 
-        success: true, 
-        message: "Solicitação de mudança de plano enviada com sucesso. Aguarde aprovação." 
-      });
-    } catch (error) {
-      console.error("Erro ao solicitar mudança de plano:", error);
-      res.status(500).json({ message: "Erro ao solicitar mudança de plano. Tente novamente mais tarde." });
-    }
-  });
+  // A rota para solicitações de mudança de plano já está implementada acima
+  // Removida duplicação da rota plan-change-requests
   
   // Rota para obter todas as solicitações de mudança de plano (apenas para administradores)
   app.get("/api/plan-change-requests", authenticate, async (req, res) => {
