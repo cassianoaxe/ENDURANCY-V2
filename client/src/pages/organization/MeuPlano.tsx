@@ -135,14 +135,22 @@ export default function MeuPlano() {
     
     setIsUpgrading(true);
     
-    // Se o plano for gratuito, fazer troca direta
-    if (selectedPlan.price === "0.00" || parseFloat(selectedPlan.price.toString()) === 0) {
-      changePlanMutation.mutate(selectedPlan.id);
-      return;
+    // Fechar manualmente o diálogo antes de fazer a solicitação
+    if (closeChangePlanDialogRef.current) {
+      closeChangePlanDialogRef.current.click();
     }
     
-    // Para planos pagos, enviar solicitação para aprovação do administrador
-    requestPlanChangeMutation.mutate(selectedPlan.id);
+    // Pequeno delay para garantir que o diálogo está fechado
+    setTimeout(() => {
+      // Se o plano for gratuito, fazer troca direta
+      if (selectedPlan.price === "0.00" || parseFloat(selectedPlan.price.toString()) === 0) {
+        changePlanMutation.mutate(selectedPlan.id);
+        return;
+      }
+      
+      // Para planos pagos, enviar solicitação para aprovação do administrador
+      requestPlanChangeMutation.mutate(selectedPlan.id);
+    }, 100);
   };
 
   // Inicia processo de adição de módulo
@@ -159,13 +167,14 @@ export default function MeuPlano() {
     if (closeAddModuleDialogRef.current) {
       closeAddModuleDialogRef.current.click();
     }
+    setShowAddModuleDialog(false);
     
     // Pequeno delay para garantir que o diálogo foi fechado antes de redirecionar
     setTimeout(() => {
       // Redirecionar para checkout com o módulo selecionado
       // Adicionar parâmetro indicando solicitação de mudança de módulo para o painel administrativo
       navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
-    }, 100);
+    }, 300);
   };
 
   const isLoading = isOrgLoading || isPlanLoading || isPlansLoading || isModulesLoading || isAvailableModulesLoading;

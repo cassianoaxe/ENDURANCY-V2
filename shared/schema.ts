@@ -49,7 +49,8 @@ export const organizations = pgTable("organizations", {
   website: text("website").notNull().default(''),
   planId: integer("plan_id").notNull(), // ID do plano contratado
   planTier: planTierEnum("plan_tier").default("free"), // Nível do plano (free, seed, grow, pro)
-  status: text("status").notNull(), // 'active', 'pending', 'rejected'
+  status: text("status").notNull(), // 'active', 'pending', 'rejected', 'pending_plan_change'
+  requestedPlanId: integer("requested_plan_id"), // ID do plano solicitado em caso de upgrade/downgrade
   recordCount: integer("record_count").default(0), // Contagem de registros (pacientes/plantas)
   planStartDate: timestamp("plan_start_date").defaultNow(), // Data de início do plano
   planExpiryDate: timestamp("plan_expiry_date"), // Data de expiração do trial ou plano
