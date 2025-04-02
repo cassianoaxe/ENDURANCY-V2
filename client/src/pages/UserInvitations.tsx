@@ -48,7 +48,7 @@ export default function UserInvitations() {
   const [newInvitation, setNewInvitation] = useState({
     email: "",
     role: "org_admin",
-    groupId: "",
+    groupId: "none",
   });
   
   // Session user info - Usando um valor fixo para o organizationId e userId por enquanto
@@ -154,7 +154,7 @@ export default function UserInvitations() {
     setNewInvitation({
       email: "",
       role: "org_admin",
-      groupId: "",
+      groupId: "none",
     });
   };
   
@@ -163,7 +163,7 @@ export default function UserInvitations() {
     createInvitationMutation.mutate({
       email: newInvitation.email,
       role: newInvitation.role,
-      groupId: newInvitation.groupId ? parseInt(newInvitation.groupId) : null,
+      groupId: newInvitation.groupId && newInvitation.groupId !== "none" ? parseInt(newInvitation.groupId) : null,
     });
   };
   
@@ -423,7 +423,7 @@ export default function UserInvitations() {
                   <SelectValue placeholder="Selecione um grupo (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {userGroups?.map(group => (
                     <SelectItem key={group.id} value={group.id.toString()}>
                       {group.name}
