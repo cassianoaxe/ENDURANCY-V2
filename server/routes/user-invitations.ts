@@ -128,6 +128,19 @@ export function registerUserInvitationsRoutes(app: any) {
         return res.status(400).json({ message: "Já existe um convite pendente para este email" });
       }
 
+      // Verificar se a organização já possui usuários
+      // Se não possuir, o primeiro usuário deve ser um administrador da organização (org_admin)
+      const existingOrgUsers = await db
+        .select()
+        .from(users)
+        .where(eq(users.organizationId, organizationId));
+
+      if (existingOrgUsers.length === 0 && role !== "org_admin") {
+        return res.status(400).json({ 
+          message: "O primeiro usuário de uma organização deve ser um administrador (org_admin)"
+        });
+      }
+
       // Gerar token único para o convite
       const token = uuidv4();
 
