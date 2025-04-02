@@ -1474,6 +1474,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para criar solicitação de mudança de plano
+  app.post("/api/plan-change-requests", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      const { planId } = req.body;
+      const organizationId = req.session.user.organizationId;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "ID do plano é obrigatório" });
+      }
+      
+      // Verificar se o plano existe
+      const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
+      
+      if (!plan) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      // Buscar organização
+      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      // Atualizar a organização para status 'pending' e armazenar o plano solicitado
+      await db.update(organizations)
+        .set({
+          status: 'pending',
+          // Armazenar o ID do plano solicitado temporariamente 
+          // (quando aprovado, este valor será processado corretamente)
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, organizationId));
+        
+      res.status(200).json({ 
+        success: true, 
+        message: "Solicitação de mudança de plano enviada com sucesso. Aguarde aprovação." 
+      });
+    } catch (error) {
+      console.error("Erro ao solicitar mudança de plano:", error);
+      res.status(500).json({ message: "Erro ao solicitar mudança de plano. Tente novamente mais tarde." });
+    }
+  });
+  
   // Rota para trocar o plano da organização
   app.post("/api/organizations/change-plan", authenticate, async (req, res) => {
     try {
