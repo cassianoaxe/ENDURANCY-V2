@@ -165,11 +165,28 @@ export default function Requests() {
       const requestData = planChangeData?.requests.find(req => req.id === orgId);
       console.log("Dados da solicitação:", requestData);
       
+      // Adicionar mais logs para depuração
+      console.log("URL da chamada:", "/api/plan-change-requests/approve");
+      console.log("Payload da requisição:", { 
+        organizationId: orgId,
+        planId: requestData?.requestedPlanId
+      });
+      
       const res = await apiRequest("POST", `/api/plan-change-requests/approve`, { 
         organizationId: orgId,
         planId: requestData?.requestedPlanId
       });
-      return res.json();
+      
+      // Tentar interpretar a resposta para debug
+      const responseText = await res.text();
+      console.log("Resposta bruta:", responseText);
+      
+      try {
+        return JSON.parse(responseText);
+      } catch (e) {
+        console.error("Erro ao parsear resposta JSON:", e);
+        throw new Error(`Falha na resposta da API: ${responseText}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
@@ -196,10 +213,26 @@ export default function Requests() {
       const requestData = planChangeData?.requests.find(req => req.id === orgId);
       console.log("Dados da solicitação:", requestData);
       
+      // Adicionar mais logs para depuração
+      console.log("URL da chamada:", "/api/plan-change-requests/reject");
+      console.log("Payload da requisição:", { 
+        organizationId: orgId 
+      });
+      
       const res = await apiRequest("POST", `/api/plan-change-requests/reject`, { 
         organizationId: orgId 
       });
-      return res.json();
+      
+      // Tentar interpretar a resposta para debug
+      const responseText = await res.text();
+      console.log("Resposta bruta de rejeição:", responseText);
+      
+      try {
+        return JSON.parse(responseText);
+      } catch (e) {
+        console.error("Erro ao parsear resposta JSON na rejeição:", e);
+        throw new Error(`Falha na resposta da API de rejeição: ${responseText}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
