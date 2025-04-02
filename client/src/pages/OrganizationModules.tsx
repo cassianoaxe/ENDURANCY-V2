@@ -389,7 +389,7 @@ export default function OrganizationModules() {
                             <Package className="h-4 w-4 text-primary" /> Módulo
                           </h4>
                           <p>{orgModule.moduleName}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Tipo: {orgModule.moduleType}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Tipo: {orgModule.moduleInfo?.type || "Desconhecido"}</p>
                         </div>
                         <div>
                           <h4 className="text-sm font-semibold mb-1 flex items-center gap-1">

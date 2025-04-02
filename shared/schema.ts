@@ -184,11 +184,11 @@ export const modulePlans = pgTable("module_plans", {
 // Tabela de associação entre organizações e módulos contratados
 export const moduleStatusEnum = pgEnum('module_status', ['active', 'pending', 'cancelled']);
 
+// Alterado para refletir a estrutura real do banco de dados (sem coluna module_type)
 export const organizationModules = pgTable("organization_modules", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
   moduleId: integer("module_id").notNull(),
-  moduleType: moduleTypeEnum("module_type").notNull(), // tipo do módulo (para facilitar referência)
   name: text("name").notNull().default(""), // nome do módulo para exibição
   planId: integer("plan_id"), // plano contratado para este módulo
   price: decimal("price", { precision: 10, scale: 2 }).notNull().default("99.00"), // preço da assinatura
@@ -197,6 +197,8 @@ export const organizationModules = pgTable("organization_modules", {
   billingDay: integer("billing_day"), // dia de cobrança da assinatura
   requestDate: timestamp("request_date").defaultNow().notNull(), // data da solicitação
   activationDate: timestamp("activation_date"), // data da ativação
+  startDate: timestamp("start_date"),         // data de início do módulo
+  expiryDate: timestamp("expiry_date"),       // data de expiração do módulo
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -373,7 +375,6 @@ export const insertModulePlanSchema = createInsertSchema(modulePlans).pick({
 export const insertOrganizationModuleSchema = createInsertSchema(organizationModules).pick({
   organizationId: true,
   moduleId: true,
-  moduleType: true,
   name: true,
   planId: true,
   price: true,
@@ -382,6 +383,8 @@ export const insertOrganizationModuleSchema = createInsertSchema(organizationMod
   billingDay: true,
   requestDate: true,
   activationDate: true,
+  startDate: true,
+  expiryDate: true,
 });
 
 export type Module = typeof modules.$inferSelect;
