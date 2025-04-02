@@ -1205,11 +1205,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Módulo encontrado:", moduleData);
       
       // Verificar se este módulo já está associado à organização
+      // Não podemos usar moduleType já que não existe na tabela
       const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
           eq(organizationModules.organizationId, parseInt(organizationId)),
-          eq(organizationModules.moduleType, moduleType)
+          eq(organizationModules.moduleId, moduleData.id)
         ));
       
       if (existingModules.length > 0) {
@@ -1218,13 +1219,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Adicionar o módulo à organização com status pendente
+      // Remover o campo moduleType que não existe na tabela
       const [newOrgModule] = await db.insert(organizationModules)
         .values({
           organizationId: parseInt(organizationId),
           moduleId: moduleData.id,
-          moduleType: moduleType,
           status: 'pending',
           active: false,
+          name: moduleData.name, // Usamos o nome do módulo da tabela modules
           requestDate: new Date()
         })
         .returning();
