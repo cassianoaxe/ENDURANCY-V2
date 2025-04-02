@@ -74,8 +74,8 @@ function CheckoutForm({ clientSecret, successUrl }: { clientSecret: string, succ
             description: "Seu pagamento foi processado com sucesso.",
           });
           
-          // Redireciona para a página de sucesso
-          navigate(successUrl);
+          // Redireciona para a página de login ao invés da página de sucesso
+          navigate('/login');
         } catch (confirmError: any) {
           setErrorMessage("Pagamento realizado, mas houve um erro ao atualizar o sistema. Entre em contato com o suporte.");
           toast({
@@ -249,13 +249,13 @@ export default function Checkout() {
                       title: "Assinatura ativada!",
                       description: "Sua assinatura foi ativada com sucesso.",
                     });
-                    setParams(returnUrl || '/');
+                    setParams('/login');
                   }} 
                 />
               ) : clientSecret ? (
                 // Usar formulário de pagamento único
                 <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <CheckoutForm clientSecret={clientSecret} successUrl={returnUrl || '/'} />
+                  <CheckoutForm clientSecret={clientSecret} successUrl="/login" />
                 </Elements>
               ) : (
                 <div className="flex justify-center p-6">
