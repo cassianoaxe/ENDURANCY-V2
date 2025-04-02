@@ -1697,48 +1697,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar organizações com solicitações de mudança de plano pendentes usando SQL bruto para depuração
       const pendingRequestsQuery = `
         SELECT 
-          id, name, type, email, status, 
-          plan_id as "currentPlanId", 
-          requested_plan_id as "requestedPlanId", 
-          updated_at as "updatedAt"
-        FROM organizations
-        WHERE status = 'pending_plan_change'
+          o.id, o.name, o.type, o.email, o.status, 
+          o.plan_id as "currentPlanId", 
+          o.requested_plan_id as "requestedPlanId", 
+          o.updated_at as "requestDate",
+          cp.name as "currentPlanName",
+          rp.name as "requestedPlanName"
+        FROM organizations o
+        LEFT JOIN plans cp ON o.plan_id = cp.id
+        LEFT JOIN plans rp ON o.requested_plan_id = rp.id
+        WHERE o.status = 'pending_plan_change'
       `;
       
       const pendingRequestsResult = await pool.query(pendingRequestsQuery);
-      const pendingRequests = pendingRequestsResult.rows;
+      const requests = pendingRequestsResult.rows;
       
-      console.log("Solicitações de mudança de plano encontradas:", pendingRequests.length);
+      console.log("Solicitações de mudança de plano encontradas:", requests.length);
       
-      // Complementar com informações dos planos solicitados
-      const requests = await Promise.all(pendingRequests.map(async (org) => {
-        // Buscar informações do plano atual
-        const currentPlanQuery = `
-          SELECT name FROM plans WHERE id = $1
-        `;
-        const currentPlanResult = await pool.query(currentPlanQuery, [org.currentPlanId]);
-        const currentPlanName = currentPlanResult.rows.length > 0 
-          ? currentPlanResult.rows[0].name 
-          : 'Desconhecido';
-        
-        // Buscar informações do plano solicitado
-        const requestedPlanQuery = `
-          SELECT name FROM plans WHERE id = $1
-        `;
-        const requestedPlanResult = await pool.query(requestedPlanQuery, [org.requestedPlanId]);
-        const requestedPlanName = requestedPlanResult.rows.length > 0 
-          ? requestedPlanResult.rows[0].name 
-          : 'Desconhecido';
-        
-        console.log(`Organização ${org.name} solicitou mudança de plano: ${currentPlanName} -> ${requestedPlanName}`);
-        
-        return {
-          ...org,
-          currentPlanName: currentPlanName,
-          requestedPlanName: requestedPlanName,
-          requestDate: org.updatedAt
-        };
-      }));
+      // Log detalhado para depuração
+      if (requests.length > 0) {
+        requests.forEach(req => {
+          console.log(`Solicitação: Organização ${req.id} (${req.name}) quer mudar de ${req.currentPlanName} (${req.currentPlanId}) para ${req.requestedPlanName} (${req.requestedPlanId})`);
+        });
+      } else {
+        console.log("Nenhuma solicitação de mudança de plano encontrada.");
+      }
       
       res.status(200).json({ 
         success: true,
