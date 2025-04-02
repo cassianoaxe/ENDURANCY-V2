@@ -1543,7 +1543,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID da organização inválido" });
       }
       
-      // Removida verificação temporariamente para depuração
+      console.log("Buscando módulos para organização:", organizationId);
+      
+      // Verificar se a tabela existe
+      const tableExists = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'organization_modules'
+        );
+      `);
+      
+      console.log("Tabela organization_modules existe:", tableExists);
+      
+      // Verificar as colunas disponíveis
+      const columnsQuery = await pool.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'organization_modules';
+      `);
+      
+      const columns = columnsQuery.rows.map(row => row.column_name);
+      console.log("Colunas disponíveis:", columns);
       
       // Buscar todos os módulos da organização
       const orgModules = await db.select()
@@ -1571,8 +1591,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Erro ao buscar módulos da organização:", error);
-      res.status(500).json({ message: "Falha ao buscar módulos da organização" });
+      console.error("Error fetching organization modules:", error);
+      res.status(500).json({ message: "Failed to fetch organization modules" });
     }
   });
   

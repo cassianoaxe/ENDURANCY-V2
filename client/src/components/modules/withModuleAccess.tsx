@@ -162,7 +162,7 @@ export const withModuleAccess = <P extends object>(
       console.log("Verificando módulos disponíveis:", organizationModules);
       const foundModule = organizationModules.find((m: any) => {
         // Verificar se o moduleInfo existe e se o tipo corresponde
-        return m.moduleInfo && m.moduleInfo.type === moduleType;
+        return m.moduleInfo && (m.moduleInfo.type === moduleType || m.moduleInfo.slug === moduleType);
       });
       
       if (foundModule) {
