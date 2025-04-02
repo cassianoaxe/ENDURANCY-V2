@@ -182,13 +182,21 @@ export const modulePlans = pgTable("module_plans", {
 });
 
 // Tabela de associação entre organizações e módulos contratados
+export const moduleStatusEnum = pgEnum('module_status', ['active', 'pending', 'cancelled']);
+
 export const organizationModules = pgTable("organization_modules", {
   id: serial("id").primaryKey(),
   organizationId: integer("organization_id").notNull(),
   moduleId: integer("module_id").notNull(),
+  moduleType: moduleTypeEnum("module_type").notNull(), // tipo do módulo (para facilitar referência)
+  name: text("name").notNull().default(""), // nome do módulo para exibição
   planId: integer("plan_id"), // plano contratado para este módulo
-  active: boolean("active").default(true), // se o módulo está ativo para esta organização
+  price: decimal("price", { precision: 10, scale: 2 }).notNull().default("99.00"), // preço da assinatura
+  status: moduleStatusEnum("status").notNull().default("pending"), // status da ativação do módulo
+  active: boolean("active").default(false), // se o módulo está ativo para esta organização
   billingDay: integer("billing_day"), // dia de cobrança da assinatura
+  requestDate: timestamp("request_date").defaultNow().notNull(), // data da solicitação
+  activationDate: timestamp("activation_date"), // data da ativação
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -365,9 +373,15 @@ export const insertModulePlanSchema = createInsertSchema(modulePlans).pick({
 export const insertOrganizationModuleSchema = createInsertSchema(organizationModules).pick({
   organizationId: true,
   moduleId: true,
+  moduleType: true,
+  name: true,
   planId: true,
+  price: true,
+  status: true,
   active: true,
   billingDay: true,
+  requestDate: true,
+  activationDate: true,
 });
 
 export type Module = typeof modules.$inferSelect;
