@@ -1481,50 +1481,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para obter todas as solicitações de mudança de plano (apenas para administradores)
+  // REMOVER - Rota duplicada (usar a versão PRINCIPAL em linha 1704)
+  /* 
   app.get("/api/plan-change-requests", authenticate, async (req, res) => {
-    try {
-      // Verificar se é administrador
-      if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
-        return res.status(401).json({ message: "Não autorizado. Apenas administradores podem visualizar solicitações." });
-      }
-      
-      // Buscar todas as organizações com status 'pending_plan_change'
-      const pendingRequests = await db.select({
-        id: organizations.id,
-        name: organizations.name,
-        type: organizations.type,
-        email: organizations.email,
-        currentPlanId: organizations.planId,
-        requestedPlanId: organizations.requestedPlanId,
-        status: organizations.status,
-        updatedAt: organizations.updatedAt
-      })
-      .from(organizations)
-      .where(eq(organizations.status, 'pending_plan_change'));
-      
-      // Complementar com informações dos planos solicitados
-      const requests = await Promise.all(pendingRequests.map(async (org) => {
-        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, org.currentPlanId));
-        const [requestedPlan] = await db.select().from(plans).where(eq(plans.id, org.requestedPlanId || 0));
-        
-        return {
-          ...org,
-          currentPlanName: currentPlan?.name || 'Desconhecido',
-          requestedPlanName: requestedPlan?.name || 'Desconhecido',
-          requestDate: org.updatedAt
-        };
-      }));
-      
-      res.status(200).json({ 
-        success: true,
-        totalRequests: requests.length,
-        requests 
-      });
-    } catch (error) {
-      console.error("Erro ao obter solicitações de mudança de plano:", error);
-      res.status(500).json({ message: "Falha ao obter solicitações de mudança de plano." });
-    }
+    // Código removido para evitar duplicação de rotas
   });
+  */
   
   // Rota para aprovar ou rejeitar solicitação de mudança de plano
   app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
@@ -1701,7 +1663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Rota para obter solicitações de mudança de plano (para administradores)
+  // Rota para obter solicitações de mudança de plano (para administradores) - PRINCIPAL
   app.get("/api/plan-change-requests", authenticate, async (req, res) => {
     try {
       if (!req.session?.user || req.session.user.role !== 'admin') {
@@ -4349,7 +4311,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // A rota para solicitações de mudança de plano já está implementada acima
   // Removida duplicação da rota plan-change-requests
   
-  // Rota para aprovar ou rejeitar solicitação de mudança de plano
+  // REMOVER - Rota duplicada (já existe na linha 1492) - comentada para evitar conflitos
+  /*
   app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
     try {
       if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
@@ -4432,6 +4395,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao processar solicitação de mudança de plano." });
     }
   });
+  
+  // Fechar a rota PUT duplicada que foi comentada acima
+  */
   
   return httpServer;
 }
