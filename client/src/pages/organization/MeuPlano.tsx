@@ -66,26 +66,20 @@ export default function MeuPlano() {
     },
     onSuccess: (data) => {
       console.log("Solicitação de mudança de plano enviada com sucesso:", data);
+      
+      // Mostrar mensagem de sucesso
+      toast({
+        title: 'Solicitação enviada com sucesso',
+        description: 'Sua solicitação de mudança de plano foi enviada e está aguardando aprovação do administrador.',
+        variant: 'default',
+      });
+      
+      // Atualizar dados do usuário/organização
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
+      
+      // Resetar estado e fechar o diálogo
       setIsUpgrading(false);
-      
-      // Fechar o diálogo usando a referência do botão de fechar
-      if (closeChangePlanDialogRef.current) {
-        closeChangePlanDialogRef.current.click();
-      }
-      
-      // Também definimos o estado para garantir
       setShowChangePlanDialog(false);
-      
-      // Pequeno delay antes de invalidar as queries
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
-        
-        toast({
-          title: 'Solicitação enviada com sucesso',
-          description: 'Sua solicitação de mudança de plano foi enviada e está aguardando aprovação do administrador.',
-          variant: 'default',
-        });
-      }, 300);
     },
     onError: (error: Error) => {
       console.error("Erro ao solicitar mudança de plano:", error);
