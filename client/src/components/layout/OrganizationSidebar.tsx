@@ -5,7 +5,11 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, LogOut, Leaf, Loader2
+  Menu, ChevronLeft, LogOut, Leaf, Loader2,
+  Brain, Truck, ShoppingCart, CreditCard, DollarSign,
+  Landmark, HeartPulse, BadgeHelp, Users2, Briefcase,
+  Scale, LineChart, MessageCircle, Building, TestTube,
+  Clipboard, FileClock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -29,108 +33,138 @@ export default function OrganizationSidebar() {
     window.dispatchEvent(new Event('popstate'));
   };
 
-  // Menu items structure (from the screenshot)
-  const menuItems = [
+  // Módulos obrigatórios (incluídos no freemium e em todos os planos)
+  const freeModules = [
     {
       title: "ONBOARDING",
       path: "/organization/onboarding",
-      active: currentPath === "/organization/onboarding"
+      active: currentPath === "/organization/onboarding",
+      icon: <Clipboard size={18} />
     },
     {
       title: "VISÃO GERAL",
       path: "/organization/dashboard",
       active: currentPath === "/organization/dashboard",
-      isActive: true
-    },
-    {
-      title: "TAREFAS",
-      path: "/organization/tasks",
-      active: currentPath === "/organization/tasks"
+      isActive: true,
+      icon: <LayoutDashboard size={18} />
     },
     {
       title: "ASSOCIADOS",
       path: "/organization/associates",
-      active: currentPath === "/organization/associates"
-    },
-    {
-      title: "SOCIAL",
-      path: "/organization/social",
-      active: currentPath === "/organization/social"
-    },
-    {
-      title: "CULTIVO",
-      path: "/organization/cultivation",
-      active: currentPath === "/organization/cultivation"
-    },
-    {
-      title: "PRODUÇÃO",
-      path: "/organization/production",
-      active: currentPath === "/organization/production"
-    },
-    {
-      title: "EDUCAÇÃO DO PACIENTE",
-      path: "/organization/patient-education",
-      active: currentPath === "/organization/patient-education"
+      active: currentPath === "/organization/associates",
+      icon: <Users size={18} />
     },
     {
       title: "FINANCEIRO",
       path: "/organization/financial",
-      active: currentPath === "/organization/financial"
+      active: currentPath === "/organization/financial",
+      icon: <DollarSign size={18} />
     },
     {
       title: "COMPLYPAY",
       path: "/organization/complypay",
-      active: currentPath === "/organization/complypay"
-    },
-    {
-      title: "COMUNICAÇÃO",
-      path: "/organization/communication",
-      active: currentPath === "/organization/communication"
-    },
-    {
-      title: "COMPRAS E ESTOQUE",
-      path: "/organization/purchases-inventory",
-      active: currentPath === "/organization/purchases-inventory"
+      active: currentPath === "/organization/complypay",
+      icon: <CreditCard size={18} />
     },
     {
       title: "VENDAS",
       path: "/organization/sales",
-      active: currentPath === "/organization/sales"
+      active: currentPath === "/organization/sales",
+      icon: <ShoppingCart size={18} />
     },
     {
       title: "EXPEDIÇÃO",
       path: "/organization/expedition",
-      active: currentPath === "/organization/expedition"
+      active: currentPath === "/organization/expedition",
+      icon: <Truck size={18} />
     },
     {
-      title: "DISPENSÁRIO",
-      path: "/organization/dispensary",
-      active: currentPath === "/organization/dispensary"
+      title: "INTELIGÊNCIA ARTIFICIAL",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai",
+      icon: <Brain size={18} />
+    }
+  ];
+
+  // Módulos pagos (disponíveis conforme o plano ou add-ons)
+  const premiumModules = [
+    {
+      title: "TAREFAS",
+      path: "/organization/tasks",
+      active: currentPath === "/organization/tasks",
+      icon: <FileClock size={18} />
+    },
+    {
+      title: "SOCIAL",
+      path: "/organization/social",
+      active: currentPath === "/organization/social",
+      icon: <Users2 size={18} />
+    },
+    {
+      title: "CULTIVO",
+      path: "/organization/cultivation",
+      active: currentPath === "/organization/cultivation",
+      icon: <Leaf size={18} />
+    },
+    {
+      title: "PRODUÇÃO",
+      path: "/organization/production",
+      active: currentPath === "/organization/production",
+      icon: <Package size={18} />
+    },
+    {
+      title: "COMPRAS E ESTOQUE",
+      path: "/organization/purchases-inventory",
+      active: currentPath === "/organization/purchases-inventory",
+      icon: <ShoppingCart size={18} />
     },
     {
       title: "JURÍDICO",
       path: "/organization/legal",
-      active: currentPath === "/organization/legal"
-    },
-    {
-      title: "TRANSPARÊNCIA",
-      path: "/organization/transparency",
-      active: currentPath === "/organization/transparency"
+      active: currentPath === "/organization/legal",
+      icon: <Scale size={18} />
     },
     {
       title: "RH",
       path: "/organization/hr",
-      active: currentPath === "/organization/hr"
-    },
-    {
-      title: "PATRIMÔNIO",
-      path: "/organization/assets",
-      active: currentPath === "/organization/assets"
+      active: currentPath === "/organization/hr",
+      icon: <Briefcase size={18} />
     },
     {
       title: "PESQUISA CIENTÍFICA",
       path: "/organization/research",
-      active: currentPath === "/organization/research"
+      active: currentPath === "/organization/research",
+      icon: <TestTube size={18} />
+    },
+    {
+      title: "CRM",
+      path: "/organization/crm",
+      active: currentPath === "/organization/crm",
+      icon: <Users size={18} />
+    },
+    {
+      title: "EDUCAÇÃO DO PACIENTE",
+      path: "/organization/patient-education",
+      active: currentPath === "/organization/patient-education",
+      icon: <BookOpen size={18} />
+    },
+    {
+      title: "PATRIMÔNIO",
+      path: "/organization/assets",
+      active: currentPath === "/organization/assets",
+      icon: <Building size={18} />
+    },
+    {
+      title: "COMUNICAÇÃO",
+      path: "/organization/communication",
+      active: currentPath === "/organization/communication",
+      icon: <MessageCircle size={18} />
+    },
+    {
+      title: "PORTAL MÉDICO",
+      path: "/organization/medical-portal",
+      active: currentPath === "/organization/medical-portal",
+      icon: <HeartPulse size={18} />
     }
   ];
 
@@ -233,30 +267,42 @@ export default function OrganizationSidebar() {
       {/* Menu Items */}
       <div className="flex-1 overflow-y-auto py-2">
         <nav className="space-y-1">
-          {menuItems.map((item, index) => (
-            <div key={index} className={cn(
+          {/* Módulos Obrigatórios */}
+          {!collapsed && (
+            <div className="px-4 py-2">
+              <p className="text-xs font-semibold text-gray-500 mb-1">MÓDULOS INCLUÍDOS</p>
+            </div>
+          )}
+          
+          {freeModules.map((item, index) => (
+            <div key={`free-${index}`} className={cn(
               "relative",
-              item.isActive && "bg-green-50"
+              item.active && "bg-green-50"
             )}>
               {!collapsed && (
                 <div 
                   className={cn(
-                    "flex items-center justify-between px-4 py-3 cursor-pointer group",
-                    item.isActive ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                    "flex items-center justify-between px-4 py-2 cursor-pointer group",
+                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
                   )}
                   onClick={() => navigateTo(item.path)}
                 >
-                  <span className={cn(
-                    "text-sm",
-                    item.isActive && "font-semibold"
-                  )}>
-                    {item.title}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-sm flex items-center gap-2",
+                      item.active && "font-semibold"
+                    )}>
+                      {React.cloneElement(item.icon, { 
+                        className: item.active ? "text-green-600" : "text-gray-500" 
+                      })}
+                      {item.title}
+                    </span>
+                  </div>
                   <ChevronLeft 
                     size={16} 
                     className={cn(
                       "transform transition-transform duration-200",
-                      item.isActive ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
                     )} 
                   />
                 </div>
@@ -265,12 +311,70 @@ export default function OrganizationSidebar() {
                 <div 
                   className={cn(
                     "flex items-center justify-center p-2 cursor-pointer",
-                    item.isActive ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
                   )}
                   onClick={() => navigateTo(item.path)}
                   title={item.title}
                 >
-                  <LayoutDashboard size={18} />
+                  {item.icon}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Separador */}
+          <div className="my-2 border-t border-gray-200"></div>
+          
+          {/* Módulos Pagos */}
+          {!collapsed && (
+            <div className="px-4 py-2">
+              <p className="text-xs font-semibold text-gray-500 mb-1">MÓDULOS ADD-ONS</p>
+            </div>
+          )}
+          
+          {premiumModules.map((item, index) => (
+            <div key={`premium-${index}`} className={cn(
+              "relative",
+              item.active && "bg-green-50"
+            )}>
+              {!collapsed && (
+                <div 
+                  className={cn(
+                    "flex items-center justify-between px-4 py-2 cursor-pointer group",
+                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-sm flex items-center gap-2",
+                      item.active && "font-semibold"
+                    )}>
+                      {React.cloneElement(item.icon, { 
+                        className: item.active ? "text-green-600" : "text-gray-500" 
+                      })}
+                      {item.title}
+                    </span>
+                  </div>
+                  <ChevronLeft 
+                    size={16} 
+                    className={cn(
+                      "transform transition-transform duration-200",
+                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                    )} 
+                  />
+                </div>
+              )}
+              {collapsed && (
+                <div 
+                  className={cn(
+                    "flex items-center justify-center p-2 cursor-pointer",
+                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                  title={item.title}
+                >
+                  {item.icon}
                 </div>
               )}
             </div>
