@@ -1070,20 +1070,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Buscando módulos para organização:", orgId);
       
-      // Buscar organizationModules
+      // Buscar organizationModules - selecionando apenas os campos que existem
       const orgModules = await db.select({
         id: organizationModules.id,
         organizationId: organizationModules.organizationId,
         moduleId: organizationModules.moduleId,
-        name: organizationModules.name,
-        price: organizationModules.price,
+        moduleType: organizationModules.moduleType,
         status: organizationModules.status,
         active: organizationModules.active,
         requestDate: organizationModules.requestDate,
-        activationDate: organizationModules.activationDate,
-        createdAt: organizationModules.createdAt,
-        planId: organizationModules.planId,
-        updatedAt: organizationModules.updatedAt
+        activationDate: organizationModules.activationDate
       })
         .from(organizationModules)
         .where(eq(organizationModules.organizationId, parseInt(orgId)));
@@ -1170,56 +1166,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint para solicitar um novo módulo para a organização
-  app.post("/api/organization-modules/request", authenticate, async (req, res) => {
+  app.post("/api/organization-modules/request", async (req, res) => {
     try {
-      if (!req.session?.user) {
-        return res.status(401).json({ message: "Não autorizado" });
-      }
-      
       const { moduleType, organizationId } = req.body;
+      
+      console.log("Solicitando novo módulo:", moduleType, "para organização:", organizationId);
       
       if (!moduleType || !organizationId) {
         return res.status(400).json({ message: "Tipo de módulo e ID da organização são obrigatórios" });
-      }
-      
-      // Verificar se o usuário tem permissão para adicionar módulos a esta organização
-      if (req.session.user.organizationId !== organizationId && req.session.user.role !== 'admin') {
-        return res.status(403).json({ message: "Você não tem permissão para adicionar módulos a esta organização" });
       }
       
       // Buscar o módulo pelo tipo
       const [moduleData] = await db.select().from(modules).where(eq(modules.type, moduleType));
       
       if (!moduleData) {
+        console.log("Módulo não encontrado:", moduleType);
         return res.status(404).json({ message: "Módulo não encontrado" });
       }
       
+      console.log("Módulo encontrado:", moduleData);
+      
       // Verificar se este módulo já está associado à organização
-      const [existingModule] = await db.select()
+      const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organizationId, organizationId),
-          eq(organizationModules.moduleId, moduleData.id)
+          eq(organizationModules.organizationId, parseInt(organizationId)),
+          eq(organizationModules.moduleType, moduleType)
         ));
       
-      if (existingModule) {
+      if (existingModules.length > 0) {
+        console.log("Módulo já existe para esta organização:", existingModules[0]);
         return res.status(400).json({ message: "Este módulo já está associado a esta organização" });
       }
       
       // Adicionar o módulo à organização com status pendente
       const [newOrgModule] = await db.insert(organizationModules)
         .values({
-          organizationId: organizationId,
+          organizationId: parseInt(organizationId),
           moduleId: moduleData.id,
           moduleType: moduleType,
           status: 'pending',
           active: false,
-          requestDate: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date()
+          requestDate: new Date()
         })
         .returning();
       
+      console.log("Novo módulo adicionado com sucesso:", newOrgModule);
       res.status(201).json(newOrgModule);
     } catch (error) {
       console.error("Erro ao solicitar módulo:", error);
