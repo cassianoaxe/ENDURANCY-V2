@@ -548,6 +548,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get users associated with an organization
+  app.get("/api/organizations/:id/users", async (req, res) => {
+    try {
+      const organizationId = parseInt(req.params.id);
+      if (isNaN(organizationId)) {
+        return res.status(400).json({ message: "Invalid organization ID" });
+      }
+      
+      const orgUsers = await db
+        .select()
+        .from(users)
+        .where(eq(users.organizationId, organizationId));
+      
+      res.json(orgUsers);
+    } catch (error) {
+      console.error("Error fetching organization users:", error);
+      res.status(500).json({ message: "Failed to fetch organization users" });
+    }
+  });
+  
   // Rota para detalhe de uma organização específica
   app.get("/api/organizations/:id", authenticate, async (req, res) => {
     try {
