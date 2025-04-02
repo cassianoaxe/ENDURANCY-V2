@@ -161,8 +161,8 @@ export const withModuleAccess = <P extends object>(
     if (organizationModules && Array.isArray(organizationModules)) {
       console.log("Verificando módulos disponíveis:", organizationModules);
       const foundModule = organizationModules.find((m: any) => {
-        return m.moduleType === moduleType || 
-               (m.moduleInfo && m.moduleInfo.type === moduleType);
+        // Verificar se o moduleInfo existe e se o tipo corresponde
+        return m.moduleInfo && m.moduleInfo.type === moduleType;
       });
       
       if (foundModule) {
