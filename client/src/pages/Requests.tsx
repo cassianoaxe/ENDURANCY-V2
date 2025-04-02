@@ -3,38 +3,65 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InboxIcon, Clock, CheckCircle, XCircle, Search, Loader2 } from "lucide-react";
+import { InboxIcon, Clock, CheckCircle, XCircle, Search, Loader2, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Organization } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+
+// Interface para as solicitações de mudança de plano
+interface PlanChangeRequest {
+  id: number;
+  name: string;
+  type: string;
+  email: string;
+  currentPlanId: number;
+  requestedPlanId: number;
+  currentPlanName: string;
+  requestedPlanName: string;
+  status: string;
+  requestDate: string;
+  updatedAt: string;
+}
 
 export default function Requests() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Fetch all organizations
-  const { data: organizations, isLoading } = useQuery<Organization[]>({
+  // Fetch all organizations with pending registrations
+  const { data: organizations, isLoading: isLoadingOrganizations } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
     refetchOnWindowFocus: false,
   });
   
-  // Calculate statistics
-  const allRequests = organizations || [];
-  const pendingRequests = allRequests.filter(org => org.status === "pending");
-  const approvedRequests = allRequests.filter(org => org.status === "approved");
-  const rejectedRequests = allRequests.filter(org => org.status === "rejected");
+  // Fetch all plan change requests
+  const { data: planChangeData, isLoading: isLoadingPlanChanges } = useQuery<{
+    success: boolean;
+    totalRequests: number;
+    requests: PlanChangeRequest[];
+  }>({
+    queryKey: ['/api/plan-change-requests'],
+    refetchOnWindowFocus: false,
+  });
   
-  // Identificando solicitações de registro x solicitações de alteração de plano
-  const pendingRegistrations = pendingRequests.filter(org => !org.planId);
-  const pendingPlanChanges = pendingRequests.filter(org => org.planId);
+  // Calculate statistics
+  const allOrganizations = organizations || [];
+  const pendingRegistrations = allOrganizations.filter(org => org.status === "pending");
+  const approvedRequests = allOrganizations.filter(org => org.status === "approved");
+  const rejectedRequests = allOrganizations.filter(org => org.status === "rejected");
+  
+  // Extrair as solicitações de mudança de plano
+  const pendingPlanChanges: PlanChangeRequest[] = planChangeData?.requests || [];
+  
+  // Total de solicitações (registros + mudanças de plano)
+  const totalRequests = pendingRegistrations.length + pendingPlanChanges.length;
   
   // Calculate new requests in the last 24 hours
   const last24Hours = new Date();
   last24Hours.setHours(last24Hours.getHours() - 24);
   
-  const newRequests = allRequests.filter(org => {
+  const newRequests = allOrganizations.filter(org => {
     const createdAt = new Date(org.createdAt || Date.now());
     return createdAt > last24Hours;
   });
@@ -45,14 +72,38 @@ export default function Requests() {
     return createdAt > last24Hours;
   });
   
-  // Filter organizations based on search
-  const filteredOrganizations = pendingRequests.filter(org => 
-    org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(org.id).includes(searchTerm)
+  // Todos os pedidos pendentes (registros + mudanças de plano)
+  const allPendingRequests = [
+    ...pendingRegistrations.map(org => ({
+      id: org.id,
+      name: org.name,
+      type: org.type,
+      email: org.email,
+      status: org.status,
+      requestType: 'registration',
+      date: org.createdAt
+    })),
+    ...pendingPlanChanges.map(req => ({
+      id: req.id,
+      name: req.name,
+      type: req.type,
+      email: req.email,
+      status: req.status,
+      requestType: 'plan_change',
+      date: req.requestDate,
+      currentPlanName: req.currentPlanName,
+      requestedPlanName: req.requestedPlanName
+    }))
+  ];
+  
+  // Filter requests based on search
+  const filteredRequests = allPendingRequests.filter(req => 
+    req.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    req.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(req.id).includes(searchTerm)
   );
   
-  // Approve organization mutation
+  // Approve organization registration mutation
   const approveOrganization = useMutation({
     mutationFn: async (orgId: number) => {
       const res = await apiRequest("PATCH", `/api/organizations/${orgId}`, { status: "approved" });
@@ -79,7 +130,7 @@ export default function Requests() {
     },
   });
   
-  // Reject organization mutation
+  // Reject organization registration mutation
   const rejectOrganization = useMutation({
     mutationFn: async (orgId: number) => {
       const res = await apiRequest("PATCH", `/api/organizations/${orgId}`, { status: "rejected" });
@@ -96,6 +147,52 @@ export default function Requests() {
       toast({
         title: "Erro ao rejeitar organização",
         description: "Ocorreu um erro ao tentar rejeitar a organização.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Approve plan change mutation
+  const approvePlanChange = useMutation({
+    mutationFn: async (orgId: number) => {
+      const res = await apiRequest("PUT", `/api/plan-change-requests/${orgId}`, { action: "approve" });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      toast({
+        title: "Mudança de plano aprovada!",
+        description: "A solicitação de mudança de plano foi aprovada com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao aprovar mudança de plano",
+        description: "Ocorreu um erro ao processar a aprovação.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Reject plan change mutation
+  const rejectPlanChange = useMutation({
+    mutationFn: async (orgId: number) => {
+      const res = await apiRequest("PUT", `/api/plan-change-requests/${orgId}`, { action: "reject" });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      toast({
+        title: "Mudança de plano rejeitada",
+        description: "A solicitação de mudança de plano foi rejeitada.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao rejeitar mudança de plano",
+        description: "Ocorreu um erro ao processar a rejeição.",
         variant: "destructive",
       });
     },
@@ -124,7 +221,7 @@ export default function Requests() {
             <InboxIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{allRequests.length}</div>
+            <div className="text-2xl font-bold">{totalRequests}</div>
             <p className="text-xs text-muted-foreground">
               {newRequests.length > 0 ? `+${newRequests.length} novas hoje` : "Nenhuma nova hoje"}
             </p>
@@ -137,10 +234,10 @@ export default function Requests() {
             <Clock className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingRequests.length}</div>
+            <div className="text-2xl font-bold">{totalRequests}</div>
             <p className="text-xs text-muted-foreground">
-              {pendingRequests.length > 0 
-                ? `${pendingRegistrations.length} registros, ${pendingPlanChanges.length} mudanças de plano` 
+              {totalRequests > 0 
+                ? `${pendingRegistrations.length} registros, ${pendingPlanChanges.length} planos` 
                 : "Nenhuma pendente"}
             </p>
           </CardContent>
@@ -149,13 +246,7 @@ export default function Requests() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Mudanças de Plano</CardTitle>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-blue-500">
-              <path d="M16 16H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/>
-              <path d="M16 2v2"/>
-              <path d="M8 2v2"/>
-              <path d="M4 10h16"/>
-              <path d="M16 20c1.1 0 2-.9 2-2v-2H6v2c0 1.1.9 2 2 2h8z"/>
-            </svg>
+            <RefreshCcw className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingPlanChanges.length}</div>
@@ -204,13 +295,13 @@ export default function Requests() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoadingOrganizations || isLoadingPlanChanges ? (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="relative overflow-x-auto">
-              {filteredOrganizations.length === 0 ? (
+              {filteredRequests.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   {searchTerm ? "Nenhuma solicitação encontrada com os critérios de busca." : "Não há solicitações pendentes no momento."}
                 </div>
@@ -227,18 +318,23 @@ export default function Requests() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredOrganizations.map((org) => {
-                      // Determinar se é uma solicitação de registro ou de mudança de plano
-                      const isPlanChangeRequest = org.planId;
-                      const requestType = isPlanChangeRequest ? "Alteração de Plano" : "Novo Registro";
+                    {filteredRequests.map((req) => {
+                      // Verifica se é requisição de mudança de plano ou registro
+                      const isPlanChangeRequest = req.requestType === 'plan_change';
+                      const requestTypeDisplay = isPlanChangeRequest 
+                        ? "Alteração de Plano" 
+                        : "Novo Registro";
                       
                       return (
-                        <tr key={org.id} className="bg-white border-b">
-                          <td className="px-6 py-4">#{org.id}</td>
-                          <td className="px-6 py-4 font-medium">{org.name}</td>
+                        <tr key={`${req.requestType}-${req.id}`} className="bg-white border-b">
+                          <td className="px-6 py-4">#{req.id}</td>
+                          <td className="px-6 py-4 font-medium">{req.name}</td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs ${isPlanChangeRequest ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
-                              {requestType}
+                            <span className={`px-2 py-1 rounded-full text-xs ${isPlanChangeRequest 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-purple-100 text-purple-800'}`}
+                            >
+                              {requestTypeDisplay}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -246,66 +342,95 @@ export default function Requests() {
                               Pendente
                             </span>
                           </td>
-                          <td className="px-6 py-4">{formatDate(org.createdAt)}</td>
+                          <td className="px-6 py-4">{formatDate(req.date)}</td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2 flex-wrap">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => approveOrganization.mutate(org.id)}
-                                disabled={approveOrganization.isPending}
-                                className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                              >
-                                {approveOrganization.isPending ? (
-                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                ) : null}
-                                Aprovar
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => rejectOrganization.mutate(org.id)}
-                                disabled={rejectOrganization.isPending}
-                                className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                              >
-                                {rejectOrganization.isPending ? (
-                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                ) : null}
-                                Rejeitar
-                              </Button>
-                              {!isPlanChangeRequest && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="text-blue-600"
-                                  onClick={() => {
-                                    // Aqui mostraria o documento da organização
-                                    toast({
-                                      title: "Visualizando documento",
-                                      description: "Documento da organização sendo aberto...",
-                                    });
-                                    // Em um sistema real, isso abriria o documento em uma nova janela
-                                    window.open(`/api/organizations/${org.id}/document`, '_blank');
-                                  }}
-                                >
-                                  Ver Documento
-                                </Button>
-                              )}
-                              {isPlanChangeRequest && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="text-blue-600"
-                                  onClick={() => {
-                                    // Mostrar detalhes do plano solicitado
-                                    toast({
-                                      title: "Detalhes da Solicitação",
-                                      description: "Alteração para novo plano de assinatura",
-                                    });
-                                  }}
-                                >
-                                  Ver Detalhes
-                                </Button>
+                              {!isPlanChangeRequest ? (
+                                // Botões para solicitações de registro
+                                <>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => approveOrganization.mutate(req.id)}
+                                    disabled={approveOrganization.isPending}
+                                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                  >
+                                    {approveOrganization.isPending ? (
+                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                    ) : null}
+                                    Aprovar
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => rejectOrganization.mutate(req.id)}
+                                    disabled={rejectOrganization.isPending}
+                                    className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                                  >
+                                    {rejectOrganization.isPending ? (
+                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                    ) : null}
+                                    Rejeitar
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="text-blue-600"
+                                    onClick={() => {
+                                      // Aqui mostraria o documento da organização
+                                      toast({
+                                        title: "Visualizando documento",
+                                        description: "Documento da organização sendo aberto...",
+                                      });
+                                      // Em um sistema real, isso abriria o documento em nova janela
+                                      window.open(`/api/organizations/${req.id}/document`, '_blank');
+                                    }}
+                                  >
+                                    Ver Documento
+                                  </Button>
+                                </>
+                              ) : (
+                                // Botões para solicitações de mudança de plano
+                                <>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => approvePlanChange.mutate(req.id)}
+                                    disabled={approvePlanChange.isPending}
+                                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                  >
+                                    {approvePlanChange.isPending ? (
+                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                    ) : null}
+                                    Aprovar
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => rejectPlanChange.mutate(req.id)}
+                                    disabled={rejectPlanChange.isPending}
+                                    className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                                  >
+                                    {rejectPlanChange.isPending ? (
+                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                    ) : null}
+                                    Rejeitar
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="text-blue-600"
+                                    onClick={() => {
+                                      // Mostrar detalhes da mudança de plano
+                                      toast({
+                                        title: "Detalhes da mudança de plano",
+                                        description: `Plano atual: ${req.currentPlanName} → Plano solicitado: ${req.requestedPlanName}`,
+                                      });
+                                    }}
+                                  >
+                                    Ver Detalhes
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </td>
