@@ -33,13 +33,28 @@ export default function ModuleSubscriptionStatus({
   // Mutation para solicitar um módulo
   const requestModuleMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/organization-modules/request", {
+      console.log("Enviando solicitação para contratar módulo:", {
         moduleType: moduleType,
         organizationId: organizationId
       });
-      return await res.json();
+      
+      // Verificar se organizationId é válido
+      if (!organizationId || isNaN(organizationId)) {
+        throw new Error(`ID da organização inválido: ${organizationId}`);
+      }
+      
+      const res = await apiRequest("POST", "/api/organization-modules/request", {
+        moduleType,
+        organizationId
+      });
+      
+      const result = await res.json();
+      console.log("Resposta da API:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Módulo solicitado com sucesso:", data);
+      
       toast({
         title: "Solicitação enviada",
         description: "Sua solicitação para ativar o módulo foi enviada com sucesso e está em análise.",
@@ -51,6 +66,8 @@ export default function ModuleSubscriptionStatus({
       queryClient.invalidateQueries({ queryKey: ['/api/organizations', organizationId] });
     },
     onError: (error: Error) => {
+      console.error("Erro ao solicitar módulo:", error);
+      
       toast({
         title: "Erro ao solicitar módulo",
         description: error.message || "Não foi possível enviar sua solicitação. Tente novamente mais tarde.",
