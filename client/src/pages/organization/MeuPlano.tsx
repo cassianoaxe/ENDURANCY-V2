@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Check, CreditCard, Shield, Gift, ArrowRight, Package, ArrowUpRight, Leaf, BarChart, AlertCircle } from 'lucide-react';
@@ -97,10 +97,8 @@ export default function MeuPlano() {
       return;
     }
     
-    // Fechar o diálogo antes de redirecionar para checkout
-    setShowChangePlanDialog(false);
-    
     // Se for plano pago, redirecionar para checkout
+    // O diálogo será fechado automaticamente pelo DialogClose
     navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
   };
 
@@ -114,10 +112,8 @@ export default function MeuPlano() {
   const confirmAddModule = () => {
     if (!selectedModule) return;
     
-    // Fechar o diálogo antes de redirecionar
-    setShowAddModuleDialog(false);
-    
     // Redirecionar para checkout com o módulo selecionado
+    // O diálogo será fechado automaticamente pelo DialogClose
     navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login`);
   };
 
@@ -484,30 +480,33 @@ export default function MeuPlano() {
             </div>
             
             <DialogFooter className="sm:justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setShowChangePlanDialog(false)}
-                disabled={isUpgrading}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={confirmPlanChange}
-                disabled={isUpgrading}
-                className="gap-2"
-              >
-                {isUpgrading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4" />
-                    Confirmar Mudança
-                  </>
-                )}
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  disabled={isUpgrading}
+                >
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button 
+                  onClick={confirmPlanChange}
+                  disabled={isUpgrading}
+                  className="gap-2"
+                >
+                  {isUpgrading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" />
+                      Confirmar Mudança
+                    </>
+                  )}
+                </Button>
+              </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -554,19 +553,22 @@ export default function MeuPlano() {
             </div>
             
             <DialogFooter className="sm:justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setShowAddModuleDialog(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={confirmAddModule}
-                className="gap-2"
-              >
-                <CreditCard className="h-4 w-4" />
-                Prosseguir para Pagamento
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button 
+                  onClick={confirmAddModule}
+                  className="gap-2"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Prosseguir para Pagamento
+                </Button>
+              </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>
