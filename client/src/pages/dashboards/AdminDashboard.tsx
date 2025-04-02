@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   LineChart,
@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import TourGuide from '@/components/features/TourGuide';
-import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings } from 'lucide-react';
+import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings, Layers } from 'lucide-react';
 
 // Dados de demonstração
 const organizationsData = [
@@ -49,6 +49,41 @@ const activeStatusData = [
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
 
+// Dados de módulos e planos
+const moduleDistributionData = [
+  { name: 'Financeiro', value: 40, color: '#4CAF50' },
+  { name: 'RH', value: 25, color: '#2196F3' },
+  { name: 'Logística', value: 20, color: '#FFC107' },
+  { name: 'Suporte', value: 15, color: '#9C27B0' },
+];
+
+// Dados de distribuição de planos por módulo
+const modulesPlanDistribution = [
+  { module: 'Financeiro', plan: 'Básico', count: 15 },
+  { module: 'Financeiro', plan: 'Profissional', count: 35 },
+  { module: 'Financeiro', plan: 'Enterprise', count: 50 },
+  { module: 'RH', plan: 'Básico', count: 25 },
+  { module: 'RH', plan: 'Profissional', count: 45 },
+  { module: 'RH', plan: 'Enterprise', count: 30 },
+  { module: 'Logística', plan: 'Básico', count: 40 },
+  { module: 'Logística', plan: 'Profissional', count: 35 },
+  { module: 'Logística', plan: 'Enterprise', count: 25 },
+  { module: 'Suporte', plan: 'Básico', count: 20 },
+  { module: 'Suporte', plan: 'Profissional', count: 40 },
+  { module: 'Suporte', plan: 'Enterprise', count: 40 },
+];
+
+// Crescimento de vendas de planos por mês
+const plansSalesData = [
+  { month: 'Jan', básico: 20, profissional: 15, enterprise: 5 },
+  { month: 'Fev', básico: 25, profissional: 20, enterprise: 8 },
+  { month: 'Mar', básico: 30, profissional: 25, enterprise: 12 },
+  { month: 'Abr', básico: 35, profissional: 30, enterprise: 15 },
+  { month: 'Mai', básico: 40, profissional: 40, enterprise: 20 },
+  { month: 'Jun', básico: 45, profissional: 45, enterprise: 25 },
+  { month: 'Jul', básico: 50, profissional: 50, enterprise: 30 },
+];
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -66,10 +101,14 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+        <TabsList className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart4 className="h-4 w-4" />
             <span className="hidden md:inline">Visão Geral</span>
+          </TabsTrigger>
+          <TabsTrigger value="modules" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            <span className="hidden md:inline">Módulos/Planos</span>
           </TabsTrigger>
           <TabsTrigger value="organizations" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
@@ -115,11 +154,11 @@ export default function AdminDashboard() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Consultas Marcadas (Mês)</CardTitle>
+                <CardTitle className="text-sm font-medium">Assinaturas de Módulos</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">1,254</div>
-                <p className="text-xs text-green-500">+15% em relação ao mês anterior</p>
+                <div className="text-3xl font-bold">325</div>
+                <p className="text-xs text-green-500">+22% em relação ao mês anterior</p>
               </CardContent>
             </Card>
           </div>
@@ -147,14 +186,14 @@ export default function AdminDashboard() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Status das Organizações</CardTitle>
+                <CardTitle>Distribuição de Módulos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={activeStatusData}
+                        data={moduleDistributionData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -163,17 +202,187 @@ export default function AdminDashboard() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {activeStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {moduleDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        
+        <TabsContent value="modules" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 dashboard-stats">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Receita Mensal Recorrente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">R$ 32.800</div>
+                <p className="text-xs text-green-500">+18% em relação ao mês anterior</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total de Assinaturas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">325</div>
+                <p className="text-xs text-green-500">+22% em relação ao mês anterior</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">R$ 980</div>
+                <p className="text-xs text-amber-500">+5% em relação ao mês anterior</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Crescimento de Vendas por Plano</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={plansSalesData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="básico" stroke="#4CAF50" strokeWidth={2} name="Básico" />
+                      <Line type="monotone" dataKey="profissional" stroke="#2196F3" strokeWidth={2} name="Profissional" />
+                      <Line type="monotone" dataKey="enterprise" stroke="#9C27B0" strokeWidth={2} name="Enterprise" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Receita por Módulo</CardTitle>
+                <CardDescription>Distribuição da receita mensal por módulo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        { name: 'Financeiro', value: 12500 },
+                        { name: 'RH', value: 8200 },
+                        { name: 'Logística', value: 6400 },
+                        { name: 'Suporte', value: 5700 },
+                      ]}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
+                      <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
+                      <Legend />
+                      <Bar 
+                        dataKey="value" 
+                        name="Receita Mensal" 
+                        fill="#3b82f6" 
+                      >
+                        {moduleDistributionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Distribuição de Planos por Módulo</CardTitle>
+              <CardDescription>Análise detalhada de assinaturas de planos por módulo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={modulesPlanDistribution}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="module" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
+                    <Legend />
+                    <Bar 
+                      dataKey="count" 
+                      name="Assinaturas" 
+                      fill="#8884d8" 
+                      stackId="a"
+                    >
+                      {modulesPlanDistribution.map((entry, index) => {
+                        let color;
+                        if (entry.plan === 'Básico') color = '#4CAF50';
+                        else if (entry.plan === 'Profissional') color = '#2196F3';
+                        else if (entry.plan === 'Enterprise') color = '#9C27B0';
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-3">Detalhamento de Planos por Módulo</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                          Básico
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                          Profissional
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                          Enterprise
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {Array.from(new Set(modulesPlanDistribution.map(item => item.module))).map(module => (
+                        <tr key={module}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{module}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="organizations" className="space-y-4">
