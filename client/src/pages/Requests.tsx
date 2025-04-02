@@ -155,7 +155,11 @@ export default function Requests() {
   // Approve plan change mutation
   const approvePlanChange = useMutation({
     mutationFn: async (orgId: number) => {
-      const res = await apiRequest("PUT", `/api/plan-change-requests/${orgId}`, { action: "approve" });
+      // Buscar informações do plano solicitado
+      const res = await apiRequest("POST", `/api/plan-change-requests/approve`, { 
+        organizationId: orgId,
+        planId: planChangeData?.requests.find(req => req.id === orgId)?.requestedPlanId
+      });
       return res.json();
     },
     onSuccess: () => {
@@ -166,7 +170,8 @@ export default function Requests() {
         description: "A solicitação de mudança de plano foi aprovada com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao aprovar mudança de plano:", error);
       toast({
         title: "Erro ao aprovar mudança de plano",
         description: "Ocorreu um erro ao processar a aprovação.",
@@ -178,7 +183,9 @@ export default function Requests() {
   // Reject plan change mutation
   const rejectPlanChange = useMutation({
     mutationFn: async (orgId: number) => {
-      const res = await apiRequest("PUT", `/api/plan-change-requests/${orgId}`, { action: "reject" });
+      const res = await apiRequest("POST", `/api/plan-change-requests/reject`, { 
+        organizationId: orgId 
+      });
       return res.json();
     },
     onSuccess: () => {
@@ -189,7 +196,8 @@ export default function Requests() {
         description: "A solicitação de mudança de plano foi rejeitada.",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao rejeitar mudança de plano:", error);
       toast({
         title: "Erro ao rejeitar mudança de plano",
         description: "Ocorreu um erro ao processar a rejeição.",
