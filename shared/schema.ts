@@ -752,7 +752,7 @@ export const notifications = pgTable("notifications", {
   title: text("title").notNull(),
   message: text("message").notNull(),
   type: notificationTypeEnum("type").notNull().default("info"),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id"),
   isRead: boolean("is_read").default(false),
   ticketId: integer("ticket_id"),
   organizationId: integer("organization_id"),

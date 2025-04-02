@@ -64,30 +64,42 @@ export default function MeuPlano() {
       const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
+    onSuccess: (data) => {
+      console.log("Solicitação de mudança de plano enviada com sucesso:", data);
+      setIsUpgrading(false);
       
-      // Fechar a dialog com timeout para garantir que o usuário veja a mensagem antes do redirecionamento
+      // Fechar o diálogo usando a referência do botão de fechar
+      if (closeChangePlanDialogRef.current) {
+        closeChangePlanDialogRef.current.click();
+      }
+      
+      // Também definimos o estado para garantir
+      setShowChangePlanDialog(false);
+      
+      // Pequeno delay antes de invalidar as queries
       setTimeout(() => {
-        if (closeChangePlanDialogRef.current) {
-          closeChangePlanDialogRef.current.click();
-        }
-        setShowChangePlanDialog(false);
-      }, 500);
-      
-      toast({
-        title: 'Solicitação enviada com sucesso',
-        description: 'Sua solicitação de mudança de plano foi enviada e está aguardando aprovação do administrador.',
-        variant: 'default',
-      });
+        queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
+        
+        toast({
+          title: 'Solicitação enviada com sucesso',
+          description: 'Sua solicitação de mudança de plano foi enviada e está aguardando aprovação do administrador.',
+          variant: 'default',
+        });
+      }, 300);
     },
     onError: (error: Error) => {
+      console.error("Erro ao solicitar mudança de plano:", error);
+      setIsUpgrading(false);
       toast({
         title: 'Erro ao solicitar mudança de plano',
         description: error.message || 'Não foi possível completar a operação. Tente novamente mais tarde.',
         variant: 'destructive',
       });
     },
+    onSettled: () => {
+      // Garantir que, independentemente do resultado, o estado de loading seja limpo
+      setIsUpgrading(false);
+    }
   });
   
   // Mantendo a mutação original para compatibilidade (usado para planos gratuitos que não precisam de aprovação)
@@ -135,22 +147,15 @@ export default function MeuPlano() {
     
     setIsUpgrading(true);
     
-    // Fechar manualmente o diálogo antes de fazer a solicitação
-    if (closeChangePlanDialogRef.current) {
-      closeChangePlanDialogRef.current.click();
+    // Se o plano for gratuito, fazer troca direta
+    if (selectedPlan.price === "0.00" || parseFloat(selectedPlan.price.toString()) === 0) {
+      changePlanMutation.mutate(selectedPlan.id);
+      return;
     }
     
-    // Pequeno delay para garantir que o diálogo está fechado
-    setTimeout(() => {
-      // Se o plano for gratuito, fazer troca direta
-      if (selectedPlan.price === "0.00" || parseFloat(selectedPlan.price.toString()) === 0) {
-        changePlanMutation.mutate(selectedPlan.id);
-        return;
-      }
-      
-      // Para planos pagos, enviar solicitação para aprovação do administrador
-      requestPlanChangeMutation.mutate(selectedPlan.id);
-    }, 100);
+    // Para planos pagos, enviar solicitação para aprovação do administrador
+    console.log("Enviando solicitação de mudança para o plano:", selectedPlan.id);
+    requestPlanChangeMutation.mutate(selectedPlan.id);
   };
 
   // Inicia processo de adição de módulo
