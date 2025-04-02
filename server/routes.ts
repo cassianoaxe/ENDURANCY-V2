@@ -1342,13 +1342,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nenhum arquivo enviado" });
       }
       
-      // Caminho relativo para o logo
-      const logoUrl = `/uploads/logos/${req.file.filename}`;
+      // Salvar apenas o nome do arquivo
+      const filename = req.file.filename;
       
       // Atualizar caminho do logo na organização
       const [updatedOrganization] = await db.update(organizations)
         .set({
-          logo: logoUrl,
+          logo: filename,
           updatedAt: new Date()
         })
         .where(eq(organizations.id, id))
@@ -1360,7 +1360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         message: "Logo atualizado com sucesso",
-        logoUrl
+        logoUrl: `/uploads/logos/${filename}`
       });
     } catch (error) {
       console.error("Erro ao fazer upload de logo:", error);
