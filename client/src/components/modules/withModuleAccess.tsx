@@ -181,6 +181,34 @@ export const withModuleAccess = <P extends object>(
     }
     
     // Caso contrário, exibe o componente de status de assinatura
+    console.log("Renderizando ModuleSubscriptionStatus com organizationId:", organization?.id);
+    
+    // Vamos garantir que o ID da organização seja passado corretamente
+    const orgId = organization?.id;
+    
+    if (!orgId) {
+      console.error("Erro: ID da organização não disponível:", organization);
+      
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-red-600">Erro de configuração</h2>
+            <p className="mt-2 text-gray-600">Não foi possível identificar a organização.</p>
+            <button 
+              onClick={() => {
+                setRetryCount(0);
+                refetchOrg();
+                refetchModules();
+              }}
+              className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <ModuleSubscriptionStatus
         moduleName={moduleName}
@@ -188,7 +216,7 @@ export const withModuleAccess = <P extends object>(
         moduleDescription={moduleDescription}
         modulePrice={modulePrice}
         moduleStatus={moduleStatus}
-        organizationId={organization.id}
+        organizationId={orgId}
       />
     );
   };

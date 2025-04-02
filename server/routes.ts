@@ -1070,19 +1070,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Buscando módulos para organização:", orgId);
       
+      // Verificar se a tabela existe e suas colunas
+      try {
+        // Usar uma consulta SQL bruta para verificar se a tabela existe
+        const tableCheck = await db.execute(
+          sql`SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'organization_modules'
+          )`
+        );
+        console.log("Tabela organization_modules existe:", tableCheck);
+        
+        // Verificar as colunas da tabela
+        const columnCheck = await db.execute(
+          sql`SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_schema = 'public' 
+            AND table_name = 'organization_modules'`
+        );
+        console.log("Colunas disponíveis:", columnCheck.rows.map(r => r.column_name));
+      } catch (e) {
+        console.error("Erro ao verificar tabela:", e);
+      }
+      
       // Buscar organizationModules - selecionando apenas os campos que existem
-      const orgModules = await db.select({
-        id: organizationModules.id,
-        organizationId: organizationModules.organizationId,
-        moduleId: organizationModules.moduleId,
-        moduleType: organizationModules.moduleType,
-        status: organizationModules.status,
-        active: organizationModules.active,
-        requestDate: organizationModules.requestDate,
-        activationDate: organizationModules.activationDate
-      })
+      // Fazemos uma seleção básica para evitar problemas com nomes de colunas
+      const orgModulesQuery = db.select()
         .from(organizationModules)
         .where(eq(organizationModules.organizationId, parseInt(orgId)));
+        
+      const orgModules = await orgModulesQuery;
       
       // Se não encontrou módulos, retornar array vazio
       if (!orgModules.length) {
