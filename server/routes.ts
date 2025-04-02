@@ -1617,12 +1617,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para criar solicitação de mudança de plano
   app.post("/api/plan-change-requests", authenticate, async (req, res) => {
     try {
+      console.log("Recebendo solicitação de mudança de plano:", req.body);
+      console.log("Sessão do usuário:", req.session?.user);
+      
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
-        return res.status(401).json({ message: "Não autorizado" });
+        console.log("Erro de autorização: usuário sem organizationId");
+        return res.status(401).json({ message: "Não autorizado. Você precisa estar vinculado a uma organização." });
       }
       
       const { planId } = req.body;
       const organizationId = req.session.user.organizationId;
+      
+      console.log("Dados da solicitação:", { planId, organizationId });
       
       if (!planId) {
         return res.status(400).json({ message: "ID do plano é obrigatório" });
@@ -1632,8 +1638,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
       
       if (!plan) {
+        console.log("Plano não encontrado:", planId);
         return res.status(404).json({ message: "Plano não encontrado" });
       }
+      
+      console.log("Plano encontrado:", plan);
       
       // Buscar organização
       const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
@@ -4339,51 +4348,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // A rota para solicitações de mudança de plano já está implementada acima
   // Removida duplicação da rota plan-change-requests
-  
-  // Rota para obter todas as solicitações de mudança de plano (apenas para administradores)
-  app.get("/api/plan-change-requests", authenticate, async (req, res) => {
-    try {
-      if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
-        return res.status(401).json({ message: "Não autorizado. Apenas administradores podem visualizar solicitações." });
-      }
-      
-      // Buscar todas as organizações com status 'pending_plan_change'
-      const pendingRequests = await db.select({
-        id: organizations.id,
-        name: organizations.name,
-        type: organizations.type,
-        email: organizations.email,
-        currentPlanId: organizations.planId,
-        requestedPlanId: organizations.requestedPlanId,
-        status: organizations.status,
-        updatedAt: organizations.updatedAt
-      })
-      .from(organizations)
-      .where(eq(organizations.status, 'pending_plan_change'));
-      
-      // Complementar com informações dos planos solicitados
-      const requests = await Promise.all(pendingRequests.map(async (org) => {
-        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, org.currentPlanId));
-        const [requestedPlan] = await db.select().from(plans).where(eq(plans.id, org.requestedPlanId || 0));
-        
-        return {
-          ...org,
-          currentPlanName: currentPlan?.name || 'Desconhecido',
-          requestedPlanName: requestedPlan?.name || 'Desconhecido',
-          requestDate: org.updatedAt
-        };
-      }));
-      
-      res.status(200).json({ 
-        success: true,
-        totalRequests: requests.length,
-        requests 
-      });
-    } catch (error) {
-      console.error("Erro ao obter solicitações de mudança de plano:", error);
-      res.status(500).json({ message: "Erro ao obter solicitações de mudança de plano." });
-    }
-  });
   
   // Rota para aprovar ou rejeitar solicitação de mudança de plano
   app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
