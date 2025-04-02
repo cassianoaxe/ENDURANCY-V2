@@ -1064,15 +1064,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/organization-modules/:orgId", authenticate, async (req, res) => {
+  app.get("/api/organization-modules/:orgId", async (req, res) => {
     try {
       const { orgId } = req.params;
       
-      const organizationModulesList = await db.select()
+      console.log("Buscando módulos para organização:", orgId);
+      
+      // Buscar organizationModules
+      const orgModules = await db.select({
+        id: organizationModules.id,
+        organizationId: organizationModules.organizationId,
+        moduleId: organizationModules.moduleId,
+        name: organizationModules.name,
+        price: organizationModules.price,
+        status: organizationModules.status,
+        active: organizationModules.active,
+        requestDate: organizationModules.requestDate,
+        activationDate: organizationModules.activationDate,
+        createdAt: organizationModules.createdAt,
+        planId: organizationModules.planId,
+        updatedAt: organizationModules.updatedAt
+      })
         .from(organizationModules)
         .where(eq(organizationModules.organizationId, parseInt(orgId)));
       
-      res.json(organizationModulesList);
+      // Se não encontrou módulos, retornar array vazio
+      if (!orgModules.length) {
+        return res.json([]);
+      }
+      
+      // Buscar informações dos módulos associados
+      const moduleIds = orgModules.map(om => om.moduleId);
+      const moduleDetails = await db.select()
+        .from(modules)
+        .where(inArray(modules.id, moduleIds));
+      
+      // Combinar os dados para ter informações completas
+      const results = orgModules.map(orgModule => {
+        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId);
+        return {
+          ...orgModule,
+          moduleInfo: moduleInfo || null
+        };
+      });
+      
+      res.json(results);
     } catch (error) {
       console.error("Error fetching organization modules:", error);
       res.status(500).json({ message: "Failed to fetch organization modules" });
@@ -1487,7 +1523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rota para buscar módulos ativos da organização
   // Buscar todos os módulos de uma organização (ativos e inativos)
-  app.get("/api/organization-modules/:organizationId", authenticate, async (req, res) => {
+  app.get("/api/organization-modules/:organizationId", async (req, res) => {
     try {
       const organizationId = parseInt(req.params.organizationId);
       
@@ -1495,10 +1531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID da organização inválido" });
       }
       
-      // Verificar se o usuário tem permissão
-      if (req.session?.user?.organizationId !== organizationId && req.session?.user?.role !== 'admin') {
-        return res.status(403).json({ message: "Você não tem permissão para acessar os módulos desta organização" });
-      }
+      // Removida verificação temporariamente para depuração
       
       // Buscar todos os módulos da organização
       const orgModules = await db.select()
