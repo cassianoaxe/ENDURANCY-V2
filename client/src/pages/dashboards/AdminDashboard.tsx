@@ -49,7 +49,14 @@ const activeStatusData = [
 
 const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
 
-// Dados de módulos e planos
+// Dados de planos
+const plansDistributionData = [
+  { name: 'Básico', value: 30, color: '#4CAF50' },
+  { name: 'Profissional', value: 45, color: '#2196F3' },
+  { name: 'Enterprise', value: 25, color: '#9C27B0' },
+];
+
+// Dados de módulos
 const moduleDistributionData = [
   { name: 'Financeiro', value: 40, color: '#4CAF50' },
   { name: 'RH', value: 25, color: '#2196F3' },
@@ -163,7 +170,75 @@ export default function AdminDashboard() {
             </Card>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição de Planos</CardTitle>
+                  <CardDescription>Porcentagem de assinaturas por tipo de plano</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={plansDistributionData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {plansDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Receita por Módulo</CardTitle>
+                  <CardDescription>Distribuição da receita mensal por módulo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          { name: 'Financeiro', value: 12500 },
+                          { name: 'RH', value: 8200 },
+                          { name: 'Logística', value: 6400 },
+                          { name: 'Suporte', value: 5700 },
+                        ]}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
+                        <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
+                        <Legend />
+                        <Bar 
+                          dataKey="value" 
+                          name="Receita Mensal" 
+                          fill="#3b82f6" 
+                        >
+                          {moduleDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle>Crescimento de Organizações</CardTitle>
@@ -179,35 +254,6 @@ export default function AdminDashboard() {
                       <Legend />
                       <Line type="monotone" dataKey="organizations" stroke="#3b82f6" strokeWidth={2} />
                     </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuição de Módulos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={moduleDistributionData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {moduleDistributionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`${value}%`, 'Participação']} />
-                    </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
