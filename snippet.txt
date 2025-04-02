@@ -1,0 +1,10 @@
+        await db.insert(notifications).values({
+          userId: null, // Notificação para toda a organização
+          organizationId: parseInt(orgId, 10),
+          title: "Solicitação de mudança de plano aprovada",
+          message: `Sua solicitação para mudar para o plano ${plan?.name || 'solicitado'} foi aprovada!`,
+          type: "success",
+          isRead: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
