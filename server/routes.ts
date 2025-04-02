@@ -1133,6 +1133,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint para solicitar um novo módulo para a organização
+  app.post("/api/organization-modules/request", authenticate, async (req, res) => {
+    try {
+      if (!req.session?.user) {
+        return res.status(401).json({ message: "Não autorizado" });
+      }
+      
+      const { moduleType, organizationId } = req.body;
+      
+      if (!moduleType || !organizationId) {
+        return res.status(400).json({ message: "Tipo de módulo e ID da organização são obrigatórios" });
+      }
+      
+      // Verificar se o usuário tem permissão para adicionar módulos a esta organização
+      if (req.session.user.organizationId !== organizationId && req.session.user.role !== 'admin') {
+        return res.status(403).json({ message: "Você não tem permissão para adicionar módulos a esta organização" });
+      }
+      
+      // Buscar o módulo pelo tipo
+      const [moduleData] = await db.select().from(modules).where(eq(modules.type, moduleType));
+      
+      if (!moduleData) {
+        return res.status(404).json({ message: "Módulo não encontrado" });
+      }
+      
+      // Verificar se este módulo já está associado à organização
+      const [existingModule] = await db.select()
+        .from(organizationModules)
+        .where(and(
+          eq(organizationModules.organizationId, organizationId),
+          eq(organizationModules.moduleId, moduleData.id)
+        ));
+      
+      if (existingModule) {
+        return res.status(400).json({ message: "Este módulo já está associado a esta organização" });
+      }
+      
+      // Adicionar o módulo à organização com status pendente
+      const [newOrgModule] = await db.insert(organizationModules)
+        .values({
+          organizationId: organizationId,
+          moduleId: moduleData.id,
+          moduleType: moduleType,
+          status: 'pending',
+          active: false,
+          requestDate: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      res.status(201).json(newOrgModule);
+    } catch (error) {
+      console.error("Erro ao solicitar módulo:", error);
+      res.status(500).json({ message: "Falha ao solicitar módulo" });
+    }
+  });
+  
   // Rota para alternar o status ativo/inativo de um módulo
   app.put("/api/organization-modules/:id/toggle", authenticate, async (req, res) => {
     try {
@@ -1428,6 +1486,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para buscar módulos ativos da organização
+  // Buscar todos os módulos de uma organização (ativos e inativos)
+  app.get("/api/organization-modules/:organizationId", authenticate, async (req, res) => {
+    try {
+      const organizationId = parseInt(req.params.organizationId);
+      
+      if (isNaN(organizationId)) {
+        return res.status(400).json({ message: "ID da organização inválido" });
+      }
+      
+      // Verificar se o usuário tem permissão
+      if (req.session?.user?.organizationId !== organizationId && req.session?.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Você não tem permissão para acessar os módulos desta organização" });
+      }
+      
+      // Buscar todos os módulos da organização
+      const orgModules = await db.select()
+        .from(organizationModules)
+        .where(eq(organizationModules.organizationId, organizationId));
+      
+      if (!orgModules.length) {
+        return res.json([]);
+      }
+      
+      // Buscar detalhes completos dos módulos
+      const moduleIds = orgModules.map(entry => entry.moduleId);
+      const moduleDetails = await db.select()
+        .from(modules)
+        .where(inArray(modules.id, moduleIds));
+      
+      // Mesclar os dados para retornar detalhes completos
+      const result = orgModules.map(orgModule => {
+        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId);
+        return {
+          ...orgModule,
+          moduleInfo: moduleInfo || null
+        };
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao buscar módulos da organização:", error);
+      res.status(500).json({ message: "Falha ao buscar módulos da organização" });
+    }
+  });
+  
   app.get("/api/organizations/modules/active", authenticate, async (req, res) => {
     try {
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
