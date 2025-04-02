@@ -83,17 +83,22 @@ export default function Requests() {
       requestType: 'registration',
       date: org.createdAt
     })),
-    ...pendingPlanChanges.map(req => ({
-      id: req.id,
-      name: req.name,
-      type: req.type,
-      email: req.email,
-      status: req.status,
-      requestType: 'plan_change',
-      date: req.requestDate,
-      currentPlanName: req.currentPlanName,
-      requestedPlanName: req.requestedPlanName
-    }))
+    ...pendingPlanChanges.map(req => {
+      console.log("Mapeando requisição de plano:", req);
+      return {
+        id: req.id,
+        name: req.name,
+        type: req.type,
+        email: req.email,
+        status: req.status,
+        requestType: 'plan_change',
+        date: req.requestDate,
+        currentPlanId: req.currentPlanId,
+        requestedPlanId: req.requestedPlanId,
+        currentPlanName: req.currentPlanName,
+        requestedPlanName: req.requestedPlanName
+      };
+    })
   ];
   
   // Filter requests based on search
@@ -156,9 +161,13 @@ export default function Requests() {
   const approvePlanChange = useMutation({
     mutationFn: async (orgId: number) => {
       // Buscar informações do plano solicitado
+      console.log(`Aprovando mudança de plano para organização ${orgId}`);
+      const requestData = planChangeData?.requests.find(req => req.id === orgId);
+      console.log("Dados da solicitação:", requestData);
+      
       const res = await apiRequest("POST", `/api/plan-change-requests/approve`, { 
         organizationId: orgId,
-        planId: planChangeData?.requests.find(req => req.id === orgId)?.requestedPlanId
+        planId: requestData?.requestedPlanId
       });
       return res.json();
     },
@@ -183,6 +192,10 @@ export default function Requests() {
   // Reject plan change mutation
   const rejectPlanChange = useMutation({
     mutationFn: async (orgId: number) => {
+      console.log(`Rejeitando mudança de plano para organização ${orgId}`);
+      const requestData = planChangeData?.requests.find(req => req.id === orgId);
+      console.log("Dados da solicitação:", requestData);
+      
       const res = await apiRequest("POST", `/api/plan-change-requests/reject`, { 
         organizationId: orgId 
       });
@@ -430,9 +443,10 @@ export default function Requests() {
                                     className="text-blue-600"
                                     onClick={() => {
                                       // Mostrar detalhes da mudança de plano
+                                      console.log("Detalhe do request:", req);
                                       toast({
                                         title: "Detalhes da mudança de plano",
-                                        description: `Plano atual: ${req.currentPlanName} → Plano solicitado: ${req.requestedPlanName}`,
+                                        description: `Plano atual: ${req.currentPlanName || 'Desconhecido'} → Plano solicitado: ${req.requestedPlanName || 'Desconhecido'}`,
                                       });
                                     }}
                                   >
