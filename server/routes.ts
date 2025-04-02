@@ -1566,30 +1566,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Colunas disponíveis:", columns);
       
       // Buscar todos os módulos da organização
-      const orgModules = await db.select()
-        .from(organizationModules)
-        .where(eq(organizationModules.organizationId, organizationId));
+      const query = `
+        SELECT om.*, m.name as module_name, m.type as module_type,
+               m.description as module_description, p.name as plan_name,
+               p.price as plan_price, p.billing_cycle as billing_cycle
+        FROM organization_modules om
+        LEFT JOIN modules m ON om.module_id = m.id
+        LEFT JOIN module_plans p ON om.plan_id = p.id
+        WHERE om.organization_id = $1
+      `;
       
-      if (!orgModules.length) {
+      const result = await pool.query(query, [organizationId]);
+      
+      if (!result.rows.length) {
         return res.json([]);
       }
       
-      // Buscar detalhes completos dos módulos
-      const moduleIds = orgModules.map(entry => entry.moduleId);
-      const moduleDetails = await db.select()
-        .from(modules)
-        .where(inArray(modules.id, moduleIds));
-      
-      // Mesclar os dados para retornar detalhes completos
-      const result = orgModules.map(orgModule => {
-        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId);
+      // Adaptar os dados para manter compatibilidade com a API atual
+      const formattedResults = result.rows.map(row => {
         return {
-          ...orgModule,
-          moduleInfo: moduleInfo || null
+          id: row.id,
+          organizationId: row.organization_id,
+          moduleId: row.module_id,
+          planId: row.plan_id,
+          active: row.active,
+          status: row.status,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+          startDate: row.start_date,
+          expiryDate: row.expiry_date,
+          billingDay: row.billing_day,
+          
+          // Informações do módulo e plano
+          moduleName: row.module_name,
+          planName: row.plan_name,
+          billingCycle: row.billing_cycle,
+          price: row.plan_price,
+          
+          // Adicionar moduleInfo para compatibilidade
+          moduleInfo: {
+            id: row.module_id,
+            name: row.module_name,
+            type: row.module_type,
+            description: row.module_description
+          }
         };
       });
       
-      res.json(result);
+      res.json(formattedResults);
     } catch (error) {
       console.error("Error fetching organization modules:", error);
       res.status(500).json({ message: "Failed to fetch organization modules" });
@@ -1604,26 +1628,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const organizationId = req.session.user.organizationId;
       
-      // Buscar os IDs dos módulos ativos para a organização
-      const activeModuleEntries = await db.select()
-        .from(organizationModules)
-        .where(and(
-          eq(organizationModules.organizationId, organizationId),
-          eq(organizationModules.active, true)
-        ));
+      // Usar SQL direto para buscar os módulos ativos com informações completas
+      const query = `
+        SELECT m.*
+        FROM organization_modules om
+        JOIN modules m ON om.module_id = m.id
+        WHERE om.organization_id = $1 AND om.active = true
+      `;
       
-      if (!activeModuleEntries.length) {
-        return res.json([]);
-      }
+      const result = await pool.query(query, [organizationId]);
       
-      const moduleIds = activeModuleEntries.map(entry => entry.moduleId);
-      
-      // Buscar detalhes dos módulos
-      const activeModules = await db.select()
-        .from(modules)
-        .where(inArray(modules.id, moduleIds));
-      
-      res.json(activeModules);
+      res.json(result.rows);
     } catch (error) {
       console.error("Erro ao buscar módulos ativos:", error);
       res.status(500).json({ message: "Falha ao buscar módulos ativos da organização" });
