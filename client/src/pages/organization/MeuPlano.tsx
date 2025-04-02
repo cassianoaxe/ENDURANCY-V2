@@ -62,17 +62,20 @@ export default function MeuPlano() {
   const requestPlanChangeMutation = useMutation({
     mutationFn: async (planId: number) => {
       try {
+        console.log("Enviando solicitação de mudança de plano para:", planId);
         const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
-        const data = await res.json();
         
-        // Se a resposta não for bem-sucedida, lançar um erro
         if (!res.ok) {
-          throw new Error(data.message || 'Erro ao solicitar mudança de plano');
+          const errorText = await res.text();
+          console.error("Erro na resposta:", errorText);
+          throw new Error(errorText || 'Erro ao solicitar mudança de plano');
         }
         
+        const data = await res.json();
+        console.log("Resposta da solicitação:", data);
         return data;
       } catch (error) {
-        console.error("Erro na solicitação:", error);
+        console.error("Erro na solicitação de plano:", error);
         throw error;
       }
     },
