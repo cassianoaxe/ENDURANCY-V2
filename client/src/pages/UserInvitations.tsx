@@ -10,7 +10,8 @@ import {
   RefreshCw,
   Ban,
   CheckCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  AlertCircle
 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +40,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { UserInvitation, UserGroup } from "@shared/schema";
+import type { UserInvitation, UserGroup, User } from "@shared/schema";
 
 export default function UserInvitations() {
   // Estado para filtrar convites
@@ -57,6 +58,19 @@ export default function UserInvitations() {
   const userId = 1; // TODO: Pegar do contexto
   
   const { toast } = useToast();
+  
+  // Buscar usuários existentes da organização
+  const { data: organizationUsers, isLoading: loadingUsers } = useQuery<User[]>({
+    queryKey: ['/api/organizations', organizationId, 'users'],
+    queryFn: async () => {
+      const res = await fetch(`/api/organizations/${organizationId}/users`);
+      if (!res.ok) throw new Error("Erro ao carregar usuários da organização");
+      return res.json();
+    }
+  });
+  
+  // Verificar se a organização já tem usuários (para determinar se o papel deve ser fixo como org_admin)
+  const isFirstUser = !loadingUsers && (!organizationUsers || organizationUsers.length === 0);
   
   // Buscar convites de usuários
   const { data: userInvitations, isLoading: loadingInvitations } = useQuery<UserInvitation[]>({
@@ -400,6 +414,7 @@ export default function UserInvitations() {
               <Select 
                 value={newInvitation.role}
                 onValueChange={(value) => setNewInvitation({ ...newInvitation, role: value })}
+                disabled={isFirstUser}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um perfil" />
@@ -411,6 +426,12 @@ export default function UserInvitations() {
                   <SelectItem value="employee">Funcionário</SelectItem>
                 </SelectContent>
               </Select>
+              {isFirstUser && (
+                <div className="flex items-start mt-1 text-xs text-amber-600">
+                  <AlertCircle className="h-3 w-3 mr-1 mt-0.5" />
+                  <span>O primeiro usuário deve ser um administrador da organização</span>
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
