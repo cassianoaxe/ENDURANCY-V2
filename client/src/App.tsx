@@ -49,6 +49,10 @@ import Onboarding from "@/pages/organization/Onboarding";
 import OrganizationProfile from "@/pages/organization/profile";
 import DataImport from "@/pages/DataImport";
 
+// Import module pages
+import CultivationModule from "@/pages/organization/cultivation";
+import ProductionModule from "@/pages/organization/production";
+
 // Import onboarding course pages
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
@@ -258,6 +262,15 @@ function AppContent() {
     
     if (currentPath === '/organization/profile') {
       return <OrganizationProfile />;
+    }
+
+    // Módulos específicos da organização
+    if (currentPath === '/organization/cultivation') {
+      return <CultivationModule />;
+    }
+
+    if (currentPath === '/organization/production') {
+      return <ProductionModule />;
     }
     
     return <NotFound />;
