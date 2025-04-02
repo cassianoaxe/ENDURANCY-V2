@@ -34,6 +34,7 @@ import UserProfile from "@/pages/UserProfile";
 import UserGroups from "@/pages/UserGroups";
 import UserInvitations from "@/pages/UserInvitations";
 import AcceptInvitation from "@/pages/AcceptInvitation";
+import ModuleSubscriptionSales from "@/pages/ModuleSubscriptionSales";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import TourGuide from "@/components/features/TourGuide";
@@ -367,7 +368,7 @@ function AppContent() {
     '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
-    '/user-groups', '/user-invitations',
+    '/user-groups', '/user-invitations', '/module-subscription-sales',
     '/integracoes', '/integracoes/comunicacao/whatsapp', 
     '/integracoes/pagamentos/asaas', '/integracoes/pagamentos/zoop',
     '/integracoes/logistica/melhor-envio', '/integracoes/logistica/azul-cargo', '/integracoes/logistica/correios',
@@ -431,6 +432,7 @@ function AppContent() {
       case '/data-import': Component = DataImport; break;
       case '/user-groups': Component = UserGroups; break;
       case '/user-invitations': Component = UserInvitations; break;
+      case '/module-subscription-sales': Component = ModuleSubscriptionSales; break;
       
       // Rotas de integracoes
       case '/integracoes': Component = Integracoes; break;
