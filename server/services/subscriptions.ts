@@ -41,11 +41,11 @@ export async function getOrCreateStripeCustomer(organizationId: number): Promise
     const [admin] = await db
       .select()
       .from(users)
-      .where(({ and, eq }) => 
-        and(
-          eq(users.organizationId, organizationId),
-          eq(users.role, 'org_admin')
-        )
+      .where(
+        eq(users.organizationId, organizationId)
+      )
+      .where(
+        eq(users.role, 'org_admin')
       )
       .limit(1);
     
@@ -90,13 +90,16 @@ export async function createSubscription(
     // Obter ou criar o cliente Stripe
     const customerId = await getOrCreateStripeCustomer(organizationId);
     
+    // Criar um produto primeiro
+    const product = await stripe.products.create({
+      name: plan.name,
+      description: plan.description || `Plano ${plan.name}`,
+    });
+    
     // Preço mensal fixo para o plano (em centavos)
     const priceData = {
       currency: 'brl',
-      product_data: {
-        name: plan.name,
-        description: plan.description,
-      },
+      product: product.id,
       unit_amount: Math.round(plan.price * 100), // Converter para centavos
       recurring: {
         interval: 'month',
@@ -170,13 +173,16 @@ export async function updateSubscriptionPlan(
     // Buscar a assinatura atual
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     
+    // Criar um produto primeiro
+    const product = await stripe.products.create({
+      name: plan.name,
+      description: plan.description || `Plano ${plan.name}`,
+    });
+    
     // Preço mensal fixo para o plano (em centavos)
     const priceData = {
       currency: 'brl',
-      product_data: {
-        name: plan.name,
-        description: plan.description,
-      },
+      product: product.id,
       unit_amount: Math.round(plan.price * 100), // Converter para centavos
       recurring: {
         interval: 'month',
