@@ -58,7 +58,39 @@ export default function MeuPlano() {
     enabled: !!user,
   });
 
-  // Mutação para trocar de plano
+  // Mutação para solicitar troca de plano (envia para aprovação do administrador)
+  const requestPlanChangeMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
+      
+      // Fechar a dialog com timeout para garantir que o usuário veja a mensagem antes do redirecionamento
+      setTimeout(() => {
+        if (closeChangePlanDialogRef.current) {
+          closeChangePlanDialogRef.current.click();
+        }
+        setShowChangePlanDialog(false);
+      }, 500);
+      
+      toast({
+        title: 'Solicitação enviada com sucesso',
+        description: 'Sua solicitação de mudança de plano foi enviada e está aguardando aprovação do administrador.',
+        variant: 'default',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao solicitar mudança de plano',
+        description: error.message || 'Não foi possível completar a operação. Tente novamente mais tarde.',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Mantendo a mutação original para compatibilidade (usado para planos gratuitos que não precisam de aprovação)
   const changePlanMutation = useMutation({
     mutationFn: async (planId: number) => {
       const res = await apiRequest('POST', '/api/organizations/change-plan', { planId });
@@ -67,7 +99,15 @@ export default function MeuPlano() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
       queryClient.invalidateQueries({ queryKey: ['/api/plans'] });
-      setShowChangePlanDialog(false);
+      
+      // Fechar a dialog com timeout para garantir que o usuário veja a mensagem
+      setTimeout(() => {
+        if (closeChangePlanDialogRef.current) {
+          closeChangePlanDialogRef.current.click();
+        }
+        setShowChangePlanDialog(false);
+      }, 500);
+      
       toast({
         title: 'Plano atualizado com sucesso',
         description: 'Seu novo plano foi ativado na sua organização.',
@@ -101,11 +141,8 @@ export default function MeuPlano() {
       return;
     }
     
-    // Fechar manualmente o diálogo e redirecionar para checkout
-    setShowChangePlanDialog(false);
-    
-    // Adicionar parâmetro indicando solicitação de mudança de plano para o painel administrativo
-    navigate(`/checkout?type=plan&itemId=${selectedPlan.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
+    // Para planos pagos, enviar solicitação para aprovação do administrador
+    requestPlanChangeMutation.mutate(selectedPlan.id);
   };
 
   // Inicia processo de adição de módulo
@@ -118,12 +155,17 @@ export default function MeuPlano() {
   const confirmAddModule = () => {
     if (!selectedModule) return;
     
-    // Fechar manualmente o diálogo antes de redirecionar
-    setShowAddModuleDialog(false);
+    // Fechar manualmente o diálogo usando a referência do botão
+    if (closeAddModuleDialogRef.current) {
+      closeAddModuleDialogRef.current.click();
+    }
     
-    // Redirecionar para checkout com o módulo selecionado
-    // Adicionar parâmetro indicando solicitação de mudança de módulo para o painel administrativo
-    navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
+    // Pequeno delay para garantir que o diálogo foi fechado antes de redirecionar
+    setTimeout(() => {
+      // Redirecionar para checkout com o módulo selecionado
+      // Adicionar parâmetro indicando solicitação de mudança de módulo para o painel administrativo
+      navigate(`/checkout?type=module&moduleId=${selectedModule.id}&organizationId=${user?.organizationId}&returnUrl=/login&changeRequest=true`);
+    }, 100);
   };
 
   const isLoading = isOrgLoading || isPlanLoading || isPlansLoading || isModulesLoading || isAvailableModulesLoading;
@@ -474,41 +516,47 @@ export default function MeuPlano() {
                 <ul className="text-sm space-y-2">
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                    <span>A mudança será aplicada imediatamente após o pagamento (se aplicável)</span>
+                    <span>A solicitação de mudança será enviada para o administrador aprovar</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                    <span>Você terá acesso aos recursos do novo plano</span>
+                    <span>Após aprovação, você terá acesso aos recursos do novo plano</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                    <span>Valores serão ajustados proporcionalmente ao período restante</span>
+                    <span>Valores serão ajustados na sua próxima fatura</span>
                   </li>
                 </ul>
               </div>
+              
+              {/* Informativo para planos pagos */}
+              {parseFloat(selectedPlan?.price.toString() || "0") > 0 && (
+                <div className="rounded-lg bg-yellow-50 p-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <span className="font-medium text-yellow-800">Importante</span>
+                  </div>
+                  <p className="mt-1 text-yellow-700">
+                    Sua solicitação de alteração ficará pendente até que seja aprovada pelo administrador do sistema.
+                  </p>
+                </div>
+              )}
             </div>
             
             <DialogFooter className="sm:justify-between">
               <Button
                 variant="outline"
-                disabled={isUpgrading}
+                disabled={requestPlanChangeMutation.isPending || changePlanMutation.isPending}
                 onClick={() => setShowChangePlanDialog(false)}
               >
                 Cancelar
               </Button>
               <Button 
-                onClick={() => {
-                  // Primeiro fechar o diálogo, depois chamar a função de confirmação
-                  setShowChangePlanDialog(false);
-                  // Pequeno atraso para garantir que o diálogo foi fechado
-                  setTimeout(() => {
-                    confirmPlanChange();
-                  }, 50);
-                }}
-                disabled={isUpgrading}
+                onClick={confirmPlanChange}
+                disabled={requestPlanChangeMutation.isPending || changePlanMutation.isPending}
                 className="gap-2"
               >
-                {isUpgrading ? (
+                {requestPlanChangeMutation.isPending || changePlanMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Processando...
@@ -521,6 +569,9 @@ export default function MeuPlano() {
                 )}
               </Button>
             </DialogFooter>
+            
+            {/* Botão de fechar oculto para referência */}
+            <DialogClose ref={closeChangePlanDialogRef} className="hidden" />
           </DialogContent>
         </Dialog>
 
@@ -563,6 +614,16 @@ export default function MeuPlano() {
                   </li>
                 </ul>
               </div>
+              
+              <div className="rounded-lg bg-yellow-50 p-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <span className="font-medium text-yellow-800">Importante</span>
+                </div>
+                <p className="mt-1 text-yellow-700">
+                  Sua solicitação de adição de módulo ficará pendente até que seja aprovada pelo administrador do sistema.
+                </p>
+              </div>
             </div>
             
             <DialogFooter className="sm:justify-between">
@@ -573,20 +634,16 @@ export default function MeuPlano() {
                 Cancelar
               </Button>
               <Button 
-                onClick={() => {
-                  // Primeiro fechar o diálogo, depois chamar a função de confirmação
-                  setShowAddModuleDialog(false);
-                  // Pequeno atraso para garantir que o diálogo foi fechado
-                  setTimeout(() => {
-                    confirmAddModule();
-                  }, 50);
-                }}
+                onClick={confirmAddModule}
                 className="gap-2"
               >
                 <CreditCard className="h-4 w-4" />
                 Prosseguir para Pagamento
               </Button>
             </DialogFooter>
+            
+            {/* Botão de fechar oculto para referência */}
+            <DialogClose ref={closeAddModuleDialogRef} className="hidden" />
           </DialogContent>
         </Dialog>
       </div>

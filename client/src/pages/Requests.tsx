@@ -26,6 +26,10 @@ export default function Requests() {
   const approvedRequests = allRequests.filter(org => org.status === "approved");
   const rejectedRequests = allRequests.filter(org => org.status === "rejected");
   
+  // Identificando solicitações de registro x solicitações de alteração de plano
+  const pendingRegistrations = pendingRequests.filter(org => !org.planId);
+  const pendingPlanChanges = pendingRequests.filter(org => org.planId);
+  
   // Calculate new requests in the last 24 hours
   const last24Hours = new Date();
   last24Hours.setHours(last24Hours.getHours() - 24);
@@ -135,33 +139,50 @@ export default function Requests() {
           <CardContent>
             <div className="text-2xl font-bold">{pendingRequests.length}</div>
             <p className="text-xs text-muted-foreground">
-              {pendingRequests.length > 0 ? `${pendingRequests.length} aguardando aprovação` : "Nenhuma pendente"}
+              {pendingRequests.length > 0 
+                ? `${pendingRegistrations.length} registros, ${pendingPlanChanges.length} mudanças de plano` 
+                : "Nenhuma pendente"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Aprovadas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium">Mudanças de Plano</CardTitle>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-blue-500">
+              <path d="M16 16H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"/>
+              <path d="M16 2v2"/>
+              <path d="M8 2v2"/>
+              <path d="M4 10h16"/>
+              <path d="M16 20c1.1 0 2-.9 2-2v-2H6v2c0 1.1.9 2 2 2h8z"/>
+            </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{approvedRequests.length}</div>
+            <div className="text-2xl font-bold">{pendingPlanChanges.length}</div>
             <p className="text-xs text-muted-foreground">
-              {newApproved.length > 0 ? `+${newApproved.length} nas últimas 24h` : "Nenhuma nova hoje"}
+              {pendingPlanChanges.length > 0 
+                ? `${pendingPlanChanges.length} aguardando aprovação` 
+                : "Nenhuma mudança pendente"}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Rejeitadas</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
+            <CardTitle className="text-sm font-medium">Novos Registros</CardTitle>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-purple-500">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{rejectedRequests.length}</div>
+            <div className="text-2xl font-bold">{pendingRegistrations.length}</div>
             <p className="text-xs text-muted-foreground">
-              Total de organizações rejeitadas
+              {pendingRegistrations.length > 0 
+                ? `${pendingRegistrations.length} organizações aguardando` 
+                : "Nenhum registro pendente"}
             </p>
           </CardContent>
         </Card>
@@ -206,63 +227,91 @@ export default function Requests() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredOrganizations.map((org) => (
-                      <tr key={org.id} className="bg-white border-b">
-                        <td className="px-6 py-4">#{org.id}</td>
-                        <td className="px-6 py-4 font-medium">{org.name}</td>
-                        <td className="px-6 py-4">{org.type}</td>
-                        <td className="px-6 py-4">
-                          <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
-                            Pendente
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">{formatDate(org.createdAt)}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2 flex-wrap">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => approveOrganization.mutate(org.id)}
-                              disabled={approveOrganization.isPending}
-                              className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                            >
-                              {approveOrganization.isPending ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : null}
-                              Aprovar
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => rejectOrganization.mutate(org.id)}
-                              disabled={rejectOrganization.isPending}
-                              className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                            >
-                              {rejectOrganization.isPending ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : null}
-                              Rejeitar
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="text-blue-600"
-                              onClick={() => {
-                                // Aqui mostraria o documento da organização
-                                toast({
-                                  title: "Visualizando documento",
-                                  description: "Documento da organização sendo aberto...",
-                                });
-                                // Em um sistema real, isso abriria o documento em uma nova janela
-                                window.open(`/api/organizations/${org.id}/document`, '_blank');
-                              }}
-                            >
-                              Ver Documento
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredOrganizations.map((org) => {
+                      // Determinar se é uma solicitação de registro ou de mudança de plano
+                      const isPlanChangeRequest = org.planId;
+                      const requestType = isPlanChangeRequest ? "Alteração de Plano" : "Novo Registro";
+                      
+                      return (
+                        <tr key={org.id} className="bg-white border-b">
+                          <td className="px-6 py-4">#{org.id}</td>
+                          <td className="px-6 py-4 font-medium">{org.name}</td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 rounded-full text-xs ${isPlanChangeRequest ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                              {requestType}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                              Pendente
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">{formatDate(org.createdAt)}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2 flex-wrap">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => approveOrganization.mutate(org.id)}
+                                disabled={approveOrganization.isPending}
+                                className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                              >
+                                {approveOrganization.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : null}
+                                Aprovar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => rejectOrganization.mutate(org.id)}
+                                disabled={rejectOrganization.isPending}
+                                className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                              >
+                                {rejectOrganization.isPending ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : null}
+                                Rejeitar
+                              </Button>
+                              {!isPlanChangeRequest && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-blue-600"
+                                  onClick={() => {
+                                    // Aqui mostraria o documento da organização
+                                    toast({
+                                      title: "Visualizando documento",
+                                      description: "Documento da organização sendo aberto...",
+                                    });
+                                    // Em um sistema real, isso abriria o documento em uma nova janela
+                                    window.open(`/api/organizations/${org.id}/document`, '_blank');
+                                  }}
+                                >
+                                  Ver Documento
+                                </Button>
+                              )}
+                              {isPlanChangeRequest && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-blue-600"
+                                  onClick={() => {
+                                    // Mostrar detalhes do plano solicitado
+                                    toast({
+                                      title: "Detalhes da Solicitação",
+                                      description: "Alteração para novo plano de assinatura",
+                                    });
+                                  }}
+                                >
+                                  Ver Detalhes
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
