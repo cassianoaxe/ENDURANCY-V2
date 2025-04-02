@@ -9,7 +9,8 @@ import {
   Brain, Truck, ShoppingCart, CreditCard, DollarSign,
   Landmark, HeartPulse, BadgeHelp, Users2, Briefcase,
   Scale, LineChart, MessageCircle, Building, TestTube,
-  Clipboard, FileClock
+  Clipboard, FileClock, Share2, Send, Network, 
+  Plane, Mailbox, Wallet, Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -64,7 +65,7 @@ export default function OrganizationSidebar() {
       title: "COMPLYPAY",
       path: "/organization/complypay",
       active: currentPath === "/organization/complypay",
-      icon: <CreditCard size={18} />
+      icon: <Wallet size={18} />
     },
     {
       title: "VENDAS",
@@ -79,10 +80,44 @@ export default function OrganizationSidebar() {
       icon: <Truck size={18} />
     },
     {
-      title: "INTELIGÊNCIA ARTIFICIAL",
+      title: "CHATGPT AI",
       path: "/organization/ai",
       active: currentPath === "/organization/ai",
-      icon: <Brain size={18} />
+      icon: <Bot size={18} />
+    }
+  ];
+  
+  // Integrações disponíveis
+  const integrationModules = [
+    {
+      title: "COMPLYCHAT",
+      path: "/organization/integrations/complychat",
+      active: currentPath === "/organization/integrations/complychat",
+      icon: <MessageSquare size={18} />
+    },
+    {
+      title: "WHATSAPP",
+      path: "/organization/integrations/whatsapp",
+      active: currentPath === "/organization/integrations/whatsapp",
+      icon: <MessageCircle size={18} />
+    },
+    {
+      title: "MELHOR ENVIO",
+      path: "/organization/integrations/melhor-envio",
+      active: currentPath === "/organization/integrations/melhor-envio",
+      icon: <Send size={18} />
+    },
+    {
+      title: "AZUL CARGO",
+      path: "/organization/integrations/azul-cargo",
+      active: currentPath === "/organization/integrations/azul-cargo",
+      icon: <Plane size={18} />
+    },
+    {
+      title: "CORREIOS",
+      path: "/organization/integrations/correios",
+      active: currentPath === "/organization/integrations/correios",
+      icon: <Mailbox size={18} />
     }
   ];
 
@@ -322,6 +357,64 @@ export default function OrganizationSidebar() {
             </div>
           ))}
 
+          {/* Separador */}
+          <div className="my-2 border-t border-gray-200"></div>
+          
+          {/* Integrações */}
+          {!collapsed && (
+            <div className="px-4 py-2">
+              <p className="text-xs font-semibold text-gray-500 mb-1">INTEGRAÇÕES</p>
+            </div>
+          )}
+          
+          {integrationModules.map((item, index) => (
+            <div key={`integration-${index}`} className={cn(
+              "relative",
+              item.active && "bg-green-50"
+            )}>
+              {!collapsed && (
+                <div 
+                  className={cn(
+                    "flex items-center justify-between px-4 py-2 cursor-pointer group",
+                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-sm flex items-center gap-2",
+                      item.active && "font-semibold"
+                    )}>
+                      {React.cloneElement(item.icon, { 
+                        className: item.active ? "text-green-600" : "text-gray-500" 
+                      })}
+                      {item.title}
+                    </span>
+                  </div>
+                  <ChevronLeft 
+                    size={16} 
+                    className={cn(
+                      "transform transition-transform duration-200",
+                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                    )} 
+                  />
+                </div>
+              )}
+              {collapsed && (
+                <div 
+                  className={cn(
+                    "flex items-center justify-center p-2 cursor-pointer",
+                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                  )}
+                  onClick={() => navigateTo(item.path)}
+                  title={item.title}
+                >
+                  {item.icon}
+                </div>
+              )}
+            </div>
+          ))}
+          
           {/* Separador */}
           <div className="my-2 border-t border-gray-200"></div>
           
