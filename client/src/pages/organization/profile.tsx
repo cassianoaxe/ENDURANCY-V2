@@ -145,7 +145,7 @@ export default function OrganizationProfile() {
   const [isInviting, setIsInviting] = useState(false);
   const [inviteData, setInviteData] = useState({
     email: "",
-    role: "org_admin",
+    role: "org_admin", // Fixo como administrador da organização (primeiro usuário)
     groupId: "nenhum",
   });
   
@@ -412,7 +412,7 @@ export default function OrganizationProfile() {
       setIsInviting(false);
       setInviteData({
         email: "",
-        role: "org_admin",
+        role: "org_admin", // Sempre mantém o papel como administrador
         groupId: "nenhum",
       });
     },
@@ -1499,19 +1499,17 @@ export default function OrganizationProfile() {
                       <div className="space-y-2">
                         <Label htmlFor="role">Função</Label>
                         <Select
-                          value={inviteData.role}
-                          onValueChange={(value) => setInviteData({...inviteData, role: value})}
+                          value="org_admin"
+                          disabled={true}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione uma função" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="org_admin">Administrador</SelectItem>
-                            <SelectItem value="doctor">Médico</SelectItem>
-                            <SelectItem value="manager">Gestor</SelectItem>
-                            <SelectItem value="employee">Funcionário</SelectItem>
+                            <SelectItem value="org_admin">Administrador da Organização</SelectItem>
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-muted-foreground">O primeiro usuário deve ser um administrador da organização</p>
                       </div>
                       
                       <div className="space-y-2">
@@ -1550,7 +1548,7 @@ export default function OrganizationProfile() {
                       <Button 
                         onClick={() => createInvitationMutation.mutate({
                           email: inviteData.email,
-                          role: inviteData.role,
+                          role: "org_admin", // Sempre administrador da organização
                           groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId
                         })}
                         disabled={!inviteData.email || createInvitationMutation.isPending}
