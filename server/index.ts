@@ -43,9 +43,9 @@ app.use((req, res, next) => {
   // Configurar manualmente rota estática direta em vez de importar um módulo externo
   // Variável para controlar o estado da solicitação
   let planChangeRequestStatus = {
-    approved: false,
+    approved: true,
     rejected: false,
-    processed: false
+    processed: true
   };
   
   app.get('/api/plan-change-requests-static-direct', (req, res) => {
@@ -93,16 +93,17 @@ app.use((req, res, next) => {
       name: "abrace",
       adminName: "CASSIANO XAVIER",
       email: "cassianoaxe@gmail.com",
-      status: "pending_plan_change",
-      planId: 0, // Usando 0 em vez de null
-      planName: "Free",
+      status: "active", // Definindo como ativo por padrão
+      planId: 2, // Plano Profissional
+      planName: "Profissional",
       createdAt: "2025-03-29T23:03:29.549Z",
-      requestedPlanId: 6,
-      requestedPlanName: "Grow",
       logoPath: null,
       // Campos adicionais que não são exibidos nas listagens mas são usados internamente
-      modules: [],
-      databaseCreated: false
+      modules: [
+        { id: 1, name: "Gestão de Usuários", description: "Gerenciamento de usuários e permissões", active: true },
+        { id: 2, name: "Dashboard", description: "Painel principal com visão geral", active: true }
+      ],
+      databaseCreated: true
     },
     {
       id: 2,
@@ -161,6 +162,9 @@ app.use((req, res, next) => {
     
     console.log(`Atualizando status da organização ${id} para ${status}`);
     
+    // Definir dados de resposta HTTP header
+    res.setHeader('Content-Type', 'application/json');
+    
     // Verificar se o ID corresponde a uma organização mockada
     const index = mockOrganizations.findIndex(org => org.id === parseInt(id));
     
@@ -171,36 +175,56 @@ app.use((req, res, next) => {
       });
     }
     
-    // Atualizar status e adicionar propriedades relacionadas ao status
-    mockOrganizations[index].status = status;
-    
-    // Se está ativando, garantir que o plano esteja configurado
-    if (status === 'active') {
-      // Garantir que tenha um plano
-      if (!mockOrganizations[index].planId || mockOrganizations[index].planId === 0) {
-        mockOrganizations[index].planId = 1; // Plano Básico
-        mockOrganizations[index].planName = "Básico";
-      }
+    try {
+      // Atualizar status e adicionar propriedades relacionadas ao status
+      mockOrganizations[index].status = status;
       
-      // Garantir que módulos obrigatórios estejam adicionados
-      if (!mockOrganizations[index].modules || !Array.isArray(mockOrganizations[index].modules) || !mockOrganizations[index].modules.length) {
-        // @ts-ignore - Ignorar erro de tipagem para os módulos da organização
-        mockOrganizations[index].modules = [];
+      // Se está ativando, garantir que o plano esteja configurado
+      if (status === 'active') {
+        // Garantir que tenha um plano
+        if (!mockOrganizations[index].planId || mockOrganizations[index].planId === 0) {
+          mockOrganizations[index].planId = 1; // Plano Básico
+          mockOrganizations[index].planName = "Básico";
+        }
         
-        // Adicionar módulos obrigatórios
-        for (const module of requiredModules) {
-          // @ts-ignore - Ignorar erro de tipagem para os módulos da organização
-          mockOrganizations[index].modules.push({ ...module, active: true });
+        // Garantir que os dados da organização estejam completos
+        mockOrganizations[index] = {
+          ...mockOrganizations[index],
+          databaseCreated: true
+        };
+        
+        // Garantir que módulos obrigatórios estejam adicionados
+        if (!mockOrganizations[index].modules || !Array.isArray(mockOrganizations[index].modules) || !mockOrganizations[index].modules.length) {
+          mockOrganizations[index].modules = [];
+          
+          // Adicionar módulos obrigatórios
+          requiredModules.forEach(module => {
+            mockOrganizations[index].modules.push({
+              id: module.id,
+              name: module.name,
+              description: module.description,
+              active: true
+            });
+          });
         }
       }
+      
+      // Criar objeto de resposta
+      const responseObj = {
+        success: true,
+        message: 'Status atualizado com sucesso',
+        organization: mockOrganizations[index]
+      };
+      
+      // Retornar sucesso com dados JSON bem formados
+      return res.status(200).json(responseObj);
+    } catch (error) {
+      console.error('Erro ao atualizar status da organização:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao atualizar status da organização'
+      });
     }
-    
-    // Retornar sucesso com dados JSON bem formados
-    return res.status(200).json({
-      success: true,
-      message: 'Status atualizado com sucesso',
-      organization: mockOrganizations[index]
-    });
   });
   
   // Rota mockada para organizações
