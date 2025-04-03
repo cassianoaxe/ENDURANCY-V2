@@ -547,10 +547,11 @@ export default function MeuPlano() {
                       <CardFooter className="p-6 pt-0">
                         <Button 
                           className="w-full"
-                          variant={plan.id === organization?.planId ? "outline" : "default"}
+                          variant={plan.id === organization?.planId ? "outline" : organization?.requestedPlanId === plan.id ? "secondary" : "default"}
                           disabled={
                             changePlanMutation.isPending || 
                             plan.id === organization?.planId || 
+                            organization?.requestedPlanId === plan.id || // Desativar se já existe uma solicitação para este plano
                             // Desativar botão de upgrade se já estiver no plano mais alto (Pro)
                             (isHighestPlan() && determinePlanChangeType(organization?.planTier || null, plan.tier) === 'upgrade')
                           }
@@ -558,6 +559,11 @@ export default function MeuPlano() {
                         >
                           {plan.id === organization?.planId ? (
                             'Plano Atual'
+                          ) : organization?.requestedPlanId === plan.id ? (
+                            <>
+                              <AlertCircle className="mr-2 h-4 w-4 text-amber-500" />
+                              Solicitação em Aprovação
+                            </>
                           ) : (
                             <>
                               {changePlanMutation.isPending && plan.id === selectedPlan?.id ? (
