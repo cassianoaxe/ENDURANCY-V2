@@ -321,8 +321,7 @@ export default function Login() {
         
         <CardFooter className="px-6 pb-6 pt-2 flex flex-col items-center gap-3">
           <a 
-            href="#" 
-            onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }}
+            href="/forgot-password" 
             className="text-sm text-[#4CAF50] hover:underline"
           >
             Esqueceu sua senha?
@@ -330,8 +329,7 @@ export default function Login() {
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Nova organização?</span>
             <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); navigate('/organization-registration'); }}
+              href="/organization-registration" 
               className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center"
             >
               Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
