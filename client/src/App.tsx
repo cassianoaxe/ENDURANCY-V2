@@ -94,7 +94,11 @@ function AppContent() {
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && currentPath !== '/login') {
+    // Permitir acesso a páginas públicas mesmo quando não autenticado
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation'];
+    const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+    
+    if (!isLoading && !isAuthenticated && !isPublicPath) {
       window.history.pushState({}, '', '/login');
       setCurrentPath('/login');
     }
@@ -125,7 +129,7 @@ function AppContent() {
     return <AcceptInvitation />;
   }
 
-  // If not authenticated, handle login pages
+  // If not authenticated, handle login pages and public pages
   if (!isAuthenticated) {
     // Check if this is an organization-specific login URL (e.g., /login/ORG-123-ABC)
     const orgLoginMatch = currentPath.match(/^\/login\/([^\/]+)$/);
@@ -133,10 +137,46 @@ function AppContent() {
       // The orgCode will be extracted in the Login component
       return <Login />;
     }
+    
     // Regular login
     if (currentPath === '/login') {
       return <Login />;
     }
+    
+    // Organization registration page (público)
+    if (currentPath === '/organization-registration') {
+      return <OrganizationRegistration />;
+    }
+    
+    // Página esqueceu a senha (público)
+    if (currentPath === '/forgot-password') {
+      // Aqui você pode substituir isso pelo seu componente real de recuperação de senha
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Recuperação de Senha</CardTitle>
+              <CardDescription>
+                Insira seu email para receber instruções de recuperação de senha
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Esta página está em desenvolvimento</p>
+              <Button 
+                className="w-full mt-4" 
+                onClick={() => {
+                  window.history.pushState({}, '', '/login');
+                  window.dispatchEvent(new Event('popstate'));
+                }}
+              >
+                Voltar para o login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    
     // Redirect to login for any other path
     window.history.pushState({}, '', '/login');
     setCurrentPath('/login');
