@@ -329,8 +329,8 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-64'} h-screen bg-white border-r transition-all duration-300 overflow-y-auto flex-shrink-0`}>
-      <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+    <div className={`${collapsed ? 'w-[70px]' : 'w-[260px]'} h-screen bg-white border-r fixed left-0 top-0 transition-all duration-300 overflow-auto`}>
+      <div className="p-4 border-b flex justify-between items-center">
         <a 
           href="/" 
           onClick={(e) => handleNavigation(e, '/')}
@@ -343,15 +343,15 @@ export default function Sidebar() {
         {/* Botão de retrair/expandir a sidebar */}
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100"
+          className="text-gray-500 hover:text-gray-700"
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
       
-      <nav className={`flex flex-col gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'} py-2`}>
+      <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'}`}>
         {menuItems.map((item) => renderMenuItem(item))}
       </nav>
-    </aside>
+    </div>
   );
 }
