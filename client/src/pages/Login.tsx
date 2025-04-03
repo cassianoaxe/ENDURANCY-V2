@@ -319,10 +319,16 @@ export default function Login() {
           ))}
         </Tabs>
         
-        <CardFooter className="px-6 pb-6 pt-2 flex justify-center">
+        <CardFooter className="px-6 pb-6 pt-2 flex flex-col items-center gap-3">
           <a href="#" className="text-sm text-[#4CAF50] hover:underline">
             Esqueceu sua senha?
           </a>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Nova organização?</span>
+            <a href="/organization-registration" className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center">
+              Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
+            </a>
+          </div>
         </CardFooter>
         
         <div className="text-xs text-center text-gray-500 pb-4">
