@@ -148,8 +148,8 @@ export default function OrganizationRegistration() {
           planPrice: selectedPlanData?.price || '',
           planDescription: selectedPlanData?.description || '',
           planFeatures: selectedPlanData?.features || [],
-          planUserLimit: selectedPlanData?.maxUsers || 0,
-          planPatientLimit: selectedPlanData?.maxPatients || 0,
+          planUserLimit: selectedPlanData?.maxRecords || 0, // Alterado para usar maxRecords do plano
+          planPatientLimit: selectedPlanData?.maxRecords || 0, // Alterado para usar maxRecords do plano
           documentName: selectedFile?.name || '',
           logoName: logoFile?.name || null,
         });
