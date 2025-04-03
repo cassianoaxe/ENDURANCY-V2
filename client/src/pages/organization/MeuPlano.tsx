@@ -65,15 +65,24 @@ export default function MeuPlano() {
         console.log("Enviando solicitação de mudança de plano para:", planId);
         const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
         
+        // Verificar resposta completa para debug
+        console.log("Status da resposta:", res.status);
+        
         if (!res.ok) {
           const errorText = await res.text();
           console.error("Erro na resposta:", errorText);
           throw new Error(errorText || 'Erro ao solicitar mudança de plano');
         }
         
-        const data = await res.json();
-        console.log("Resposta da solicitação:", data);
-        return data;
+        // Tentar fazer parse da resposta com tratamento de erro
+        try {
+          const text = await res.text();
+          console.log("Resposta raw:", text);
+          return text ? JSON.parse(text) : { success: true };
+        } catch (parseError) {
+          console.error("Erro ao parsear resposta JSON:", parseError);
+          return { success: true }; // Retornar objeto básico em caso de erro de parse
+        }
       } catch (error) {
         console.error("Erro na solicitação de plano:", error);
         throw error;
@@ -92,9 +101,11 @@ export default function MeuPlano() {
       // Atualizar dados do usuário/organização
       queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
       
-      // Resetar estado e fechar o diálogo
-      setIsUpgrading(false);
-      setShowChangePlanDialog(false);
+      // Fechar o diálogo explicitamente usando timeout para garantir que a UI atualize
+      setTimeout(() => {
+        setShowChangePlanDialog(false);
+        setIsUpgrading(false);
+      }, 300);
     },
     onError: (error: any) => {
       console.error("Erro ao solicitar mudança de plano:", error);
@@ -517,7 +528,12 @@ export default function MeuPlano() {
         </div>
 
         {/* Dialog de Confirmação de Troca de Plano */}
-        <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+        <Dialog open={showChangePlanDialog} onOpenChange={(isOpen) => {
+          // Só permite fechar o diálogo se não estiver em processamento
+          if (!requestPlanChangeMutation.isPending && !changePlanMutation.isPending) {
+            setShowChangePlanDialog(isOpen);
+          }
+        }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Confirmar Mudança de Plano</DialogTitle>
@@ -597,7 +613,7 @@ export default function MeuPlano() {
               </Button>
             </DialogFooter>
             
-            {/* Botão de fechar oculto para referência */}
+            {/* Botão de fechar para referência, não visível mas acessível por ref */}
             <DialogClose ref={closeChangePlanDialogRef} className="hidden" />
           </DialogContent>
         </Dialog>
