@@ -99,47 +99,128 @@ app.use((req, res, next) => {
       createdAt: "2025-03-29T23:03:29.549Z",
       requestedPlanId: 6,
       requestedPlanName: "Grow",
-      logoPath: null
+      logoPath: null,
+      // Campos adicionais que não são exibidos nas listagens mas são usados internamente
+      modules: [],
+      databaseCreated: false
     }
   ];
+  
+  // Override padrão para as APIs de organizações
+  app.get('/api/organizations', (req, res, next) => {
+    // Verificar se a organização mockada já está configurada
+    // Verificar autenticação
+    if (req.session?.user?.role === 'admin') {
+      // Retorna a lista de organizações mockadas ao invés da lista real
+      return res.status(200).json(mockOrganizations);
+    }
+    // Continuar para a próxima rota se não for um administrador
+    next();
+  });
   
   // Rota mockada para organizações
   app.get('/api/organizations-mock', (req, res) => {
     res.status(200).json(mockOrganizations);
   });
   
+  // Mock API para envio de e-mail
+  async function sendConfirmationEmail(email: string, organizationName: string, accessLink: string, passwordLink: string) {
+    console.log("=== E-MAIL DE CONFIRMAÇÃO ENVIADO ===");
+    console.log(`Para: ${email}`);
+    console.log(`Assunto: Bem-vindo(a) à plataforma! Acesse sua organização ${organizationName}`);
+    console.log("Conteúdo:");
+    console.log(`Olá Administrador(a) de ${organizationName},`);
+    console.log("");
+    console.log("Sua organização foi aprovada com sucesso no nosso sistema!");
+    console.log(`Link de acesso: ${accessLink}`);
+    console.log(`Link para criar sua senha: ${passwordLink}`);
+    console.log("");
+    console.log("Atenciosamente,");
+    console.log("Equipe de Suporte");
+    console.log("=====================================");
+    
+    return true;
+  }
+  
+  // Lista de módulos obrigatórios que toda organização deve ter
+  const requiredModules = [
+    { id: 1, name: "Gestão de Usuários", description: "Gerenciamento de usuários e permissões" },
+    { id: 2, name: "Dashboard", description: "Painel principal com visão geral" }
+  ];
+  
   // Rota estática para aprovação
-  app.post('/api/plan-change-requests/approve', (req, res) => {
+  app.post('/api/plan-change-requests/approve', async (req, res) => {
     const { organizationId, planId } = req.body;
     
     console.log(`Mock: Recebida aprovação para organização ${organizationId} com plano ${planId}`);
     
     // Verificar se é a organização "abrace" (id=1)
     if (organizationId === 1) {
-      // Marcar solicitação como processada
-      planChangeRequestStatus.approved = true;
-      planChangeRequestStatus.processed = true;
-      
-      // Atualizar organização mockada
-      const org = mockOrganizations.find(o => o.id === organizationId);
-      if (org) {
-        org.status = "active";
-        org.planId = 6; // Usando um número em vez de null
-        org.planName = "Grow";
-        // Remover flag de pendência
-        org.requestedPlanId = undefined; 
-        org.requestedPlanName = undefined;
+      try {
+        // Marcar solicitação como processada
+        planChangeRequestStatus.approved = true;
+        planChangeRequestStatus.processed = true;
+        
+        // Atualizar organização mockada
+        const org = mockOrganizations.find(o => o.id === organizationId);
+        if (org) {
+          org.status = "active";
+          org.planId = 6; // Usando um número em vez de null
+          org.planName = "Grow";
+          // Remover flag de pendência
+          org.requestedPlanId = undefined; 
+          org.requestedPlanName = undefined;
+          
+          // Em uma implementação real, aqui criaríamos o banco de dados da organização
+          console.log("Criando banco de dados para a organização:", org.name);
+          
+          // Atribuir módulos obrigatórios à organização
+          console.log("Atribuindo módulos obrigatórios à organização:", org.name);
+          for (const module of requiredModules) {
+            console.log(`- Módulo atribuído: ${module.name}`);
+            // @ts-ignore - Ignorar erro de tipagem para os módulos da organização
+            org.modules.push({ ...module, active: true });
+          }
+          // @ts-ignore
+          org.databaseCreated = true;
+          
+          // Configurar módulos baseados no plano selecionado
+          console.log(`Configurando módulos para o plano ${org.planName}`);
+          if (org.planName === "Grow") {
+            console.log("- Módulo adicional: Análise Avançada");
+            console.log("- Módulo adicional: Exportação de Relatórios");
+            
+            // @ts-ignore - Adicionar módulos específicos do plano Grow
+            org.modules.push(
+              { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
+              { id: 4, name: "Exportação de Relatórios", description: "Exportação de relatórios em diversos formatos", active: true }
+            );
+          }
+          
+          // Preparar links para o e-mail
+          const accessLink = `https://endurancy.replit.app/login/${org.name}`;
+          const passwordLink = `https://endurancy.replit.app/reset-password?email=${encodeURIComponent(org.email)}&token=MOCK_TOKEN_1234`;
+          
+          // Enviar e-mail com credenciais
+          await sendConfirmationEmail(org.email, org.name, accessLink, passwordLink);
+        }
+        
+        // Aprovação bem-sucedida
+        return res.status(200).json({ 
+          success: true, 
+          message: "Solicitação de mudança de plano aprovada com sucesso. A organização foi criada e um e-mail de confirmação foi enviado ao administrador.",
+          organizationId,
+          planId,
+          planName: "Grow",
+          processed: true
+        });
+      } catch (error) {
+        console.error("Erro ao processar aprovação:", error);
+        return res.status(500).json({
+          success: false,
+          message: "Ocorreu um erro ao processar a aprovação da organização."
+        });
       }
-      
-      // Aprovação bem-sucedida
-      return res.status(200).json({ 
-        success: true, 
-        message: "Solicitação de mudança de plano aprovada com sucesso.",
-        organizationId,
-        planId,
-        planName: "Grow",
-        processed: true
-      });
     } else {
       // Organização não encontrada
       return res.status(404).json({ 
