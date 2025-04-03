@@ -41,7 +41,17 @@ export default function OrganizationRegistration() {
   const [logoFileName, setLogoFileName] = useState<string | null>(null);
   
   // Estado para armazenar os dados após a validação
-  const [formDataSummary, setFormDataSummary] = useState<any>(null);
+  const [formDataSummary, setFormDataSummary] = useState<any>({
+    planName: '',
+    planPrice: '',
+    planDescription: '',
+    planFeatures: [],
+    planUserLimit: 0,
+    planPatientLimit: 0,
+    planModules: [],
+    documentName: '',
+    logoName: null,
+  });
 
   // Fetch available plans
   const { data: plans } = useQuery<Plan[]>({
@@ -129,10 +139,17 @@ export default function OrganizationRegistration() {
       // Se estiver no passo 4, preparar o resumo dos dados antes de ir para a confirmação
       if (step === 4) {
         const formData = form.getValues();
+        // Buscar mais detalhes do plano selecionado
+        const selectedPlanData = plans?.find(p => p.id === parseInt(String(formData.planId)));
+        
         setFormDataSummary({
           ...formData,
-          planName: selectedPlan?.name || '',
-          planPrice: selectedPlan?.price || '',
+          planName: selectedPlanData?.name || '',
+          planPrice: selectedPlanData?.price || '',
+          planDescription: selectedPlanData?.description || '',
+          planFeatures: selectedPlanData?.features || [],
+          planUserLimit: selectedPlanData?.maxUsers || 0,
+          planPatientLimit: selectedPlanData?.maxPatients || 0,
           documentName: selectedFile?.name || '',
           logoName: logoFile?.name || null,
         });
@@ -825,9 +842,45 @@ export default function OrganizationRegistration() {
                       <h3 className="text-lg font-medium mb-2">Plano Selecionado</h3>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                         <div className="font-medium">Plano:</div>
-                        <div>{formDataSummary.planName}</div>
+                        <div>{formDataSummary.planName || 'Não selecionado'}</div>
                         <div className="font-medium">Valor:</div>
-                        <div>R$ {formDataSummary.planPrice}/mês</div>
+                        <div>
+                          {formDataSummary.planPrice 
+                            ? `R$ ${typeof formDataSummary.planPrice === 'number' 
+                                ? formDataSummary.planPrice.toFixed(2) 
+                                : formDataSummary.planPrice}/mês`
+                            : 'Não disponível'}
+                        </div>
+                      </div>
+                      
+                      {/* Informações detalhadas do plano */}
+                      <div className="mt-4">
+                        <div className="text-sm">
+                          <div className="font-medium mb-1">Descrição:</div>
+                          <div className="text-gray-700">{formDataSummary.planDescription || 'Sem descrição disponível'}</div>
+                        </div>
+                        
+                        <div className="mt-2 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">Limite de usuários:</span>
+                            <span>{formDataSummary.planUserLimit || '0'}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium">Limite de pacientes:</span>
+                            <span>{formDataSummary.planPatientLimit || '0'}</span>
+                          </div>
+                        </div>
+                        
+                        {Array.isArray(formDataSummary.planFeatures) && formDataSummary.planFeatures.length > 0 && (
+                          <div className="mt-3">
+                            <div className="font-medium text-sm mb-1">Recursos incluídos:</div>
+                            <ul className="text-xs space-y-1 list-disc list-inside">
+                              {formDataSummary.planFeatures.map((feature, index) => (
+                                <li key={index} className="text-gray-700">{feature}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
