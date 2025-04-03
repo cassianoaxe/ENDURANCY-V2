@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, User, Eye, Info, ArrowRight, Building, Code, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O email é obrigatório'),
@@ -38,7 +38,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [orgCode, setOrgCode] = useState<string | null>(null);
   const [isOrgLogin, setIsOrgLogin] = useState(false);
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   
   // Extrair código da organização da URL, se houver
   useEffect(() => {
@@ -320,14 +320,22 @@ export default function Login() {
         </Tabs>
         
         <CardFooter className="px-6 pb-6 pt-2 flex flex-col items-center gap-3">
-          <Link href="/forgot-password" className="text-sm text-[#4CAF50] hover:underline">
+          <a 
+            href="#" 
+            onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }}
+            className="text-sm text-[#4CAF50] hover:underline"
+          >
             Esqueceu sua senha?
-          </Link>
+          </a>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Nova organização?</span>
-            <Link href="/organization-registration" className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center">
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); navigate('/organization-registration'); }}
+              className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center"
+            >
               Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
-            </Link>
+            </a>
           </div>
         </CardFooter>
         
