@@ -307,9 +307,9 @@ export default function OrganizationDetail() {
 
   // Função para obter o nome do plano
   const getPlanName = (planId?: number | null) => {
-    if (!planId) return "Sem plano";
+    if (!planId) return "Plano Free";
     const plan = plans.find(p => p.id === planId);
-    return plan ? plan.name : "Plano desconhecido";
+    return plan ? plan.name : "Plano Free";
   };
 
   // Função para formatar data
