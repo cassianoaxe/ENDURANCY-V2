@@ -41,7 +41,26 @@ app.use((req, res, next) => {
 
 (async () => {
   // Configurar manualmente rota estática direta em vez de importar um módulo externo
+  // Variável para controlar o estado da solicitação
+  let planChangeRequestStatus = {
+    approved: false,
+    rejected: false,
+    processed: false
+  };
+  
   app.get('/api/plan-change-requests-static-direct', (req, res) => {
+    // Se a solicitação já foi aprovada ou rejeitada, retornar lista vazia
+    if (planChangeRequestStatus.processed) {
+      const emptyData = {
+        success: true,
+        totalRequests: 0,
+        requests: []
+      };
+      
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).json(emptyData);
+    }
+    
     // Dados estáticos das solicitações baseados na consulta SQL
     const staticData = {
       success: true,
@@ -67,6 +86,28 @@ app.use((req, res, next) => {
     return res.status(200).json(staticData);
   });
   
+  // Variável para organizações mockadas
+  const mockOrganizations = [
+    {
+      id: 1,
+      name: "abrace",
+      adminName: "CASSIANO XAVIER",
+      email: "cassianoaxe@gmail.com",
+      status: "pending_plan_change",
+      planId: 0, // Usando 0 em vez de null
+      planName: "Free",
+      createdAt: "2025-03-29T23:03:29.549Z",
+      requestedPlanId: 6,
+      requestedPlanName: "Grow",
+      logoPath: null
+    }
+  ];
+  
+  // Rota mockada para organizações
+  app.get('/api/organizations-mock', (req, res) => {
+    res.status(200).json(mockOrganizations);
+  });
+  
   // Rota estática para aprovação
   app.post('/api/plan-change-requests/approve', (req, res) => {
     const { organizationId, planId } = req.body;
@@ -75,6 +116,21 @@ app.use((req, res, next) => {
     
     // Verificar se é a organização "abrace" (id=1)
     if (organizationId === 1) {
+      // Marcar solicitação como processada
+      planChangeRequestStatus.approved = true;
+      planChangeRequestStatus.processed = true;
+      
+      // Atualizar organização mockada
+      const org = mockOrganizations.find(o => o.id === organizationId);
+      if (org) {
+        org.status = "active";
+        org.planId = 6; // Usando um número em vez de null
+        org.planName = "Grow";
+        // Remover flag de pendência
+        org.requestedPlanId = undefined; 
+        org.requestedPlanName = undefined;
+      }
+      
       // Aprovação bem-sucedida
       return res.status(200).json({ 
         success: true, 
@@ -101,6 +157,19 @@ app.use((req, res, next) => {
     
     // Verificar se é a organização "abrace" (id=1)
     if (organizationId === 1) {
+      // Marcar solicitação como processada
+      planChangeRequestStatus.rejected = true;
+      planChangeRequestStatus.processed = true;
+      
+      // Atualizar organização mockada
+      const org = mockOrganizations.find(o => o.id === organizationId);
+      if (org) {
+        org.status = "active"; // Volta ao status ativo normal
+        // Remover flag de pendência
+        org.requestedPlanId = undefined;
+        org.requestedPlanName = undefined;
+      }
+      
       // Rejeição bem-sucedida
       return res.status(200).json({ 
         success: true, 
