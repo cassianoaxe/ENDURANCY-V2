@@ -7,6 +7,27 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+// Função para determinação de tipo de mudança de plano (upgrade/downgrade)
+function determinePlanChangeType(currentTier: string, requestedTier: string): 'upgrade' | 'downgrade' | 'same' {
+  const tierValues: Record<string, number> = {
+    'free': 1,
+    'seed': 2,
+    'grow': 3,
+    'pro': 4
+  };
+  
+  const currentValue = tierValues[currentTier] || 1;
+  const requestedValue = tierValues[requestedTier] || 1;
+  
+  if (requestedValue > currentValue) {
+    return 'upgrade';
+  } else if (requestedValue < currentValue) {
+    return 'downgrade';
+  } else {
+    return 'same';
+  }
+}
+
 const router = Router();
 
 // Endpoint para obter todas as solicitações de mudança de plano pendentes
@@ -101,13 +122,48 @@ router.post('/plan-change-requests/approve', async (req: Request, res: Response)
       });
     }
     
-    // Atualizar a organização com o novo plano
+    // Determinar tipo de mudança de plano (upgrade/downgrade)
+    const currentPlan = await db.query.plans.findFirst({
+      where: eq(plans.id, organization.planId)
+    });
+    
+    const changeType = determinePlanChangeType(
+      currentPlan?.tier || 'free',
+      requestedPlan.tier
+    );
+    
+    console.log(`Alteração de plano: ${currentPlan?.name || 'Free'} (${currentPlan?.tier || 'free'}) -> ${requestedPlan.name} (${requestedPlan.tier}) - Tipo: ${changeType}`);
+    
+    // Preparar dados para o histórico de alterações
+    const planHistoryEntry = {
+      previousPlanId: organization.planId,
+      previousPlanName: currentPlan?.name || 'Free',
+      newPlanId: planId,
+      newPlanName: requestedPlan.name,
+      changeType: changeType,
+      changeDate: new Date().toISOString(),
+      reason: "Solicitação de mudança de plano aprovada"
+    };
+    
+    // Recuperar histórico existente ou criar novo array
+    let planHistory = [];
+    if (organization.planHistory && Array.isArray(organization.planHistory)) {
+      planHistory = [...organization.planHistory];
+    }
+    
+    // Adicionar nova entrada ao histórico
+    planHistory.push(planHistoryEntry);
+    
+    console.log(`Histórico de plano atualizado com ${planHistory.length} entradas`);
+    
+    // Atualizar a organização com o novo plano e histórico
     await db.update(organizations)
       .set({
         planId: planId,
         planTier: requestedPlan.tier,
         status: "active",
         requestedPlanId: null,
+        planHistory: planHistory,
         updatedAt: new Date()
       })
       .where(eq(organizations.id, organizationId));
@@ -253,7 +309,10 @@ router.post('/plan-change-requests/reject', async (req: Request, res: Response) 
   try {
     // Buscar a organização
     const organization = await db.query.organizations.findFirst({
-      where: eq(organizations.id, organizationId)
+      where: eq(organizations.id, organizationId),
+      with: {
+        plan: true
+      }
     });
     
     if (!organization) {
@@ -263,11 +322,49 @@ router.post('/plan-change-requests/reject', async (req: Request, res: Response) 
       });
     }
     
-    // Atualizar a organização para remover a solicitação pendente
+    // Verificar se existe uma solicitação pendente
+    if (!organization.requestedPlanId) {
+      return res.status(400).json({
+        success: false,
+        message: "Esta organização não tem uma solicitação de mudança de plano pendente"
+      });
+    }
+    
+    console.log(`Processando rejeição de solicitação para organização ${organizationId}`);
+    
+    // Buscar detalhes do plano solicitado para histórico
+    const requestedPlan = await db.query.plans.findFirst({
+      where: eq(plans.id, organization.requestedPlanId)
+    });
+    
+    // Preparar dados para o histórico de alterações
+    const planHistoryEntry = {
+      previousPlanId: organization.planId,
+      previousPlanName: organization.plan?.name || 'Desconhecido',
+      requestedPlanId: organization.requestedPlanId,
+      requestedPlanName: requestedPlan?.name || 'Desconhecido',
+      changeType: 'rejected',
+      changeDate: new Date().toISOString(),
+      reason: "Solicitação de mudança de plano rejeitada pelo administrador"
+    };
+    
+    console.log(`Adicionando registro ao histórico: ${JSON.stringify(planHistoryEntry)}`);
+    
+    // Recuperar histórico existente ou criar novo array
+    let planHistory = [];
+    if (organization.planHistory && Array.isArray(organization.planHistory)) {
+      planHistory = [...organization.planHistory];
+    }
+    
+    // Adicionar nova entrada ao histórico
+    planHistory.push(planHistoryEntry);
+    
+    // Atualizar a organização para remover a solicitação pendente e incluir histórico
     await db.update(organizations)
       .set({
         status: "active",
         requestedPlanId: null,
+        planHistory: planHistory,
         updatedAt: new Date()
       })
       .where(eq(organizations.id, organizationId));
