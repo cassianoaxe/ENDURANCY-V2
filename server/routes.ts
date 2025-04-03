@@ -1370,6 +1370,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota alternativa sem autenticação para obter dados de uma organização
+  app.get("/api/organizations-direct/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Verificar se temos um mock em server/index.ts
+      if (global.mockOrganizations) {
+        // @ts-ignore
+        const mockOrg = global.mockOrganizations.find(o => o.id === id);
+        if (mockOrg) {
+          console.log("Retornando organização mockada (rota direta):", mockOrg.name);
+          return res.json(mockOrg);
+        }
+      }
+      
+      return res.status(404).json({ message: "Organização não encontrada" });
+    } catch (error) {
+      console.error("Erro na rota direta de organizações:", error);
+      return res.status(500).json({ message: "Erro interno" });
+    }
+  });
+
   // Rota para obter dados de uma organização específica
   app.get("/api/organizations/:id", authenticate, async (req, res) => {
     try {
