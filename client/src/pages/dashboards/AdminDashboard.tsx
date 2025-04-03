@@ -80,6 +80,18 @@ const modulesPlanDistribution = [
   { module: 'Suporte', plan: 'Enterprise', count: 40 },
 ];
 
+// Processamento dos dados de distribuição para o gráfico
+const processedModulesPlanData = Array.from(
+  new Set(modulesPlanDistribution.map(item => item.module))
+).map(module => {
+  return {
+    module,
+    'Básico': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0,
+    'Profissional': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0,
+    'Enterprise': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0,
+  };
+});
+
 // Crescimento de vendas de planos por mês
 const plansSalesData = [
   { month: 'Jan', básico: 20, profissional: 15, enterprise: 5 },
@@ -241,7 +253,7 @@ export default function AdminDashboard() {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={modulesPlanDistribution}
+                      data={processedModulesPlanData}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -249,9 +261,9 @@ export default function AdminDashboard() {
                       <YAxis />
                       <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
                       <Legend />
-                      <Bar dataKey="count" name="Básico" stackId="a" fill="#4CAF50" />
-                      <Bar dataKey="count" name="Profissional" stackId="a" fill="#2196F3" />
-                      <Bar dataKey="count" name="Enterprise" stackId="a" fill="#9C27B0" />
+                      <Bar dataKey="Básico" name="Básico" stackId="a" fill="#4CAF50" />
+                      <Bar dataKey="Profissional" name="Profissional" stackId="a" fill="#2196F3" />
+                      <Bar dataKey="Enterprise" name="Enterprise" stackId="a" fill="#9C27B0" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -383,7 +395,7 @@ export default function AdminDashboard() {
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={modulesPlanDistribution}
+                    data={processedModulesPlanData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -391,20 +403,9 @@ export default function AdminDashboard() {
                     <YAxis />
                     <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
                     <Legend />
-                    <Bar 
-                      dataKey="count" 
-                      name="Assinaturas" 
-                      fill="#8884d8" 
-                      stackId="a"
-                    >
-                      {modulesPlanDistribution.map((entry, index) => {
-                        let color;
-                        if (entry.plan === 'Básico') color = '#4CAF50';
-                        else if (entry.plan === 'Profissional') color = '#2196F3';
-                        else if (entry.plan === 'Enterprise') color = '#9C27B0';
-                        return <Cell key={`cell-${index}`} fill={color} />;
-                      })}
-                    </Bar>
+                    <Bar dataKey="Básico" name="Básico" stackId="a" fill="#4CAF50" />
+                    <Bar dataKey="Profissional" name="Profissional" stackId="a" fill="#2196F3" />
+                    <Bar dataKey="Enterprise" name="Enterprise" stackId="a" fill="#9C27B0" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
