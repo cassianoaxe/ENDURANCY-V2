@@ -40,14 +40,34 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Adicionar rota de teste antes das rotas normais
-  try {
-    const testRouter = require('./test-route');
-    app.use('/api', testRouter);
-    console.log("Rota de teste para solicitações de plano instalada em /api/test-plan-requests");
-  } catch (error) {
-    console.error("Erro ao configurar rota de teste:", error);
-  }
+  // Configurar manualmente rota estática direta em vez de importar um módulo externo
+  app.get('/api/plan-change-requests-static-direct', (req, res) => {
+    // Dados estáticos das solicitações baseados na consulta SQL
+    const staticData = {
+      success: true,
+      totalRequests: 1,
+      requests: [
+        {
+          id: 1,
+          name: "abrace",
+          type: "Associação",
+          email: "cassianoaxe@gmail.com",
+          status: "pending_plan_change",
+          currentPlanId: null,
+          requestedPlanId: 6,
+          requestDate: "2025-04-03T01:19:50.670Z",
+          currentPlanName: "Free",
+          requestedPlanName: "Grow"
+        }
+      ]
+    };
+    
+    // Forçar tipo de conteúdo para JSON
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json(staticData);
+  });
+  
+  console.log("Rota estática de teste instalada em /api/plan-change-requests-static-direct");
   
   const server = await registerRoutes(app);
 
