@@ -131,21 +131,49 @@ const authenticate = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-// Configure multer for document uploads
+// Configure multer para uploads com destinos dinâmicos
 const documentUpload = multer({
   storage: multer.diskStorage({
-    destination: './uploads/documents',
+    destination: function (req, file, cb) {
+      // Determinar o destino com base no campo de arquivo
+      if (file.fieldname === 'document') {
+        cb(null, './uploads/documents');
+      } else if (file.fieldname === 'logo') {
+        cb(null, './uploads/logos');
+      } else if (file.fieldname === 'profile') {
+        cb(null, './uploads/profile-photos');
+      } else if (file.fieldname === 'attachments') {
+        cb(null, './uploads/attachments');
+      } else {
+        cb(null, './uploads/misc');
+      }
+    },
     filename: function (req, file, cb) {
       cb(null, `${Date.now()}-${file.originalname}`);
     }
   }),
   fileFilter: function (req, file, cb) {
-    const allowedTypes = ['.pdf', '.doc', '.docx'];
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowedTypes.includes(ext)) {
-      cb(null, true);
+    if (file.fieldname === 'document') {
+      // Validação para documentos organizacionais
+      const allowedTypes = ['.pdf', '.doc', '.docx'];
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (allowedTypes.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Apenas arquivos PDF, DOC ou DOCX são permitidos para documentos'));
+      }
+    } else if (file.fieldname === 'logo') {
+      // Validação para logos
+      const allowedTypes = ['.jpg', '.jpeg', '.png', '.svg', '.gif'];
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (allowedTypes.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Apenas arquivos JPG, PNG, SVG ou GIF são permitidos para logos'));
+      }
     } else {
-      cb(new Error('Invalid file type'));
+      // Para outros tipos de arquivos, permitir sem validação específica
+      cb(null, true);
     }
   }
 });
@@ -621,14 +649,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/organizations", documentUpload.single('document'), async (req, res) => {
+  // Modificando para permitir upload de documento e logo simultaneamente
+  app.post("/api/organizations", documentUpload.fields([
+    { name: 'document', maxCount: 1 },
+    { name: 'logo', maxCount: 1 }
+  ]), async (req, res) => {
     try {
       const organizationData = req.body;
-      const file = req.file;
-
-      if (!file) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      // Verificar se o documento principal foi enviado
+      if (!files || !files.document || files.document.length === 0) {
         return res.status(400).json({ message: "Document file is required" });
       }
+      
+      const documentFile = files.document[0];
+      const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
 
       // Create organization
       const [organization] = await db.insert(organizations)
@@ -644,8 +680,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values({
           organizationId: organization.id,
           documentType: organizationData.type === 'Empresa' ? 'contrato_social' : 'estatuto',
-          documentUrl: file.path,
+          documentUrl: documentFile.path,
         });
+        
+      // Se tiver logo, salvar o caminho
+      if (logoFile) {
+        // Atualizar a organização com o caminho do logo
+        await db.update(organizations)
+          .set({ logo: `/uploads/logos/${logoFile.filename}` })
+          .where(eq(organizations.id, organization.id));
+      } else {
+        // Usar logo padrão
+        await db.update(organizations)
+          .set({ logo: '/uploads/logos/default-logo.svg' })
+          .where(eq(organizations.id, organization.id));
+      }
 
       // Enviar e-mail de confirmação de registro
       try {
