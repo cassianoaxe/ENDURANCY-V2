@@ -204,28 +204,21 @@ export default function AdminDashboard() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Receita por Módulo</CardTitle>
-                  <CardDescription>Distribuição da receita mensal por módulo</CardDescription>
+                  <CardTitle>Distribuição por Módulo</CardTitle>
+                  <CardDescription>Assinaturas por tipo de módulo</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          { name: 'Financeiro', value: 12500 },
-                          { name: 'RH', value: 8200 },
-                          { name: 'Logística', value: 6400 },
-                          { name: 'Suporte', value: 5700 },
-                        ]}
-                      >
+                      <BarChart data={moduleDistributionData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
-                        <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
-                        <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
+                        <YAxis />
+                        <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
                         <Legend />
                         <Bar 
                           dataKey="value" 
-                          name="Receita Mensal" 
+                          name="Assinaturas" 
                           fill="#3b82f6" 
                         >
                           {moduleDistributionData.map((entry, index) => (
@@ -241,18 +234,47 @@ export default function AdminDashboard() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Crescimento de Organizações</CardTitle>
+                <CardTitle>Distribuição de Planos por Módulo</CardTitle>
+                <CardDescription>Relação entre módulos e seus planos assinados</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={modulesPlanDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="module" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
+                      <Legend />
+                      <Bar dataKey="count" name="Básico" stackId="a" fill="#4CAF50" />
+                      <Bar dataKey="count" name="Profissional" stackId="a" fill="#2196F3" />
+                      <Bar dataKey="count" name="Enterprise" stackId="a" fill="#9C27B0" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Crescimento de Vendas por Plano</CardTitle>
+                <CardDescription>Evolução mensal das vendas por tipo de plano</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={organizationsData}>
+                    <LineChart data={plansSalesData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="organizations" stroke="#3b82f6" strokeWidth={2} />
+                      <Line type="monotone" dataKey="básico" stroke="#4CAF50" strokeWidth={2} name="Básico" />
+                      <Line type="monotone" dataKey="profissional" stroke="#2196F3" strokeWidth={2} name="Profissional" />
+                      <Line type="monotone" dataKey="enterprise" stroke="#9C27B0" strokeWidth={2} name="Enterprise" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
