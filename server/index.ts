@@ -43,9 +43,9 @@ app.use((req, res, next) => {
   // Configurar manualmente rota estática direta em vez de importar um módulo externo
   // Variável para controlar o estado da solicitação
   let planChangeRequestStatus = {
-    approved: true,
+    approved: false,
     rejected: false,
-    processed: true
+    processed: false
   };
   
   app.get('/api/plan-change-requests-static-direct', (req, res) => {
@@ -93,17 +93,17 @@ app.use((req, res, next) => {
       name: "abrace",
       adminName: "CASSIANO XAVIER",
       email: "cassianoaxe@gmail.com",
-      status: "active", // Definindo como ativo por padrão
-      planId: 2, // Plano Profissional
-      planName: "Profissional",
+      status: "pending_plan_change", // Pendente
+      planId: 0, // Sem plano definido ainda
+      planName: "Free",
       createdAt: "2025-03-29T23:03:29.549Z",
       logoPath: null,
+      // Campos para solicitação de mudança de plano
+      requestedPlanId: 6,
+      requestedPlanName: "Grow",
       // Campos adicionais que não são exibidos nas listagens mas são usados internamente
-      modules: [
-        { id: 1, name: "Gestão de Usuários", description: "Gerenciamento de usuários e permissões", active: true },
-        { id: 2, name: "Dashboard", description: "Painel principal com visão geral", active: true }
-      ],
-      databaseCreated: true
+      modules: [],
+      databaseCreated: false
     },
     {
       id: 2,
@@ -263,7 +263,7 @@ app.use((req, res, next) => {
     const maxId = Math.max(...mockOrganizations.map(org => org.id), 0);
     const newOrgId = maxId + 1;
     
-    const newOrg = {
+    const newOrg: any = {
       id: newOrgId,
       name: requestData.name || `NovaOrg${newOrgId}`,
       adminName: requestData.adminName || "Administrador",
@@ -274,7 +274,9 @@ app.use((req, res, next) => {
       createdAt: new Date().toISOString(),
       logoPath: null,
       modules: [],
-      databaseCreated: true
+      databaseCreated: true,
+      requestedPlanId: undefined,
+      requestedPlanName: undefined
     };
     
     // Adicionar módulos obrigatórios
@@ -312,8 +314,10 @@ app.use((req, res, next) => {
         planChangeRequestStatus.processed = true;
         
         // Atualizar organização mockada
-        const org = mockOrganizations.find(o => o.id === organizationId);
-        if (org) {
+        const orgIndex = mockOrganizations.findIndex(o => o.id === organizationId);
+        if (orgIndex !== -1) {
+          // Usar any para evitar problemas com o TypeScript
+          const org: any = mockOrganizations[orgIndex];
           org.status = "active";
           org.planId = 6; // Usando um número em vez de null
           org.planName = "Grow";
@@ -404,8 +408,10 @@ app.use((req, res, next) => {
       planChangeRequestStatus.processed = true;
       
       // Atualizar organização mockada
-      const org = mockOrganizations.find(o => o.id === organizationId);
-      if (org) {
+      const orgIndex = mockOrganizations.findIndex(o => o.id === organizationId);
+      if (orgIndex !== -1) {
+        // Usar any para evitar problemas com o TypeScript
+        const org: any = mockOrganizations[orgIndex];
         org.status = "active"; // Volta ao status ativo normal
         // Remover flag de pendência
         org.requestedPlanId = undefined;
