@@ -637,6 +637,8 @@ export default function OrganizationRegistration() {
                 type="button" 
                 onClick={nextStep}
                 className="ml-auto flex items-center gap-2"
+                // Desabilita o botão Próximo no passo 1 se não houver upload de documento
+                disabled={step === 1 && !selectedFile}
               >
                 Próximo
                 <ChevronRight className="h-4 w-4" />
@@ -662,10 +664,23 @@ export default function OrganizationRegistration() {
             )}
           </div>
           
-          {selectedFile === null && Number(step) === 1 ? (
-            <div className="flex items-center gap-2 text-amber-600 mt-4 p-2 bg-amber-50 rounded border border-amber-200">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">Lembre-se de fazer o upload do documento da organização.</span>
+          {Number(step) === 1 ? (
+            <div className={`flex items-center gap-2 mt-4 p-2 rounded border ${
+              selectedFile === null 
+                ? 'text-amber-600 bg-amber-50 border-amber-200' 
+                : 'text-green-600 bg-green-50 border-green-200'
+            }`}>
+              {selectedFile === null ? (
+                <>
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">O upload do documento da organização é obrigatório para continuar.</span>
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  <span className="text-sm">Documento enviado com sucesso! Você já pode continuar.</span>
+                </>
+              )}
             </div>
           ) : null}
         </form>
