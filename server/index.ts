@@ -40,6 +40,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Adicionar rota de teste antes das rotas normais
+  try {
+    const testRouter = require('./test-route');
+    app.use('/api', testRouter);
+    console.log("Rota de teste para solicitações de plano instalada em /api/test-plan-requests");
+  } catch (error) {
+    console.error("Erro ao configurar rota de teste:", error);
+  }
+  
   const server = await registerRoutes(app);
 
   // Inicializar dados de exemplo para tickets
