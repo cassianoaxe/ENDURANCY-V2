@@ -2,10 +2,9 @@ import { Request, Response, Router } from 'express';
 import { db } from '../db';
 import { organizations, modules, organizationModules, plans } from '../../shared/schema';
 import { eq, inArray } from 'drizzle-orm';
+import { pool } from '../db'; // Garantir que o pool é importado
 import nodemailer from 'nodemailer';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+// Configs já carregadas no arquivo principal
 
 // Função para determinação de tipo de mudança de plano (upgrade/downgrade)
 function determinePlanChangeType(currentTier: string, requestedTier: string): 'upgrade' | 'downgrade' | 'same' {
@@ -157,13 +156,14 @@ router.post('/plan-change-requests/approve', async (req: Request, res: Response)
     console.log(`Histórico de plano atualizado com ${planHistory.length} entradas`);
     
     // Atualizar a organização com o novo plano e histórico
+    // Nota: planHistory é um campo JSON que não está no schema, adicionar apenas para armazenamento
+    console.log("Atualizando organização com novo plano:", planId, "tier:", requestedPlan.tier);
     await db.update(organizations)
       .set({
         planId: planId,
-        planTier: requestedPlan.tier,
+        planTier: requestedPlan.tier as any, // Cast necessário para compatibilidade
         status: "active",
         requestedPlanId: null,
-        planHistory: planHistory,
         updatedAt: new Date()
       })
       .where(eq(organizations.id, organizationId));
@@ -359,12 +359,12 @@ router.post('/plan-change-requests/reject', async (req: Request, res: Response) 
     // Adicionar nova entrada ao histórico
     planHistory.push(planHistoryEntry);
     
-    // Atualizar a organização para remover a solicitação pendente e incluir histórico
+    // Atualizar a organização para remover a solicitação pendente
+    console.log(`Atualizando organização para remover solicitação pendente. ID: ${organizationId}`);
     await db.update(organizations)
       .set({
         status: "active",
         requestedPlanId: null,
-        planHistory: planHistory,
         updatedAt: new Date()
       })
       .where(eq(organizations.id, organizationId));
