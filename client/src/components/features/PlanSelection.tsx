@@ -90,7 +90,18 @@ export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionP
       
       <RadioGroup
         value={selectedPlanId?.toString()}
-        onValueChange={(value) => setSelectedPlanId(parseInt(value))}
+        onValueChange={(value) => {
+          setSelectedPlanId(parseInt(value));
+          // Chama automaticamente handleContinue quando o plano é selecionado
+          setTimeout(() => {
+            if (parseInt(value)) {
+              const selectedPlan = plans.find(plan => plan.id === parseInt(value));
+              if (selectedPlan) {
+                onPlanSelected(selectedPlan);
+              }
+            }
+          }, 300);
+        }}
         className="grid md:grid-cols-3 gap-6 mb-6"
       >
         {plans.map((plan) => (
@@ -143,12 +154,7 @@ export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionP
         <Button variant="outline" onClick={onBack}>
           Voltar
         </Button>
-        <Button 
-          onClick={handleContinue} 
-          disabled={!selectedPlanId}
-        >
-          Continuar
-        </Button>
+        {/* Botão de Continuar removido para evitar duplicação com o botão da tela de registro */}
       </div>
     </div>
   );
