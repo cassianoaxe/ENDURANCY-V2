@@ -94,17 +94,19 @@ app.use((req, res, next) => {
       name: "abrace",
       adminName: "CASSIANO XAVIER",
       email: "cassianoaxe@gmail.com",
-      status: "pending_plan_change", // Pendente
-      planId: 0, // Sem plano definido ainda
-      planName: "Free",
+      status: "active", // Atualizado para active
+      planId: 6, // Atualizado para o mesmo plano da visão de lista
+      planName: "Grow", // Atualizado para o plano Grow
       createdAt: "2025-03-29T23:03:29.549Z",
       logoPath: null,
-      // Campos para solicitação de mudança de plano
-      requestedPlanId: 6,
-      requestedPlanName: "Grow",
       // Campos adicionais que não são exibidos nas listagens mas são usados internamente
-      modules: [],
-      databaseCreated: false
+      modules: [
+        { id: 1, name: "Gestão de Usuários", description: "Controle de usuários e perfis", active: true },
+        { id: 2, name: "Dashboard", description: "Painel de visualização", active: true },
+        { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
+        { id: 4, name: "Exportação de Relatórios", description: "Exportação de relatórios em diversos formatos", active: true }
+      ],
+      databaseCreated: true
     },
     {
       id: 2,
@@ -167,7 +169,7 @@ app.use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
     
     // Verificar se o ID corresponde a uma organização mockada
-    const index = mockOrganizations.findIndex(org => org.id === parseInt(id));
+    const index = global.mockOrganizations.findIndex(org => org.id === parseInt(id));
     
     if (index === -1) {
       return res.status(404).json({
@@ -178,29 +180,29 @@ app.use((req, res, next) => {
     
     try {
       // Atualizar status e adicionar propriedades relacionadas ao status
-      mockOrganizations[index].status = status;
+      global.mockOrganizations[index].status = status;
       
       // Se está ativando, garantir que o plano esteja configurado
       if (status === 'active') {
         // Garantir que tenha um plano
-        if (!mockOrganizations[index].planId || mockOrganizations[index].planId === 0) {
-          mockOrganizations[index].planId = 1; // Plano Básico
-          mockOrganizations[index].planName = "Básico";
+        if (!global.mockOrganizations[index].planId || global.mockOrganizations[index].planId === 0) {
+          global.mockOrganizations[index].planId = 1; // Plano Básico
+          global.mockOrganizations[index].planName = "Básico";
         }
         
         // Garantir que os dados da organização estejam completos
-        mockOrganizations[index] = {
-          ...mockOrganizations[index],
+        global.mockOrganizations[index] = {
+          ...global.mockOrganizations[index],
           databaseCreated: true
         };
         
         // Garantir que módulos obrigatórios estejam adicionados
-        if (!mockOrganizations[index].modules || !Array.isArray(mockOrganizations[index].modules) || !mockOrganizations[index].modules.length) {
-          mockOrganizations[index].modules = [];
+        if (!global.mockOrganizations[index].modules || !Array.isArray(global.mockOrganizations[index].modules) || !global.mockOrganizations[index].modules.length) {
+          global.mockOrganizations[index].modules = [];
           
           // Adicionar módulos obrigatórios
           requiredModules.forEach(module => {
-            mockOrganizations[index].modules.push({
+            global.mockOrganizations[index].modules.push({
               id: module.id,
               name: module.name,
               description: module.description,
@@ -214,7 +216,7 @@ app.use((req, res, next) => {
       const responseObj = {
         success: true,
         message: 'Status atualizado com sucesso',
-        organization: mockOrganizations[index]
+        organization: global.mockOrganizations[index]
       };
       
       // Retornar sucesso com dados JSON bem formados
