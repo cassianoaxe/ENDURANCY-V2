@@ -149,7 +149,27 @@ export default function OrganizationRegistration() {
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
     const currentStepValid = await form.trigger(fields);
-    if (currentStepValid && step < 4) setStep(prev => prev + 1);
+    
+    // Verificar se está saindo do passo 3 (seleção de plano)
+    if (currentStepValid && step === 3) {
+      const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+      
+      // Se não for admin e não tiver pagamento, impedir de avançar
+      if (!isAdmin && !paymentIntentId && !registrationComplete) {
+        toast({
+          title: "Pagamento necessário",
+          description: "Por favor, complete o pagamento antes de continuar.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Se for admin, pode prosseguir sem pagamento
+      setStep(4);
+    } 
+    else if (currentStepValid && step < 4) {
+      setStep(prev => prev + 1);
+    }
   };
 
   const prevStep = () => {
@@ -188,7 +208,21 @@ export default function OrganizationRegistration() {
       return;
     }
 
-    createOrganization.mutate({ ...form.getValues(), document: selectedFile });
+    // Verificar se é admin para permitir cadastro sem pagamento
+    const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+    
+    // Se for admin ou já tiver feito pagamento, prosseguir
+    if (isAdmin || paymentIntentId || registrationComplete) {
+      createOrganization.mutate({ ...form.getValues(), document: selectedFile });
+    } else {
+      // Se não for admin e não tiver feito pagamento, mostrar mensagem
+      toast({
+        title: "Pagamento necessário",
+        description: "Por favor, conclua o processo de pagamento antes de finalizar o registro.",
+        variant: "destructive",
+      });
+      setStep(3); // Redirecionar para a etapa de pagamento
+    }
   };
 
   const onSubmit = async (data: InsertOrganization) => {
@@ -567,12 +601,16 @@ export default function OrganizationRegistration() {
                         // Atualizar o formulário com o plano selecionado
                         form.setValue('plan', plan.name);
                         
-                        // Se for admin, permitir pular pagamento
-                        if (JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin') {
+                        // Se for admin, NUNCA mostrar pagamento
+                        const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+                        if (isAdmin) {
                           toast({
                             title: "Plano selecionado",
                             description: "Você selecionou o plano " + plan.name,
                           });
+                          
+                          // No caso de admin, não mostra pagamento e continua para o próximo passo
+                          // setShowPaymentForm(false);
                         } else {
                           // Para usuários normais, mostrar formulário de pagamento
                           setShowPaymentForm(true);
@@ -585,35 +623,13 @@ export default function OrganizationRegistration() {
                     />
                   </div>
                   
-                  {/* Opção para admin pular pagamento */}
+                  {/* Mensagem para admin sobre pagamento não ser necessário */}
                   {JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin' && selectedPlan && !showPaymentForm && (
                     <div className="flex flex-col items-center mt-4">
-                      <div className="flex gap-4 w-full max-w-md">
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowPaymentForm(true)}
-                          className="flex-1 flex items-center justify-center gap-2"
-                        >
-                          <CreditCard className="h-4 w-4" />
-                          Processar Pagamento
-                        </Button>
-                        
-                        <Button
-                          onClick={() => {
-                            // Admin pode pular o pagamento
-                            toast({
-                              title: "Pagamento ignorado",
-                              description: "Continuando sem processamento de pagamento.",
-                            });
-                          }}
-                          className="flex-1"
-                        >
-                          Pular Pagamento
-                        </Button>
+                      <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-3 rounded w-full max-w-md">
+                        <Check className="h-5 w-5" />
+                        <span>Cadastros feitos pelo administrador não exigem pagamento.</span>
                       </div>
-                      <p className="text-xs text-muted-foreground w-full max-w-md mt-2">
-                        Como administrador, você pode registrar uma organização sem exigir pagamento imediato.
-                      </p>
                     </div>
                   )}
                   
