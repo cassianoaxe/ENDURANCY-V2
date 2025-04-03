@@ -206,7 +206,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static-direct'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano aprovada!",
@@ -252,7 +252,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static-direct'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano rejeitada",
