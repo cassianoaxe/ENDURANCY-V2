@@ -121,7 +121,7 @@ export default function Plans() {
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Planos</h1>
@@ -220,7 +220,7 @@ export default function Plans() {
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {getFilteredPlans().map((plan) => (
                   <Card key={plan.id} className="flex flex-col border overflow-hidden">
                     <div 
@@ -230,37 +230,40 @@ export default function Plans() {
                           plan.tier === 'grow' ? 'bg-blue-500' : 
                           'bg-indigo-500'}`}
                     />
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1">
                           <CardTitle>{plan.name}</CardTitle>
                           <CardDescription className="mt-1">{plan.description}</CardDescription>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {plan.isPopular && (
-                            <Badge className="mr-2">Popular</Badge>
+                            <Badge>Popular</Badge>
                           )}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/plans/${plan.id}/edit`);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="text-destructive hover:text-destructive/90"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              confirmDeletePlan(plan);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex space-x-1 bg-muted/30 p-1 rounded-md">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/plans/${plan.id}/edit`);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive/90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmDeletePlan(plan);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                       
