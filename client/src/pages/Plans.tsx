@@ -232,19 +232,19 @@ export default function Plans() {
                     />
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1">
-                          <CardTitle>{plan.name}</CardTitle>
-                          <CardDescription className="mt-1">{plan.description}</CardDescription>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="truncate">{plan.name}</CardTitle>
+                          <CardDescription className="mt-1 line-clamp-2 text-xs">{plan.description}</CardDescription>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {plan.isPopular && (
                             <Badge>Popular</Badge>
                           )}
-                          <div className="flex space-x-1 bg-muted/30 p-1 rounded-md">
+                          <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
                             <Button 
-                              variant="ghost" 
+                              variant="secondary" 
                               size="icon" 
-                              className="h-7 w-7" 
+                              className="h-8 w-8 hover:bg-secondary" 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/plans/${plan.id}/edit`);
@@ -253,9 +253,9 @@ export default function Plans() {
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
-                              variant="ghost" 
+                              variant="secondary" 
                               size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive/90"
+                              className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 confirmDeletePlan(plan);
