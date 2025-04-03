@@ -10,7 +10,7 @@ import {
   Landmark, HeartPulse, BadgeHelp, Users2, Briefcase,
   Scale, LineChart, MessageCircle, Building, TestTube,
   Clipboard, FileClock, Share2, Send, Network, 
-  Plane, Mailbox, Wallet, Bot
+  Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -36,6 +36,12 @@ export default function OrganizationSidebar() {
 
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)
   const freeModules = [
+    {
+      title: "MEU PLANO",
+      path: "/organization/meu-plano",
+      active: currentPath === "/organization/meu-plano",
+      icon: <Puzzle size={18} />
+    },
     {
       title: "ONBOARDING",
       path: "/organization/onboarding",
