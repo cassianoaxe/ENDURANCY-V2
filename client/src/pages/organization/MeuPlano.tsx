@@ -251,6 +251,11 @@ export default function MeuPlano() {
     const currentLevel = getPlanLevel(currentPlanTier);
     const requestedLevel = getPlanLevel(requestedPlanTier);
     
+    // Se o plano atual é Pro (nível 4), todos os outros são downgrades
+    if (currentPlanTier === 'pro' && requestedPlanTier !== 'pro') {
+      return 'downgrade';
+    }
+    
     if (requestedLevel > currentLevel) return 'upgrade';
     if (requestedLevel < currentLevel) return 'downgrade';
     return 'same';
@@ -552,8 +557,8 @@ export default function MeuPlano() {
                             changePlanMutation.isPending || 
                             plan.id === organization?.planId || 
                             organization?.requestedPlanId === plan.id || // Desativar se já existe uma solicitação para este plano
-                            // Desativar botão de upgrade se já estiver no plano mais alto (Pro)
-                            (isHighestPlan() && determinePlanChangeType(organization?.planTier || null, plan.tier) === 'upgrade')
+                            // Quando o plano atual é PRO, desativar o botão do plano PRO
+                            (organization?.planTier === 'pro' && plan.tier === 'pro')
                           }
                           onClick={() => handlePlanChange(plan)}
                         >
@@ -572,6 +577,10 @@ export default function MeuPlano() {
                                   Alterando...
                                 </>
                               ) : (
+                                // Se o plano atual é PRO, todos os outros planos são downgrade
+                                organization?.planTier === 'pro' && plan.tier !== 'pro' ? 
+                                'Fazer Downgrade' : 
+                                // Caso contrário, verificar normalmente
                                 determinePlanChangeType(organization?.planTier || null, plan.tier) === 'downgrade' ? 
                                 'Fazer Downgrade' : 'Fazer Upgrade'
                               )}
