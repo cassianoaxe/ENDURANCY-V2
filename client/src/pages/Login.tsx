@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, User, Eye, Info, ArrowRight, Building, Code, Leaf } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O email é obrigatório'),
@@ -320,14 +320,14 @@ export default function Login() {
         </Tabs>
         
         <CardFooter className="px-6 pb-6 pt-2 flex flex-col items-center gap-3">
-          <a href="#" className="text-sm text-[#4CAF50] hover:underline">
+          <Link href="/forgot-password" className="text-sm text-[#4CAF50] hover:underline">
             Esqueceu sua senha?
-          </a>
+          </Link>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Nova organização?</span>
-            <a href="/organization-registration" className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center">
+            <Link href="/organization-registration" className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center">
               Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
-            </a>
+            </Link>
           </div>
         </CardFooter>
         
