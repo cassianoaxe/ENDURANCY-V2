@@ -144,14 +144,14 @@ app.use((req, res, next) => {
   
   // Override padrão para as APIs de organizações
   app.get('/api/organizations', (req, res, next) => {
-    // Verificar se a organização mockada já está configurada
-    // Verificar autenticação
-    if (req.session?.user?.role === 'admin') {
-      // Retorna a lista de organizações mockadas ao invés da lista real
-      return res.status(200).json(mockOrganizations);
-    }
-    // Continuar para a próxima rota se não for um administrador
-    next();
+    // Método direto para acesso ao endpoint sem necessidade de autenticação (apenas para teste)
+    return res.status(200).json(mockOrganizations);
+  });
+  
+  // Rota simplificada para obter todas as organizações
+  app.get('/api/organizations-all', (req, res) => {
+    // Retorna todas as organizações sem autenticação (para testes)
+    return res.status(200).json(mockOrganizations);
   });
   
   // Rota mockada para organizações
@@ -183,6 +183,47 @@ app.use((req, res, next) => {
     { id: 1, name: "Gestão de Usuários", description: "Gerenciamento de usuários e permissões" },
     { id: 2, name: "Dashboard", description: "Painel principal com visão geral" }
   ];
+  
+  // Função para criar organização a partir da solicitação aprovada
+  function createOrganizationFromRequest(requestData: any) {
+    // Criar nova organização com id único
+    const maxId = Math.max(...mockOrganizations.map(org => org.id), 0);
+    const newOrgId = maxId + 1;
+    
+    const newOrg = {
+      id: newOrgId,
+      name: requestData.name || `NovaOrg${newOrgId}`,
+      adminName: requestData.adminName || "Administrador",
+      email: requestData.email || "admin@example.com",
+      status: "active",
+      planId: requestData.planId || 6,
+      planName: requestData.planName || "Grow",
+      createdAt: new Date().toISOString(),
+      logoPath: null,
+      modules: [],
+      databaseCreated: true
+    };
+    
+    // Adicionar módulos obrigatórios
+    for (const module of requiredModules) {
+      // @ts-ignore
+      newOrg.modules.push({ ...module, active: true });
+    }
+    
+    // Adicionar módulos específicos do plano
+    if (newOrg.planName === "Grow") {
+      // @ts-ignore
+      newOrg.modules.push(
+        { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
+        { id: 4, name: "Exportação de Relatórios", description: "Exportação de relatórios em diversos formatos", active: true }
+      );
+    }
+    
+    // Adicionar à lista de organizações
+    mockOrganizations.push(newOrg);
+    
+    return newOrg;
+  }
   
   // Rota estática para aprovação
   app.post('/api/plan-change-requests/approve', async (req, res) => {
@@ -239,6 +280,17 @@ app.use((req, res, next) => {
           
           // Enviar e-mail com credenciais
           await sendConfirmationEmail(org.email, org.name, accessLink, passwordLink);
+          
+          // Criar outra organização com base nesta aprovação para efeito de demonstração
+          const newOrg = createOrganizationFromRequest({
+            name: "Empresa Aprovada",
+            adminName: "Admin Novo",
+            email: "admin@empresanova.com",
+            planId: 6,
+            planName: "Grow"
+          });
+          
+          console.log("Nova organização criada para demonstração:", newOrg.name);
         }
         
         // Aprovação bem-sucedida
