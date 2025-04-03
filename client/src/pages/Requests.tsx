@@ -35,13 +35,13 @@ export default function Requests() {
     refetchOnWindowFocus: false,
   });
   
-  // Fetch all plan change requests - usando endpoint estático para contornar problemas de MIME type
+  // Fetch all plan change requests - usando nova endpoint direta em index.ts
   const { data: planChangeData, isLoading: isLoadingPlanChanges } = useQuery<{
     success: boolean;
     totalRequests: number;
     requests: PlanChangeRequest[];
   }>({
-    queryKey: ['/api/plan-change-requests-static'],
+    queryKey: ['/api/plan-change-requests-static-direct'],
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       console.log("Dados de solicitações de mudança de plano recebidos:", data);
