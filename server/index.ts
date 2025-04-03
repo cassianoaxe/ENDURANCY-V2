@@ -154,6 +154,55 @@ app.use((req, res, next) => {
     return res.status(200).json(mockOrganizations);
   });
   
+  // Rota para atualizar status de organização
+  app.put('/api/organizations/:id/status', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    console.log(`Atualizando status da organização ${id} para ${status}`);
+    
+    // Verificar se o ID corresponde a uma organização mockada
+    const index = mockOrganizations.findIndex(org => org.id === parseInt(id));
+    
+    if (index === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organização não encontrada'
+      });
+    }
+    
+    // Atualizar status e adicionar propriedades relacionadas ao status
+    mockOrganizations[index].status = status;
+    
+    // Se está ativando, garantir que o plano esteja configurado
+    if (status === 'active') {
+      // Garantir que tenha um plano
+      if (!mockOrganizations[index].planId || mockOrganizations[index].planId === 0) {
+        mockOrganizations[index].planId = 1; // Plano Básico
+        mockOrganizations[index].planName = "Básico";
+      }
+      
+      // Garantir que módulos obrigatórios estejam adicionados
+      if (!mockOrganizations[index].modules || !Array.isArray(mockOrganizations[index].modules) || !mockOrganizations[index].modules.length) {
+        // @ts-ignore - Ignorar erro de tipagem para os módulos da organização
+        mockOrganizations[index].modules = [];
+        
+        // Adicionar módulos obrigatórios
+        for (const module of requiredModules) {
+          // @ts-ignore - Ignorar erro de tipagem para os módulos da organização
+          mockOrganizations[index].modules.push({ ...module, active: true });
+        }
+      }
+    }
+    
+    // Retornar sucesso com dados JSON bem formados
+    return res.status(200).json({
+      success: true,
+      message: 'Status atualizado com sucesso',
+      organization: mockOrganizations[index]
+    });
+  });
+  
   // Rota mockada para organizações
   app.get('/api/organizations-mock', (req, res) => {
     res.status(200).json(mockOrganizations);
