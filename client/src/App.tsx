@@ -143,14 +143,8 @@ function AppContent() {
     return <Login />;
   }
 
-  // Se autenticado e tentando acessar login, permitir o acesso
-  // Comentado o redirecionamento automático para dashboard para permitir redirecionamento para login
-  /*
-  if (isAuthenticated && currentPath === '/login') {
-    window.history.pushState({}, '', '/');
-    setCurrentPath('/');
-  }
-  */
+  // Se autenticado, mantenha acesso à página de login (não redirecione)
+  // Isso permite deslogar e ficar na página de login como solicitado
 
   // Check if the path matches an order view pattern (/orders/123)
   if (currentPath.startsWith('/orders/')) {

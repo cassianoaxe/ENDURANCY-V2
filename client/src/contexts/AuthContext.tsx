@@ -142,10 +142,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Logout completo no servidor");
       setUser(null);
       
-      // Use window.history instead of wouter
+      // Sempre redirecionar para a página de login após logout
       window.history.pushState({}, '', '/login');
       // Dispatch a custom event to notify about path change
       window.dispatchEvent(new Event('popstate'));
+      // Recarregar a página para garantir um estado limpo
+      window.location.reload();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
