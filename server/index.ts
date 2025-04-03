@@ -103,6 +103,42 @@ app.use((req, res, next) => {
       // Campos adicionais que não são exibidos nas listagens mas são usados internamente
       modules: [],
       databaseCreated: false
+    },
+    {
+      id: 2,
+      name: "Fidas Energia",
+      adminName: "Amanda Costa",
+      email: "amanda@fidasenergia.com",
+      status: "active",
+      planId: 2,
+      planName: "Profissional",
+      createdAt: "2025-02-15T10:25:18.923Z",
+      logoPath: null,
+      modules: [
+        { id: 1, name: "Gestão de Usuários", description: "Controle de usuários e perfis", active: true },
+        { id: 2, name: "Dashboard", description: "Painel de visualização", active: true },
+        { id: 5, name: "Faturamento", description: "Gestão de faturas e pagamentos", active: true }
+      ],
+      databaseCreated: true
+    },
+    {
+      id: 3,
+      name: "Tech Solutions",
+      adminName: "Carlos Mendes",
+      email: "carlos@techsolutions.com",
+      status: "active",
+      planId: 3,
+      planName: "Enterprise",
+      createdAt: "2025-01-05T14:30:45.109Z",
+      logoPath: null,
+      modules: [
+        { id: 1, name: "Gestão de Usuários", description: "Controle de usuários e perfis", active: true },
+        { id: 2, name: "Dashboard", description: "Painel de visualização", active: true },
+        { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
+        { id: 4, name: "Exportação de Relatórios", description: "Exportação de relatórios em diversos formatos", active: true },
+        { id: 6, name: "API Integração", description: "Integração com sistemas externos", active: true }
+      ],
+      databaseCreated: true
     }
   ];
   
