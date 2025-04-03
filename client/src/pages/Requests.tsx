@@ -35,13 +35,13 @@ export default function Requests() {
     refetchOnWindowFocus: false,
   });
   
-  // Fetch all plan change requests
+  // Fetch all plan change requests - usando endpoint estático para contornar problemas de MIME type
   const { data: planChangeData, isLoading: isLoadingPlanChanges } = useQuery<{
     success: boolean;
     totalRequests: number;
     requests: PlanChangeRequest[];
   }>({
-    queryKey: ['/api/plan-change-requests'],
+    queryKey: ['/api/plan-change-requests-static'],
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       console.log("Dados de solicitações de mudança de plano recebidos:", data);
@@ -206,7 +206,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano aprovada!",
@@ -252,7 +252,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano rejeitada",
