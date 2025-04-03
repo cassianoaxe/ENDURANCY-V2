@@ -80,18 +80,6 @@ const modulesPlanDistribution = [
   { module: 'Suporte', plan: 'Enterprise', count: 40 },
 ];
 
-// Processamento dos dados de distribuição para o gráfico
-const processedModulesPlanData = Array.from(
-  new Set(modulesPlanDistribution.map(item => item.module))
-).map(module => {
-  return {
-    module,
-    'Básico': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0,
-    'Profissional': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0,
-    'Enterprise': modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0,
-  };
-});
-
 // Crescimento de vendas de planos por mês
 const plansSalesData = [
   { month: 'Jan', básico: 20, profissional: 15, enterprise: 5 },
@@ -216,21 +204,28 @@ export default function AdminDashboard() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Distribuição por Módulo</CardTitle>
-                  <CardDescription>Assinaturas por tipo de módulo</CardDescription>
+                  <CardTitle>Receita por Módulo</CardTitle>
+                  <CardDescription>Distribuição da receita mensal por módulo</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={moduleDistributionData}>
+                      <BarChart
+                        data={[
+                          { name: 'Financeiro', value: 12500 },
+                          { name: 'RH', value: 8200 },
+                          { name: 'Logística', value: 6400 },
+                          { name: 'Suporte', value: 5700 },
+                        ]}
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
+                        <YAxis tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`} />
+                        <Tooltip formatter={(value) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Receita']} />
                         <Legend />
                         <Bar 
                           dataKey="value" 
-                          name="Assinaturas" 
+                          name="Receita Mensal" 
                           fill="#3b82f6" 
                         >
                           {moduleDistributionData.map((entry, index) => (
@@ -246,47 +241,18 @@ export default function AdminDashboard() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Distribuição de Planos por Módulo</CardTitle>
-                <CardDescription>Relação entre módulos e seus planos assinados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[350px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={processedModulesPlanData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="module" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
-                      <Legend />
-                      <Bar dataKey="Básico" name="Básico" stackId="a" fill="#4CAF50" />
-                      <Bar dataKey="Profissional" name="Profissional" stackId="a" fill="#2196F3" />
-                      <Bar dataKey="Enterprise" name="Enterprise" stackId="a" fill="#9C27B0" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Crescimento de Vendas por Plano</CardTitle>
-                <CardDescription>Evolução mensal das vendas por tipo de plano</CardDescription>
+                <CardTitle>Crescimento de Organizações</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={plansSalesData}>
+                    <LineChart data={organizationsData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="básico" stroke="#4CAF50" strokeWidth={2} name="Básico" />
-                      <Line type="monotone" dataKey="profissional" stroke="#2196F3" strokeWidth={2} name="Profissional" />
-                      <Line type="monotone" dataKey="enterprise" stroke="#9C27B0" strokeWidth={2} name="Enterprise" />
+                      <Line type="monotone" dataKey="organizations" stroke="#3b82f6" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -395,7 +361,7 @@ export default function AdminDashboard() {
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={processedModulesPlanData}
+                    data={modulesPlanDistribution}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -403,9 +369,20 @@ export default function AdminDashboard() {
                     <YAxis />
                     <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
                     <Legend />
-                    <Bar dataKey="Básico" name="Básico" stackId="a" fill="#4CAF50" />
-                    <Bar dataKey="Profissional" name="Profissional" stackId="a" fill="#2196F3" />
-                    <Bar dataKey="Enterprise" name="Enterprise" stackId="a" fill="#9C27B0" />
+                    <Bar 
+                      dataKey="count" 
+                      name="Assinaturas" 
+                      fill="#8884d8" 
+                      stackId="a"
+                    >
+                      {modulesPlanDistribution.map((entry, index) => {
+                        let color;
+                        if (entry.plan === 'Básico') color = '#4CAF50';
+                        else if (entry.plan === 'Profissional') color = '#2196F3';
+                        else if (entry.plan === 'Enterprise') color = '#9C27B0';
+                        return <Cell key={`cell-${index}`} fill={color} />;
+                      })}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
