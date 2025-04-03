@@ -789,6 +789,19 @@ export default function OrganizationProfile() {
                       </div>
                     ) : (
                       <>
+                        {/* Link para página detalhada Meu Plano */}
+                        <div className="mb-4 flex justify-end">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => window.location.href = "/organization/meu-plano"}
+                            className="flex items-center gap-2"
+                          >
+                            <Puzzle className="h-4 w-4" />
+                            <span>Ir para Meu Plano</span>
+                            <ArrowRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                        
                         {/* Current Plan */}
                         <div className="mb-6 bg-muted rounded-lg p-4">
                           <h3 className="text-lg font-medium mb-2">Plano Atual</h3>
