@@ -1912,12 +1912,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar todos os módulos da organização
       const query = `
-        SELECT om.*, m.name as module_name, m.type as module_type,
-               m.description as module_description, p.name as plan_name,
-               p.price as plan_price, p.billing_cycle as billing_cycle
+        SELECT om.*, 
+               m.id as module_id, 
+               m.name as module_name, 
+               m.type as module_type,
+               m.description as module_description, 
+               mp.id as plan_id,
+               mp.name as plan_name,
+               mp.price as plan_price, 
+               mp.billing_cycle as billing_cycle
         FROM organization_modules om
         LEFT JOIN modules m ON om.module_id = m.id
-        LEFT JOIN module_plans p ON om.plan_id = p.id
+        LEFT JOIN module_plans mp ON om.plan_id = mp.id
         WHERE om.organization_id = $1
       `;
       
@@ -1973,14 +1979,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const organizationId = req.session.user.organizationId;
       
-      // Usar SQL direto para buscar os módulos ativos com informações completas
+      // Buscar os módulos ativos com informações completas verificando as colunas disponíveis
+      const columnsQuery = await pool.query(`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'modules'
+      `);
+      
+      const moduleColumns = columnsQuery.rows.map(row => row.column_name);
+      console.log("Colunas disponíveis em modules:", moduleColumns);
+      
+      // Montar consulta SQL baseada nas colunas existentes
+      let selectClause = 'SELECT om.id, om.organization_id, om.module_id, om.active, om.status';
+      
+      // Adicionar seleção dinâmica de colunas da tabela modules
+      if (moduleColumns.includes('name')) {
+        selectClause += ', m.name';
+      }
+      if (moduleColumns.includes('description')) {
+        selectClause += ', m.description';
+      }
+      if (moduleColumns.includes('type')) {
+        selectClause += ', m.type';
+      }
+      if (moduleColumns.includes('icon_name')) {
+        selectClause += ', m.icon_name';
+      }
+      if (moduleColumns.includes('is_active')) {
+        selectClause += ', m.is_active';
+      }
+      
       const query = `
-        SELECT m.*
+        ${selectClause}
         FROM organization_modules om
         JOIN modules m ON om.module_id = m.id
         WHERE om.organization_id = $1 AND om.active = true
       `;
       
+      console.log("Consulta SQL para módulos ativos:", query);
       const result = await pool.query(query, [organizationId]);
       
       res.json(result.rows);
