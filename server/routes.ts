@@ -1678,19 +1678,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Buscando solicitações de mudança de plano...");
       console.log("Usuário autenticado:", req.session.user);
       
-      // Buscar organizações com solicitações de mudança de plano pendentes usando SQL bruto para depuração
+      // Buscar organizações com solicitações de mudança de plano pendentes usando SQL bruto para depuração - corrigido
+      // Nota: Mudamos a consulta para incluir email e outros campos que podem estar faltando na resposta
       const pendingRequestsQuery = `
         SELECT 
-          o.id, o.name, o.type, o.email, o.status, 
+          o.id, 
+          o.name, 
+          o.type, 
+          o.email, 
+          o.status, 
           o.plan_id as "currentPlanId", 
           o.requested_plan_id as "requestedPlanId", 
           o.updated_at as "requestDate",
-          cp.name as "currentPlanName",
-          rp.name as "requestedPlanName"
+          COALESCE(cp.name, 'Sem plano') as "currentPlanName",
+          COALESCE(rp.name, 'Plano não encontrado') as "requestedPlanName"
         FROM organizations o
         LEFT JOIN plans cp ON o.plan_id = cp.id
         LEFT JOIN plans rp ON o.requested_plan_id = rp.id
-        WHERE o.status = 'pending_plan_change' AND o.requested_plan_id IS NOT NULL
+        WHERE o.status = 'pending_plan_change'
       `;
       
       // Query para diagnosticar organizações com status inconsistente
@@ -1714,13 +1719,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         console.log("Nenhuma solicitação de mudança de plano encontrada.");
+        
+        // Verificação adicional - listar todas as organizações para diagnóstico
+        console.log("Executando consulta adicional para diagnóstico...");
+        const allOrgsResult = await pool.query(`
+          SELECT id, name, status, plan_id, requested_plan_id
+          FROM organizations 
+          LIMIT 5
+        `);
+        console.log("Primeiras 5 organizações no sistema:", allOrgsResult.rows);
       }
       
-      res.status(200).json({ 
+      // Para depuração, certificar que todos os campos estão presentes
+      const enhancedRequests = requests.map(req => ({
+        ...req,
+        // Garantir que campos essenciais não estejam faltando
+        id: req.id,
+        name: req.name || 'Nome não encontrado',
+        type: req.type || 'Tipo não especificado',
+        email: req.email || 'Email não especificado',
+        status: req.status || 'pending_plan_change',
+        currentPlanId: req.currentPlanId || null,
+        requestedPlanId: req.requestedPlanId || null,
+        requestDate: req.requestDate || new Date(),
+        currentPlanName: req.currentPlanName || 'Plano não especificado',
+        requestedPlanName: req.requestedPlanName || 'Plano não especificado'
+      }));
+      
+      const response = {
         success: true,
-        totalRequests: requests.length,
-        requests 
-      });
+        totalRequests: enhancedRequests.length,
+        requests: enhancedRequests
+      };
+      
+      console.log("Resposta final enviada:", JSON.stringify(response, null, 2));
+      
+      res.status(200).json(response);
     } catch (error) {
       console.error("Erro ao obter solicitações de mudança de plano:", error);
       res.status(500).json({ message: "Falha ao obter solicitações de mudança de plano." });
