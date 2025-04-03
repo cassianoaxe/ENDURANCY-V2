@@ -4,7 +4,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -245,80 +244,44 @@ function AppContent() {
       );
     }
     
-    // Usar o layout de organização para todas as rotas de organização
     if (currentPath === '/organization/dashboard') {
       console.log("Renderizando o Dashboard da Organização com ícone Leaf");
       // Forçar recarregamento do componente
-      return (
-        <OrganizationLayout>
-          <OrganizationDashboard key={Date.now()} />
-        </OrganizationLayout>
-      );
+      const DashboardWithKey = () => <OrganizationDashboard key={Date.now()} />;
+      return <DashboardWithKey />;
     }
     
     if (currentPath === '/organization/onboarding') {
-      return (
-        <OrganizationLayout>
-          <Onboarding />
-        </OrganizationLayout>
-      );
+      return <Onboarding />;
     }
     
     if (currentPath === '/organization/onboarding/GettingStarted') {
-      return (
-        <OrganizationLayout>
-          <GettingStarted />
-        </OrganizationLayout>
-      );
+      return <GettingStarted />;
     }
     
     if (currentPath === '/organization/onboarding/Cultivation') {
-      return (
-        <OrganizationLayout>
-          <Cultivation />
-        </OrganizationLayout>
-      );
+      return <Cultivation />;
     }
     
     if (currentPath === '/organization/onboarding/Production') {
-      return (
-        <OrganizationLayout>
-          <Production />
-        </OrganizationLayout>
-      );
+      return <Production />;
     }
     
     if (currentPath === '/organization/profile') {
-      return (
-        <OrganizationLayout>
-          <OrganizationProfile />
-        </OrganizationLayout>
-      );
+      return <OrganizationProfile />;
     }
 
     if (currentPath === '/organization/meu-plano') {
-      return (
-        <OrganizationLayout>
-          <MeuPlano />
-        </OrganizationLayout>
-      );
+      return <MeuPlano />;
     }
 
     // Módulos específicos da organização
     if (currentPath === '/organization/cultivation') {
-      return (
-        <OrganizationLayout>
-          <CultivationModule />
-        </OrganizationLayout>
-      );
+      return <CultivationModule />;
     }
 
     if (currentPath === '/organization/production') {
-      return (
-        <OrganizationLayout>
-          <ProductionModule />
-        </OrganizationLayout>
-      );
+      return <ProductionModule />;
     }
     
     return <NotFound />;

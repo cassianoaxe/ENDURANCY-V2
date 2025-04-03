@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import OrganizationLayout from '@/components/layout/OrganizationLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -269,16 +270,19 @@ export default function MeuPlano() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Carregando informações do plano...</p>
+      <OrganizationLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Carregando informações do plano...</p>
+          </div>
         </div>
-      </div>
+      </OrganizationLayout>
     );
   }
 
   return (
+    <OrganizationLayout>
       <div className="container px-0">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -799,5 +803,6 @@ export default function MeuPlano() {
           </DialogContent>
         </Dialog>
       </div>
-    );
-  }
+    </OrganizationLayout>
+  );
+}
