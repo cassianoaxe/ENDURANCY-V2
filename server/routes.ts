@@ -1357,11 +1357,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "ID inválido" });
       }
       
+      console.log(`Buscando detalhes da organização com ID: ${id}`);
+      
       // Verificar permissão
       if (req.session?.user?.role !== 'admin' && 
           req.session?.user?.role !== 'org_admin' && 
           req.session?.user?.organizationId !== id) {
         return res.status(403).json({ message: "Sem permissão para acessar esta organização" });
+      }
+      
+      // Verificar se temos um mock em server/index.ts
+      if (global.mockOrganizations) {
+        // @ts-ignore - mockOrganizations é adicionado ao objeto global em server/index.ts
+        const mockOrg = global.mockOrganizations.find(o => o.id === id);
+        if (mockOrg) {
+          console.log("Retornando organização mockada:", mockOrg.name);
+          return res.json(mockOrg);
+        }
       }
       
       // Buscar organização
@@ -1372,6 +1384,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!organization) {
         return res.status(404).json({ message: "Organização não encontrada" });
       }
+      
+      console.log(`Organização encontrada no banco: ${organization.name}`);
       
       // Se a organização não tiver um logo, definir o caminho para o logo padrão
       if (!organization.logo) {

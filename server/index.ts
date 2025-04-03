@@ -87,7 +87,8 @@ app.use((req, res, next) => {
   });
   
   // Variável para organizações mockadas
-  const mockOrganizations = [
+  // Adicionar as organizações mockadas ao objeto global para ser acessível em routes.ts
+  global.mockOrganizations = [
     {
       id: 1,
       name: "abrace",
@@ -146,13 +147,13 @@ app.use((req, res, next) => {
   // Override padrão para as APIs de organizações
   app.get('/api/organizations', (req, res, next) => {
     // Método direto para acesso ao endpoint sem necessidade de autenticação (apenas para teste)
-    return res.status(200).json(mockOrganizations);
+    return res.status(200).json(global.mockOrganizations);
   });
   
   // Rota simplificada para obter todas as organizações
   app.get('/api/organizations-all', (req, res) => {
     // Retorna todas as organizações sem autenticação (para testes)
-    return res.status(200).json(mockOrganizations);
+    return res.status(200).json(global.mockOrganizations);
   });
   
   // Rota para atualizar status de organização
@@ -229,7 +230,7 @@ app.use((req, res, next) => {
   
   // Rota mockada para organizações
   app.get('/api/organizations-mock', (req, res) => {
-    res.status(200).json(mockOrganizations);
+    res.status(200).json(global.mockOrganizations);
   });
   
   // Mock API para envio de e-mail
