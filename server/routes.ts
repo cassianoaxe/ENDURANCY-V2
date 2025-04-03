@@ -780,6 +780,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para deletar um plano (apenas para administradores)
+  app.delete("/api/plans/:id", authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se o usuário é um administrador
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem deletar planos." });
+      }
+      
+      const planId = parseInt(req.params.id);
+      
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "ID de plano inválido" });
+      }
+      
+      // Verificar se há organizações usando este plano
+      const organizationsWithPlan = await db.select()
+        .from(organizations)
+        .where(eq(organizations.planId, planId));
+      
+      if (organizationsWithPlan.length > 0) {
+        return res.status(400).json({ 
+          message: "Não é possível excluir este plano pois está sendo utilizado por uma ou mais organizações",
+          organizationsCount: organizationsWithPlan.length 
+        });
+      }
+      
+      // Verificar se há solicitações de mudança de plano pendentes para este plano
+      const pendingRequests = await db.select()
+        .from(organizations)
+        .where(
+          and(
+            eq(organizations.requestedPlanId, planId),
+            eq(organizations.status, 'pending_plan_change')
+          )
+        );
+      
+      if (pendingRequests.length > 0) {
+        return res.status(400).json({ 
+          message: "Não é possível excluir este plano pois há solicitações de mudança pendentes",
+          requestsCount: pendingRequests.length 
+        });
+      }
+      
+      // Excluir o plano
+      await db.delete(plans).where(eq(plans.id, planId));
+      
+      // Registrar log de auditoria (opcional)
+      console.log(`Plano ID ${planId} excluído pelo administrador ${req.session.user?.username}`);
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: "Plano excluído com sucesso" 
+      });
+    } catch (error) {
+      console.error("Erro ao excluir plano:", error);
+      return res.status(500).json({ 
+        message: "Erro ao excluir plano. Tente novamente mais tarde." 
+      });
+    }
+  });
+  
   // Payment Routes
   app.post("/api/payments/create-intent", async (req, res) => {
     try {
