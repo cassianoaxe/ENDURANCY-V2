@@ -1669,9 +1669,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para obter solicitações de mudança de plano (para administradores) - PRINCIPAL
   app.get("/api/plan-change-requests", authenticate, async (req, res) => {
     try {
+      console.log("==== ACESSANDO ROTA DE SOLICITAÇÕES DE PLANO ====");
+      console.log("Sessão:", req.session);
+      console.log("Usuário:", req.session?.user);
+      
       if (!req.session?.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ 
-          message: "Não autorizado. Apenas administradores podem visualizar solicitações de mudança de plano." 
+          message: "Não autorizado. Apenas administradores podem visualizar solicitações de mudança de plano.",
+          userRole: req.session?.user?.role || "sem_role" 
         });
       }
       
@@ -1700,7 +1705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Query para diagnosticar organizações com status inconsistente
       const diagnosticQuery = `
-        SELECT id, name, status, plan_id, requested_plan_id 
+        SELECT id, name, status, plan_id, requested_plan_id, email, type 
         FROM organizations 
         WHERE status = 'pending_plan_change' OR requested_plan_id IS NOT NULL
       `;
