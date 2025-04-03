@@ -48,6 +48,7 @@ import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
 import OrganizationProfile from "@/pages/organization/profile";
+import MeuPlano from "@/pages/organization/MeuPlano";
 import DataImport from "@/pages/DataImport";
 
 // Import module pages
@@ -274,6 +275,10 @@ function AppContent() {
     
     if (currentPath === '/organization/profile') {
       return <OrganizationProfile />;
+    }
+
+    if (currentPath === '/organization/meu-plano') {
+      return <MeuPlano />;
     }
 
     // Módulos específicos da organização
