@@ -1754,7 +1754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           requestedPlanId: 6,
           requestDate: "2025-04-03T01:19:50.670Z",
           currentPlanName: "Free",
-          requestedPlanName: "Grow"
+          requestedPlanName: "Pro"
         }
       ]
     };
