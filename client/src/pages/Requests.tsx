@@ -88,24 +88,34 @@ export default function Requests() {
       status: org.status,
       requestType: 'registration',
       date: org.createdAt
-    })),
-    ...pendingPlanChanges.map(req => {
+    }))
+  ];
+  
+  // Log detalhado das solicitações de plano
+  console.log("Todas as solicitações de plano recebidas:", pendingPlanChanges);
+  
+  // Adicionar solicitações de plano se existirem
+  if (pendingPlanChanges && pendingPlanChanges.length > 0) {
+    pendingPlanChanges.forEach(req => {
       console.log("Mapeando requisição de plano:", req);
-      return {
+      // Garantir que o objeto tenha todos os campos necessários
+      allPendingRequests.push({
         id: req.id,
-        name: req.name,
-        type: req.type,
-        email: req.email,
-        status: req.status,
+        name: req.name || 'Organização sem nome',
+        type: req.type || 'Organização',
+        email: req.email || 'sem-email@example.com',
+        status: 'pending',
         requestType: 'plan_change',
-        date: req.requestDate,
+        date: req.requestDate || new Date(),
         currentPlanId: req.currentPlanId,
         requestedPlanId: req.requestedPlanId,
-        currentPlanName: req.currentPlanName,
-        requestedPlanName: req.requestedPlanName
-      };
-    })
-  ];
+        currentPlanName: req.currentPlanName || 'Plano não informado',
+        requestedPlanName: req.requestedPlanName || 'Plano não informado'
+      });
+    });
+  } else {
+    console.log("Não há solicitações de plano pendentes.");
+  }
   
   // Filter requests based on search
   const filteredRequests = allPendingRequests.filter(req => 
