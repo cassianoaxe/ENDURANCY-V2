@@ -1582,6 +1582,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Recebendo solicitação de mudança de plano:", req.body);
       console.log("Sessão do usuário:", req.session?.user);
+      console.log("Headers da requisição:", req.headers);
+      console.log("Cookie da requisição:", req.headers.cookie);
       
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
         console.log("Erro de autorização: usuário sem organizationId");
