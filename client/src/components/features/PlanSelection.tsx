@@ -23,11 +23,26 @@ export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionP
     async function loadPlans() {
       try {
         const plansData = await fetchPlans();
-        setPlans(plansData);
+        
+        // Filtrar apenas os planos específicos: Freemium/Básico, Seed, Grow e Pro
+        const filteredPlans = plansData.filter(plan => 
+          plan.tier === 'free' || 
+          plan.tier === 'seed' || 
+          plan.tier === 'grow' || 
+          plan.tier === 'pro'
+        );
+        
+        // Ordenar os planos por nível: Free, Seed, Grow, Pro
+        const sortedPlans = filteredPlans.sort((a, b) => {
+          const tierOrder = { free: 1, seed: 2, grow: 3, pro: 4 };
+          return tierOrder[a.tier] - tierOrder[b.tier];
+        });
+        
+        setPlans(sortedPlans);
         
         // Select the first plan by default if there are plans
-        if (plansData.length > 0) {
-          setSelectedPlanId(plansData[0].id);
+        if (sortedPlans.length > 0) {
+          setSelectedPlanId(sortedPlans[0].id);
         }
       } catch (err) {
         console.error('Error loading plans:', err);
