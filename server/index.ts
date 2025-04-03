@@ -67,7 +67,57 @@ app.use((req, res, next) => {
     return res.status(200).json(staticData);
   });
   
-  console.log("Rota estática de teste instalada em /api/plan-change-requests-static-direct");
+  // Rota estática para aprovação
+  app.post('/api/plan-change-requests/approve', (req, res) => {
+    const { organizationId, planId } = req.body;
+    
+    console.log(`Mock: Recebida aprovação para organização ${organizationId} com plano ${planId}`);
+    
+    // Verificar se é a organização "abrace" (id=1)
+    if (organizationId === 1) {
+      // Aprovação bem-sucedida
+      return res.status(200).json({ 
+        success: true, 
+        message: "Solicitação de mudança de plano aprovada com sucesso.",
+        organizationId,
+        planId,
+        planName: "Grow",
+        processed: true
+      });
+    } else {
+      // Organização não encontrada
+      return res.status(404).json({ 
+        success: false, 
+        message: "Organização não encontrada ou solicitação inválida." 
+      });
+    }
+  });
+  
+  // Rota estática para rejeição
+  app.post('/api/plan-change-requests/reject', (req, res) => {
+    const { organizationId } = req.body;
+    
+    console.log(`Mock: Recebida rejeição para organização ${organizationId}`);
+    
+    // Verificar se é a organização "abrace" (id=1)
+    if (organizationId === 1) {
+      // Rejeição bem-sucedida
+      return res.status(200).json({ 
+        success: true, 
+        message: "Solicitação de mudança de plano rejeitada com sucesso.",
+        organizationId,
+        processed: true
+      });
+    } else {
+      // Organização não encontrada
+      return res.status(404).json({ 
+        success: false, 
+        message: "Organização não encontrada ou solicitação inválida." 
+      });
+    }
+  });
+  
+  console.log("Rotas estáticas de teste instaladas para solicitações de plano");
   
   const server = await registerRoutes(app);
 
