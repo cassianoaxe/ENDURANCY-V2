@@ -43,6 +43,12 @@ export default function Requests() {
   }>({
     queryKey: ['/api/plan-change-requests'],
     refetchOnWindowFocus: false,
+    onSuccess: (data) => {
+      console.log("Dados de solicitações de mudança de plano recebidos:", data);
+    },
+    onError: (error) => {
+      console.error("Erro ao buscar solicitações de mudança de plano:", error);
+    }
   });
   
   // Calculate statistics

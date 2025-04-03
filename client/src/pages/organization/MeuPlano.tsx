@@ -63,10 +63,20 @@ export default function MeuPlano() {
     mutationFn: async (planId: number) => {
       try {
         console.log("Enviando solicitação de mudança de plano para:", planId);
+        
+        // Adicionar mais logs para debug
+        console.log("Detalhes da requisição:", {
+          url: '/api/plan-change-requests',
+          método: 'POST',
+          corpo: { planId },
+          usuário: user
+        });
+        
         const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
         
         // Verificar resposta completa para debug
         console.log("Status da resposta:", res.status);
+        console.log("Headers da resposta:", Object.fromEntries([...res.headers.entries()]));
         
         if (!res.ok) {
           const errorText = await res.text();
@@ -74,9 +84,10 @@ export default function MeuPlano() {
           throw new Error(errorText || 'Erro ao solicitar mudança de plano');
         }
         
-        // Tentar fazer parse da resposta com tratamento de erro
+        // Tentar fazer parse da resposta com tratamento de erro - clone a resposta para evitar erros
+        const clonedRes = res.clone();
         try {
-          const text = await res.text();
+          const text = await clonedRes.text();
           console.log("Resposta raw:", text);
           return text ? JSON.parse(text) : { success: true };
         } catch (parseError) {
