@@ -95,16 +95,18 @@ app.use((req, res, next) => {
       adminName: "CASSIANO XAVIER",
       email: "cassianoaxe@gmail.com",
       status: "active", // Atualizado para active
-      planId: 6, // Atualizado para o mesmo plano da visão de lista
-      planName: "Grow", // Atualizado para o plano Grow
+      planId: 6, // Atualizado para o plano Pro
+      planName: "Pro", // Atualizado para o plano Pro
+      planTier: "pro", // Garantir que o tier também esteja atualizado
       createdAt: "2025-03-29T23:03:29.549Z",
       logoPath: null,
       // Campos adicionais que não são exibidos nas listagens mas são usados internamente
       modules: [
         { id: 1, name: "Gestão de Usuários", description: "Controle de usuários e perfis", active: true },
         { id: 2, name: "Dashboard", description: "Painel de visualização", active: true },
-        { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
-        { id: 4, name: "Exportação de Relatórios", description: "Exportação de relatórios em diversos formatos", active: true }
+        { id: 5, name: "Análise Premium", description: "Análises estatísticas premium", active: true },
+        { id: 6, name: "Integrações Avançadas", description: "Integrações com sistemas externos", active: true }, 
+        { id: 7, name: "Recursos Enterprise", description: "Recursos exclusivos para empresas", active: true }
       ],
       databaseCreated: true
     },
@@ -288,8 +290,15 @@ app.use((req, res, next) => {
       newOrg.modules.push({ ...module, active: true });
     }
     
-    // Adicionar módulos específicos do plano
-    if (newOrg.planName === "Grow") {
+    // Adicionar módulos específicos do plano com base no planName
+    if (newOrg.planName === "Pro") {
+      // @ts-ignore
+      newOrg.modules.push(
+        { id: 5, name: "Análise Premium", description: "Análises estatísticas premium", active: true },
+        { id: 6, name: "Integrações Avançadas", description: "Integrações com sistemas externos", active: true },
+        { id: 7, name: "Recursos Enterprise", description: "Recursos exclusivos para empresas", active: true }
+      );
+    } else if (newOrg.planName === "Grow") {
       // @ts-ignore
       newOrg.modules.push(
         { id: 3, name: "Análise Avançada", description: "Análises estatísticas e relatórios avançados", active: true },
@@ -394,7 +403,8 @@ app.use((req, res, next) => {
             adminName: "Admin Novo",
             email: "admin@empresanova.com",
             planId: 6,
-            planName: "Grow"
+            planName: "Pro",
+            planTier: "pro"
           });
           
           console.log("Nova organização criada para demonstração:", newOrg.name);
