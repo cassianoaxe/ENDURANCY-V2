@@ -48,6 +48,24 @@ app.use((req, res, next) => {
     processed: false
   };
   
+  // Função para determinar se uma mudança de plano é upgrade ou downgrade
+  function determinePlanChangeType(currentPlanId: number, requestedPlanId: number): 'upgrade' | 'downgrade' | 'same' {
+    // Mapear IDs de plano para seus níveis hierárquicos (quanto maior o número, mais alto o plano)
+    const planLevels: Record<number, number> = {
+      1: 1, // Free/Básico
+      2: 2, // Seed
+      3: 3, // Grow
+      6: 4  // Pro
+    };
+    
+    const currentLevel = planLevels[currentPlanId] || 1;
+    const requestedLevel = planLevels[requestedPlanId] || 1;
+    
+    if (requestedLevel > currentLevel) return 'upgrade';
+    if (requestedLevel < currentLevel) return 'downgrade';
+    return 'same';
+  }
+  
   app.get('/api/plan-change-requests-static-direct', (req, res) => {
     // Se a solicitação já foi aprovada ou rejeitada, retornar lista vazia
     if (planChangeRequestStatus.processed) {
@@ -61,25 +79,33 @@ app.use((req, res, next) => {
       return res.status(200).json(emptyData);
     }
     
-    // Dados estáticos das solicitações baseados na consulta SQL
-    const staticData = {
-      success: true,
-      totalRequests: 1,
-      requests: [
-        {
-          id: 1,
-          name: "abrace",
-          type: "Associação",
-          email: "cassianoaxe@gmail.com",
-          status: "pending_plan_change",
-          currentPlanId: null,
-          requestedPlanId: 6,
-          requestDate: "2025-04-03T01:19:50.670Z",
-          currentPlanName: "Free",
-          requestedPlanName: "Pro"
-        }
-      ]
-    };
+    // Consultar dados da organização atual para obter informações corretas de plano
+  const org = global.mockOrganizations.find(o => o.id === 1);
+  const currentPlanId = org?.planId || 1;
+  const currentPlanName = org?.planName || "Free";
+  const requestedPlanId = 3; // Solicitação para mudar para Grow (3)
+  const changeType = determinePlanChangeType(currentPlanId, requestedPlanId);
+
+  // Dados estáticos das solicitações baseados na consulta SQL
+  const staticData = {
+    success: true,
+    totalRequests: 1,
+    requests: [
+      {
+        id: 1,
+        name: "abrace",
+        type: "Associação",
+        email: "cassianoaxe@gmail.com",
+        status: "pending_plan_change",
+        currentPlanId: currentPlanId,
+        requestedPlanId: requestedPlanId,
+        requestDate: "2025-04-03T01:19:50.670Z",
+        currentPlanName: currentPlanName,
+        requestedPlanName: "Grow",
+        changeType: changeType // Indicar se é upgrade ou downgrade
+      }
+    ]
+  };
     
     // Forçar tipo de conteúdo para JSON
     res.setHeader('Content-Type', 'application/json');
@@ -330,7 +356,29 @@ app.use((req, res, next) => {
         if (orgIndex !== -1) {
           // Usar any para evitar problemas com o TypeScript
           const org: any = global.mockOrganizations[orgIndex];
+          
+          // Determinar o tipo de mudança (upgrade/downgrade) para adicionar ao histórico
+          const changeType = determinePlanChangeType(org.planId, planId);
+          
+          // Atualizar para ativo (em caso de aprovação, sempre ativamos a org)
           org.status = "active";
+          
+          // Registrar histórico de mudança de plano
+          if (!org.planHistory) {
+            org.planHistory = [];
+          }
+          
+          // Adicionar o plano atual ao histórico antes de atualizar
+          org.planHistory.push({
+            previousPlanId: org.planId,
+            previousPlanName: org.planName,
+            newPlanId: planId,
+            changeType: changeType,
+            changeDate: new Date().toISOString(),
+            reason: "Aprovação de solicitação de mudança de plano"
+          });
+          
+          // Atualizar plano da organização
           org.planId = planId; // Usar o planId recebido no request
           
           // Determinar o nome e tier do plano com base no ID
@@ -452,6 +500,23 @@ app.use((req, res, next) => {
       if (orgIndex !== -1) {
         // Usar any para evitar problemas com o TypeScript
         const org: any = global.mockOrganizations[orgIndex];
+        
+        // Registrar histórico de mudança de plano rejeitada
+        if (!org.planHistory) {
+          org.planHistory = [];
+        }
+        
+        // Adicionar registro da rejeição ao histórico
+        org.planHistory.push({
+          previousPlanId: org.planId,
+          previousPlanName: org.planName,
+          requestedPlanId: org.requestedPlanId,
+          requestedPlanName: org.requestedPlanName,
+          changeType: "rejected",
+          changeDate: new Date().toISOString(),
+          reason: "Solicitação de mudança de plano rejeitada pelo administrador"
+        });
+        
         org.status = "active"; // Volta ao status ativo normal
         // Remover flag de pendência
         org.requestedPlanId = undefined;

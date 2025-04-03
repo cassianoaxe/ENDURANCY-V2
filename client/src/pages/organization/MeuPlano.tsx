@@ -304,6 +304,22 @@ export default function MeuPlano() {
                     <span className="text-sm font-medium">{currentPlan?.trialDays || 0} dias</span>
                   </div>
                 </div>
+                
+                {/* Status de solicitação de plano */}
+                {organization?.requestedPlanId && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-medium text-yellow-800">Solicitação pendente</h4>
+                        <p className="text-xs text-yellow-700 mt-1">
+                          Você solicitou mudança para o plano {organization.requestedPlanName || 'novo'}.
+                          Aguardando aprovação do administrador.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-3 md:col-span-2">
@@ -317,6 +333,53 @@ export default function MeuPlano() {
                       </div>
                     ))}
                 </div>
+                
+                {/* Histórico de Planos */}
+                {organization?.planHistory && organization.planHistory.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium mb-2">Histórico de Alterações de Plano</h3>
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">De</th>
+                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Para</th>
+                            <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {organization.planHistory.map((history, index) => (
+                            <tr key={index}>
+                              <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+                                {new Date(history.changeDate).toLocaleDateString('pt-BR')}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-xs">
+                                {history.previousPlanName || 'N/A'}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-xs">
+                                {history.changeType === 'rejected' ? history.requestedPlanName : currentPlan?.name}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap">
+                                <Badge className={`text-xs ${
+                                  history.changeType === 'upgrade' ? 'bg-green-100 text-green-700' : 
+                                  history.changeType === 'downgrade' ? 'bg-yellow-100 text-yellow-700' : 
+                                  history.changeType === 'rejected' ? 'bg-red-100 text-red-700' : 
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {history.changeType === 'upgrade' ? 'Upgrade' : 
+                                   history.changeType === 'downgrade' ? 'Downgrade' : 
+                                   history.changeType === 'rejected' ? 'Rejeitado' : 
+                                   'Mudança'}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
