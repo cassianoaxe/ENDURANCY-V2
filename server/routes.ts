@@ -193,6 +193,7 @@ const logoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const server = createServer(app);
   // Setup session middleware
   const sessionConfig = {
     store: new PostgresStore({
@@ -1488,8 +1489,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   */
   
-  // Rota para aprovar ou rejeitar solicitação de mudança de plano
-  app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
+  // Rota para aprovar ou rejeitar solicitação de mudança de plano (DESATIVADA - usar /api/plan-change-requests/:action)
+  /* app.put("/api/plan-change-requests/:orgId", authenticate, async (req, res) => {
     try {
       if (!req.session || !req.session.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ message: "Não autorizado. Apenas administradores podem aprovar solicitações." });
@@ -4399,5 +4400,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fechar a rota PUT duplicada que foi comentada acima
   */
   
-  return httpServer;
+  return server;
 }
