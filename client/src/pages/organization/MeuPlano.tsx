@@ -188,8 +188,11 @@ export default function MeuPlano() {
       return;
     }
     
+    // Verificar se é upgrade ou downgrade para fins de logging
+    const changeType = determinePlanChangeType(organization?.planTier || null, selectedPlan.tier);
+    console.log(`Enviando solicitação de ${changeType === 'upgrade' ? 'upgrade' : 'downgrade'} para o plano:`, selectedPlan.id);
+    
     // Para planos pagos, enviar solicitação para aprovação do administrador
-    console.log("Enviando solicitação de mudança para o plano:", selectedPlan.id);
     requestPlanChangeMutation.mutate(selectedPlan.id);
   };
 
@@ -228,6 +231,35 @@ export default function MeuPlano() {
     
     // Filtrar para obter apenas módulos que podem ser adicionados
     return availableModules.filter(m => !activeModuleIds.includes(m.id) && m.is_active);
+  };
+
+  // Obter o nível do plano para comparação
+  const getPlanLevel = (planTier: string): number => {
+    const tierLevels: { [key: string]: number } = {
+      'free': 1,
+      'seed': 2,
+      'grow': 3,
+      'pro': 4
+    };
+    return tierLevels[planTier] || 1;
+  };
+
+  // Determinar se é upgrade, downgrade ou plano atual
+  const determinePlanChangeType = (currentPlanTier: string | null, requestedPlanTier: string): 'upgrade' | 'downgrade' | 'same' => {
+    if (!currentPlanTier) return 'upgrade'; // Se não tem plano atual, qualquer plano é upgrade
+    
+    const currentLevel = getPlanLevel(currentPlanTier);
+    const requestedLevel = getPlanLevel(requestedPlanTier);
+    
+    if (requestedLevel > currentLevel) return 'upgrade';
+    if (requestedLevel < currentLevel) return 'downgrade';
+    return 'same';
+  };
+  
+  // Verificar se o plano atual é o mais alto (Pro)
+  const isHighestPlan = (): boolean => {
+    if (!organization?.planTier) return false;
+    return organization.planTier === 'pro';
   };
 
   // Formatar preço
@@ -459,7 +491,10 @@ export default function MeuPlano() {
               <h2 className="text-xl font-bold mb-6">Planos Disponíveis</h2>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
                 {availablePlans ? availablePlans
-                  .filter(plan => plan.isModulePlan !== true)
+                  // Filtrar apenas para mostrar planos Freemium, Seed, Grow e Pro
+                  .filter(plan => 
+                    plan.isModulePlan !== true && 
+                    ['free', 'seed', 'grow', 'pro'].includes(plan.tier))
                   .map((plan) => (
                     <Card 
                       key={plan.id} 
@@ -513,7 +548,12 @@ export default function MeuPlano() {
                         <Button 
                           className="w-full"
                           variant={plan.id === organization?.planId ? "outline" : "default"}
-                          disabled={changePlanMutation.isPending || plan.id === organization?.planId}
+                          disabled={
+                            changePlanMutation.isPending || 
+                            plan.id === organization?.planId || 
+                            // Desativar botão de upgrade se já estiver no plano mais alto (Pro)
+                            (isHighestPlan() && determinePlanChangeType(organization?.planTier || null, plan.tier) === 'upgrade')
+                          }
                           onClick={() => handlePlanChange(plan)}
                         >
                           {plan.id === organization?.planId ? (
@@ -526,8 +566,7 @@ export default function MeuPlano() {
                                   Alterando...
                                 </>
                               ) : (
-                                plan.price === "0.00" || parseFloat(plan.price.toString()) === 0 || 
-                                (currentPlan && parseFloat(currentPlan.price.toString()) > parseFloat(plan.price.toString())) ? 
+                                determinePlanChangeType(organization?.planTier || null, plan.tier) === 'downgrade' ? 
                                 'Fazer Downgrade' : 'Fazer Upgrade'
                               )}
                             </>
