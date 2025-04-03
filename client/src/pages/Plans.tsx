@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plan } from "@shared/schema";
 import { 
   Card, 
@@ -19,14 +19,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Package, Users, ArrowUpRight, Settings, PlusCircle, Edit, ChevronRight } from "lucide-react";
+import { 
+  Check, Package, Users, ArrowUpRight, Settings, 
+  PlusCircle, Edit, ChevronRight, Trash2, AlertTriangle 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/layout/Layout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Plans() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("todos");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+  const queryClient = useQueryClient();
 
   // Buscar todos os planos
   const { data: plans = [], isLoading } = useQuery<Plan[]>({
@@ -42,6 +58,55 @@ export default function Plans() {
   }>({
     queryKey: ['/api/plans/stats'],
   });
+
+  // Mutation para deletar um plano
+  const deletePlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      const response = await fetch(`/api/plans/${planId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao excluir plano');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/plans'] });
+      toast({
+        title: "Plano excluído",
+        description: "O plano foi excluído com sucesso.",
+        variant: "default"
+      });
+      setPlanToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir plano",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Abrir diálogo de confirmação para excluir um plano
+  const confirmDeletePlan = (plan: Plan) => {
+    setPlanToDelete(plan);
+    setDeleteDialogOpen(true);
+  };
+
+  // Executar a exclusão do plano
+  const handleDeletePlan = () => {
+    if (planToDelete) {
+      deletePlanMutation.mutate(planToDelete.id);
+    }
+    setDeleteDialogOpen(false);
+  };
 
   // Acessar página de checkout de um plano
   const goToCheckout = (plan: Plan) => {
@@ -171,9 +236,32 @@ export default function Plans() {
                           <CardTitle>{plan.name}</CardTitle>
                           <CardDescription className="mt-1">{plan.description}</CardDescription>
                         </div>
-                        {plan.isPopular && (
-                          <Badge>Popular</Badge>
-                        )}
+                        <div className="flex items-center space-x-1">
+                          {plan.isPopular && (
+                            <Badge className="mr-2">Popular</Badge>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/plans/${plan.id}/edit`);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-destructive hover:text-destructive/90"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmDeletePlan(plan);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="mt-4">
@@ -233,6 +321,42 @@ export default function Plans() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Diálogo de confirmação para excluir plano */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Confirmar exclusão
+              </div>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o plano <strong>{planToDelete?.name}</strong>?
+              <div className="mt-2 text-destructive">
+                Esta ação não pode ser desfeita.
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeletePlan}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletePlanMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Excluindo...
+                </div>
+              ) : (
+                "Sim, excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
