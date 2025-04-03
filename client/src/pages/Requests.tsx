@@ -172,6 +172,7 @@ export default function Requests() {
         planId: requestData?.requestedPlanId
       });
       
+      // Mudando para usar o endpoint correto com o parâmetro de ação na URL
       const res = await apiRequest("POST", `/api/plan-change-requests/approve`, { 
         organizationId: orgId,
         planId: requestData?.requestedPlanId
