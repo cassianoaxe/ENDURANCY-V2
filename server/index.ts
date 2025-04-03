@@ -261,7 +261,7 @@ app.use((req, res, next) => {
   // Função para criar organização a partir da solicitação aprovada
   function createOrganizationFromRequest(requestData: any) {
     // Criar nova organização com id único
-    const maxId = Math.max(...mockOrganizations.map(org => org.id), 0);
+    const maxId = Math.max(...global.mockOrganizations.map(org => org.id), 0);
     const newOrgId = maxId + 1;
     
     const newOrg: any = {
@@ -296,7 +296,7 @@ app.use((req, res, next) => {
     }
     
     // Adicionar à lista de organizações
-    mockOrganizations.push(newOrg);
+    global.mockOrganizations.push(newOrg);
     
     return newOrg;
   }
@@ -315,10 +315,10 @@ app.use((req, res, next) => {
         planChangeRequestStatus.processed = true;
         
         // Atualizar organização mockada
-        const orgIndex = mockOrganizations.findIndex(o => o.id === organizationId);
+        const orgIndex = global.mockOrganizations.findIndex(o => o.id === organizationId);
         if (orgIndex !== -1) {
           // Usar any para evitar problemas com o TypeScript
-          const org: any = mockOrganizations[orgIndex];
+          const org: any = global.mockOrganizations[orgIndex];
           org.status = "active";
           org.planId = 6; // Usando um número em vez de null
           org.planName = "Grow";
@@ -409,10 +409,10 @@ app.use((req, res, next) => {
       planChangeRequestStatus.processed = true;
       
       // Atualizar organização mockada
-      const orgIndex = mockOrganizations.findIndex(o => o.id === organizationId);
+      const orgIndex = global.mockOrganizations.findIndex(o => o.id === organizationId);
       if (orgIndex !== -1) {
         // Usar any para evitar problemas com o TypeScript
-        const org: any = mockOrganizations[orgIndex];
+        const org: any = global.mockOrganizations[orgIndex];
         org.status = "active"; // Volta ao status ativo normal
         // Remover flag de pendência
         org.requestedPlanId = undefined;

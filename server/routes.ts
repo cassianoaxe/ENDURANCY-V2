@@ -1114,9 +1114,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(modules)
         .where(inArray(modules.id, moduleIds));
       
+      // Verificar se temos as informações dos módulos
+      if (!moduleDetails.length) {
+        console.log("Nenhum detalhe de módulo encontrado para os IDs:", moduleIds);
+        return res.json([]);
+      }
+      
+      console.log("Detalhes dos módulos encontrados:", moduleDetails.length);
+      
       // Combinar os dados para ter informações completas
       const results = orgModules.map(orgModule => {
-        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId);
+        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId) || {
+          name: `Módulo ${orgModule.moduleId}`,
+          description: "Descrição não disponível"
+        };
         return {
           id: orgModule.id,
           organizationId: orgModule.organizationId, 
