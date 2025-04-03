@@ -667,9 +667,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
 
       // Create organization
+      // Garantir que planTier seja enviado conforme planId
+      let planTier = 'free'; // Padrão
+      if (organizationData.planId) {
+        try {
+          const selectedPlan = await db.query.plans.findFirst({
+            where: eq(plans.id, parseInt(organizationData.planId))
+          });
+          if (selectedPlan) {
+            planTier = selectedPlan.tier;
+          }
+        } catch (planError) {
+          console.error("Erro ao buscar plano:", planError);
+        }
+      }
+      
       const [organization] = await db.insert(organizations)
         .values({
           ...organizationData,
+          planTier, // Adicionar o tier do plano
           status: 'pending',
           createdAt: new Date()
         })
