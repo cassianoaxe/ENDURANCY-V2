@@ -322,8 +322,23 @@ app.use((req, res, next) => {
           // Usar any para evitar problemas com o TypeScript
           const org: any = global.mockOrganizations[orgIndex];
           org.status = "active";
-          org.planId = 6; // Usando um número em vez de null
-          org.planName = "Grow";
+          org.planId = planId; // Usar o planId recebido no request
+          
+          // Determinar o nome e tier do plano com base no ID
+          if (planId === 6) {
+            org.planName = "Pro";
+            org.planTier = "pro";
+          } else if (planId === 3) {
+            org.planName = "Grow";
+            org.planTier = "grow";
+          } else if (planId === 2) {
+            org.planName = "Seed";
+            org.planTier = "seed";
+          } else {
+            org.planName = "Básico";
+            org.planTier = "free";
+          }
+          
           // Remover flag de pendência
           org.requestedPlanId = undefined; 
           org.requestedPlanName = undefined;
@@ -343,7 +358,19 @@ app.use((req, res, next) => {
           
           // Configurar módulos baseados no plano selecionado
           console.log(`Configurando módulos para o plano ${org.planName}`);
-          if (org.planName === "Grow") {
+          if (org.planName === "Pro") {
+            console.log("- Módulo adicional: Análise Premium");
+            console.log("- Módulo adicional: Integrações Avançadas");
+            console.log("- Módulo adicional: Recursos Enterprise");
+            
+            // @ts-ignore - Adicionar módulos específicos do plano Pro
+            org.modules.push(
+              { id: 5, name: "Análise Premium", description: "Análises estatísticas premium", active: true },
+              { id: 6, name: "Integrações Avançadas", description: "Integrações com sistemas externos", active: true },
+              { id: 7, name: "Recursos Enterprise", description: "Recursos exclusivos para empresas", active: true }
+            );
+          }
+          else if (org.planName === "Grow") {
             console.log("- Módulo adicional: Análise Avançada");
             console.log("- Módulo adicional: Exportação de Relatórios");
             
@@ -379,7 +406,7 @@ app.use((req, res, next) => {
           message: "Solicitação de mudança de plano aprovada com sucesso. A organização foi criada e um e-mail de confirmação foi enviado ao administrador.",
           organizationId,
           planId,
-          planName: "Grow",
+          planName: planId === 6 ? "Pro" : "Grow",
           processed: true
         });
       } catch (error) {
