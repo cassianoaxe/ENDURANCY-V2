@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { insertOrganizationSchema, type InsertOrganization, type Plan } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard, Image } from "lucide-react";
 import { z } from "zod";
 import PlanSelection from "@/components/features/PlanSelection";
 // Removida importação do componente PaymentFormWrapper
@@ -32,6 +32,16 @@ export default function OrganizationRegistration() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
+  
+  // Estado para armazenar o nome do arquivo do estatuto/contrato
+  const [documentFileName, setDocumentFileName] = useState<string | null>(null);
+  
+  // Estado para armazenar a logomarca da organização
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoFileName, setLogoFileName] = useState<string | null>(null);
+  
+  // Estado para armazenar os dados após a validação
+  const [formDataSummary, setFormDataSummary] = useState<any>(null);
 
   // Fetch available plans
   const { data: plans } = useQuery<Plan[]>({
@@ -52,11 +62,19 @@ export default function OrganizationRegistration() {
   });
 
   const createOrganization = useMutation({
-    mutationFn: async (data: InsertOrganization & { document: File }) => {
+    mutationFn: async (data: InsertOrganization & { document: File, logo?: File }) => {
       const formData = new FormData();
+      // Adicionar documento principal
       formData.append('document', data.document);
+      
+      // Adicionar logomarca se disponível
+      if (data.logo) {
+        formData.append('logo', data.logo);
+      }
+      
+      // Adicionar os demais campos
       Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'document') {
+        if (key !== 'document' && key !== 'logo') {
           formData.append(key, String(value));
         }
       });
@@ -107,7 +125,19 @@ export default function OrganizationRegistration() {
     const currentStepValid = await form.trigger(fields);
     
     // Verificar se o passo atual é válido
-    if (currentStepValid && step < 4) {
+    if (currentStepValid && step < 5) {
+      // Se estiver no passo 4, preparar o resumo dos dados antes de ir para a confirmação
+      if (step === 4) {
+        const formData = form.getValues();
+        setFormDataSummary({
+          ...formData,
+          planName: selectedPlan?.name || '',
+          planPrice: selectedPlan?.price || '',
+          documentName: selectedFile?.name || '',
+          logoName: logoFile?.name || null,
+        });
+      }
+      
       // Sempre prosseguir para o próximo passo
       setStep(prev => prev + 1);
     }
@@ -147,8 +177,14 @@ export default function OrganizationRegistration() {
       return;
     }
 
-    // Criar organização com os dados do formulário
-    createOrganization.mutate({ ...form.getValues(), document: selectedFile });
+    // Criar organização com os dados do formulário e documentos
+    const formData = form.getValues();
+    // Adicionar logo se estiver disponível
+    if (logoFile) {
+      createOrganization.mutate({ ...formData, document: selectedFile, logo: logoFile });
+    } else {
+      createOrganization.mutate({ ...formData, document: selectedFile });
+    }
     
     toast({
       title: "Solicitação enviada",
@@ -189,8 +225,8 @@ export default function OrganizationRegistration() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-2 mb-8">
-        {['Informações Básicas', 'Dados da Organização', 'Escolha de Plano', 'Termos e Condições'].map((label, index) => (
+      <div className="grid grid-cols-5 gap-2 mb-8">
+        {['Informações Básicas', 'Dados da Organização', 'Escolha de Plano', 'Termos e Condições', 'Confirmação'].map((label, index) => (
           <div key={index} className="relative">
             <div
               className={`h-2 w-full rounded-full ${
@@ -359,7 +395,15 @@ export default function OrganizationRegistration() {
                     <div className="border-2 border-dashed rounded-lg p-4 text-center">
                       <input
                         type="file"
-                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setSelectedFile(file);
+                          if (file) {
+                            setDocumentFileName(file.name);
+                          } else {
+                            setDocumentFileName(null);
+                          }
+                        }}
                         className="hidden"
                         id="document-upload"
                         accept=".pdf,.doc,.docx"
@@ -450,6 +494,42 @@ export default function OrganizationRegistration() {
                       </FormItem>
                     )}
                   />
+                  
+                  <div className="col-span-1 md:col-span-2 mt-4 mb-4">
+                    <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setLogoFile(file);
+                          if (file) {
+                            setLogoFileName(file.name);
+                          } else {
+                            setLogoFileName(null);
+                          }
+                        }}
+                        className="hidden"
+                        id="logo-upload"
+                        accept=".jpg,.jpeg,.png,.svg"
+                      />
+                      <label
+                        htmlFor="logo-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="h-8 w-8 text-primary" />
+                        <span className="text-blue-600 hover:text-blue-800 font-medium">
+                          Upload da Logomarca
+                        </span>
+                        <span className="text-xs text-gray-500">Formatos aceitos: JPG, PNG, SVG</span>
+                      </label>
+                      {logoFile && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-green-600 bg-green-50 p-2 rounded">
+                          <FileText className="h-4 w-4" />
+                          <span className="text-sm">{logoFile.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="col-span-1 md:col-span-2 mt-6 mb-2">
                     <h3 className="text-lg font-medium">Dados Bancários</h3>
@@ -632,7 +712,7 @@ export default function OrganizationRegistration() {
               </Button>
             )}
             
-            {step < 4 ? (
+            {step < 5 ? (
               <Button 
                 type="button" 
                 onClick={nextStep}
@@ -664,6 +744,7 @@ export default function OrganizationRegistration() {
             )}
           </div>
           
+          {/* Mensagem de confirmação de upload do documento */}
           {Number(step) === 1 ? (
             <div className={`flex items-center gap-2 mt-4 p-2 rounded border ${
               selectedFile === null 
@@ -682,6 +763,106 @@ export default function OrganizationRegistration() {
                 </>
               )}
             </div>
+          ) : null}
+          
+          {/* Página de confirmação/resumo */}
+          {Number(step) === 5 && formDataSummary ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Confirmação dos Dados</CardTitle>
+                <CardDescription>Revise as informações antes de finalizar o registro</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Dados da Organização</h3>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="font-medium">Tipo:</div>
+                        <div>{formDataSummary.type}</div>
+                        <div className="font-medium">Nome:</div>
+                        <div>{formDataSummary.name}</div>
+                        <div className="font-medium">CNPJ:</div>
+                        <div>{formDataSummary.cnpj}</div>
+                        <div className="font-medium">Endereço:</div>
+                        <div>{formDataSummary.address}</div>
+                        <div className="font-medium">Cidade/Estado:</div>
+                        <div>{formDataSummary.city}/{formDataSummary.state}</div>
+                        <div className="font-medium">Telefone:</div>
+                        <div>{formDataSummary.phone}</div>
+                        <div className="font-medium">Website:</div>
+                        <div>{formDataSummary.website || 'Não informado'}</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Dados Bancários</h3>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="font-medium">Banco:</div>
+                        <div>{formDataSummary.bankName}</div>
+                        <div className="font-medium">Agência:</div>
+                        <div>{formDataSummary.bankBranch}</div>
+                        <div className="font-medium">Conta:</div>
+                        <div>{formDataSummary.bankAccount}</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Administrador</h3>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="font-medium">Nome:</div>
+                        <div>{formDataSummary.adminName}</div>
+                        <div className="font-medium">CPF:</div>
+                        <div>{formDataSummary.adminCpf}</div>
+                        <div className="font-medium">Email:</div>
+                        <div>{formDataSummary.email}</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Plano Selecionado</h3>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="font-medium">Plano:</div>
+                        <div>{formDataSummary.planName}</div>
+                        <div className="font-medium">Valor:</div>
+                        <div>R$ {formDataSummary.planPrice}/mês</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Arquivos</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <FileText className="h-4 w-4 text-green-600" />
+                          <span>{formDataSummary.documentName || 'Documento enviado'}</span>
+                        </div>
+                        {formDataSummary.logoName && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            <span>{formDataSummary.logoName}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-blue-800">Próximos passos</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Após a finalização do registro, sua solicitação será analisada pela nossa equipe. 
+                        Você receberá um e-mail de confirmação quando sua organização for aprovada.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : null}
         </form>
       </Form>
