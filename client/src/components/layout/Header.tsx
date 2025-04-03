@@ -44,21 +44,21 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 fixed top-0 right-0 left-[240px] bg-white border-b z-20">
+    <header className="h-16 sticky top-0 w-full bg-white border-b z-20">
       <div className="flex items-center justify-between h-full px-6">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2 text-sm text-gray-600 overflow-x-auto whitespace-nowrap">
           {isOrgPath && !isOrgLoading && organization?.logo ? (
-            <Avatar className="h-5 w-5 rounded-md mr-1">
+            <Avatar className="h-5 w-5 rounded-md mr-1 flex-shrink-0">
               <AvatarImage src={organization.logo} alt={organization.name || "Organização"} />
               <AvatarFallback className="rounded-md bg-[#e6f7e6]">
                 <Leaf className="h-3 w-3 text-green-600" />
               </AvatarFallback>
             </Avatar>
           ) : (
-            <Leaf className="h-4 w-4 text-green-600 mr-1" />
+            <Leaf className="h-4 w-4 text-green-600 mr-1 flex-shrink-0" />
           )}
           {getBreadcrumbs().map((crumb, index, array) => (
-            <div key={index} className="flex items-center">
+            <div key={index} className="flex items-center flex-shrink-0">
               <span>{crumb}</span>
               {index < array.length - 1 && (
                 <span className="mx-2">/</span>
