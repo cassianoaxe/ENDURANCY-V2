@@ -1676,6 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Buscando solicitações de mudança de plano...");
+      console.log("Usuário autenticado:", req.session.user);
       
       // Buscar organizações com solicitações de mudança de plano pendentes usando SQL bruto para depuração
       const pendingRequestsQuery = `
@@ -1689,8 +1690,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM organizations o
         LEFT JOIN plans cp ON o.plan_id = cp.id
         LEFT JOIN plans rp ON o.requested_plan_id = rp.id
-        WHERE o.status = 'pending_plan_change'
+        WHERE o.status = 'pending_plan_change' AND o.requested_plan_id IS NOT NULL
       `;
+      
+      // Query para diagnosticar organizações com status inconsistente
+      const diagnosticQuery = `
+        SELECT id, name, status, plan_id, requested_plan_id 
+        FROM organizations 
+        WHERE status = 'pending_plan_change' OR requested_plan_id IS NOT NULL
+      `;
+      const diagnosticResult = await pool.query(diagnosticQuery);
+      console.log("Diagnóstico de organizações com mudança de plano:", diagnosticResult.rows);
       
       const pendingRequestsResult = await pool.query(pendingRequestsQuery);
       const requests = pendingRequestsResult.rows;
