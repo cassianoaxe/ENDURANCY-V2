@@ -27,6 +27,8 @@ import integrationsRouter from './routes/integrations/index';
 // Importar rotas de grupos de usuários, permissões e convites
 import { registerUserGroupRoutes } from './routes/user-groups';
 import { registerUserInvitationsRoutes } from './routes/user-invitations';
+// Importar rotas para gerenciamento de planos
+import planChangesRouter from './routes/plan-changes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -3671,6 +3673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Rotas Administrativas
   app.use('/api/admin', adminRouter);
+  
+  // Rotas para gestão de planos e solicitações
+  app.use('/api', planChangesRouter);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
