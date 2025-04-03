@@ -541,6 +541,10 @@ app.use((req, res, next) => {
   
   console.log("Rotas estáticas de teste instaladas para solicitações de plano");
   
+  // Registrar diretamente as rotas para mudanças de plano
+  // Já estão incluídas via registerRoutes abaixo
+  console.log("Rotas de mudança de plano registradas via registerRoutes:");
+
   const server = await registerRoutes(app);
 
   // Inicializar dados de exemplo para tickets
