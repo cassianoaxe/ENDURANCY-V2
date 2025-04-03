@@ -1118,7 +1118,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = orgModules.map(orgModule => {
         const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId);
         return {
-          ...orgModule,
+          id: orgModule.id,
+          organizationId: orgModule.organizationId, 
+          moduleId: orgModule.moduleId,
+          planId: orgModule.planId,
+          status: orgModule.status,
+          active: orgModule.active,
+          startDate: orgModule.startDate,
+          expiryDate: orgModule.expiryDate,
+          createdAt: orgModule.createdAt,
+          updatedAt: orgModule.updatedAt,
           // Adicionamos as propriedades do módulo explicitamente no objeto retornado
           name: moduleInfo?.name || 'Módulo desconhecido',
           description: moduleInfo?.description || 'Sem descrição',
@@ -1226,15 +1235,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Adicionar o módulo à organização com status pendente
-      // Remover o campo moduleType que não existe na tabela
+      // Remover campos que não existem na tabela
       const [newOrgModule] = await db.insert(organizationModules)
         .values({
           organizationId: parseInt(organizationId),
           moduleId: moduleData.id,
           status: 'pending',
           active: false,
-          name: moduleData.name, // Usamos o nome do módulo da tabela modules
-          requestDate: new Date()
+          createdAt: new Date(),
+          updatedAt: new Date()
         })
         .returning();
       
