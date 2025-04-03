@@ -35,13 +35,13 @@ export default function Requests() {
     refetchOnWindowFocus: false,
   });
   
-  // Fetch all plan change requests - usando nova endpoint direta em index.ts
+  // Fetch all plan change requests
   const { data: planChangeData, isLoading: isLoadingPlanChanges } = useQuery<{
     success: boolean;
     totalRequests: number;
     requests: PlanChangeRequest[];
   }>({
-    queryKey: ['/api/plan-change-requests-static-direct'],
+    queryKey: ['/api/plan-change-requests'],
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       console.log("Dados de solicitações de mudança de plano recebidos:", data);
@@ -188,10 +188,11 @@ export default function Requests() {
         planId: requestData?.requestedPlanId
       });
       
-      // Mudando para usar o endpoint correto com o parâmetro de ação na URL
+      // Usar endpoint nas rotas definidas em plan-changes.ts
+      console.log("Usando rota de aprovação em /api/plan-change-requests/approve");
       const res = await apiRequest("POST", `/api/plan-change-requests/approve`, { 
         organizationId: orgId,
-        planId: requestData?.requestedPlanId
+        planId: requestData?.requestedPlanId 
       });
       
       // Tentar interpretar a resposta para debug
@@ -206,7 +207,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static-direct'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano aprovada!",
@@ -252,7 +253,7 @@ export default function Requests() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests-static-direct'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       toast({
         title: "Mudança de plano rejeitada",
@@ -426,38 +427,16 @@ export default function Requests() {
                                     disabled={approveOrganization.isPending}
                                     className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                   >
-                                    {approveOrganization.isPending ? (
-                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                    ) : null}
-                                    Aprovar
+                                    <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
                                   </Button>
                                   <Button 
                                     variant="outline" 
-                                    size="sm"
+                                    size="sm" 
                                     onClick={() => rejectOrganization.mutate(req.id)}
                                     disabled={rejectOrganization.isPending}
                                     className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                                   >
-                                    {rejectOrganization.isPending ? (
-                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                    ) : null}
-                                    Rejeitar
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="text-blue-600"
-                                    onClick={() => {
-                                      // Aqui mostraria o documento da organização
-                                      toast({
-                                        title: "Visualizando documento",
-                                        description: "Documento da organização sendo aberto...",
-                                      });
-                                      // Em um sistema real, isso abriria o documento em nova janela
-                                      window.open(`/api/organizations/${req.id}/document`, '_blank');
-                                    }}
-                                  >
-                                    Ver Documento
+                                    <XCircle className="h-4 w-4 mr-1" /> Rejeitar
                                   </Button>
                                 </>
                               ) : (
@@ -470,48 +449,24 @@ export default function Requests() {
                                     disabled={approvePlanChange.isPending}
                                     className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                   >
-                                    {approvePlanChange.isPending ? (
-                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                    ) : null}
-                                    Aprovar
+                                    <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
                                   </Button>
                                   <Button 
                                     variant="outline" 
-                                    size="sm"
+                                    size="sm" 
                                     onClick={() => rejectPlanChange.mutate(req.id)}
                                     disabled={rejectPlanChange.isPending}
                                     className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
                                   >
-                                    {rejectPlanChange.isPending ? (
-                                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                    ) : null}
-                                    Rejeitar
+                                    <XCircle className="h-4 w-4 mr-1" /> Rejeitar
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="text-blue-600"
-                                    onClick={() => {
-                                      // Mostrar detalhes da mudança de plano
-                                      console.log("Detalhe do request:", req);
-                                      
-                                      // Verificar se é uma solicitação de mudança de plano
-                                      if (req.requestType === 'plan_change') {
-                                        const planChangeReq = req as any; // Cast temporário para acessar as propriedades
-                                        toast({
-                                          title: "Detalhes da mudança de plano",
-                                          description: `Plano atual: ${planChangeReq.currentPlanName || 'Desconhecido'} → Plano solicitado: ${planChangeReq.requestedPlanName || 'Desconhecido'}`,
-                                        });
-                                      } else {
-                                        toast({
-                                          title: "Detalhes da solicitação",
-                                          description: `Tipo: ${req.requestType === 'registration' ? 'Registro de organização' : req.requestType}`,
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    Ver Detalhes
-                                  </Button>
+                                  <div className="w-full mt-1 text-xs text-gray-500">
+                                    {isPlanChangeRequest && (
+                                      <span>
+                                        {req.currentPlanName} → {req.requestedPlanName}
+                                      </span>
+                                    )}
+                                  </div>
                                 </>
                               )}
                             </div>
