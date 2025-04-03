@@ -13,8 +13,8 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard } from "lucide-react";
 import { z } from "zod";
 import PlanSelection from "@/components/features/PlanSelection";
-import { PaymentFormWrapper } from "@/components/features/PaymentForm";
-import { confirmPlanPayment } from "@/lib/stripeClient";
+// Removida importação do componente PaymentFormWrapper
+// Removida importação de confirmPlanPayment pois não é mais necessária
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
@@ -28,11 +28,10 @@ export default function OrganizationRegistration() {
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   // Fetch available plans
   const { data: plans } = useQuery<Plan[]>({
@@ -48,7 +47,7 @@ export default function OrganizationRegistration() {
       termsAccepted: false,
       adminName: '',
       website: '',
-      plan: '',
+      planId: 0,
     }
   });
 
@@ -77,23 +76,18 @@ export default function OrganizationRegistration() {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       setOrganizationId(data.id);
       
-      // If registrationComplete is true, it means the user has already paid
-      if (paymentIntentId && registrationComplete) {
-        confirmPaymentAndFinish(paymentIntentId, data.id);
+      toast({
+        title: "Organização criada com sucesso!",
+        description: "Aguarde a aprovação da administração.",
+      });
+      
+      // Se o usuário atual for admin, redirecionar para a página de solicitações
+      // caso contrário, redirecionar para a página de confirmação
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser && currentUser.role === 'admin') {
+        navigate('/requests');
       } else {
-        toast({
-          title: "Organização criada com sucesso!",
-          description: "Aguarde a aprovação da administração.",
-        });
-        
-        // Se o usuário atual for admin, redirecionar para a página de solicitações
-        // caso contrário, redirecionar para a página de confirmação
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (currentUser && currentUser.role === 'admin') {
-          navigate('/requests');
-        } else {
-          navigate('/organization-confirmation');
-        }
+        navigate('/organization-confirmation');
       }
     },
     onError: (error) => {
@@ -106,68 +100,15 @@ export default function OrganizationRegistration() {
     },
   });
 
-  // Mutation for confirming payment
-  const confirmPaymentMutation = useMutation({
-    mutationFn: async ({ paymentIntentId, organizationId }: { paymentIntentId: string; organizationId: number }) => {
-      return confirmPlanPayment(paymentIntentId, organizationId);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Pagamento confirmado!",
-        description: "Organização registrada com sucesso.",
-      });
-      
-      // Se o usuário atual for admin, redirecionar para a página de solicitações
-      // caso contrário, redirecionar para a página de confirmação
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      if (currentUser && currentUser.role === 'admin') {
-        navigate('/requests');
-      } else {
-        navigate('/organization-confirmation');
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao confirmar pagamento",
-        description: "Por favor, entre em contato com o suporte.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const confirmPaymentAndFinish = (paymentIntentId: string, organizationId: number) => {
-    confirmPaymentMutation.mutate({ paymentIntentId, organizationId });
-  };
-
-  // Esta função não é mais necessária, pois a lógica foi movida para o onPaymentSuccess
-  // da PaymentFormWrapper
-  const handlePaymentSuccess = (paymentIntentId: string) => {
-    // Manter este método para compatibilidade, mas usar a lógica dentro do componente
-    console.log("Payment success handled via onPaymentSuccess callback");
-  };
+  // Removida toda a lógica de pagamento, pois não é mais necessária
 
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
     const currentStepValid = await form.trigger(fields);
     
-    // Verificar se está saindo do passo 3 (seleção de plano)
-    if (currentStepValid && step === 3) {
-      const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
-      
-      // Se não for admin e não tiver pagamento, impedir de avançar
-      if (!isAdmin && !paymentIntentId && !registrationComplete) {
-        toast({
-          title: "Pagamento necessário",
-          description: "Por favor, complete o pagamento antes de continuar.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Se for admin, pode prosseguir sem pagamento
-      setStep(4);
-    } 
-    else if (currentStepValid && step < 4) {
+    // Verificar se o passo atual é válido
+    if (currentStepValid && step < 4) {
+      // Sempre prosseguir para o próximo passo
       setStep(prev => prev + 1);
     }
   };
@@ -175,18 +116,16 @@ export default function OrganizationRegistration() {
   const prevStep = () => {
     if (step > 1) setStep(prev => prev - 1);
     
-    // Reset plan selection and payment form state when going back from step 3
+    // Reset plan selection state when going back from step 3
     if (step === 3) {
       setShowPlanSelection(false);
-      setShowPaymentForm(false);
     }
   };
 
   const handlePlanSelect = (plan: Plan) => {
     setSelectedPlan(plan);
-    form.setValue('plan', plan.name); // Set the plan name in the form
+    form.setValue('planId', plan.id); // Set the plan ID in the form
     setShowPlanSelection(false);
-    setShowPaymentForm(true);
   };
 
   const submitOrganization = () => {
@@ -208,21 +147,13 @@ export default function OrganizationRegistration() {
       return;
     }
 
-    // Verificar se é admin para permitir cadastro sem pagamento
-    const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
+    // Criar organização com os dados do formulário
+    createOrganization.mutate({ ...form.getValues(), document: selectedFile });
     
-    // Se for admin ou já tiver feito pagamento, prosseguir
-    if (isAdmin || paymentIntentId || registrationComplete) {
-      createOrganization.mutate({ ...form.getValues(), document: selectedFile });
-    } else {
-      // Se não for admin e não tiver feito pagamento, mostrar mensagem
-      toast({
-        title: "Pagamento necessário",
-        description: "Por favor, conclua o processo de pagamento antes de finalizar o registro.",
-        variant: "destructive",
-      });
-      setStep(3); // Redirecionar para a etapa de pagamento
-    }
+    toast({
+      title: "Solicitação enviada",
+      description: "Sua solicitação de registro foi enviada com sucesso e está em análise.",
+    });
   };
 
   const onSubmit = async (data: InsertOrganization) => {
@@ -237,7 +168,7 @@ export default function OrganizationRegistration() {
       case 2:
         return ['name', 'address', 'city', 'state', 'bankName', 'bankBranch', 'bankAccount'];
       case 3:
-        return ['plan'];
+        return ['planId'];
       case 4:
         return ['termsAccepted'];
       default:
@@ -584,7 +515,7 @@ export default function OrganizationRegistration() {
                     {/* Formulário escondido para o valor do plano */}
                     <FormField
                       control={form.control}
-                      name="plan"
+                      name="planId"
                       render={({ field }) => (
                         <FormItem className="hidden">
                           <FormControl>
@@ -599,22 +530,14 @@ export default function OrganizationRegistration() {
                       onPlanSelected={(plan) => {
                         setSelectedPlan(plan);
                         // Atualizar o formulário com o plano selecionado
-                        form.setValue('plan', plan.name);
+                        form.setValue('planId', plan.id);
                         
                         // Se for admin, NUNCA mostrar pagamento
                         const isAdmin = JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin';
-                        if (isAdmin) {
-                          toast({
-                            title: "Plano selecionado",
-                            description: "Você selecionou o plano " + plan.name,
-                          });
-                          
-                          // No caso de admin, não mostra pagamento e continua para o próximo passo
-                          // setShowPaymentForm(false);
-                        } else {
-                          // Para usuários normais, mostrar formulário de pagamento
-                          setShowPaymentForm(true);
-                        }
+                        toast({
+                          title: "Plano selecionado",
+                          description: "Você selecionou o plano " + plan.name,
+                        });
                       }}
                       onBack={() => {
                         // Voltar ao passo anterior no fluxo
@@ -623,52 +546,31 @@ export default function OrganizationRegistration() {
                     />
                   </div>
                   
-                  {/* Mensagem para admin sobre pagamento não ser necessário */}
-                  {JSON.parse(localStorage.getItem('user') || '{}')?.role === 'admin' && selectedPlan && !showPaymentForm && (
+                  {/* Mensagem de plano selecionado */}
+                  {selectedPlan && (
                     <div className="flex flex-col items-center mt-4">
                       <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-3 rounded w-full max-w-md">
                         <Check className="h-5 w-5" />
-                        <span>Cadastros feitos pelo administrador não exigem pagamento.</span>
+                        <span>Plano selecionado com sucesso!</span>
                       </div>
-                    </div>
-                  )}
-                  
-                  {paymentIntentId && (
-                    <div className="flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded w-full max-w-md mt-4 mx-auto">
-                      <Check className="h-4 w-4" />
-                      <span className="text-sm">Pagamento confirmado!</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
               
-              {/* Formulário de Pagamento */}
-              {showPaymentForm && selectedPlan && (
-                <div className="mt-6">
-                  <PaymentFormWrapper
-                    planId={selectedPlan.id}
-                    selectedPlan={selectedPlan}
-                    onPaymentSuccess={(paymentId) => {
-                      setPaymentIntentId(paymentId);
-                      setRegistrationComplete(true);
-                      
-                      // Se a organização já foi criada, confirmar o pagamento
-                      if (organizationId) {
-                        confirmPaymentAndFinish(paymentId, organizationId);
-                      } else {
-                        // Se não, criar a organização primeiro
-                        submitOrganization();
-                      }
-                      
-                      toast({
-                        title: "Pagamento confirmado!",
-                        description: "Seu pagamento foi processado com sucesso.",
-                      });
-                    }}
-                    onBack={() => {
-                      setShowPaymentForm(false);
-                    }}
-                  />
+              {/* Mensagem de seleção de plano com sucesso */}
+              {selectedPlan && (
+                <div className="flex flex-col items-center mt-4">
+                  <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-3 rounded w-full max-w-md">
+                    <Check className="h-5 w-5" />
+                    <span>Plano selecionado com sucesso: {selectedPlan.name}</span>
+                  </div>
+                  <Button 
+                    className="mt-4" 
+                    onClick={() => nextStep()}
+                  >
+                    Continuar <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </div>
               )}
             </div>
