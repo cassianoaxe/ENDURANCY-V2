@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import OrganizationSidebar from "./OrganizationSidebar";
@@ -10,19 +9,6 @@ interface OrganizationLayoutProps {
 
 export default function OrganizationLayout({ children }: OrganizationLayoutProps) {
   const { isLoading, user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // Close mobile menu when screen size changes to desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   if (isLoading) {
     return (
@@ -50,25 +36,11 @@ export default function OrganizationLayout({ children }: OrganizationLayoutProps
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
-      {/* Sidebar for desktop */}
-      <div className="hidden lg:block">
-        <OrganizationSidebar />
-      </div>
-      
-      {/* Mobile sidebar (conditionally rendered) */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/30" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white">
-            <OrganizationSidebar />
-          </div>
-        </div>
-      )}
-      
+    <div className="flex min-h-screen bg-gray-50">
+      <OrganizationSidebar />
       <div className="flex-1 flex flex-col">
-        <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
-        <main className="flex-1 w-full p-4 md:p-6">
+        <Header />
+        <main className="flex-1 p-6 pt-4 overflow-auto mt-16">
           {children}
         </main>
       </div>
