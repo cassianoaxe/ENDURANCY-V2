@@ -1068,8 +1068,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organization-modules/:orgId", async (req, res) => {
     try {
       const { orgId } = req.params;
+      const organizationId = parseInt(orgId);
       
       console.log("Buscando módulos para organização:", orgId);
+      
+      // Verificar primeiro se temos um mock em server/index.ts
+      if (global.mockOrganizations) {
+        // @ts-ignore - mockOrganizations é adicionado ao objeto global em server/index.ts
+        const mockOrg = global.mockOrganizations.find(o => o.id === organizationId);
+        if (mockOrg && mockOrg.modules) {
+          console.log(`Retornando ${mockOrg.modules.length} módulos mockados para organização ${organizationId}`);
+          return res.json(mockOrg.modules);
+        }
+      }
       
       // Verificar se a tabela existe e suas colunas
       try {
