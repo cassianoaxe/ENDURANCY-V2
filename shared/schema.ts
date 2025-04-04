@@ -182,6 +182,14 @@ export const modulePlans = pgTable("module_plans", {
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tabela de associação entre planos e módulos
+export const planModules = pgTable("plan_modules", {
+  id: serial("id").primaryKey(),
+  plan_id: integer("plan_id").notNull(),
+  module_id: integer("module_id").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Tabela de associação entre organizações e módulos contratados
 export const moduleStatusEnum = pgEnum('module_status', ['active', 'pending', 'cancelled']);
 
@@ -388,12 +396,19 @@ export const insertOrganizationModuleSchema = createInsertSchema(organizationMod
   expiryDate: true,
 });
 
+export const insertPlanModuleSchema = createInsertSchema(planModules).pick({
+  plan_id: true,
+  module_id: true,
+});
+
 export type Module = typeof modules.$inferSelect;
 export type InsertModule = z.infer<typeof insertModuleSchema>;
 export type ModulePlan = typeof modulePlans.$inferSelect;
 export type InsertModulePlan = z.infer<typeof insertModulePlanSchema>;
 export type OrganizationModule = typeof organizationModules.$inferSelect;
 export type InsertOrganizationModule = z.infer<typeof insertOrganizationModuleSchema>;
+export type PlanModule = typeof planModules.$inferSelect;
+export type InsertPlanModule = z.infer<typeof insertPlanModuleSchema>;
 
 // Enums para o módulo financeiro
 export const transactionTypeEnum = pgEnum('transaction_type', ['receita', 'despesa']);
