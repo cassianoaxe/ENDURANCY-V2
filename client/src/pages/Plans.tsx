@@ -38,6 +38,13 @@ import {
 
 export default function Plans() {
   const [, navigate] = useLocation();
+  
+  // Função para navegar para a criação de planos
+  const goToCreatePlan = () => {
+    console.log("Navegando para /plans/create");
+    window.history.pushState({}, '', '/plans/create');
+    window.dispatchEvent(new Event('popstate'));
+  };
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("todos");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -127,7 +134,7 @@ export default function Plans() {
             <h1 className="text-2xl font-bold">Planos</h1>
             <p className="text-muted-foreground">Gerencie os planos e assinaturas disponíveis na plataforma.</p>
           </div>
-          <Button onClick={() => navigate("/plans/create")}>
+          <Button onClick={goToCreatePlan}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Novo Plano
           </Button>
@@ -314,7 +321,7 @@ export default function Plans() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center h-64">
                   <p className="text-lg text-muted-foreground mb-4">Nenhum plano encontrado nesta categoria.</p>
-                  <Button onClick={() => navigate("/plans/create")}>
+                  <Button onClick={goToCreatePlan}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Criar Plano {activeTab !== 'todos' ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : ''}
                   </Button>
