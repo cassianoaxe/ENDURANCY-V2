@@ -18,6 +18,7 @@ import ActivityLog from "@/pages/ActivityLog";
 import Backups from "@/pages/Backups";
 import Emergencies from "@/pages/Emergencies";
 import Plans from "@/pages/Plans";
+import PlanSettings from "@/pages/plans/settings";
 import Modules from "@/pages/Modules";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
@@ -415,7 +416,7 @@ function AppContent() {
   // Lista de rotas administrativas
   const adminRoutes = [
     '/analytics', '/activity-log', '/backups', '/emergencies', 
-    '/plans', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
+    '/plans', '/plans/settings', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
     '/user-groups', '/user-invitations', '/module-subscription-sales',
@@ -467,6 +468,7 @@ function AppContent() {
       case '/backups': Component = Backups; break;
       case '/emergencies': Component = Emergencies; break;
       case '/plans': Component = Plans; break;
+      case '/plans/settings': Component = PlanSettings; break;
       case '/modules': Component = Modules; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
