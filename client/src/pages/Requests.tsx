@@ -79,15 +79,34 @@ export default function Requests() {
   });
   
   // Todos os pedidos pendentes (registros + mudanças de plano)
-  const allPendingRequests = [
+  // Criar interfaces completas para garantir consistência
+  interface PendingRequest {
+    id: number;
+    name: string;
+    type: string;
+    email: string;
+    status: string;
+    requestType: 'registration' | 'plan_change';
+    date: string | Date;
+    currentPlanId?: number;
+    requestedPlanId?: number;
+    currentPlanName?: string;
+    requestedPlanName?: string;
+  }
+
+  const allPendingRequests: PendingRequest[] = [
     ...pendingRegistrations.map(org => ({
       id: org.id,
       name: org.name,
       type: org.type,
       email: org.email,
       status: org.status,
-      requestType: 'registration',
-      date: org.createdAt
+      requestType: 'registration' as const,
+      date: org.createdAt,
+      currentPlanId: org.planId,
+      requestedPlanId: org.planId, // Para novos registros, o plano atual é o mesmo que o solicitado
+      currentPlanName: org.plan,
+      requestedPlanName: org.plan
     }))
   ];
   
@@ -104,8 +123,8 @@ export default function Requests() {
         name: req.name || 'Organização sem nome',
         type: req.type || 'Organização',
         email: req.email || 'sem-email@example.com',
-        status: 'pending',
-        requestType: 'plan_change',
+        status: req.status || 'pending_plan_change',
+        requestType: 'plan_change' as const,
         date: req.requestDate || new Date(),
         currentPlanId: req.currentPlanId,
         requestedPlanId: req.requestedPlanId,
