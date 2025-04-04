@@ -230,7 +230,8 @@ function AppContent() {
   // Verificar rota de edição de planos (/plans/123/edit)
   const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
   if (planEditMatch && userRole === 'admin') {
-    console.log("Editando plano com ID:", planEditMatch[1]);
+    const planId = planEditMatch[1];
+    console.log("Editando plano com ID:", planId);
     return (
       <Layout>
         <EditPlan />
@@ -241,14 +242,14 @@ function AppContent() {
   // Verificar rota de detalhes de planos (/plans/123)
   const planDetailMatch = currentPath.match(/^\/plans\/(\d+)$/);
   if (planDetailMatch && userRole === 'admin') {
-    // Se quisermos ter uma página de detalhes específica para planos no futuro
-    // Por enquanto redirecionamos para a lista de planos
-    console.log("Visualizando detalhes do plano:", planDetailMatch[1]);
-    window.history.pushState({}, '', '/plans');
+    const planId = planDetailMatch[1];
+    console.log("Visualizando detalhes do plano:", planId);
+    // Redirecionar para edição do plano
+    window.history.pushState({}, '', `/plans/${planId}/edit`);
     window.dispatchEvent(new Event('popstate'));
     return (
       <Layout>
-        <Plans />
+        <EditPlan />
       </Layout>
     );
   }
@@ -565,7 +566,7 @@ function AppContent() {
     
     return (
       <Layout>
-        <Component />
+        {Component && (typeof Component === 'function' ? <Component /> : Component)}
       </Layout>
     );
   }
