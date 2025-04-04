@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
+  planModules, insertPlanModuleSchema,
   // Imports para o módulo financeiro
   financialTransactions, financialCategories, employees, payroll, vacations, financialReports,
   insertFinancialTransactionSchema, insertFinancialCategorySchema, insertEmployeeSchema,
@@ -18,7 +19,7 @@ import {
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
-import { inArray } from "drizzle-orm";
+import { inArray, and, eq, sql, desc, asc, gte, lte } from "drizzle-orm";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
 // Importar rotas de integração
@@ -34,7 +35,6 @@ import modulesRouter from './routes/modules';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
-import { eq, and, sql, desc, asc, gte, lte } from "drizzle-orm";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
@@ -1077,6 +1077,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching module plans:", error);
       res.status(500).json({ message: "Failed to fetch module plans" });
+    }
+  });
+  
+  // Plan-Modules (Relações entre Planos e Módulos)
+  app.get("/api/plan-modules", async (_req, res) => {
+    try {
+      const planModulesList = await db.select().from(planModules);
+      res.json(planModulesList);
+    } catch (error) {
+      console.error("Error fetching plan modules:", error);
+      res.status(500).json({ message: "Failed to fetch plan modules" });
+    }
+  });
+  
+  app.post("/api/plan-modules", authenticate, async (req, res) => {
+    try {
+      const validation = insertPlanModuleSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Dados inválidos', 
+          errors: validation.error.errors 
+        });
+      }
+
+      // Verificar se já existe uma relação entre este plano e módulo
+      const existingRelation = await db
+        .select()
+        .from(planModules)
+        .where(
+          and(
+            eq(planModules.plan_id, validation.data.plan_id),
+            eq(planModules.module_id, validation.data.module_id)
+          )
+        );
+      
+      if (existingRelation.length > 0) {
+        return res.status(400).json({ 
+          message: 'Esta relação plano-módulo já existe' 
+        });
+      }
+
+      const newPlanModule = await db
+        .insert(planModules)
+        .values(validation.data)
+        .returning();
+      
+      res.status(201).json(newPlanModule[0]);
+    } catch (error) {
+      console.error('Erro ao criar relação plano-módulo:', error);
+      res.status(500).json({ message: 'Falha ao criar relação plano-módulo' });
+    }
+  });
+  
+  app.delete("/api/plan-modules/:id", authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const deletedPlanModule = await db
+        .delete(planModules)
+        .where(eq(planModules.id, parseInt(id)))
+        .returning();
+      
+      if (deletedPlanModule.length === 0) {
+        return res.status(404).json({ message: 'Relação plano-módulo não encontrada' });
+      }
+      
+      res.json({ message: 'Relação plano-módulo removida com sucesso' });
+    } catch (error) {
+      console.error('Erro ao remover relação plano-módulo:', error);
+      res.status(500).json({ message: 'Falha ao remover relação plano-módulo' });
     }
   });
 
