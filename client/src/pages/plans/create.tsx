@@ -174,8 +174,12 @@ export default function CreatePlan() {
         <div className="flex items-center mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate("/plans")} 
+            onClick={() => {
+              window.history.pushState({}, '', '/plans');
+              window.dispatchEvent(new Event('popstate'));
+            }} 
             className="mr-4"
+            type="button"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para Planos
@@ -456,34 +460,38 @@ export default function CreatePlan() {
                     )}
                   />
                 )}
-
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("/plans")}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={createPlanMutation.isPending}
-                  >
-                    {createPlanMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Criando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Criar Plano
-                      </>
-                    )}
-                  </Button>
-                </div>
               </form>
             </Form>
           </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                window.history.pushState({}, '', '/plans');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={createPlanMutation.isPending}
+            >
+              {createPlanMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Criar Plano
+                </>
+              )}
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </Layout>
