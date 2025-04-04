@@ -206,13 +206,32 @@ export default function Requests() {
         throw new Error(`Falha na resposta da API: ${responseText}`);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      
       toast({
         title: "Mudança de plano aprovada!",
-        description: "A solicitação de mudança de plano foi aprovada com sucesso.",
+        description: "A solicitação de mudança de plano foi aprovada com sucesso e um e-mail de confirmação foi enviado ao usuário.",
       });
+      
+      // Mostrar detalhes adicionais se disponíveis na resposta
+      if (data?.modulesAdded) {
+        toast({
+          title: "Módulos configurados",
+          description: `${data.modulesAdded} módulos foram adicionados à organização de acordo com o plano escolhido.`,
+          variant: "default"
+        });
+      }
+      
+      // Informar sobre o redirecionamento para o login
+      setTimeout(() => {
+        toast({
+          title: "Sistema reiniciado",
+          description: "O usuário precisará fazer login novamente para acessar os novos recursos.",
+          variant: "default"
+        });
+      }, 1000);
     },
     onError: (error) => {
       console.error("Erro ao aprovar mudança de plano:", error);
@@ -252,13 +271,23 @@ export default function Requests() {
         throw new Error(`Falha na resposta da API de rejeição: ${responseText}`);
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      
       toast({
         title: "Mudança de plano rejeitada",
-        description: "A solicitação de mudança de plano foi rejeitada.",
+        description: "A solicitação de mudança de plano foi rejeitada e um e-mail de notificação foi enviado ao usuário.",
       });
+      
+      // Informar sobre o redirecionamento para o login
+      setTimeout(() => {
+        toast({
+          title: "Sistema atualizado",
+          description: "O usuário foi notificado e precisará fazer login novamente para continuar usando o sistema.",
+          variant: "default"
+        });
+      }, 1000);
     },
     onError: (error) => {
       console.error("Erro ao rejeitar mudança de plano:", error);

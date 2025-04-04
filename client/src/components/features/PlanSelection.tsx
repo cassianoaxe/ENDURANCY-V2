@@ -25,6 +25,7 @@ export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionP
         const plansData = await fetchPlans();
         
         // Filtrar apenas os planos específicos: Freemium/Básico, Seed, Grow e Pro
+        // (Excluindo planos Enterprise ou personalizados)
         const filteredPlans = plansData.filter(plan => 
           plan.tier === 'free' || 
           plan.tier === 'seed' || 
@@ -38,6 +39,7 @@ export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionP
           return tierOrder[a.tier] - tierOrder[b.tier];
         });
         
+        console.log("Planos carregados e ordenados:", sortedPlans);
         setPlans(sortedPlans);
         
         // Select the first plan by default if there are plans
