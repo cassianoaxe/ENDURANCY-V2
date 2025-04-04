@@ -568,10 +568,36 @@ export default function OrganizationRegistration() {
                         type="file"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
-                          setLogoFile(file);
+                          
+                          // Validar o arquivo antes de definir
                           if (file) {
+                            // Verificar se o tamanho do arquivo é aceitável (limite de 2MB)
+                            if (file.size > 2 * 1024 * 1024) {
+                              toast({
+                                title: "Arquivo muito grande",
+                                description: "O tamanho máximo permitido é 2MB. Por favor, escolha um arquivo menor.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            
+                            // Verificar se o tipo de arquivo é permitido
+                            const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+                            if (!allowedTypes.includes(file.type)) {
+                              toast({
+                                title: "Formato não suportado",
+                                description: "Por favor, envie uma imagem nos formatos JPG, PNG ou SVG.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                            
+                            // Se passou nas validações, definir o arquivo
+                            setLogoFile(file);
                             setLogoFileName(file.name);
+                            console.log("Logo selecionado:", file.name, "Tipo:", file.type, "Tamanho:", Math.round(file.size / 1024), "KB");
                           } else {
+                            setLogoFile(null);
                             setLogoFileName(null);
                           }
                         }}
