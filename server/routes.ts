@@ -2068,8 +2068,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Função para atualizar arquivo JSON com lista de solicitações
+  async function updatePlanChangeRequestsFile() {
+    try {
+      // Buscar organizações com solicitações de mudança de plano pendentes
+      const pendingRequestsQuery = `
+        SELECT 
+          o.id, 
+          o.name, 
+          o.type, 
+          o.email, 
+          o.status, 
+          o.plan_id as "currentPlanId", 
+          CASE 
+            WHEN o.status = 'pending' THEN o.plan_id
+            ELSE o.requested_plan_id 
+          END as "requestedPlanId", 
+          o.updated_at as "requestDate",
+          COALESCE(cp.name, 'Sem plano') as "currentPlanName",
+          COALESCE(
+            CASE 
+              WHEN o.status = 'pending' THEN cp.name
+              ELSE rp.name 
+            END, 
+            'Plano não encontrado'
+          ) as "requestedPlanName",
+          CASE 
+            WHEN o.status = 'pending' THEN 'nova_organizacao'
+            ELSE 'mudanca_plano' 
+          END as "requestType"
+        FROM organizations o
+        LEFT JOIN plans cp ON o.plan_id = cp.id
+        LEFT JOIN plans rp ON o.requested_plan_id = rp.id
+        WHERE o.status = 'pending_plan_change' OR o.status = 'pending'
+      `;
+      
+      const pendingRequestsResult = await pool.query(pendingRequestsQuery);
+      const requests = pendingRequestsResult.rows;
+      
+      console.log("Gerando arquivo JSON de solicitações. Total:", requests.length);
+      
+      // Formatar as requisições para garantir todos os campos
+      const enhancedRequests = requests.map(req => ({
+        ...req,
+        id: req.id,
+        name: req.name || 'Nome não encontrado',
+        type: req.type || 'Tipo não especificado',
+        email: req.email || 'Email não especificado',
+        status: req.status || 'pending_plan_change',
+        requestType: req.requestType || 'mudanca_plano',
+        currentPlanId: req.currentPlanId || null,
+        requestedPlanId: req.requestedPlanId || null,
+        requestDate: req.requestDate || new Date(),
+        currentPlanName: req.currentPlanName || 'Plano não especificado',
+        requestedPlanName: req.requestedPlanName || 'Plano não especificado'
+      }));
+      
+      const response = {
+        success: true,
+        totalRequests: enhancedRequests.length,
+        requests: enhancedRequests,
+        updateTime: new Date()
+      };
+      
+      // Salvar em arquivo
+      const fs = require('fs').promises;
+      await fs.writeFile(
+        './uploads/data/plan_change_requests.json', 
+        JSON.stringify(response, null, 2),
+        'utf8'
+      );
+      console.log("Arquivo de solicitações de plano atualizado com sucesso");
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar arquivo de solicitações:", error);
+      return false;
+    }
+  }
+  
+  // Atualizar arquivo de solicitações a cada 30 segundos
+  setInterval(updatePlanChangeRequestsFile, 30000);
+  
+  // Atualizar imediatamente na inicialização
+  updatePlanChangeRequestsFile();
+  
+  // Rota alternativa para obter solicitações de mudança de plano (para contornar problemas com o Vite)
+  app.get("/get_plan_change_requests.json", async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+      console.log("==== ACESSANDO ROTA DIRETA DE SOLICITAÇÕES DE PLANO ====");
+      
+      if (!req.session?.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ 
+          message: "Não autorizado. Apenas administradores podem visualizar solicitações de mudança de plano.",
+          userRole: req.session?.user?.role || "sem_role" 
+        });
+      }
+      
+      // Buscar organizações com solicitações de mudança de plano pendentes
+      const pendingRequestsQuery = `
+        SELECT 
+          o.id, 
+          o.name, 
+          o.type, 
+          o.email, 
+          o.status, 
+          o.plan_id as "currentPlanId", 
+          CASE 
+            WHEN o.status = 'pending' THEN o.plan_id
+            ELSE o.requested_plan_id 
+          END as "requestedPlanId", 
+          o.updated_at as "requestDate",
+          COALESCE(cp.name, 'Sem plano') as "currentPlanName",
+          COALESCE(
+            CASE 
+              WHEN o.status = 'pending' THEN cp.name
+              ELSE rp.name 
+            END, 
+            'Plano não encontrado'
+          ) as "requestedPlanName",
+          CASE 
+            WHEN o.status = 'pending' THEN 'nova_organizacao'
+            ELSE 'mudanca_plano' 
+          END as "requestType"
+        FROM organizations o
+        LEFT JOIN plans cp ON o.plan_id = cp.id
+        LEFT JOIN plans rp ON o.requested_plan_id = rp.id
+        WHERE o.status = 'pending_plan_change' OR o.status = 'pending'
+      `;
+      
+      const pendingRequestsResult = await pool.query(pendingRequestsQuery);
+      const requests = pendingRequestsResult.rows;
+      
+      console.log("Solicitações de mudança de plano encontradas:", requests.length);
+      
+      // Para depuração, garantir que todos os campos estejam presentes
+      const enhancedRequests = requests.map(req => ({
+        ...req,
+        id: req.id,
+        name: req.name || 'Nome não encontrado',
+        type: req.type || 'Tipo não especificado',
+        email: req.email || 'Email não especificado',
+        status: req.status || 'pending_plan_change',
+        requestType: req.requestType || 'mudanca_plano',
+        currentPlanId: req.currentPlanId || null,
+        requestedPlanId: req.requestedPlanId || null,
+        requestDate: req.requestDate || new Date(),
+        currentPlanName: req.currentPlanName || 'Plano não especificado',
+        requestedPlanName: req.requestedPlanName || 'Plano não especificado'
+      }));
+      
+      const response = {
+        success: true,
+        totalRequests: enhancedRequests.length,
+        requests: enhancedRequests
+      };
+      
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Erro ao obter solicitações de mudança de plano:", error);
+      res.status(500).json({ message: "Falha ao obter solicitações de mudança de plano." });
+    }
+  });
+  
   // Rota para obter solicitações de mudança de plano (para administradores) - PRINCIPAL
   app.get("/api/plan-change-requests", authenticate, async (req, res) => {
+    // Forçar o content-type para JSON
+    res.setHeader('Content-Type', 'application/json');
+    
     try {
       console.log("==== ACESSANDO ROTA DE SOLICITAÇÕES DE PLANO ====");
       console.log("Sessão:", req.session);
