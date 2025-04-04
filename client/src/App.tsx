@@ -38,6 +38,15 @@ import AcceptInvitation from "@/pages/AcceptInvitation";
 import ModuleSubscriptionSales from "@/pages/ModuleSubscriptionSales";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import TourGuide from "@/components/features/TourGuide";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
