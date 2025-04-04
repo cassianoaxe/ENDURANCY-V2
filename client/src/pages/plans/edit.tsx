@@ -76,9 +76,13 @@ export default function EditPlan() {
   // Extrair ID do plano da URL
   // Formato esperado: /plans/123/edit
   const pathParts = window.location.pathname.split('/');
-  const planId = pathParts.length >= 3 ? parseInt(pathParts[2]) : 0;
+  console.log("URL parts:", pathParts);
+  // Se o formato for /plans/123/edit, o ID estará no índice 2
+  const planId = pathParts.length >= 4 && pathParts[3] === 'edit' ? parseInt(pathParts[2]) : 0;
+  console.log("Extracted plan ID:", planId, "from path:", window.location.pathname);
   
   if (isNaN(planId) || planId <= 0) {
+    console.log("Invalid plan ID, redirecting to plans list");
     navigate("/plans");
   }
 

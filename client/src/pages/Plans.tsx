@@ -300,8 +300,8 @@ export default function Plans() {
                         {plan.tier === 'free' ? 'Começar avaliação' : 'Assinar agora'}
                       </Button>
                       
-                      <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate(`/plans/${plan.id}`)}>
-                        <span className="text-xs">Ver detalhes</span>
+                      <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate(`/plans/${plan.id}/edit`)}>
+                        <span className="text-xs">Editar plano</span>
                         <ChevronRight className="h-3 w-3 ml-1" />
                       </Button>
                     </CardFooter>
