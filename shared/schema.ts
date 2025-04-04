@@ -47,8 +47,10 @@ export const organizations = pgTable("organizations", {
   type: text("type").notNull(), // 'Empresa' or 'Associação'
   cnpj: text("cnpj").notNull(),
   website: text("website").notNull().default(''),
+  plan: text("plan").notNull().default('Básico'), // Nome do plano (texto)
   planId: integer("plan_id").notNull(), // ID do plano contratado
   planTier: planTierEnum("plan_tier").default("free"), // Nível do plano (free, seed, grow, pro)
+  planHistory: json("plan_history").default('[]'), // Histórico de alterações de plano
   status: text("status").notNull(), // 'active', 'pending', 'rejected', 'pending_plan_change'
   requestedPlanId: integer("requested_plan_id"), // ID do plano solicitado em caso de upgrade/downgrade
   recordCount: integer("record_count").default(0), // Contagem de registros (pacientes/plantas)
@@ -264,6 +266,7 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     type: true,
     cnpj: true,
     website: true,
+    plan: true,
     planId: true,
     status: true,
     email: true,
