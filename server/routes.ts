@@ -2072,6 +2072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar organizações com solicitações de mudança de plano pendentes usando SQL bruto para depuração - corrigido
       // Nota: Mudamos a consulta para incluir email e outros campos que podem estar faltando na resposta
+      // Também incluímos organizações com status 'pending' (novas organizações) para aparecerem na mesma listagem
       const pendingRequestsQuery = `
         SELECT 
           o.id, 
@@ -2083,11 +2084,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           o.requested_plan_id as "requestedPlanId", 
           o.updated_at as "requestDate",
           COALESCE(cp.name, 'Sem plano') as "currentPlanName",
-          COALESCE(rp.name, 'Plano não encontrado') as "requestedPlanName"
+          COALESCE(
+            CASE 
+              WHEN o.status = 'pending' THEN cp.name
+              ELSE rp.name 
+            END, 
+            'Plano não encontrado'
+          ) as "requestedPlanName",
+          CASE 
+            WHEN o.status = 'pending' THEN 'nova_organizacao'
+            ELSE 'mudanca_plano' 
+          END as "requestType"
         FROM organizations o
         LEFT JOIN plans cp ON o.plan_id = cp.id
         LEFT JOIN plans rp ON o.requested_plan_id = rp.id
-        WHERE o.status = 'pending_plan_change'
+        WHERE o.status = 'pending_plan_change' OR o.status = 'pending'
       `;
       
       // Query para diagnosticar organizações com status inconsistente
@@ -2131,6 +2142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: req.type || 'Tipo não especificado',
         email: req.email || 'Email não especificado',
         status: req.status || 'pending_plan_change',
+        requestType: req.requestType || 'mudanca_plano', // Tipo de solicitação (nova org ou mudança)
         currentPlanId: req.currentPlanId || null,
         requestedPlanId: req.requestedPlanId || null,
         requestDate: req.requestDate || new Date(),
@@ -2182,8 +2194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organização não encontrada." });
       }
       
-      if (organization.status !== 'pending_plan_change') {
-        return res.status(400).json({ message: "Esta organização não possui uma solicitação de mudança de plano pendente." });
+      // Aceitar tanto organizações com mudança de plano pendente quanto organizações novas
+      if (organization.status !== 'pending_plan_change' && organization.status !== 'pending') {
+        return res.status(400).json({ message: "Esta organização não possui uma solicitação pendente." });
       }
       
       // Buscar informações do plano solicitado
@@ -2197,8 +2210,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Plano não encontrado." });
         }
         
+        // Dependendo do tipo de solicitação (mudança de plano ou nova organização)
+        // teremos diferentes comportamentos
+        const isNewOrganization = organization.status === 'pending';
+        
         // Buscar plano atual para registrar no histórico
-        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, organization.planId));
+        // Para novas organizações, o plano atual pode ser nulo
+        const [currentPlan] = organization.planId 
+          ? await db.select().from(plans).where(eq(plans.id, organization.planId))
+          : [];
         
         // Preparar o histórico de planos para atualização
         let planHistory = [];
@@ -2214,10 +2234,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const historyEntry = {
           date: new Date(),
           previousPlanId: organization.planId,
-          previousPlanName: currentPlan?.name || 'Desconhecido',
+          previousPlanName: currentPlan?.name || 'Nenhum plano (nova organização)',
           newPlanId: planToApply.id,
           newPlanName: planToApply.name,
-          action: "upgrade",
+          action: isNewOrganization ? "initial_plan" : "upgrade",
           approvedById: req.session.user.id,
           approvedByName: req.session.user.name,
           status: "approved"
@@ -2242,8 +2262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         // Criar notificação para a organização
         await db.insert(notifications).values({
-          title: "Mudança de plano aprovada",
-          message: `Sua solicitação para mudar para o plano ${planToApply.name} foi aprovada.`,
+          title: isNewOrganization ? "Organização aprovada" : "Mudança de plano aprovada",
+          message: isNewOrganization 
+            ? `Sua organização foi aprovada com o plano ${planToApply.name}.` 
+            : `Sua solicitação para mudar para o plano ${planToApply.name} foi aprovada.`,
           type: "success",
           organizationId: organizationId,
           isRead: false,
@@ -2252,14 +2274,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.status(200).json({ 
           success: true, 
-          message: `Solicitação de mudança para o plano ${planToApply.name} aprovada com sucesso.` 
+          message: isNewOrganization
+            ? `Organização aprovada com plano ${planToApply.name} com sucesso.`
+            : `Solicitação de mudança para o plano ${planToApply.name} aprovada com sucesso.` 
         });
       } else {
         // Rejeitar a solicitação
-        console.log(`Rejeitando mudança de plano para organização ${organizationId}`);
+        console.log(`Rejeitando ${organization.status === 'pending' ? 'organização' : 'mudança de plano'} para organização ${organizationId}`);
+        
+        // Dependendo do tipo de solicitação (mudança de plano ou nova organização)
+        const isNewOrganization = organization.status === 'pending';
         
         // Buscar plano atual para registrar no histórico
-        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, organization.planId));
+        // Para novas organizações, o plano atual pode ser nulo
+        const [currentPlan] = organization.planId 
+          ? await db.select().from(plans).where(eq(plans.id, organization.planId))
+          : [];
         
         // Preparar o histórico de planos para atualização
         let planHistory = [];
@@ -2298,8 +2328,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         // Criar notificação para a organização
         await db.insert(notifications).values({
-          title: "Mudança de plano rejeitada",
-          message: `Sua solicitação para mudar para o plano ${requestedPlan?.name || 'solicitado'} foi rejeitada.`,
+          title: isNewOrganization ? "Organização rejeitada" : "Mudança de plano rejeitada",
+          message: isNewOrganization
+            ? `Sua solicitação de organização foi rejeitada.`
+            : `Sua solicitação para mudar para o plano ${requestedPlan?.name || 'solicitado'} foi rejeitada.`,
           type: "error",
           organizationId: organizationId,
           isRead: false,
@@ -2308,12 +2340,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.status(200).json({ 
           success: true, 
-          message: "Solicitação de mudança de plano rejeitada com sucesso." 
+          message: isNewOrganization
+            ? "Solicitação de organização rejeitada com sucesso."
+            : "Solicitação de mudança de plano rejeitada com sucesso." 
         });
       }
     } catch (error) {
-      console.error("Erro ao processar solicitação de mudança de plano:", error);
-      res.status(500).json({ message: "Falha ao processar solicitação de mudança de plano." });
+      console.error("Erro ao processar solicitação:", error);
+      res.status(500).json({ message: "Falha ao processar a solicitação." });
     }
   });
   
