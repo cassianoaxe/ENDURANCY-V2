@@ -732,10 +732,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       // Se tiver logo, salvar o caminho
       if (logoFile) {
-        // Atualizar a organização com o caminho do logo
-        await db.update(organizations)
-          .set({ logo: `/uploads/logos/${logoFile.filename}` })
-          .where(eq(organizations.id, organization.id));
+        try {
+          console.log("Logo file information:", JSON.stringify({
+            filename: logoFile.filename,
+            path: logoFile.path,
+            mimetype: logoFile.mimetype,
+            size: logoFile.size
+          }, null, 2));
+          
+          // Atualizar a organização com o caminho do logo
+          await db.update(organizations)
+            .set({ logo: `/uploads/logos/${logoFile.filename}` })
+            .where(eq(organizations.id, organization.id));
+        } catch (error) {
+          console.error("Erro ao processar logo da organização:", error);
+          // Em caso de erro, usar logo padrão mas não falhar o processo
+          await db.update(organizations)
+            .set({ logo: '/uploads/logos/default-logo.svg' })
+            .where(eq(organizations.id, organization.id));
+        }
       } else {
         // Usar logo padrão
         await db.update(organizations)
