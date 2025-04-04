@@ -219,7 +219,7 @@ function AppContent() {
   
   // Handle plans routes
   if (currentPath.startsWith('/plans')) {
-    // Check specific plan paths
+    // Primeiro verificar rotas de path fixo
     if (currentPath === '/plans') {
       return (
         <Layout>
@@ -244,6 +244,7 @@ function AppContent() {
       );
     }
     
+    // Depois verificar as rotas com padrões dinâmicos
     // Check if the path matches a plan edit pattern (/plans/123/edit)
     const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
     if (planEditMatch) {
@@ -256,7 +257,22 @@ function AppContent() {
       );
     }
     
-    // If none of the above matched, return Not Found for plan paths
+    // Verificar rotas de detalhes do plano (/plans/123)
+    const planDetailMatch = currentPath.match(/^\/plans\/(\d+)$/);
+    if (planDetailMatch) {
+      // Aqui pode-se adicionar um componente de detalhes do plano se necessário
+      // Por enquanto, redireciona para a lista de planos
+      console.log("Visualizando detalhes do plano:", planDetailMatch[1]);
+      window.history.pushState({}, '', '/plans');
+      window.dispatchEvent(new Event('popstate'));
+      return (
+        <Layout>
+          <Plans />
+        </Layout>
+      );
+    }
+    
+    // Se nenhuma rota acima correspondeu, retornar Not Found para rotas de planos
     return (
       <Layout>
         <NotFound />
