@@ -19,6 +19,8 @@ import Backups from "@/pages/Backups";
 import Emergencies from "@/pages/Emergencies";
 import Plans from "@/pages/Plans";
 import PlanSettings from "@/pages/plans/settings";
+import CreatePlan from "@/pages/plans/create";
+import EditPlan from "@/pages/plans/edit";
 import Modules from "@/pages/Modules";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
@@ -211,6 +213,53 @@ function AppContent() {
     return (
       <Layout>
         <OrganizationDetail />
+      </Layout>
+    );
+  }
+  
+  // Handle plans routes
+  if (currentPath.startsWith('/plans')) {
+    // Check specific plan paths
+    if (currentPath === '/plans') {
+      return (
+        <Layout>
+          <Plans />
+        </Layout>
+      );
+    }
+    
+    if (currentPath === '/plans/create') {
+      return (
+        <Layout>
+          <CreatePlan />
+        </Layout>
+      );
+    }
+    
+    if (currentPath === '/plans/settings') {
+      return (
+        <Layout>
+          <PlanSettings />
+        </Layout>
+      );
+    }
+    
+    // Check if the path matches a plan edit pattern (/plans/123/edit)
+    const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
+    if (planEditMatch) {
+      const planId = planEditMatch[1];
+      console.log("Editando plano com ID:", planId);
+      return (
+        <Layout>
+          <EditPlan />
+        </Layout>
+      );
+    }
+    
+    // If none of the above matched, return Not Found for plan paths
+    return (
+      <Layout>
+        <NotFound />
       </Layout>
     );
   }
@@ -425,7 +474,7 @@ function AppContent() {
   // Lista de rotas administrativas
   const adminRoutes = [
     '/analytics', '/activity-log', '/backups', '/emergencies', 
-    '/plans', '/plans/settings', '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
+    '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
     '/user-groups', '/user-invitations', '/module-subscription-sales',
@@ -476,8 +525,6 @@ function AppContent() {
       case '/activity-log': Component = ActivityLog; break;
       case '/backups': Component = Backups; break;
       case '/emergencies': Component = Emergencies; break;
-      case '/plans': Component = Plans; break;
-      case '/plans/settings': Component = PlanSettings; break;
       case '/modules': Component = Modules; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
