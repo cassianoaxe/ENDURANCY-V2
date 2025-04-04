@@ -90,6 +90,13 @@ function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const userRole = user?.role;
+  
+  // Log para depuração
+  useEffect(() => {
+    console.log("Caminho atual:", currentPath);
+    console.log("Usuário autenticado:", isAuthenticated);
+    console.log("Papel do usuário:", userRole);
+  }, [currentPath, isAuthenticated, userRole]);
 
   // Listen for path changes
   useEffect(() => {
@@ -217,65 +224,31 @@ function AppContent() {
     );
   }
   
-  // Handle plans routes
-  if (currentPath.startsWith('/plans')) {
-    // Primeiro verificar rotas de path fixo
-    if (currentPath === '/plans') {
-      return (
-        <Layout>
-          <Plans />
-        </Layout>
-      );
-    }
-    
-    if (currentPath === '/plans/create') {
-      return (
-        <Layout>
-          <CreatePlan />
-        </Layout>
-      );
-    }
-    
-    if (currentPath === '/plans/settings') {
-      return (
-        <Layout>
-          <PlanSettings />
-        </Layout>
-      );
-    }
-    
-    // Depois verificar as rotas com padrões dinâmicos
-    // Check if the path matches a plan edit pattern (/plans/123/edit)
-    const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
-    if (planEditMatch) {
-      const planId = planEditMatch[1];
-      console.log("Editando plano com ID:", planId);
-      return (
-        <Layout>
-          <EditPlan />
-        </Layout>
-      );
-    }
-    
-    // Verificar rotas de detalhes do plano (/plans/123)
-    const planDetailMatch = currentPath.match(/^\/plans\/(\d+)$/);
-    if (planDetailMatch) {
-      // Aqui pode-se adicionar um componente de detalhes do plano se necessário
-      // Por enquanto, redireciona para a lista de planos
-      console.log("Visualizando detalhes do plano:", planDetailMatch[1]);
-      window.history.pushState({}, '', '/plans');
-      window.dispatchEvent(new Event('popstate'));
-      return (
-        <Layout>
-          <Plans />
-        </Layout>
-      );
-    }
-    
-    // Se nenhuma rota acima correspondeu, retornar Not Found para rotas de planos
+  // Tratamento especial para rotas dinâmicas de planos
+  // Verificamos isso antes porque é um padrão dinâmico que não se encaixa nas rotas fixas
+  
+  // Verificar rota de edição de planos (/plans/123/edit)
+  const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
+  if (planEditMatch && userRole === 'admin') {
+    console.log("Editando plano com ID:", planEditMatch[1]);
     return (
       <Layout>
-        <NotFound />
+        <EditPlan />
+      </Layout>
+    );
+  }
+  
+  // Verificar rota de detalhes de planos (/plans/123)
+  const planDetailMatch = currentPath.match(/^\/plans\/(\d+)$/);
+  if (planDetailMatch && userRole === 'admin') {
+    // Se quisermos ter uma página de detalhes específica para planos no futuro
+    // Por enquanto redirecionamos para a lista de planos
+    console.log("Visualizando detalhes do plano:", planDetailMatch[1]);
+    window.history.pushState({}, '', '/plans');
+    window.dispatchEvent(new Event('popstate'));
+    return (
+      <Layout>
+        <Plans />
       </Layout>
     );
   }
@@ -490,6 +463,7 @@ function AppContent() {
   // Lista de rotas administrativas
   const adminRoutes = [
     '/analytics', '/activity-log', '/backups', '/emergencies', 
+    '/plans', '/plans/create', '/plans/settings',
     '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
     '/requests', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
@@ -541,6 +515,9 @@ function AppContent() {
       case '/activity-log': Component = ActivityLog; break;
       case '/backups': Component = Backups; break;
       case '/emergencies': Component = Emergencies; break;
+      case '/plans': Component = Plans; break;
+      case '/plans/create': Component = CreatePlan; break;
+      case '/plans/settings': Component = PlanSettings; break;
       case '/modules': Component = Modules; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
