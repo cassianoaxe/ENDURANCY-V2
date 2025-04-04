@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "totalRequests": 2,
+  "requests": [
+    {
+      "id": 1,
+      "name": "Empresa de Teste",
+      "type": "empresa",
+      "email": "contato@empresa.com",
+      "status": "pending",
+      "requestType": "nova_organizacao",
+      "currentPlanId": 1,
+      "requestedPlanId": 1,
+      "requestDate": "2025-04-01T23:00:00.000Z",
+      "currentPlanName": "Básico",
+      "requestedPlanName": "Básico"
+    },
+    {
+      "id": 2,
+      "name": "Outra Empresa",
+      "type": "empresa",
+      "email": "contato@outraempresa.com",
+      "status": "pending_plan_change",
+      "requestType": "mudanca_plano",
+      "currentPlanId": 1,
+      "requestedPlanId": 2,
+      "requestDate": "2025-04-02T23:00:00.000Z",
+      "currentPlanName": "Básico",
+      "requestedPlanName": "Seed"
+    }
+  ],
+  "updateTime": "2025-04-03T23:00:00.000Z"
+}

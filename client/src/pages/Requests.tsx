@@ -35,13 +35,13 @@ export default function Requests() {
     refetchOnWindowFocus: false,
   });
   
-  // Fetch all plan change requests
+  // Fetch all plan change requests from static JSON file
   const { data: planChangeData, isLoading: isLoadingPlanChanges } = useQuery<{
     success: boolean;
     totalRequests: number;
     requests: PlanChangeRequest[];
   }>({
-    queryKey: ['/api/plan-change-requests'],
+    queryKey: ['/uploads/data/plan_change_requests.json'],
     refetchOnWindowFocus: false,
     onSuccess: (data) => {
       console.log("Dados de solicitações de mudança de plano recebidos:", data);
@@ -226,7 +226,7 @@ export default function Requests() {
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/uploads/data/plan_change_requests.json'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       
       toast({
@@ -291,7 +291,7 @@ export default function Requests() {
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plan-change-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/uploads/data/plan_change_requests.json'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
       
       toast({
@@ -441,80 +441,84 @@ export default function Requests() {
                     {filteredRequests.map((req) => {
                       // Verifica se é requisição de mudança de plano ou registro
                       const isPlanChangeRequest = req.requestType === 'plan_change';
-                      const requestTypeDisplay = isPlanChangeRequest 
-                        ? "Alteração de Plano" 
-                        : "Novo Registro";
                       
                       return (
-                        <tr key={`${req.requestType}-${req.id}`} className="bg-white border-b">
-                          <td className="px-6 py-4">#{req.id}</td>
-                          <td className="px-6 py-4 font-medium">{req.name}</td>
+                        <tr key={`${req.requestType}-${req.id}`} className="bg-white border-b hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{req.id}</td>
                           <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs ${isPlanChangeRequest 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-purple-100 text-purple-800'}`}
-                            >
-                              {requestTypeDisplay}
-                            </span>
+                            <div>
+                              <span className="font-medium">{req.name}</span>
+                              <div className="text-xs text-gray-500">{req.email}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 uppercase text-xs">
+                            {req.type}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
-                              Pendente
-                            </span>
+                            <div className="flex items-center">
+                              <div className={`w-2 h-2 rounded-full mr-2 ${
+                                req.status === 'pending' || req.status === 'pending_plan_change' 
+                                  ? 'bg-yellow-400' 
+                                  : req.status === 'approved' 
+                                    ? 'bg-green-400' 
+                                    : 'bg-red-400'
+                              }`}></div>
+                              {isPlanChangeRequest ? (
+                                <span>
+                                  Mudança de Plano<br/>
+                                  <span className="text-xs text-gray-500">
+                                    {req.currentPlanName} → {req.requestedPlanName}
+                                  </span>
+                                </span>
+                              ) : (
+                                <span>Novo Registro</span>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4">{formatDate(req.date)}</td>
+                          <td className="px-6 py-4 text-sm">{formatDate(req.date)}</td>
                           <td className="px-6 py-4">
-                            <div className="flex gap-2 flex-wrap">
-                              {!isPlanChangeRequest ? (
-                                // Botões para solicitações de registro
+                            <div className="flex space-x-2">
+                              {isPlanChangeRequest ? (
                                 <>
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => approvePlanChange.mutate(req.id)}
+                                    disabled={approvePlanChange.isPending}
                                     size="sm" 
-                                    onClick={() => approveOrganization.mutate(req.id)}
-                                    disabled={approveOrganization.isPending}
-                                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                    className="bg-green-600 hover:bg-green-700 text-white flex items-center"
                                   >
-                                    <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
+                                    {approvePlanChange.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                                    Aprovar
                                   </Button>
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => rejectPlanChange.mutate(req.id)}
+                                    disabled={rejectPlanChange.isPending}
                                     size="sm" 
-                                    onClick={() => rejectOrganization.mutate(req.id)}
-                                    disabled={rejectOrganization.isPending}
-                                    className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                                    className="bg-red-600 hover:bg-red-700 text-white flex items-center"
                                   >
-                                    <XCircle className="h-4 w-4 mr-1" /> Rejeitar
+                                    {rejectPlanChange.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                    Rejeitar
                                   </Button>
                                 </>
                               ) : (
-                                // Botões para solicitações de mudança de plano
                                 <>
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => approveOrganization.mutate(req.id)}
+                                    disabled={approveOrganization.isPending}
                                     size="sm" 
-                                    onClick={() => approvePlanChange.mutate(req.id)}
-                                    disabled={approvePlanChange.isPending}
-                                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                    className="bg-green-600 hover:bg-green-700 text-white flex items-center"
                                   >
-                                    <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
+                                    {approveOrganization.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                                    Aprovar
                                   </Button>
                                   <Button 
-                                    variant="outline" 
+                                    onClick={() => rejectOrganization.mutate(req.id)}
+                                    disabled={rejectOrganization.isPending}
                                     size="sm" 
-                                    onClick={() => rejectPlanChange.mutate(req.id)}
-                                    disabled={rejectPlanChange.isPending}
-                                    className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                                    className="bg-red-600 hover:bg-red-700 text-white flex items-center"
                                   >
-                                    <XCircle className="h-4 w-4 mr-1" /> Rejeitar
+                                    {rejectOrganization.isPending ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                    Rejeitar
                                   </Button>
-                                  <div className="w-full mt-1 text-xs text-gray-500">
-                                    {isPlanChangeRequest && (
-                                      <span>
-                                        {req.currentPlanName} → {req.requestedPlanName}
-                                      </span>
-                                    )}
-                                  </div>
                                 </>
                               )}
                             </div>
