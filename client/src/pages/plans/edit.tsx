@@ -78,7 +78,7 @@ export default function EditPlan() {
   const pathParts = window.location.pathname.split('/');
   console.log("URL parts:", pathParts);
   // Se o formato for /plans/123/edit, o ID estará no índice 2
-  const planId = pathParts.length >= 4 && pathParts[3] === 'edit' ? parseInt(pathParts[2]) : 0;
+  const planId = pathParts.length >= 3 ? parseInt(pathParts[2]) : 0;
   console.log("Extracted plan ID:", planId, "from path:", window.location.pathname);
   
   if (isNaN(planId) || planId <= 0) {
