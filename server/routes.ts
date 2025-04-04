@@ -29,6 +29,8 @@ import { registerUserGroupRoutes } from './routes/user-groups';
 import { registerUserInvitationsRoutes } from './routes/user-invitations';
 // Importar rotas para gerenciamento de planos
 import planChangesRouter from './routes/plan-changes';
+// Importar rotas para gerenciamento de módulos
+import modulesRouter from './routes/modules';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -3786,6 +3788,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas para gestão de planos e solicitações
   app.use('/api', planChangesRouter);
+  
+  // Rotas para gestão de módulos e relações com planos
+  app.use('/api', modulesRouter);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
