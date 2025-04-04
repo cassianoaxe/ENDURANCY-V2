@@ -669,13 +669,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
 
       // Create organization
-      // Garantir que o campo planId está presente e definido corretamente
-      const planId = organizationData.planId ? parseInt(organizationData.planId) : 0;
+      // Remover campos que poderiam ter valores nulos
+      const { plan, ...restOrgData } = organizationData;
       
+      // Garantir que o campo planId está presente e definido corretamente
+      const planId = organizationData.planId ? parseInt(organizationData.planId.toString()) : 0;
+      
+      // Buscar o nome do plano com base no planId, se disponível
+      let planName = 'Básico';
+      if (planId > 0) {
+        try {
+          const planDetails = await db.select().from(plans).where(eq(plans.id, planId)).limit(1);
+          if (planDetails && planDetails.length > 0) {
+            planName = planDetails[0].name;
+          }
+        } catch (err) {
+          console.log("Erro ao buscar detalhes do plano:", err);
+          // Em caso de erro, manter o valor padrão
+        }
+      }
+      
+      // Criar a organização com dados limpos e garantir que plan e planId estão definidos
       const [organization] = await db.insert(organizations)
         .values({
-          ...organizationData,
-          plan: 'Básico', // Valor padrão para o campo plan
+          ...restOrgData,
+          plan: planName, // Usar o nome do plano ou valor padrão
           planId: planId, // Garantir que planId existe
           status: 'pending',
           createdAt: new Date()
