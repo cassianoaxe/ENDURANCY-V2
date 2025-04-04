@@ -52,6 +52,25 @@ export default function OrganizationRegistration() {
     documentName: '',
     logoName: null,
   });
+  
+  // Função para obter os módulos baseados no tier do plano
+  const getTierModules = (tier: string): string[] => {
+    switch (tier) {
+      case 'free':
+        return ['Básico', 'CRM'];
+      case 'seed':
+        return ['Básico', 'CRM', 'Financeiro', 'Agenda'];
+      case 'grow':
+        return ['Básico', 'CRM', 'Financeiro', 'Agenda', 'Analytics', 'Vendas'];
+      case 'pro':
+        return [
+          'Básico', 'CRM', 'Financeiro', 'Agenda', 'Analytics', 
+          'Vendas', 'RH', 'Produção', 'Complypay', 'Suporte'
+        ];
+      default:
+        return ['Módulo básico'];
+    }
+  };
 
   // Fetch available plans
   const { data: plans } = useQuery<Plan[]>({
@@ -142,14 +161,45 @@ export default function OrganizationRegistration() {
         // Buscar mais detalhes do plano selecionado
         const selectedPlanData = plans?.find(p => p.id === parseInt(String(formData.planId)));
         
+        // Definir limites com base no tier do plano
+        let userLimit = 0;
+        let patientLimit = 0;
+
+        // Determinar limites baseados no tier
+        switch (selectedPlanData?.tier) {
+          case 'free':
+            userLimit = 5;
+            patientLimit = 20;
+            break;
+          case 'seed':
+            userLimit = 20;
+            patientLimit = 100; 
+            break;
+          case 'grow':
+            userLimit = 50;
+            patientLimit = 300;
+            break;
+          case 'pro':
+            userLimit = 100;
+            patientLimit = 1000;
+            break;
+          default:
+            userLimit = selectedPlanData?.maxRecords || 0;
+            patientLimit = selectedPlanData?.maxRecords ? selectedPlanData.maxRecords * 5 : 0;
+        }
+        
+        console.log('Plano selecionado:', selectedPlanData); // Debugging
+        
         setFormDataSummary({
           ...formData,
           planName: selectedPlanData?.name || '',
           planPrice: selectedPlanData?.price || '',
           planDescription: selectedPlanData?.description || '',
           planFeatures: selectedPlanData?.features || [],
-          planUserLimit: selectedPlanData?.maxUsers || 0,
-          planPatientLimit: selectedPlanData?.maxPatients || 0,
+          planUserLimit: userLimit,
+          planPatientLimit: patientLimit,
+          // Adicionar informação de módulos baseado no tier do plano
+          planModules: getTierModules(selectedPlanData?.tier || ''),
           documentName: selectedFile?.name || '',
           logoName: logoFile?.name || null,
         });
@@ -871,11 +921,25 @@ export default function OrganizationRegistration() {
                           </div>
                         </div>
                         
-                        {Array.isArray(formDataSummary.planFeatures) && formDataSummary.planFeatures.length > 0 && (
+                        {/* Módulos inclusos */}
+                        {formDataSummary.planModules && formDataSummary.planModules.length > 0 && (
+                          <div className="mt-3">
+                            <div className="font-medium text-sm mb-1">Módulos inclusos:</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {formDataSummary.planModules.map((moduleName: string, i: number) => (
+                                <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                  {moduleName}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {formDataSummary.planFeatures && formDataSummary.planFeatures.length > 0 && (
                           <div className="mt-3">
                             <div className="font-medium text-sm mb-1">Recursos incluídos:</div>
                             <ul className="text-xs space-y-1 list-disc list-inside">
-                              {formDataSummary.planFeatures.map((feature, index) => (
+                              {formDataSummary.planFeatures.map((feature: string, index: number) => (
                                 <li key={index} className="text-gray-700">{feature}</li>
                               ))}
                             </ul>
