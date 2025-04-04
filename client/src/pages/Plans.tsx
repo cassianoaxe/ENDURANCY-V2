@@ -117,7 +117,7 @@ export default function Plans() {
 
   // Acessar página de checkout de um plano
   const goToCheckout = (plan: Plan) => {
-    navigate(`/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans`);
+    window.location.href = `/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans`;
   };
 
   // Filtrar planos com base na tab selecionada
@@ -203,7 +203,10 @@ export default function Plans() {
             <div className="flex flex-col space-y-4">
               <div className="flex justify-between items-center">
                 <CardTitle>Planos Disponíveis</CardTitle>
-                <Button variant="outline" onClick={() => navigate("/plans/settings")}>
+                <Button variant="outline" onClick={() => {
+                  window.history.pushState({}, '', '/plans/settings');
+                  window.dispatchEvent(new Event('popstate'));
+                }}>
                   <Settings className="mr-2 h-4 w-4" />
                   Configurar Planos
                 </Button>
@@ -254,7 +257,8 @@ export default function Plans() {
                               className="h-8 w-8 hover:bg-secondary" 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/plans/${plan.id}/edit`);
+                                window.history.pushState({}, '', `/plans/${plan.id}/edit`);
+                                window.dispatchEvent(new Event('popstate'));
                               }}
                             >
                               <Edit className="h-4 w-4" />
@@ -307,7 +311,10 @@ export default function Plans() {
                         {plan.tier === 'free' ? 'Começar avaliação' : 'Assinar agora'}
                       </Button>
                       
-                      <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate(`/plans/${plan.id}/edit`)}>
+                      <Button variant="ghost" size="sm" className="w-full" onClick={() => {
+                        window.history.pushState({}, '', `/plans/${plan.id}/edit`);
+                        window.dispatchEvent(new Event('popstate'));
+                      }}>
                         <span className="text-xs">Editar plano</span>
                         <ChevronRight className="h-3 w-3 ml-1" />
                       </Button>
