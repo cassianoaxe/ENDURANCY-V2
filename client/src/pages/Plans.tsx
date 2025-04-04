@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Check, Package, Users, ArrowUpRight, Settings, 
+  Check, Package, Users, ArrowUpRight, Settings, BarChart3,
   PlusCircle, Edit, ChevronRight, Trash2, AlertTriangle 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +142,7 @@ export default function Plans() {
             <CardContent>
               <div className="text-2xl font-bold">{planStats?.totalPlans || plans.length}</div>
               <p className="text-xs text-muted-foreground">
-                {plans.length > 0 ? `${plans.filter(p => p.isActive).length} planos ativos` : "Carregando..."}
+                {plans.length > 0 ? `${plans.length} planos disponíveis` : "Carregando..."}
               </p>
             </CardContent>
           </Card>
@@ -237,7 +237,7 @@ export default function Plans() {
                           <CardDescription className="mt-1 line-clamp-2 text-xs">{plan.description}</CardDescription>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          {plan.isPopular && (
+                          {plan.tier === 'grow' && (
                             <Badge>Popular</Badge>
                           )}
                           <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
@@ -294,7 +294,7 @@ export default function Plans() {
                     <CardFooter className="flex-col gap-3 pt-2">
                       <Button 
                         className="w-full" 
-                        variant={plan.isPopular ? "default" : "outline"}
+                        variant={plan.tier === 'grow' ? "default" : "outline"}
                         onClick={() => goToCheckout(plan)}
                       >
                         {plan.tier === 'free' ? 'Começar avaliação' : 'Assinar agora'}
