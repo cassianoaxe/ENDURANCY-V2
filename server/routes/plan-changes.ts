@@ -389,9 +389,58 @@ router.post('/plan-change-requests/reject', async (req: Request, res: Response) 
 // Função para enviar e-mail de confirmação de mudança de plano
 async function sendPlanChangeConfirmationEmail(email: string, orgName: string, planName: string) {
   try {
+    // Criar transportador de email
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.example.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER || 'user@example.com',
+        pass: process.env.SMTP_PASSWORD || 'password'
+      }
+    });
+
+    // Preparar dados do email
+    const mailOptions = {
+      from: process.env.SMTP_FROM || 'no-reply@endurancy.app',
+      to: email,
+      subject: `Confirmação de atualização de plano - ${orgName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+          </div>
+          <h2 style="color: #333; text-align: center;">Confirmação de Atualização de Plano</h2>
+          <p style="color: #555; line-height: 1.6;">Olá,</p>
+          <p style="color: #555; line-height: 1.6;">A solicitação de mudança de plano para <strong>${orgName}</strong> foi aprovada com sucesso!</p>
+          <p style="color: #555; line-height: 1.6;">Seu plano foi atualizado para: <strong>${planName}</strong></p>
+          <p style="color: #555; line-height: 1.6;">Os novos recursos e funcionalidades já estão disponíveis em sua conta. Faça login para explorar todas as possibilidades do seu novo plano.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.APP_URL || 'https://endurancy.app'}/login" style="background-color: #4e46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar Minha Conta</a>
+          </div>
+          <p style="color: #555; line-height: 1.6;">Se você tiver alguma dúvida ou precisar de suporte, entre em contato com nossa equipe de atendimento.</p>
+          <p style="color: #555; line-height: 1.6;">Atenciosamente,<br>Equipe Endurancy</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #777; text-align: center;">
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      `
+    };
+
     console.log(`Enviando e-mail de confirmação de mudança de plano para ${email}`);
-    console.log(`Assunto: Confirmação de atualização de plano - ${orgName}`);
-    console.log(`Conteúdo: Seu plano foi atualizado para ${planName}`);
+    
+    // Em ambiente de desenvolvimento, apenas simular o envio
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Email simulado (desenvolvimento):');
+      console.log(`Para: ${email}`);
+      console.log(`Assunto: ${mailOptions.subject}`);
+      console.log('Conteúdo HTML omitido para legibilidade');
+      return true;
+    }
+    
+    // Enviar e-mail
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`E-mail enviado: ${info.messageId}`);
     return true;
   } catch (error) {
     console.error('Erro ao enviar e-mail de confirmação:', error);
@@ -402,9 +451,57 @@ async function sendPlanChangeConfirmationEmail(email: string, orgName: string, p
 // Função para enviar e-mail de rejeição de mudança de plano
 async function sendPlanChangeRejectionEmail(email: string, orgName: string) {
   try {
+    // Criar transportador de email
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.example.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER || 'user@example.com',
+        pass: process.env.SMTP_PASSWORD || 'password'
+      }
+    });
+
+    // Preparar dados do email
+    const mailOptions = {
+      from: process.env.SMTP_FROM || 'no-reply@endurancy.app',
+      to: email,
+      subject: `Solicitação de atualização de plano não aprovada - ${orgName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+          </div>
+          <h2 style="color: #333; text-align: center;">Solicitação de Plano Não Aprovada</h2>
+          <p style="color: #555; line-height: 1.6;">Olá,</p>
+          <p style="color: #555; line-height: 1.6;">Informamos que a solicitação de mudança de plano para <strong>${orgName}</strong> não foi aprovada neste momento.</p>
+          <p style="color: #555; line-height: 1.6;">Você pode entrar em contato com nossa equipe de suporte para mais informações ou fazer uma nova solicitação com outros parâmetros.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.APP_URL || 'https://endurancy.app'}/login" style="background-color: #4e46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar Minha Conta</a>
+          </div>
+          <p style="color: #555; line-height: 1.6;">Obrigado pela compreensão.</p>
+          <p style="color: #555; line-height: 1.6;">Atenciosamente,<br>Equipe Endurancy</p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #777; text-align: center;">
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      `
+    };
+
     console.log(`Enviando e-mail de rejeição de mudança de plano para ${email}`);
-    console.log(`Assunto: Solicitação de atualização de plano não aprovada - ${orgName}`);
-    console.log(`Conteúdo: Sua solicitação de mudança de plano não foi aprovada.`);
+    
+    // Em ambiente de desenvolvimento, apenas simular o envio
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Email simulado (desenvolvimento):');
+      console.log(`Para: ${email}`);
+      console.log(`Assunto: ${mailOptions.subject}`);
+      console.log('Conteúdo HTML omitido para legibilidade');
+      return true;
+    }
+    
+    // Enviar e-mail
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`E-mail enviado: ${info.messageId}`);
     return true;
   } catch (error) {
     console.error('Erro ao enviar e-mail de rejeição:', error);

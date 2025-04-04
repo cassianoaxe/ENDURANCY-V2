@@ -264,6 +264,7 @@ export default function MeuPlano() {
   // Verificar se o plano atual é o mais alto (Pro)
   const isHighestPlan = (): boolean => {
     if (!organization?.planTier) return false;
+    // "Pro" é o plano mais alto, qualquer organização com esse plano não pode fazer upgrade
     return organization.planTier === 'pro';
   };
 
@@ -557,8 +558,10 @@ export default function MeuPlano() {
                             changePlanMutation.isPending || 
                             plan.id === organization?.planId || 
                             organization?.requestedPlanId === plan.id || // Desativar se já existe uma solicitação para este plano
-                            // Quando o plano atual é PRO, desativar o botão do plano PRO
-                            (organization?.planTier === 'pro' && plan.tier === 'pro')
+                            // Quando o plano atual é PRO, desativar todas as opções de upgrade
+                            (organization?.planTier === 'pro' && getPlanLevel(plan.tier) <= getPlanLevel('pro')) ||
+                            // Desabilitar opções de downgrade quando já estiver no plano free
+                            (organization?.planTier === 'free' && getPlanLevel(plan.tier) <= getPlanLevel('free'))
                           }
                           onClick={() => handlePlanChange(plan)}
                         >
