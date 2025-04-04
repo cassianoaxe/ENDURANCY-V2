@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -45,7 +46,9 @@ import {
   PlusCircle,
   Trash,
   Package,
-  Grid3X3
+  Grid3X3,
+  AlertCircle,
+  Save
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -208,10 +211,17 @@ export default function PlanSettings() {
             Voltar para Planos
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Configurações de Planos</h1>
-            <p className="text-muted-foreground">Configure os módulos e permissões para cada plano</p>
+            <h1 className="text-2xl font-bold">Configurações Técnicas de Planos</h1>
+            <p className="text-muted-foreground">Configure os módulos e limitações técnicas para cada plano disponível</p>
           </div>
         </div>
+        
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Nesta página você pode configurar aspectos técnicos dos planos, como quais módulos estão disponíveis em cada plano e quais são os limites operacionais.
+          </AlertDescription>
+        </Alert>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
