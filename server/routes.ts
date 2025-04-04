@@ -2081,7 +2081,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           o.email, 
           o.status, 
           o.plan_id as "currentPlanId", 
-          o.requested_plan_id as "requestedPlanId", 
+          CASE 
+            WHEN o.status = 'pending' THEN o.plan_id
+            ELSE o.requested_plan_id 
+          END as "requestedPlanId", 
           o.updated_at as "requestDate",
           COALESCE(cp.name, 'Sem plano') as "currentPlanName",
           COALESCE(
