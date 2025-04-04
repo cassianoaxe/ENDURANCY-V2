@@ -206,7 +206,14 @@ export default function PlanSettings() {
     <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => navigate("/plans")} className="mr-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              window.history.pushState({}, '', '/plans');
+              window.dispatchEvent(new Event('popstate'));
+            }} 
+            className="mr-4"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar para Planos
           </Button>
@@ -349,10 +356,16 @@ export default function PlanSettings() {
                 )}
               </CardContent>
               <CardFooter className="flex justify-between border-t pt-6">
-                <Button variant="outline" onClick={() => navigate("/plans")}>
+                <Button variant="outline" onClick={() => {
+                  window.history.pushState({}, '', '/plans');
+                  window.dispatchEvent(new Event('popstate'));
+                }}>
                   Voltar para Planos
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/modules")}>
+                <Button variant="outline" onClick={() => {
+                  window.history.pushState({}, '', '/modules');
+                  window.dispatchEvent(new Event('popstate'));
+                }}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Gerenciar Módulos
                 </Button>
@@ -457,7 +470,10 @@ export default function PlanSettings() {
                 </Table>
               </CardContent>
               <CardFooter className="flex justify-between border-t pt-6">
-                <Button variant="outline" onClick={() => navigate("/plans")}>
+                <Button variant="outline" onClick={() => {
+                  window.history.pushState({}, '', '/plans');
+                  window.dispatchEvent(new Event('popstate'));
+                }}>
                   Cancelar
                 </Button>
                 <Button>Salvar Alterações</Button>
