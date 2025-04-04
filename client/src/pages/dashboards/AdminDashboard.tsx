@@ -51,9 +51,10 @@ const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
 
 // Dados de planos
 const plansDistributionData = [
-  { name: 'Básico', value: 30, color: '#4CAF50' },
-  { name: 'Profissional', value: 45, color: '#2196F3' },
-  { name: 'Enterprise', value: 25, color: '#9C27B0' },
+  { name: 'Freemium', value: 15, color: '#9e9e9e' },
+  { name: 'Seed', value: 30, color: '#4CAF50' },
+  { name: 'Grow', value: 35, color: '#2196F3' },
+  { name: 'Pro', value: 20, color: '#9C27B0' },
 ];
 
 // Dados de módulos
@@ -66,29 +67,33 @@ const moduleDistributionData = [
 
 // Dados de distribuição de planos por módulo
 const modulesPlanDistribution = [
-  { module: 'Financeiro', plan: 'Básico', count: 15 },
-  { module: 'Financeiro', plan: 'Profissional', count: 35 },
-  { module: 'Financeiro', plan: 'Enterprise', count: 50 },
-  { module: 'RH', plan: 'Básico', count: 25 },
-  { module: 'RH', plan: 'Profissional', count: 45 },
-  { module: 'RH', plan: 'Enterprise', count: 30 },
-  { module: 'Logística', plan: 'Básico', count: 40 },
-  { module: 'Logística', plan: 'Profissional', count: 35 },
-  { module: 'Logística', plan: 'Enterprise', count: 25 },
-  { module: 'Suporte', plan: 'Básico', count: 20 },
-  { module: 'Suporte', plan: 'Profissional', count: 40 },
-  { module: 'Suporte', plan: 'Enterprise', count: 40 },
+  { module: 'Financeiro', plan: 'Freemium', count: 10 },
+  { module: 'Financeiro', plan: 'Seed', count: 15 },
+  { module: 'Financeiro', plan: 'Grow', count: 35 },
+  { module: 'Financeiro', plan: 'Pro', count: 50 },
+  { module: 'RH', plan: 'Freemium', count: 15 },
+  { module: 'RH', plan: 'Seed', count: 25 },
+  { module: 'RH', plan: 'Grow', count: 45 },
+  { module: 'RH', plan: 'Pro', count: 30 },
+  { module: 'Logística', plan: 'Freemium', count: 20 },
+  { module: 'Logística', plan: 'Seed', count: 40 },
+  { module: 'Logística', plan: 'Grow', count: 35 },
+  { module: 'Logística', plan: 'Pro', count: 25 },
+  { module: 'Suporte', plan: 'Freemium', count: 15 },
+  { module: 'Suporte', plan: 'Seed', count: 20 },
+  { module: 'Suporte', plan: 'Grow', count: 40 },
+  { module: 'Suporte', plan: 'Pro', count: 40 },
 ];
 
 // Crescimento de vendas de planos por mês
 const plansSalesData = [
-  { month: 'Jan', básico: 20, profissional: 15, enterprise: 5 },
-  { month: 'Fev', básico: 25, profissional: 20, enterprise: 8 },
-  { month: 'Mar', básico: 30, profissional: 25, enterprise: 12 },
-  { month: 'Abr', básico: 35, profissional: 30, enterprise: 15 },
-  { month: 'Mai', básico: 40, profissional: 40, enterprise: 20 },
-  { month: 'Jun', básico: 45, profissional: 45, enterprise: 25 },
-  { month: 'Jul', básico: 50, profissional: 50, enterprise: 30 },
+  { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
+  { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
+  { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
+  { month: 'Abr', freemium: 35, seed: 26, grow: 30, pro: 15 },
+  { month: 'Mai', freemium: 40, seed: 32, grow: 40, pro: 20 },
+  { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
+  { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
 ];
 
 export default function AdminDashboard() {
@@ -306,9 +311,10 @@ export default function AdminDashboard() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="básico" stroke="#4CAF50" strokeWidth={2} name="Básico" />
-                      <Line type="monotone" dataKey="profissional" stroke="#2196F3" strokeWidth={2} name="Profissional" />
-                      <Line type="monotone" dataKey="enterprise" stroke="#9C27B0" strokeWidth={2} name="Enterprise" />
+                      <Line type="monotone" dataKey="freemium" stroke="#9e9e9e" strokeWidth={2} name="Freemium" />
+                      <Line type="monotone" dataKey="seed" stroke="#4CAF50" strokeWidth={2} name="Seed" />
+                      <Line type="monotone" dataKey="grow" stroke="#2196F3" strokeWidth={2} name="Grow" />
+                      <Line type="monotone" dataKey="pro" stroke="#9C27B0" strokeWidth={2} name="Pro" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -377,9 +383,10 @@ export default function AdminDashboard() {
                     >
                       {modulesPlanDistribution.map((entry, index) => {
                         let color;
-                        if (entry.plan === 'Básico') color = '#4CAF50';
-                        else if (entry.plan === 'Profissional') color = '#2196F3';
-                        else if (entry.plan === 'Enterprise') color = '#9C27B0';
+                        if (entry.plan === 'Freemium') color = '#9e9e9e';
+                        else if (entry.plan === 'Seed') color = '#4CAF50';
+                        else if (entry.plan === 'Grow') color = '#2196F3';
+                        else if (entry.plan === 'Pro') color = '#9C27B0';
                         return <Cell key={`cell-${index}`} fill={color} />;
                       })}
                     </Bar>
@@ -395,16 +402,20 @@ export default function AdminDashboard() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <span className="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                          Freemium
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                          Básico
+                          Seed
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                          Profissional
+                          Grow
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
-                          Enterprise
+                          Pro
                         </th>
                       </tr>
                     </thead>
@@ -413,13 +424,16 @@ export default function AdminDashboard() {
                         <tr key={module}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{module}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Freemium')?.count || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Seed')?.count || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Grow')?.count || 0}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Pro')?.count || 0}
                           </td>
                         </tr>
                       ))}
@@ -457,7 +471,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">15/05/2023</td>
-                        <td className="px-6 py-4">Premium</td>
+                        <td className="px-6 py-4">Pro</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Clínica São Lucas</td>
@@ -466,7 +480,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">20/06/2023</td>
-                        <td className="px-6 py-4">Básico</td>
+                        <td className="px-6 py-4">Freemium</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Associação Médica Brasileira</td>
@@ -475,7 +489,7 @@ export default function AdminDashboard() {
                           <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
                         </td>
                         <td className="px-6 py-4">10/07/2023</td>
-                        <td className="px-6 py-4">Premium</td>
+                        <td className="px-6 py-4">Pro</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Centro Médico Nacional</td>
@@ -484,7 +498,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">05/08/2023</td>
-                        <td className="px-6 py-4">Empresarial</td>
+                        <td className="px-6 py-4">Grow</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Saúde Total</td>
@@ -493,7 +507,7 @@ export default function AdminDashboard() {
                           <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Suspenso</span>
                         </td>
                         <td className="px-6 py-4">18/04/2023</td>
-                        <td className="px-6 py-4">Básico</td>
+                        <td className="px-6 py-4">Seed</td>
                       </tr>
                     </tbody>
                   </table>
