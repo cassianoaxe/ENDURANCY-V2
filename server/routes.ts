@@ -689,15 +689,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Criar objeto de dados limpo para inserção
+      const cleanOrgData = {
+        ...restOrgData,
+        plan: planName || 'Básico', // Garantir valor não nulo para o campo plan
+        planId: planId, 
+        status: 'pending',
+        planHistory: JSON.stringify([{
+          planId: planId,
+          planName: planName || 'Básico',
+          date: new Date(),
+          action: "inicial",
+          userId: null,
+          status: "aprovado"
+        }]),
+        createdAt: new Date()
+      };
+
+      // Verificar se plan está realmente definido antes de inserir
+      if (!cleanOrgData.plan) {
+        cleanOrgData.plan = 'Básico';
+      }
+
+      console.log("Dados da organização para inserção:", JSON.stringify({
+        ...cleanOrgData,
+        password: '****', // Não logar senha
+        confirmPassword: '****' // Não logar senha
+      }, null, 2));
+      
       // Criar a organização com dados limpos e garantir que plan e planId estão definidos
       const [organization] = await db.insert(organizations)
-        .values({
-          ...restOrgData,
-          plan: planName, // Usar o nome do plano ou valor padrão
-          planId: planId, // Garantir que planId existe
-          status: 'pending',
-          createdAt: new Date()
-        })
+        .values(cleanOrgData)
         .returning();
 
       // Store document information
@@ -2175,15 +2197,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Plano não encontrado." });
         }
         
+        // Buscar plano atual para registrar no histórico
+        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, organization.planId));
+        
+        // Preparar o histórico de planos para atualização
+        let planHistory = [];
+        try {
+          // Tentar fazer parse do histórico existente ou iniciar um array vazio
+          planHistory = organization.planHistory ? JSON.parse(organization.planHistory as string) : [];
+        } catch (error) {
+          console.error("Erro ao analisar planHistory:", error);
+          planHistory = [];
+        }
+        
+        // Registrar a mudança no histórico
+        const historyEntry = {
+          date: new Date(),
+          previousPlanId: organization.planId,
+          previousPlanName: currentPlan?.name || 'Desconhecido',
+          newPlanId: planToApply.id,
+          newPlanName: planToApply.name,
+          action: "upgrade",
+          approvedById: req.session.user.id,
+          approvedByName: req.session.user.name,
+          status: "approved"
+        };
+        
+        planHistory.push(historyEntry);
+        
         console.log(`Aprovando mudança de plano para organização ${organizationId}, novo plano: ${planId}`);
         
-        // Atualizar a organização com o novo plano
+        // Atualizar a organização com o novo plano e o histórico de planos
         await db.update(organizations)
           .set({
             planId: planId,
+            plan: planToApply.name, // Atualizar também o nome do plano
             planTier: planToApply.tier,
             status: 'active', // Voltar ao status normal
             requestedPlanId: null, // Limpar solicitação
+            planHistory: JSON.stringify(planHistory), // Atualizar o histórico de planos
             updatedAt: new Date()
           })
           .where(eq(organizations.id, organizationId));
@@ -2206,10 +2258,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Rejeitar a solicitação
         console.log(`Rejeitando mudança de plano para organização ${organizationId}`);
         
+        // Buscar plano atual para registrar no histórico
+        const [currentPlan] = await db.select().from(plans).where(eq(plans.id, organization.planId));
+        
+        // Preparar o histórico de planos para atualização
+        let planHistory = [];
+        try {
+          // Tentar fazer parse do histórico existente ou iniciar um array vazio
+          planHistory = organization.planHistory ? JSON.parse(organization.planHistory as string) : [];
+        } catch (error) {
+          console.error("Erro ao analisar planHistory:", error);
+          planHistory = [];
+        }
+        
+        // Registrar a rejeição no histórico
+        const historyEntry = {
+          date: new Date(),
+          previousPlanId: organization.planId,
+          previousPlanName: currentPlan?.name || 'Desconhecido',
+          requestedPlanId: organization.requestedPlanId,
+          requestedPlanName: requestedPlan?.name || 'Desconhecido',
+          action: "rejected",
+          rejectedById: req.session.user.id,
+          rejectedByName: req.session.user.name,
+          status: "rejected",
+          reason: req.body.rejectionReason || "Solicitação rejeitada pelo administrador"
+        };
+        
+        planHistory.push(historyEntry);
+        
         await db.update(organizations)
           .set({
             status: 'active', // Voltar ao status normal
             requestedPlanId: null, // Limpar solicitação
+            planHistory: JSON.stringify(planHistory), // Atualizar o histórico de planos
             updatedAt: new Date()
           })
           .where(eq(organizations.id, organizationId));
@@ -2260,12 +2342,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!plan) {
         return res.status(404).json({ message: "Plano não encontrado" });
       }
+
+      // Buscar organização para obter o plano atual
+      const [organization] = await db.select().from(organizations).where(eq(organizations.id, organizationId));
       
-      // Atualizar o plano da organização
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      // Buscar detalhes do plano atual
+      const [currentPlan] = await db.select().from(plans).where(eq(plans.id, organization.planId));
+      
+      // Preparar o histórico de planos para atualização
+      let planHistory = [];
+      try {
+        // Tentar fazer parse do histórico existente ou iniciar um array vazio
+        planHistory = organization.planHistory ? JSON.parse(organization.planHistory as string) : [];
+      } catch (error) {
+        console.error("Erro ao analisar planHistory:", error);
+        planHistory = [];
+      }
+      
+      // Registrar a mudança direta no histórico (sem aprovação admin)
+      const historyEntry = {
+        date: new Date(),
+        previousPlanId: organization.planId,
+        previousPlanName: currentPlan?.name || 'Desconhecido',
+        newPlanId: plan.id,
+        newPlanName: plan.name,
+        action: "direct_change",
+        changedById: req.session.user.id,
+        changedByName: req.session.user.name,
+        status: "completed"
+      };
+      
+      planHistory.push(historyEntry);
+      
+      // Atualizar o plano da organização com histórico
       await db.update(organizations)
         .set({ 
           planId: planId,
+          plan: plan.name,
           planTier: plan.tier,
+          planHistory: JSON.stringify(planHistory),
           updatedAt: new Date()
         })
         .where(eq(organizations.id, organizationId));
