@@ -667,7 +667,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
 
       // Create organization
-      // Criar organização - usar planId diretamente sem buscar o planTier
       const [organization] = await db.insert(organizations)
         .values({
           ...organizationData,

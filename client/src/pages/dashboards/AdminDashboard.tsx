@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   LineChart,
   Line,
@@ -16,65 +14,46 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  Cell,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar
+  Cell
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import TourGuide from '@/components/features/TourGuide';
-import { useQuery } from "@tanstack/react-query";
-import { 
-  User, 
-  CircleUser, 
-  Building2, 
-  Activity, 
-  Bell, 
-  BarChart4, 
-  Calendar, 
-  FileText, 
-  AlertTriangle, 
-  Package, 
-  Settings, 
-  Layers,
-  Download,
-  FileDown,
-  CircleDollarSign,
-  TrendingUp,
-  Users,
-  ArrowUpRight
-} from 'lucide-react';
+import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings, Layers } from 'lucide-react';
 
-// Dados de assinaturas mensais por plano
-const plansSalesData = [
-  { month: 'Jan', free: 10, seed: 20, grow: 15, pro: 5 },
-  { month: 'Fev', free: 12, seed: 25, grow: 20, pro: 8 },
-  { month: 'Mar', free: 18, seed: 30, grow: 25, pro: 12 },
-  { month: 'Abr', free: 22, seed: 35, grow: 30, pro: 15 },
-  { month: 'Mai', free: 30, seed: 40, grow: 40, pro: 20 },
-  { month: 'Jun', free: 35, seed: 45, grow: 45, pro: 25 },
-  { month: 'Jul', free: 40, seed: 50, grow: 50, pro: 30 },
+// Dados de demonstração
+const organizationsData = [
+  { month: 'Jan', organizations: 15 },
+  { month: 'Fev', organizations: 20 },
+  { month: 'Mar', organizations: 28 },
+  { month: 'Abr', organizations: 32 },
+  { month: 'Mai', organizations: 45 },
+  { month: 'Jun', organizations: 52 },
+  { month: 'Jul', organizations: 58 },
 ];
 
-// Receita mensal recorrente (MRR) por mês por plano
-const mrrByPlanData = [
-  { month: 'Jan', seed: 1000, grow: 3000, pro: 5000 },
-  { month: 'Fev', seed: 1500, grow: 4000, pro: 6000 },
-  { month: 'Mar', seed: 2000, grow: 5000, pro: 8000 },
-  { month: 'Abr', seed: 2500, grow: 6000, pro: 10000 },
-  { month: 'Mai', seed: 3000, grow: 8000, pro: 12000 },
-  { month: 'Jun', seed: 3500, grow: 10000, pro: 15000 },
-  { month: 'Jul', seed: 4000, grow: 12000, pro: 18000 },
+const usersData = [
+  { month: 'Jan', admins: 2, doctors: 20, patients: 100 },
+  { month: 'Fev', admins: 3, doctors: 25, patients: 130 },
+  { month: 'Mar', admins: 4, doctors: 30, patients: 180 },
+  { month: 'Abr', admins: 4, doctors: 35, patients: 230 },
+  { month: 'Mai', admins: 5, doctors: 45, patients: 300 },
+  { month: 'Jun', admins: 6, doctors: 55, patients: 350 },
+  { month: 'Jul', admins: 7, doctors: 60, patients: 400 },
 ];
 
-// Dados de distribuição de planos
+const activeStatusData = [
+  { name: 'Ativas', value: 75, color: '#4CAF50' },
+  { name: 'Pendentes', value: 20, color: '#FFC107' },
+  { name: 'Suspensas', value: 5, color: '#F44336' },
+];
+
+const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
+
+// Dados de planos
 const plansDistributionData = [
-  { name: 'Freemium', value: 30, color: '#9CA3AF' },  // Cinza para plano Freemium
-  { name: 'Seed', value: 25, color: '#4CAF50' },  // Verde para Seed
-  { name: 'Grow', value: 30, color: '#2196F3' },  // Azul para Grow
-  { name: 'Pro', value: 15, color: '#9C27B0' },   // Roxo para Pro
+  { name: 'Básico', value: 30, color: '#4CAF50' },
+  { name: 'Profissional', value: 45, color: '#2196F3' },
+  { name: 'Enterprise', value: 25, color: '#9C27B0' },
 ];
 
 // Dados de módulos
@@ -87,58 +66,34 @@ const moduleDistributionData = [
 
 // Dados de distribuição de planos por módulo
 const modulesPlanDistribution = [
-  { module: 'Financeiro', plan: 'Free', count: 15 },
-  { module: 'Financeiro', plan: 'Seed', count: 35 },
-  { module: 'Financeiro', plan: 'Grow', count: 40 },
-  { module: 'Financeiro', plan: 'Pro', count: 25 },
-  { module: 'RH', plan: 'Free', count: 25 },
-  { module: 'RH', plan: 'Seed', count: 30 },
-  { module: 'RH', plan: 'Grow', count: 45 },
-  { module: 'RH', plan: 'Pro', count: 20 },
-  { module: 'Logística', plan: 'Free', count: 40 },
-  { module: 'Logística', plan: 'Seed', count: 30 },
-  { module: 'Logística', plan: 'Grow', count: 35 },
-  { module: 'Logística', plan: 'Pro', count: 15 },
-  { module: 'Suporte', plan: 'Free', count: 20 },
-  { module: 'Suporte', plan: 'Seed', count: 25 },
-  { module: 'Suporte', plan: 'Grow', count: 40 },
-  { module: 'Suporte', plan: 'Pro', count: 15 },
+  { module: 'Financeiro', plan: 'Básico', count: 15 },
+  { module: 'Financeiro', plan: 'Profissional', count: 35 },
+  { module: 'Financeiro', plan: 'Enterprise', count: 50 },
+  { module: 'RH', plan: 'Básico', count: 25 },
+  { module: 'RH', plan: 'Profissional', count: 45 },
+  { module: 'RH', plan: 'Enterprise', count: 30 },
+  { module: 'Logística', plan: 'Básico', count: 40 },
+  { module: 'Logística', plan: 'Profissional', count: 35 },
+  { module: 'Logística', plan: 'Enterprise', count: 25 },
+  { module: 'Suporte', plan: 'Básico', count: 20 },
+  { module: 'Suporte', plan: 'Profissional', count: 40 },
+  { module: 'Suporte', plan: 'Enterprise', count: 40 },
 ];
 
-// Dados comparativos entre módulos e planos
-const modulesPlanRevenue = [
-  { module: 'Financeiro', seed: 2500, grow: 5000, pro: 8000 },
-  { module: 'RH', seed: 2000, grow: 4500, pro: 6000 },
-  { module: 'Logística', seed: 1800, grow: 3500, pro: 4500 },
-  { module: 'Suporte', seed: 1500, grow: 3000, pro: 4000 },
-];
-
-// Dados de organizações
-const organizationsData = [
-  { month: 'Jan', organizations: 15 },
-  { month: 'Fev', organizations: 20 },
-  { month: 'Mar', organizations: 28 },
-  { month: 'Abr', organizations: 32 },
-  { month: 'Mai', organizations: 45 },
-  { month: 'Jun', organizations: 52 },
-  { month: 'Jul', organizations: 58 },
-];
-
-// Dados de usuários
-const usersData = [
-  { month: 'Jan', admins: 2, doctors: 20, patients: 100 },
-  { month: 'Fev', admins: 3, doctors: 25, patients: 130 },
-  { month: 'Mar', admins: 4, doctors: 30, patients: 180 },
-  { month: 'Abr', admins: 4, doctors: 35, patients: 230 },
-  { month: 'Mai', admins: 5, doctors: 45, patients: 300 },
-  { month: 'Jun', admins: 6, doctors: 55, patients: 350 },
-  { month: 'Jul', admins: 7, doctors: 60, patients: 400 },
+// Crescimento de vendas de planos por mês
+const plansSalesData = [
+  { month: 'Jan', básico: 20, profissional: 15, enterprise: 5 },
+  { month: 'Fev', básico: 25, profissional: 20, enterprise: 8 },
+  { month: 'Mar', básico: 30, profissional: 25, enterprise: 12 },
+  { month: 'Abr', básico: 35, profissional: 30, enterprise: 15 },
+  { month: 'Mai', básico: 40, profissional: 40, enterprise: 20 },
+  { month: 'Jun', básico: 45, profissional: 45, enterprise: 25 },
+  { month: 'Jul', básico: 50, profissional: 50, enterprise: 30 },
 ];
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedPeriod, setSelectedPeriod] = useState("30");
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -351,10 +306,9 @@ export default function AdminDashboard() {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="free" stroke="#9CA3AF" strokeWidth={2} name="Freemium" />
-                      <Line type="monotone" dataKey="seed" stroke="#4CAF50" strokeWidth={2} name="Seed" />
-                      <Line type="monotone" dataKey="grow" stroke="#2196F3" strokeWidth={2} name="Grow" />
-                      <Line type="monotone" dataKey="pro" stroke="#9C27B0" strokeWidth={2} name="Pro" />
+                      <Line type="monotone" dataKey="básico" stroke="#4CAF50" strokeWidth={2} name="Básico" />
+                      <Line type="monotone" dataKey="profissional" stroke="#2196F3" strokeWidth={2} name="Profissional" />
+                      <Line type="monotone" dataKey="enterprise" stroke="#9C27B0" strokeWidth={2} name="Enterprise" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -398,73 +352,6 @@ export default function AdminDashboard() {
             </Card>
           </div>
           
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Receita por Módulo e Plano</CardTitle>
-              <CardDescription>Análise das receitas por módulo e plano</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                        Seed (R$)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                        Grow (R$)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
-                        Pro (R$)
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total (R$)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {modulesPlanRevenue.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.module}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {`R$ ${item.seed.toLocaleString('pt-BR')}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {`R$ ${item.grow.toLocaleString('pt-BR')}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {`R$ ${item.pro.toLocaleString('pt-BR')}`}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {`R$ ${(item.seed + item.grow + item.pro).toLocaleString('pt-BR')}`}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Total por Plano</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {`R$ ${modulesPlanRevenue.reduce((sum, item) => sum + item.seed, 0).toLocaleString('pt-BR')}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {`R$ ${modulesPlanRevenue.reduce((sum, item) => sum + item.grow, 0).toLocaleString('pt-BR')}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {`R$ ${modulesPlanRevenue.reduce((sum, item) => sum + item.pro, 0).toLocaleString('pt-BR')}`}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                        {`R$ ${modulesPlanRevenue.reduce((sum, item) => sum + item.seed + item.grow + item.pro, 0).toLocaleString('pt-BR')}`}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-          
           <Card>
             <CardHeader>
               <CardTitle>Distribuição de Planos por Módulo</CardTitle>
@@ -490,10 +377,9 @@ export default function AdminDashboard() {
                     >
                       {modulesPlanDistribution.map((entry, index) => {
                         let color;
-                        if (entry.plan === 'Free') color = '#9CA3AF';
-                        else if (entry.plan === 'Seed') color = '#4CAF50';
-                        else if (entry.plan === 'Grow') color = '#2196F3';
-                        else if (entry.plan === 'Pro') color = '#9C27B0';
+                        if (entry.plan === 'Básico') color = '#4CAF50';
+                        else if (entry.plan === 'Profissional') color = '#2196F3';
+                        else if (entry.plan === 'Enterprise') color = '#9C27B0';
                         return <Cell key={`cell-${index}`} fill={color} />;
                       })}
                     </Bar>
@@ -509,20 +395,16 @@ export default function AdminDashboard() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <span className="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
-                          Freemium
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                          Seed
+                          Básico
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                          Grow
+                          Profissional
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           <span className="inline-block w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
-                          Pro
+                          Enterprise
                         </th>
                       </tr>
                     </thead>
@@ -531,16 +413,13 @@ export default function AdminDashboard() {
                         <tr key={module}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{module}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Free')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Básico')?.count || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Seed')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Profissional')?.count || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Grow')?.count || 0}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Pro')?.count || 0}
+                            {modulesPlanDistribution.find(item => item.module === module && item.plan === 'Enterprise')?.count || 0}
                           </td>
                         </tr>
                       ))}
@@ -578,7 +457,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">15/05/2023</td>
-                        <td className="px-6 py-4">Pro</td>
+                        <td className="px-6 py-4">Premium</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Clínica São Lucas</td>
@@ -587,7 +466,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">20/06/2023</td>
-                        <td className="px-6 py-4">Seed</td>
+                        <td className="px-6 py-4">Básico</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Associação Médica Brasileira</td>
@@ -596,7 +475,7 @@ export default function AdminDashboard() {
                           <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
                         </td>
                         <td className="px-6 py-4">10/07/2023</td>
-                        <td className="px-6 py-4">Pro</td>
+                        <td className="px-6 py-4">Premium</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Centro Médico Nacional</td>
@@ -605,7 +484,7 @@ export default function AdminDashboard() {
                           <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
                         </td>
                         <td className="px-6 py-4">05/08/2023</td>
-                        <td className="px-6 py-4">Grow</td>
+                        <td className="px-6 py-4">Empresarial</td>
                       </tr>
                       <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td className="px-6 py-4 font-medium">Saúde Total</td>
@@ -614,7 +493,7 @@ export default function AdminDashboard() {
                           <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Suspenso</span>
                         </td>
                         <td className="px-6 py-4">18/04/2023</td>
-                        <td className="px-6 py-4">Freemium</td>
+                        <td className="px-6 py-4">Básico</td>
                       </tr>
                     </tbody>
                   </table>
