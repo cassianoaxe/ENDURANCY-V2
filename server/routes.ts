@@ -669,9 +669,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
 
       // Create organization
+      // Garantir que o campo planId está presente e definido corretamente
+      const planId = organizationData.planId ? parseInt(organizationData.planId) : 0;
+      
       const [organization] = await db.insert(organizations)
         .values({
           ...organizationData,
+          plan: 'Básico', // Valor padrão para o campo plan
+          planId: planId, // Garantir que planId existe
           status: 'pending',
           createdAt: new Date()
         })
