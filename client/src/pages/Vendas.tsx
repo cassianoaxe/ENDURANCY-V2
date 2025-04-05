@@ -15,94 +15,67 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Organization } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
-// Interface para as organizações
-interface SalesData {
-  id: number;
-  name: string;
-  type: string;
-  email: string;
-  status: string;
-  plan: string;
-  planId: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export default function Sales() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+export default function Vendas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Fetch all organizations
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'pending', 'approved'
+
+  // Buscar organizações
   const { data: organizations, isLoading: isLoadingOrganizations } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
-    refetchOnWindowFocus: false,
-    select: (data) => {
-      // Se quisermos modificar os dados antes de retornar
-      return data.map(org => ({
-        ...org,
-        createdAt: org.createdAt || new Date().toISOString()
-      }));
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
+
+  // Filtrar organizações
+  const filteredOrganizations = organizations ? organizations.filter((org: Organization) => {
+    // Filtrar pelo status
+    if (statusFilter !== "all" && org.status !== statusFilter) {
+      return false;
     }
-  });
+    
+    // Filtrar pelo termo de busca
+    if (searchTerm) {
+      const searchTermLower = searchTerm.toLowerCase();
+      return (
+        (org.name?.toLowerCase().includes(searchTermLower) || 
+        org.adminName?.toLowerCase().includes(searchTermLower) || 
+        org.email?.toLowerCase().includes(searchTermLower))
+      );
+    }
+    
+    return true;
+  }) : [];
+
+  // Organizações aprovadas e pendentes
+  const approvedOrganizations = organizations ? organizations.filter((org: Organization) => org.status === "approved") : [];
+  const pendingRegistrations = organizations ? organizations.filter((org: Organization) => org.status === "pending") : [];
+  const totalSales = organizations ? organizations.length : 0;
+
+  // Vendas recentes (últimos 30 dias)
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
-  // Calculate statistics
-  const allOrganizations = organizations || [];
-  const pendingRegistrations = allOrganizations.filter(org => org.status === "pending");
-  const approvedOrganizations = allOrganizations.filter(org => org.status === "approved");
-  
-  // Total de vendas
-  const totalSales = allOrganizations.length;
-  
-  // Calcular vendas nos últimos 30 dias
-  const last30Days = new Date();
-  last30Days.setDate(last30Days.getDate() - 30);
-  
-  const recentSales = allOrganizations.filter(org => {
-    const createdAtString = org.createdAt?.toString() || new Date().toISOString();
-    const createdAt = new Date(createdAtString);
-    return createdAt > last30Days;
-  });
-  
-  // Filtrar organizações com base na busca e filtro de status
-  const filteredOrganizations = allOrganizations.filter(org => {
-    const matchesSearch = 
-      org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      org.plan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(org.id).includes(searchTerm);
-      
-    const matchesStatus = 
-      statusFilter === "all" ||
-      org.status === statusFilter;
-      
-    return matchesSearch && matchesStatus;
-  });
-  
-  // Ordenar organizações por data de criação (mais recentes primeiro)
+  const recentSales = organizations ? organizations.filter((org: Organization) => {
+    if (!org.createdAt) return false;
+    const creationDate = new Date(org.createdAt);
+    return creationDate > thirtyDaysAgo;
+  }) : [];
+
+  // Ordenar organizações por data (mais recentes primeiro)
   const sortedOrganizations = [...filteredOrganizations].sort((a, b) => {
     const dateA = new Date(a.createdAt || 0);
     const dateB = new Date(b.createdAt || 0);
