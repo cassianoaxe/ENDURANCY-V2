@@ -969,33 +969,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { planId, organizationId } = req.body;
       
+      console.log("Recebido request para criar payment intent:", { planId, organizationId });
+      
       if (!planId) {
-        return res.status(400).json({ success: false, message: "Plan ID is required" });
+        console.error("Erro: planId não foi fornecido na requisição");
+        return res.status(400).json({ 
+          success: false, 
+          message: "ID do plano é obrigatório"
+        });
       }
       
       // Para o registro inicial de organização, marcamos isNewOrganization como true
       // e passamos o organizationId se disponível (pode ser de uma organização recém-criada)
-      const clientSecret = await createPlanPaymentIntent(
-        planId, 
-        true, // isNewOrganization = true para esta rota
-        organizationId ? Number(organizationId) : undefined
-      );
-      
-      if (!clientSecret) {
-        console.error("Falha ao gerar client secret para planId:", planId);
+      try {
+        const clientSecret = await createPlanPaymentIntent(
+          Number(planId), 
+          true, // isNewOrganization = true para esta rota
+          organizationId ? Number(organizationId) : undefined
+        );
+        
+        if (!clientSecret) {
+          console.error("Falha ao gerar client secret para planId:", planId);
+          return res.status(500).json({ 
+            success: false, 
+            message: "Não foi possível gerar o token de pagamento. Tente novamente mais tarde."
+          });
+        }
+        
+        console.log("Client Secret gerado com sucesso (primeiros 10 caracteres):", clientSecret.substring(0, 10));
+        return res.json({ success: true, clientSecret });
+      } catch (error: any) {
+        console.error("Erro ao criar payment intent:", error);
         return res.status(500).json({ 
           success: false, 
-          message: "Não foi possível gerar o token de pagamento. Tente novamente mais tarde."
+          message: error.message || "Falha ao criar intent de pagamento",
+          error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
         });
       }
-      
-      console.log("Client Secret gerado com sucesso (primeiros 10 caracteres):", clientSecret.substring(0, 10));
-      res.json({ success: true, clientSecret });
     } catch (error: any) {
-      console.error("Error creating payment intent:", error);
-      res.status(500).json({ 
+      console.error("Erro ao processar requisição:", error);
+      return res.status(500).json({ 
         success: false, 
-        message: error.message || "Falha ao criar intent de pagamento",
+        message: error.message || "Erro interno do servidor",
         error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
       });
     }
