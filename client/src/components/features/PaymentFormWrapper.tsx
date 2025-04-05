@@ -19,14 +19,11 @@ interface PaymentFormWrapperProps {
 
 // Criar a Promise do Stripe uma única vez fora do componente
 const getStripePromise = () => {
-  const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY as string;
-  if (!stripePublicKey) {
-    console.error("VITE_STRIPE_PUBLIC_KEY não está definida nas variáveis de ambiente");
-    return null;
-  }
+  // Usar a chave pública diretamente para evitar problemas com variáveis de ambiente
+  const stripePublicKey = 'pk_live_51QrzgiFWXqtPEhT6MFvVRUedbhVmjvE4i12BdDB5f7pV0Gq453iiv4EOXKJwf6hg9MkINpyNxXYjBpzg1kSH8V5q00fCh3JVGD';
   
   try {
-    console.log("Inicializando Stripe com a chave pública");
+    console.log("Inicializando Stripe com a chave pública fixa");
     return loadStripe(stripePublicKey);
   } catch (error) {
     console.error("Erro ao inicializar Stripe:", error);
