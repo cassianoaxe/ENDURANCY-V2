@@ -9,11 +9,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface PlanSelectionProps {
-  onPlanSelected: (plan: Plan) => void;
-  onBack: () => void;
+  plans: Plan[];
+  onSelectPlan: (plan: Plan) => void;
+  onClose: () => void;
 }
 
-export default function PlanSelection({ onPlanSelected, onBack }: PlanSelectionProps) {
+export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSelectionProps) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
