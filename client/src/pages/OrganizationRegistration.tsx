@@ -168,18 +168,42 @@ export default function OrganizationRegistration() {
       return response;
     },
     onSuccess: (data: any) => {
-      setPaymentIntentId(data.clientSecret);
+      if (!data || !data.success || !data.clientSecret) {
+        console.error("Resposta da API inválida:", data);
+        toast({
+          title: "Erro na configuração de pagamento",
+          description: data?.message || "Não foi possível obter as informações necessárias para o pagamento.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Client Secret recebido (primeiros 10 caracteres):", data.clientSecret.substring(0, 10));
+      // Garantir que o Client Secret seja uma string válida
+      const clientSecret = String(data.clientSecret);
+      
+      if (!clientSecret.includes('_secret_')) {
+        console.error("Client Secret em formato inválido:", clientSecret.substring(0, 10));
+        toast({
+          title: "Erro na configuração de pagamento",
+          description: "Token de pagamento em formato inválido. Por favor, tente novamente.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setPaymentIntentId(clientSecret);
       setShowPaymentForm(true);
       toast({
         title: "Pronto para pagamento",
         description: "Por favor, insira os dados do cartão para finalizar o cadastro.",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Erro ao criar intent de pagamento:", error);
       toast({
         title: "Erro ao processar pagamento",
-        description: "Não foi possível iniciar o processo de pagamento. Tente novamente.",
+        description: error?.message || "Não foi possível iniciar o processo de pagamento. Tente novamente.",
         variant: "destructive",
       });
     },
