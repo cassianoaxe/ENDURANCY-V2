@@ -15,54 +15,28 @@ interface PlanSelectionProps {
 }
 
 export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSelectionProps) {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadPlans() {
-      try {
-        const plansData = await fetchPlans();
-        
-        // Filtrar apenas os planos específicos: Freemium/Básico, Seed, Grow e Pro
-        // (Excluindo planos Enterprise ou personalizados)
-        const filteredPlans = plansData.filter(plan => 
-          plan.tier === 'free' || 
-          plan.tier === 'seed' || 
-          plan.tier === 'grow' || 
-          plan.tier === 'pro'
-        );
-        
-        // Ordenar os planos por nível: Free, Seed, Grow, Pro
-        const sortedPlans = filteredPlans.sort((a, b) => {
-          const tierOrder = { free: 1, seed: 2, grow: 3, pro: 4 };
-          return tierOrder[a.tier] - tierOrder[b.tier];
-        });
-        
-        console.log("Planos carregados e ordenados:", sortedPlans);
-        setPlans(sortedPlans);
-        
-        // Select the first plan by default if there are plans
-        if (sortedPlans.length > 0) {
-          setSelectedPlanId(sortedPlans[0].id);
-        }
-      } catch (err) {
-        console.error('Error loading plans:', err);
-        setError('Não foi possível carregar os planos. Por favor, tente novamente.');
-      } finally {
-        setLoading(false);
-      }
+    // Definir o plano padrão quando os planos são carregados
+    if (plans.length > 0 && !selectedPlanId) {
+      // Ordenar os planos por nível: Free, Seed, Grow, Pro
+      const tierOrder = { free: 1, seed: 2, grow: 3, pro: 4 };
+      const sortedPlans = [...plans].sort((a, b) => 
+        tierOrder[a.tier as keyof typeof tierOrder] - tierOrder[b.tier as keyof typeof tierOrder]
+      );
+      
+      setSelectedPlanId(sortedPlans[0].id);
     }
-    
-    loadPlans();
-  }, []);
+  }, [plans, selectedPlanId]);
 
   const handleContinue = () => {
     if (selectedPlanId) {
       const selectedPlan = plans.find(plan => plan.id === selectedPlanId);
       if (selectedPlan) {
-        onPlanSelected(selectedPlan);
+        onSelectPlan(selectedPlan);
       }
     }
   };
@@ -100,7 +74,7 @@ export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSele
             if (parseInt(value)) {
               const selectedPlan = plans.find(plan => plan.id === parseInt(value));
               if (selectedPlan) {
-                onPlanSelected(selectedPlan);
+                onSelectPlan(selectedPlan);
               }
             }
           }, 300);
@@ -154,7 +128,7 @@ export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSele
       </RadioGroup>
 
       <div className="flex justify-between mt-8">
-        <Button variant="outline" onClick={onBack}>
+        <Button variant="outline" onClick={onClose}>
           Voltar
         </Button>
         {/* Botão de Continuar removido para evitar duplicação com o botão da tela de registro */}
