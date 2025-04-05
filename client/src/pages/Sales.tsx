@@ -120,30 +120,7 @@ export default function Sales() {
     }).format(date);
   };
   
-  // Aprovar organização diretamente (fluxo automático de cadastro)
-  const activateOrganization = useMutation({
-    mutationFn: async (orgId: number) => {
-      const res = await apiRequest("PATCH", `/api/organizations/${orgId}`, { status: "approved" });
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      
-      const orgCode = data.orgCode;
-      
-      toast({
-        title: "Organização ativada com sucesso!",
-        description: "O acesso foi liberado e um e-mail com as instruções foi enviado ao administrador.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao ativar organização",
-        description: "Ocorreu um erro ao tentar ativar a organização.",
-        variant: "destructive",
-      });
-    },
-  });
+  // A ativação de organização agora é totalmente automática após o pagamento
 
   return (
     <div className="p-6">
@@ -288,20 +265,6 @@ export default function Sales() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            {org.status === 'pending' && (
-                              <Button 
-                                onClick={() => activateOrganization.mutate(org.id)}
-                                disabled={activateOrganization.isPending}
-                                size="sm" 
-                                className="bg-green-600 hover:bg-green-700 text-white flex items-center"
-                              >
-                                {activateOrganization.isPending ? 
-                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : 
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                }
-                                Ativar
-                              </Button>
-                            )}
                             <Button
                               size="sm"
                               variant="outline"
