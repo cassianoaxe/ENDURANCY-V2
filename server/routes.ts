@@ -661,9 +661,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       
       // Verificar se o documento principal foi enviado
+      // NOTA: Para o fluxo de cadastro rápido, podemos tornar o documento opcional
+      // Se precisarmos validar o documento novamente, remova o comentário desta validação
+      /*
       if (!files || !files.document || files.document.length === 0) {
         return res.status(400).json({ message: "Document file is required" });
       }
+      */
       
       const documentFile = files.document[0];
       const logoFile = files.logo && files.logo.length > 0 ? files.logo[0] : null;
@@ -775,7 +779,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Não interromper o fluxo se o e-mail falhar
       }
 
-      res.status(201).json(organization);
+      // Retornar a organização com campos adicionais para o processo de pagamento
+      // Especificamente, retornamos flags indicando que a organização foi criada
+      // e está pronta para o processo de pagamento com Stripe
+      res.status(201).json({
+        ...organization,
+        readyForPayment: true,
+        paymentRequired: true,
+        organizationId: organization.id // Garantir que o ID está explícito para o cliente
+      });
     } catch (error) {
       console.error("Error creating organization:", error);
       res.status(500).json({ message: "Failed to create organization" });
@@ -955,13 +967,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment Routes
   app.post("/api/payments/create-intent", async (req, res) => {
     try {
-      const { planId } = req.body;
+      const { planId, organizationId } = req.body;
       
       if (!planId) {
         return res.status(400).json({ message: "Plan ID is required" });
       }
       
-      const clientSecret = await createPlanPaymentIntent(planId);
+      // Para o registro inicial de organização, marcamos isNewOrganization como true
+      // e passamos o organizationId se disponível (pode ser de uma organização recém-criada)
+      const clientSecret = await createPlanPaymentIntent(
+        planId, 
+        true, // isNewOrganization = true para esta rota
+        organizationId ? Number(organizationId) : undefined
+      );
       res.json({ clientSecret });
     } catch (error) {
       console.error("Error creating payment intent:", error);
@@ -990,11 +1008,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Organization not found" });
         }
         
-        // Update organization status to active
+        // Buscar informações do plano
+        const planId = parseInt(paymentIntent.metadata.planId || '0', 10);
+        
+        if (planId <= 0) {
+          return res.status(400).json({ message: "ID do plano não encontrado nos metadados do pagamento" });
+        }
+        
+        const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
+        
+        if (!plan) {
+          return res.status(404).json({ message: "Plano não encontrado" });
+        }
+        
+        // Processar o pagamento para atribuir o plano e configurar os dados financeiros
+        const paymentProcessed = await processPlanPayment(paymentIntentId, organizationId);
+        
+        if (!paymentProcessed) {
+          return res.status(500).json({ message: "Erro ao processar o pagamento" });
+        }
+        
+        // Gerar um código da organização, se ainda não tiver
+        let orgCode = organization.orgCode;
+        if (!orgCode) {
+          // Gerar um código único baseado no ID e em um timestamp
+          orgCode = `ORG-${organizationId}-${Date.now().toString(36).toUpperCase()}`;
+        }
+        
+        // Update organization status to active e configurar código
         const [updatedOrg] = await db.update(organizations)
-          .set({ status: 'active' })
+          .set({ 
+            status: 'active',
+            orgCode,
+            // Garantir que o plano está atualizado
+            planId: planId,
+            planTier: plan.tier
+          })
           .where(eq(organizations.id, organizationId))
           .returning();
+          
+        // Associar os módulos do plano à organização
+        try {
+          // Buscar módulos associados ao plano
+          const planModulesList = await db.select()
+            .from(planModules)
+            .where(eq(planModules.plan_id, planId));
+          
+          console.log(`Encontrados ${planModulesList.length} módulos para o plano ${planId}`);
+          
+          // Inserir os módulos para a organização
+          for (const planModule of planModulesList) {
+            // Verificar se já existe este módulo para a organização
+            const existingModule = await db.select()
+              .from(organizationModules)
+              .where(
+                and(
+                  eq(organizationModules.organizationId, organizationId),
+                  eq(organizationModules.moduleId, planModule.module_id)
+                )
+              );
+            
+            if (existingModule.length === 0) {
+              // Inserir apenas se não existir
+              await db.insert(organizationModules).values({
+                organizationId,
+                moduleId: planModule.module_id,
+                planId: planId, // Associar ao plano também
+                active: true,
+                status: 'active',
+                startDate: new Date(),
+                expiryDate: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)), // 30 dias
+                billingDay: new Date().getDate(), // Para cobrança recorrente
+                createdAt: new Date(),
+                updatedAt: new Date()
+              });
+              
+              console.log(`Módulo ${planModule.module_id} associado à organização ${organizationId}`);
+            }
+          }
+        } catch (moduleError) {
+          console.error("Erro ao configurar módulos da organização:", moduleError);
+          // Continuar mesmo com erro nos módulos para não bloquear a ativação
+        }
         
         // Enviar e-mail de confirmação de pagamento e ativação da conta
         try {
@@ -1554,13 +1649,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Payment Routes
   app.post("/api/payments/create-plan-intent", authenticate, async (req, res) => {
     try {
-      const { planId } = req.body;
+      const { planId, organizationId } = req.body;
       
       if (!planId) {
         return res.status(400).json({ message: "Plan ID is required" });
       }
       
-      const clientSecret = await createPlanPaymentIntent(Number(planId));
+      // Para mudança de plano de uma organização existente (isNewOrganization = false)
+      const clientSecret = await createPlanPaymentIntent(
+        Number(planId),
+        false, // isNewOrganization = false para esta rota (mudança de plano)
+        organizationId ? Number(organizationId) : undefined
+      );
       res.json({ clientSecret });
     } catch (error) {
       console.error("Error creating plan payment intent:", error);
