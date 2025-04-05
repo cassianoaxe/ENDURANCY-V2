@@ -970,7 +970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { planId, organizationId } = req.body;
       
       if (!planId) {
-        return res.status(400).json({ message: "Plan ID is required" });
+        return res.status(400).json({ success: false, message: "Plan ID is required" });
       }
       
       // Para o registro inicial de organização, marcamos isNewOrganization como true
@@ -980,10 +980,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         true, // isNewOrganization = true para esta rota
         organizationId ? Number(organizationId) : undefined
       );
-      res.json({ clientSecret });
-    } catch (error) {
+      
+      if (!clientSecret) {
+        console.error("Falha ao gerar client secret para planId:", planId);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Não foi possível gerar o token de pagamento. Tente novamente mais tarde."
+        });
+      }
+      
+      console.log("Client Secret gerado com sucesso (primeiros 10 caracteres):", clientSecret.substring(0, 10));
+      res.json({ success: true, clientSecret });
+    } catch (error: any) {
       console.error("Error creating payment intent:", error);
-      res.status(500).json({ message: "Failed to create payment intent" });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Falha ao criar intent de pagamento",
+        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      });
     }
   });
   
@@ -1652,7 +1666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { planId, organizationId } = req.body;
       
       if (!planId) {
-        return res.status(400).json({ message: "Plan ID is required" });
+        return res.status(400).json({ success: false, message: "Plan ID is required" });
       }
       
       // Para mudança de plano de uma organização existente (isNewOrganization = false)
@@ -1661,10 +1675,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         false, // isNewOrganization = false para esta rota (mudança de plano)
         organizationId ? Number(organizationId) : undefined
       );
-      res.json({ clientSecret });
-    } catch (error) {
+      
+      if (!clientSecret) {
+        console.error("Falha ao gerar client secret para mudança de plano. planId:", planId);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Não foi possível gerar o token de pagamento. Tente novamente mais tarde."
+        });
+      }
+      
+      console.log("Client Secret para mudança de plano gerado com sucesso (primeiros 10 caracteres):", clientSecret.substring(0, 10));
+      res.json({ success: true, clientSecret });
+    } catch (error: any) {
       console.error("Error creating plan payment intent:", error);
-      res.status(500).json({ message: "Failed to create payment intent" });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Falha ao criar intent de pagamento para mudança de plano",
+        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      });
     }
   });
   
@@ -1673,7 +1701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { modulePlanId, organizationId } = req.body;
       
       if (!modulePlanId) {
-        return res.status(400).json({ message: "Module plan ID is required" });
+        return res.status(400).json({ success: false, message: "Module plan ID is required" });
       }
       
       const clientSecret = await createModulePaymentIntent(
@@ -1681,10 +1709,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         organizationId ? Number(organizationId) : undefined
       );
       
-      res.json({ clientSecret });
-    } catch (error) {
+      if (!clientSecret) {
+        console.error("Falha ao gerar client secret para módulo. modulePlanId:", modulePlanId);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Não foi possível gerar o token de pagamento para o módulo. Tente novamente mais tarde."
+        });
+      }
+      
+      console.log("Client Secret para módulo gerado com sucesso (primeiros 10 caracteres):", clientSecret.substring(0, 10));
+      res.json({ success: true, clientSecret });
+    } catch (error: any) {
       console.error("Error creating module payment intent:", error);
-      res.status(500).json({ message: "Failed to create payment intent" });
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Falha ao criar intent de pagamento para módulo",
+        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      });
     }
   });
 

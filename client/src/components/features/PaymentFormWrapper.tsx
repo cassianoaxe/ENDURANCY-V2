@@ -62,9 +62,24 @@ export default function PaymentFormWrapper({
   }, [loadStripe, stripePromise]);
 
   useEffect(() => {
-    if (!stripePromise || !clientSecret) return;
+    if (!stripePromise || !clientSecret) {
+      if (!clientSecret) {
+        console.error("Client Secret está indefinido");
+        setErrorMessage('Erro de configuração do Stripe. Client Secret não fornecido.');
+        setPaymentStatus('error');
+      }
+      return;
+    }
 
     let mounted = true;
+    
+    // Validar formato do Client Secret
+    if (typeof clientSecret !== 'string' || !clientSecret.includes('_secret_')) {
+      console.error("Client Secret em formato inválido:", clientSecret);
+      setErrorMessage('Erro de configuração do Stripe. Formato de Client Secret inválido.');
+      setPaymentStatus('error');
+      return;
+    }
     
     const setupElements = async () => {
       try {
@@ -73,6 +88,8 @@ export default function PaymentFormWrapper({
         
         if (!stripe) {
           console.error("Stripe não foi carregado corretamente");
+          setErrorMessage('Erro na inicialização do Stripe. Verifique suas configurações.');
+          setPaymentStatus('error');
           return;
         }
 
@@ -92,31 +109,52 @@ export default function PaymentFormWrapper({
         };
 
         console.log("Creating elements with options:", options);
-        const elements = stripe.elements(options);
         
-        // Usar setTimeout para garantir que o DOM esteja pronto
-        setTimeout(() => {
-          if (!mounted) return;
+        try {
+          const elements = stripe.elements(options);
           
-          // Verificar se o elemento existe no DOM
-          const paymentElementContainer = document.getElementById('payment-element');
-          
-          if (!paymentElementContainer) {
-            console.error("Container #payment-element não encontrado no DOM");
-            return;
-          }
-          
-          console.log("Mounting payment element to:", paymentElementContainer);
-          
-          // Limpar o conteúdo anterior, se houver
-          paymentElementContainer.innerHTML = '';
-          
-          // Criar e montar o formulário de pagamento
-          const paymentElement = elements.create('payment');
-          paymentElement.mount('#payment-element');
-          
-          setStripeElements({ stripe, elements, paymentElement });
-        }, 100);
+          // Usar setTimeout para garantir que o DOM esteja pronto
+          setTimeout(() => {
+            if (!mounted) return;
+            
+            try {
+              // Verificar se o elemento existe no DOM
+              const paymentElementContainer = document.getElementById('payment-element');
+              
+              if (!paymentElementContainer) {
+                console.error("Container #payment-element não encontrado no DOM");
+                setErrorMessage('Erro na montagem do formulário. Elemento de pagamento não encontrado.');
+                setPaymentStatus('error');
+                return;
+              }
+              
+              console.log("Mounting payment element to:", paymentElementContainer);
+              
+              // Limpar o conteúdo anterior, se houver
+              paymentElementContainer.innerHTML = '';
+              
+              // Criar e montar o formulário de pagamento
+              try {
+                const paymentElement = elements.create('payment');
+                paymentElement.mount('#payment-element');
+                
+                setStripeElements({ stripe, elements, paymentElement });
+              } catch (elemError) {
+                console.error('Erro ao criar ou montar elemento de pagamento:', elemError);
+                setErrorMessage('Não foi possível inicializar o formulário de pagamento. Erro interno.');
+                setPaymentStatus('error');
+              }
+            } catch (domError) {
+              console.error('Erro ao interagir com o DOM:', domError);
+              setErrorMessage('Erro de interface. Tente recarregar a página.');
+              setPaymentStatus('error');
+            }
+          }, 100);
+        } catch (elementsError) {
+          console.error('Erro ao criar Stripe Elements:', elementsError);
+          setErrorMessage('Erro na criação do formulário de pagamento. Verifique o Client Secret.');
+          setPaymentStatus('error');
+        }
       } catch (error) {
         console.error('Erro ao configurar Stripe Elements:', error);
         setErrorMessage('Não foi possível carregar o formulário de pagamento. Por favor, tente novamente.');
