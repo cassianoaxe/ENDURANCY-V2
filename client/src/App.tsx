@@ -25,7 +25,7 @@ import Modules from "@/pages/Modules";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
-import Requests from "@/pages/Requests";
+import Sales from "@/pages/Sales";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
 import Tickets from "@/pages/Tickets";
@@ -466,7 +466,7 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/plans/create', '/plans/settings',
     '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
-    '/requests', '/financial', '/email-templates', '/routes-list',
+    '/sales', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
     '/user-groups', '/user-invitations', '/module-subscription-sales',
     '/integracoes', '/integracoes/comunicacao/whatsapp', 
@@ -524,7 +524,7 @@ function AppContent() {
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': Component = Organizations; break;
       case '/organization-registration': Component = OrganizationRegistration; break;
-      case '/requests': Component = Requests; break;
+      case '/sales': Component = Sales; break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;

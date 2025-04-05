@@ -14,7 +14,8 @@ import {
   Settings, 
   Link, 
   Blocks, 
-  ArrowUpRight 
+  ArrowUpRight,
+  DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -126,11 +127,11 @@ const routes: RouteInfo[] = [
     icon: <Building2 className="h-5 w-5" />
   },
   {
-    path: '/requests',
-    name: 'Solicitações',
-    description: 'Gerenciamento de solicitações pendentes de organizações',
+    path: '/sales',
+    name: 'Vendas',
+    description: 'Gerenciamento de vendas e contratos',
     category: 'organization',
-    icon: <Inbox className="h-5 w-5" />
+    icon: <DollarSign className="h-5 w-5" />
   },
   
   // Rotas financeiras
