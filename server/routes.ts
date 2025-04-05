@@ -979,13 +979,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Validar planId
+      const numericPlanId = Number(planId);
+      if (isNaN(numericPlanId) || numericPlanId <= 0) {
+        console.error("Erro: planId inválido:", planId);
+        return res.status(400).json({
+          success: false,
+          message: "ID do plano inválido"
+        });
+      }
+      
+      // Validar organizationId se fornecido
+      let numericOrgId = undefined;
+      if (organizationId !== undefined) {
+        numericOrgId = Number(organizationId);
+        if (isNaN(numericOrgId) || numericOrgId <= 0) {
+          console.error("Erro: organizationId inválido:", organizationId);
+          return res.status(400).json({
+            success: false,
+            message: "ID da organização inválido"
+          });
+        }
+      }
+      
+      console.log("Criando payment intent com valores validados:", { 
+        planId: numericPlanId, 
+        organizationId: numericOrgId 
+      });
+      
       // Para o registro inicial de organização, marcamos isNewOrganization como true
       // e passamos o organizationId se disponível (pode ser de uma organização recém-criada)
       try {
         const clientSecret = await createPlanPaymentIntent(
-          Number(planId), 
+          numericPlanId, 
           true, // isNewOrganization = true para esta rota
-          organizationId ? Number(organizationId) : undefined
+          numericOrgId
         );
         
         if (!clientSecret) {
