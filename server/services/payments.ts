@@ -8,14 +8,12 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('A variável de ambiente STRIPE_SECRET_KEY não está definida');
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 /**
  * Cria um intent de pagamento para planos
  */
-export async function createPlanPaymentIntent(planId: number): Promise<string> {
+export async function createPlanPaymentIntent(planId: number, isNewOrganization: boolean = false, organizationId?: number): Promise<string> {
   try {
     // Buscar detalhes do plano
     const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
@@ -26,12 +24,14 @@ export async function createPlanPaymentIntent(planId: number): Promise<string> {
 
     // Criar intent de pagamento no Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(plan.price * 100), // Converter para centavos
+      amount: Math.round(Number(plan.price) * 100), // Converter para centavos
       currency: 'brl',
       metadata: {
         planId: plan.id.toString(),
         planName: plan.name,
-        type: 'plan'
+        type: 'plan',
+        isNewOrganization: isNewOrganization ? 'true' : 'false',
+        organizationId: organizationId ? organizationId.toString() : null
       },
     });
 
@@ -65,7 +65,7 @@ export async function createModulePaymentIntent(modulePlanId: number, organizati
 
     // Criar intent de pagamento no Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(modulePlan.price * 100), // Converter para centavos
+      amount: Math.round(Number(modulePlan.price) * 100), // Converter para centavos
       currency: 'brl',
       metadata: {
         modulePlanId: modulePlan.id.toString(),
@@ -212,20 +212,21 @@ async function registerFinancialTransaction(
 ): Promise<void> {
   try {
     // Registrar a transação financeira como receita
+    // Usamos o schema conforme definido no schema.ts
     await db.insert(financialTransactions).values({
-      organizationId,
+      organizationId, // Este campo usa camelCase no schema de inserção
       description,
       type: 'receita',
       category,
-      amount,
+      amount: amount.toString(), // Converter para string conforme esperado pelo schema
       status: 'pago',
-      dueDate: new Date(),
-      paymentDate: new Date(),
-      documentNumber: paymentIntentId,
-      paymentMethod: 'cartão de crédito',
+      dueDate: new Date(), // camelCase conforme o schema
+      paymentDate: new Date(), // camelCase conforme o schema
+      documentNumber: paymentIntentId, // camelCase conforme o schema
+      paymentMethod: 'cartão de crédito', // camelCase conforme o schema
       notes: `Pagamento através do Stripe (ID: ${paymentIntentId})`,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: new Date(), // camelCase conforme o schema
+      updatedAt: new Date() // camelCase conforme o schema
     });
     
     console.log(`Transação financeira registrada para pagamento: ${paymentIntentId}`);

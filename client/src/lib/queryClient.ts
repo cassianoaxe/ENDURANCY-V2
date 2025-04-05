@@ -8,34 +8,37 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+  options?: RequestInit,
+): Promise<any> {
   const headers: HeadersInit = {
     'Accept': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     'Pragma': 'no-cache',
     'Expires': '0',
+    ...options?.headers,
   };
   
   // Check if data is FormData
-  const isFormData = data instanceof FormData;
+  const isFormData = options?.body instanceof FormData;
   
   // Only set Content-Type for non-FormData requests
-  if (data && !isFormData) {
+  if (options?.body && !isFormData && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
   const res = await fetch(url, {
-    method,
+    ...options,
     headers,
-    body: isFormData ? data as FormData : (data ? JSON.stringify(data) : undefined),
     credentials: "include", // Important: This ensures cookies are included in the request
     cache: "no-cache", // Prevent caching issues
   });
 
   await throwIfResNotOk(res);
+  // Parse as JSON if possible
+  if (res.headers.get('content-type')?.includes('application/json')) {
+    return res.json().catch(() => res);
+  }
   return res;
 }
 
