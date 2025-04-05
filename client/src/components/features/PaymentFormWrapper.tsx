@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 
 interface PaymentFormWrapperProps {
   clientSecret: string;
@@ -20,7 +20,8 @@ interface PaymentFormWrapperProps {
 // Criar a Promise do Stripe uma única vez fora do componente
 const getStripePromise = () => {
   // Usar a chave pública diretamente para evitar problemas com variáveis de ambiente
-  const stripePublicKey = 'pk_live_51QrzgiFWXqtPEhT6MFvVRUedbhVmjvE4i12BdDB5f7pV0Gq453iiv4EOXKJwf6hg9MkINpyNxXYjBpzg1kSH8V5q00fCh3JVGD';
+  // Para testes, é melhor usar a chave de teste, não a de produção
+  const stripePublicKey = 'pk_test_51QrzguFYDCrcCFsoH95bZv29ggT58pLwC3C3PEwOYCXXTNVfCBPH7QUkZZdDCzLuPakAMjRSHbfj3dOQNWVgqJgR005cKz7VSc';
   
   try {
     console.log("Inicializando Stripe com a chave pública fixa");
@@ -39,19 +40,29 @@ export default function PaymentFormWrapper({
   planPrice
 }: PaymentFormWrapperProps) {
   const { toast } = useToast();
-  const [stripePromise] = useState(() => getStripePromise());
-  const [stripeElements, setStripeElements] = useState<any>(null);
+  const stripePromiseRef = useRef<Promise<Stripe | null> | null>(null);
+  const elementsRef = useRef<any>(null);
+  const [paymentElement, setPaymentElement] = useState<any>(null);
   const [paymentStatus, setPaymentStatus] = useState<'initial' | 'processing' | 'success' | 'error'>('initial');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Inicialização do Stripe - apenas uma vez na montagem do componente
   useEffect(() => {
-    if (!stripePromise) {
-      console.error("Stripe não foi inicializado");
-      setErrorMessage("Erro de configuração do sistema de pagamento - Entre em contato com o suporte");
-      setPaymentStatus('error');
-      return;
-    }
+    console.log("Inicializando Stripe...");
+    stripePromiseRef.current = getStripePromise();
+    
+    return () => {
+      // Limpar qualquer recurso do Stripe na desmontagem
+      elementsRef.current = null;
+      setPaymentElement(null);
+    };
+  }, []);
 
+  // Configuração dos Elements quando o clientSecret muda
+  useEffect(() => {
+    let isMounted = true;
+    
+    // Validações iniciais
     if (!clientSecret) {
       console.error("Client Secret está indefinido");
       setErrorMessage('Erro de configuração. Token de pagamento não fornecido.');
@@ -59,44 +70,45 @@ export default function PaymentFormWrapper({
       return;
     }
 
-    let mounted = true;
-    
-    // Validar formato do Client Secret
     if (typeof clientSecret !== 'string') {
       console.error("Client Secret não é uma string:", typeof clientSecret);
       setErrorMessage('Erro de configuração. Token de pagamento em formato inválido.');
       setPaymentStatus('error');
       return;
     }
-    
-    // Validar se o formato parece com um client secret do Stripe
-    // Client secrets podem começar com pi_ (payment intent), seti_ (setup intent), etc.
-    // O que importa é que tenha um prefixo válido ou _secret_ no meio
+
+    // Validar formato do client secret
     const isValidStripeSecret = 
       clientSecret.startsWith('pi_') || 
-      clientSecret.startsWith('seti_') || 
       clientSecret.includes('_secret_');
       
     if (!isValidStripeSecret) {
-      console.error("Client Secret em formato inválido (valor completo):", clientSecret);
+      console.error("Client Secret em formato inválido:", clientSecret.substring(0, 10) + "...");
       setErrorMessage('Formato de token de pagamento inválido. Por favor, tente novamente.');
       setPaymentStatus('error');
       return;
     }
-    
-    const setupElements = async () => {
+
+    const setupStripeElements = async () => {
       try {
-        console.log("Setting up Stripe Elements with clientSecret:", clientSecret.substring(0, 10) + "...");
-        const stripe = await stripePromise;
-        
-        if (!stripe) {
-          console.error("Stripe não foi carregado corretamente");
-          setErrorMessage('Erro na inicialização do sistema de pagamento. Verifique suas configurações.');
+        if (!stripePromiseRef.current) {
+          console.error("Stripe promise não está disponível");
+          setErrorMessage('Erro de inicialização do Stripe. Tente recarregar a página.');
           setPaymentStatus('error');
           return;
         }
 
-        // Definir as opções para o Stripe Elements
+        console.log("Aguardando promise do Stripe...");
+        const stripe = await stripePromiseRef.current;
+        
+        if (!stripe) {
+          console.error("Falha ao carregar o Stripe");
+          setErrorMessage('Erro ao carregar o processador de pagamentos. Verifique sua conexão.');
+          setPaymentStatus('error');
+          return;
+        }
+
+        // Definir opções para o Stripe Elements
         const options = {
           clientSecret,
           appearance: {
@@ -112,86 +124,83 @@ export default function PaymentFormWrapper({
           },
         };
 
-        console.log("Creating Stripe elements");
-        
-        try {
-          const elements = stripe.elements(options);
-          
-          // Usar setTimeout para garantir que o DOM esteja pronto
-          setTimeout(() => {
-            if (!mounted) return;
+        console.log("Criando Stripe Elements...");
+        const elements = stripe.elements(options);
+        elementsRef.current = elements;
+
+        // Dar tempo para o DOM ser renderizado
+        setTimeout(() => {
+          if (!isMounted) return;
+
+          try {
+            const container = document.getElementById('payment-element');
+            if (!container) {
+              console.error("Container do elemento de pagamento não encontrado");
+              setErrorMessage('Erro na interface. Elemento de pagamento não encontrado.');
+              setPaymentStatus('error');
+              return;
+            }
+
+            console.log("Criando e montando Payment Element...");
+            // Limpar o contêiner para garantir que não haja elementos anteriores
+            container.innerHTML = '';
             
-            try {
-              // Verificar se o elemento existe no DOM
-              const paymentElementContainer = document.getElementById('payment-element');
-              
-              if (!paymentElementContainer) {
-                console.error("Container #payment-element não encontrado no DOM");
-                setErrorMessage('Erro na montagem do formulário. Elemento de pagamento não encontrado no DOM.');
-                setPaymentStatus('error');
-                return;
-              }
-              
-              console.log("Mounting payment element to DOM");
-              
-              // Limpar o conteúdo anterior, se houver
-              paymentElementContainer.innerHTML = '';
-              
-              // Criar e montar o formulário de pagamento
-              try {
-                const paymentElement = elements.create('payment');
-                paymentElement.mount('#payment-element');
-                
-                setStripeElements({ stripe, elements, paymentElement });
-                console.log("Payment element mounted successfully");
-              } catch (elemError: any) {
-                console.error('Erro ao criar ou montar elemento de pagamento:', elemError);
-                setErrorMessage('Erro ao inicializar o formulário de pagamento: ' + (elemError.message || 'Erro interno'));
-                setPaymentStatus('error');
-              }
-            } catch (domError: any) {
-              console.error('Erro ao interagir com o DOM:', domError);
-              setErrorMessage('Erro de interface: ' + (domError.message || 'Tente recarregar a página'));
+            const element = elements.create('payment');
+            element.mount('#payment-element');
+            
+            if (isMounted) {
+              setPaymentElement(element);
+              console.log("Payment Element montado com sucesso!");
+            }
+          } catch (mountError: any) {
+            console.error("Erro ao montar Payment Element:", mountError);
+            if (isMounted) {
+              setErrorMessage(`Erro ao criar formulário de pagamento: ${mountError.message || 'Erro desconhecido'}`);
               setPaymentStatus('error');
             }
-          }, 500); // Aumentado para 500ms para garantir que o DOM esteja pronto
-        } catch (elementsError: any) {
-          console.error('Erro ao criar Stripe Elements:', elementsError);
-          setErrorMessage('Erro ao configurar o formulário de pagamento: ' + (elementsError.message || 'Verifique o token de pagamento'));
+          }
+        }, 500);
+
+      } catch (error: any) {
+        console.error("Erro na configuração do Stripe:", error);
+        if (isMounted) {
+          setErrorMessage(`Falha na configuração do pagamento: ${error.message || 'Tente novamente mais tarde'}`);
           setPaymentStatus('error');
         }
-      } catch (error: any) {
-        console.error('Erro ao configurar Stripe Elements:', error);
-        setErrorMessage('Não foi possível configurar o sistema de pagamento: ' + (error.message || 'Tente novamente mais tarde'));
-        setPaymentStatus('error');
       }
     };
 
-    setupElements();
-    
+    setupStripeElements();
+
     return () => {
-      mounted = false;
+      isMounted = false;
+      // Não limpar elementsRef.current aqui, pois isso vai acontecer na próxima execução deste efeito
     };
-  }, [clientSecret, stripePromise]);
+  }, [clientSecret]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!stripeElements) {
+    if (!stripePromiseRef.current || !elementsRef.current) {
+      console.error("Stripe não inicializado:", { 
+        stripePromise: !!stripePromiseRef.current, 
+        elements: !!elementsRef.current 
+      });
+      
       toast({
         title: "Erro de inicialização",
-        description: "O sistema de pagamento não foi inicializado corretamente. Tente novamente.",
+        description: "O sistema de pagamento não está pronto. Aguarde alguns segundos e tente novamente.",
         variant: "destructive",
       });
       return;
     }
     
-    const { stripe, elements } = stripeElements;
-    
-    if (!stripe || !elements) {
+    // Verificar se o Payment Element está realmente montado
+    if (!paymentElement) {
+      console.error("Payment Element não está montado");
       toast({
-        title: "Erro de configuração",
-        description: "Componentes do sistema de pagamento não encontrados.",
+        title: "Formulário não carregado",
+        description: "O formulário de pagamento não foi carregado completamente. Atualize a página e tente novamente.",
         variant: "destructive",
       });
       return;
@@ -200,35 +209,42 @@ export default function PaymentFormWrapper({
     setPaymentStatus('processing');
     
     try {
-      const { error: submitError, paymentIntent } = await stripe.confirmPayment({
-        elements,
+      const stripe = await stripePromiseRef.current;
+      if (!stripe) {
+        throw new Error("Stripe não foi inicializado corretamente");
+      }
+      
+      console.log("Confirmando pagamento...");
+      const result = await stripe.confirmPayment({
+        elements: elementsRef.current,
         confirmParams: {
           return_url: window.location.origin + '/payment-callback',
         },
         redirect: 'if_required',
       });
       
-      if (submitError) {
-        console.error('Erro no pagamento:', submitError);
-        setErrorMessage(submitError.message || 'Houve um erro ao processar o pagamento.');
+      if (result.error) {
+        console.error("Erro na confirmação do pagamento:", result.error);
+        setErrorMessage(result.error.message || 'Houve um erro ao processar o pagamento.');
         setPaymentStatus('error');
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+        console.log("Pagamento confirmado com sucesso!");
         toast({
           title: "Pagamento confirmado!",
           description: "Sua assinatura foi ativada com sucesso.",
         });
         setPaymentStatus('success');
-        onSuccess(paymentIntent.id);
+        onSuccess(result.paymentIntent.id);
       } else {
-        // Pagamento em andamento ou com autenticação
+        console.log("Status do pagamento:", result.paymentIntent?.status);
         toast({
           title: "Processando pagamento",
           description: "Estamos processando seu pagamento. Por favor, aguarde.",
         });
       }
     } catch (err: any) {
-      console.error('Erro ao confirmar pagamento:', err);
-      setErrorMessage(err.message || 'Houve um erro ao processar o pagamento.');
+      console.error("Exceção ao confirmar pagamento:", err);
+      setErrorMessage(err.message || 'Ocorreu um erro inesperado no processamento do pagamento.');
       setPaymentStatus('error');
     }
   };
@@ -287,7 +303,7 @@ export default function PaymentFormWrapper({
                 <Button type="button" variant="outline" onClick={onCancel}>
                   Voltar
                 </Button>
-                <Button type="submit" disabled={!stripeElements}>
+                <Button type="submit" disabled={!paymentElement}>
                   Confirmar pagamento
                 </Button>
               </div>
