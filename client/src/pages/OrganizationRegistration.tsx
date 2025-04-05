@@ -134,9 +134,15 @@ export default function OrganizationRegistration() {
       // Se o plano selecionado não for gratuito (free), iniciar o processo de pagamento
       if (selectedPlan && selectedPlan.tier !== 'free') {
         // Criar intent de pagamento com o ID da organização
+        // Garantir que o planId seja sempre um número
         createPaymentIntent.mutate({ 
-          planId: selectedPlan.id, 
-          organizationId: data.id 
+          planId: Number(selectedPlan.id), 
+          organizationId: Number(data.id) 
+        });
+        
+        console.log("Iniciando criação de payment intent para:", {
+          planId: Number(selectedPlan.id),
+          organizationId: Number(data.id)
         });
       } else {
         // Se for um plano gratuito, seguir para a página de confirmação
@@ -268,18 +274,22 @@ export default function OrganizationRegistration() {
 
   // Callback para quando o pagamento for concluído com sucesso pelo componente Stripe
   const handlePaymentSuccess = (paymentIntent: string) => {
-    if (organizationId) {
-      confirmPayment.mutate({ 
-        paymentIntentId: paymentIntent,
-        organizationId 
-      });
-    } else {
+    if (!organizationId) {
+      console.error("ID da organização não encontrado. Não é possível confirmar o pagamento.");
       toast({
         title: "Erro no processamento",
         description: "ID da organização não encontrado. Tente novamente.",
         variant: "destructive",
       });
+      return;
     }
+    
+    console.log(`Confirmando pagamento para organização ${organizationId} com paymentIntent ${paymentIntent}`);
+    
+    confirmPayment.mutate({ 
+      paymentIntentId: paymentIntent,
+      organizationId: Number(organizationId) 
+    });
   };
 
   const nextStep = async () => {
