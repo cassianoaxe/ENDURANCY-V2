@@ -161,15 +161,24 @@ export default function OrganizationRegistration() {
   // Criar intent de pagamento
   const createPaymentIntent = useMutation({
     mutationFn: async ({ planId, organizationId }: { planId: number, organizationId: number }) => {
-      const response = await apiRequest('/api/payments/create-intent', {
-        method: 'POST',
-        body: JSON.stringify({ planId, organizationId }),
-      });
-      return response;
+      console.log("Criando payment intent para planId:", planId, "organizationId:", organizationId);
+      
+      try {
+        const response = await apiRequest('/api/payments/create-intent', {
+          method: 'POST',
+          body: JSON.stringify({ planId, organizationId }),
+        });
+        
+        console.log("Resposta completa da API:", response);
+        return response;
+      } catch (error: any) {
+        console.error("Erro na chamada para criar intent:", error);
+        throw new Error(error.message || "Falha na comunicação com o servidor de pagamentos");
+      }
     },
     onSuccess: (data: any) => {
       if (!data || !data.success || !data.clientSecret) {
-        console.error("Resposta da API inválida:", data);
+        console.error("Resposta da API inválida para Payment Intent:", data);
         toast({
           title: "Erro na configuração de pagamento",
           description: data?.message || "Não foi possível obter as informações necessárias para o pagamento.",
@@ -179,11 +188,19 @@ export default function OrganizationRegistration() {
       }
       
       console.log("Client Secret recebido (primeiros 10 caracteres):", data.clientSecret.substring(0, 10));
+      
       // Garantir que o Client Secret seja uma string válida
       const clientSecret = String(data.clientSecret);
       
-      if (!clientSecret.includes('_secret_')) {
-        console.error("Client Secret em formato inválido:", clientSecret.substring(0, 10));
+      // Cliente secrets do Stripe podem começar com pi_ (payment intent), seti_ (setup intent)
+      // ou incluir _secret_ no meio
+      const isValidStripeSecret = 
+        clientSecret.startsWith('pi_') || 
+        clientSecret.startsWith('seti_') || 
+        clientSecret.includes('_secret_');
+      
+      if (!isValidStripeSecret) {
+        console.error("Client Secret em formato inválido:", clientSecret);
         toast({
           title: "Erro na configuração de pagamento",
           description: "Token de pagamento em formato inválido. Por favor, tente novamente.",
@@ -192,6 +209,7 @@ export default function OrganizationRegistration() {
         return;
       }
       
+      console.log("Client Secret é válido, inicializando formulário de pagamento");
       setPaymentIntentId(clientSecret);
       setShowPaymentForm(true);
       toast({
@@ -203,7 +221,7 @@ export default function OrganizationRegistration() {
       console.error("Erro ao criar intent de pagamento:", error);
       toast({
         title: "Erro ao processar pagamento",
-        description: error?.message || "Não foi possível iniciar o processo de pagamento. Tente novamente.",
+        description: error.message || "Não foi possível inicializar a configuração de pagamento. Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -1060,8 +1078,8 @@ export default function OrganizationRegistration() {
                           <div>
                             <h4 className="font-medium text-blue-800">Próximos passos</h4>
                             <p className="text-sm text-blue-700 mt-1">
-                              Após a finalização do registro, sua solicitação será analisada pela nossa equipe. 
-                              Você receberá um e-mail de confirmação quando sua organização for aprovada.
+                              Após a finalização do pagamento, sua organização será ativada automaticamente e você receberá
+                              um e-mail com as instruções de acesso.
                             </p>
                           </div>
                         </div>

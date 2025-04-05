@@ -49,15 +49,26 @@ export default function PaymentFormWrapper({
       // Usar a chave pública do Stripe das variáveis de ambiente
       const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
       
+      console.log("Verificando chave pública do Stripe:", 
+        stripePublicKey ? "Chave encontrada (começa com " + stripePublicKey.substring(0, 5) + "...)" : "Chave não encontrada");
+      
       if (!stripePublicKey) {
         console.error("VITE_STRIPE_PUBLIC_KEY não está definida nas variáveis de ambiente");
-        setErrorMessage("Erro de configuração - Entre em contato com o suporte");
+        setErrorMessage("Erro de configuração do Stripe - Entre em contato com o suporte");
         setPaymentStatus('error');
         return;
       }
       
-      console.log("Usando chave pública do Stripe");
-      setStripePromise(loadStripe(stripePublicKey));
+      try {
+        console.log("Inicializando Stripe com a chave pública");
+        const promise = loadStripe(stripePublicKey);
+        console.log("Promise do Stripe criada com sucesso:", promise ? "OK" : "Falha");
+        setStripePromise(promise);
+      } catch (error) {
+        console.error("Erro ao inicializar Stripe:", error);
+        setErrorMessage("Erro ao inicializar o sistema de pagamento. Por favor, tente novamente mais tarde.");
+        setPaymentStatus('error');
+      }
     }
   }, [loadStripe, stripePromise]);
 
@@ -74,9 +85,24 @@ export default function PaymentFormWrapper({
     let mounted = true;
     
     // Validar formato do Client Secret
-    if (typeof clientSecret !== 'string' || !clientSecret.includes('_secret_')) {
-      console.error("Client Secret em formato inválido:", clientSecret);
-      setErrorMessage('Erro de configuração do Stripe. Formato de Client Secret inválido.');
+    if (typeof clientSecret !== 'string') {
+      console.error("Client Secret não é uma string:", typeof clientSecret);
+      setErrorMessage('Erro de configuração do Stripe. Client Secret em formato inválido.');
+      setPaymentStatus('error');
+      return;
+    }
+    
+    // Validar se o formato parece com um client secret do Stripe
+    // Client secrets podem começar com pi_ (payment intent), seti_ (setup intent), etc.
+    // O que importa é que tenha um prefixo válido ou _secret_ no meio
+    const isValidStripeSecret = 
+      clientSecret.startsWith('pi_') || 
+      clientSecret.startsWith('seti_') || 
+      clientSecret.includes('_secret_');
+      
+    if (!isValidStripeSecret) {
+      console.error("Client Secret em formato inválido (valor completo):", clientSecret);
+      setErrorMessage('Formato de token de pagamento inválido. Por favor, tente novamente.');
       setPaymentStatus('error');
       return;
     }
