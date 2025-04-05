@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard, Image } from "lucide-react";
 import { z } from "zod";
-import PlanSelection from "@/components/features/PlanSelection";
-import PaymentFormWrapper from "@/components/features/PaymentFormWrapper";
+import PlanSelection from "../components/features/PlanSelection";
+import PaymentFormWrapper from "../components/features/PaymentFormWrapper";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function OrganizationRegistration() {
