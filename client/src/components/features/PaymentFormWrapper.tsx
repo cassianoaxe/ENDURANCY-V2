@@ -7,16 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { Plan } from '@shared/schema';
-
-// Importação condicional de stripe para funcionar com SSR
-let loadStripe: any;
-
-if (typeof window !== "undefined") {
-  import('@stripe/stripe-js').then((module) => {
-    loadStripe = module.loadStripe;
-  });
-}
+import { loadStripe } from '@stripe/stripe-js';
 
 interface PaymentFormWrapperProps {
   clientSecret: string;
@@ -26,6 +17,23 @@ interface PaymentFormWrapperProps {
   planPrice: string;
 }
 
+// Criar a Promise do Stripe uma única vez fora do componente
+const getStripePromise = () => {
+  const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY as string;
+  if (!stripePublicKey) {
+    console.error("VITE_STRIPE_PUBLIC_KEY não está definida nas variáveis de ambiente");
+    return null;
+  }
+  
+  try {
+    console.log("Inicializando Stripe com a chave pública");
+    return loadStripe(stripePublicKey);
+  } catch (error) {
+    console.error("Erro ao inicializar Stripe:", error);
+    return null;
+  }
+};
+
 export default function PaymentFormWrapper({
   clientSecret,
   onSuccess,
@@ -34,51 +42,23 @@ export default function PaymentFormWrapper({
   planPrice
 }: PaymentFormWrapperProps) {
   const { toast } = useToast();
-  const [stripePromise, setStripePromise] = useState<any>(null);
+  const [stripePromise] = useState(() => getStripePromise());
   const [stripeElements, setStripeElements] = useState<any>(null);
   const [paymentStatus, setPaymentStatus] = useState<'initial' | 'processing' | 'success' | 'error'>('initial');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Esta inicialização foi movida para o efeito abaixo
-  // para evitar duplicação
-
   useEffect(() => {
-    // Só tentar inicializar o Stripe quando tivermos certeza de que loadStripe está disponível
-    if (typeof window !== "undefined" && !stripePromise && loadStripe) {
-      console.log("Inicializando Stripe...");
-      // Usar a chave pública do Stripe das variáveis de ambiente
-      const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-      
-      console.log("Verificando chave pública do Stripe:", 
-        stripePublicKey ? "Chave encontrada (começa com " + stripePublicKey.substring(0, 5) + "...)" : "Chave não encontrada");
-      
-      if (!stripePublicKey) {
-        console.error("VITE_STRIPE_PUBLIC_KEY não está definida nas variáveis de ambiente");
-        setErrorMessage("Erro de configuração do Stripe - Entre em contato com o suporte");
-        setPaymentStatus('error');
-        return;
-      }
-      
-      try {
-        console.log("Inicializando Stripe com a chave pública");
-        const promise = loadStripe(stripePublicKey);
-        console.log("Promise do Stripe criada com sucesso:", promise ? "OK" : "Falha");
-        setStripePromise(promise);
-      } catch (error) {
-        console.error("Erro ao inicializar Stripe:", error);
-        setErrorMessage("Erro ao inicializar o sistema de pagamento. Por favor, tente novamente mais tarde.");
-        setPaymentStatus('error');
-      }
+    if (!stripePromise) {
+      console.error("Stripe não foi inicializado");
+      setErrorMessage("Erro de configuração do sistema de pagamento - Entre em contato com o suporte");
+      setPaymentStatus('error');
+      return;
     }
-  }, [loadStripe, stripePromise]);
 
-  useEffect(() => {
-    if (!stripePromise || !clientSecret) {
-      if (!clientSecret) {
-        console.error("Client Secret está indefinido");
-        setErrorMessage('Erro de configuração do Stripe. Client Secret não fornecido.');
-        setPaymentStatus('error');
-      }
+    if (!clientSecret) {
+      console.error("Client Secret está indefinido");
+      setErrorMessage('Erro de configuração. Token de pagamento não fornecido.');
+      setPaymentStatus('error');
       return;
     }
 
@@ -87,7 +67,7 @@ export default function PaymentFormWrapper({
     // Validar formato do Client Secret
     if (typeof clientSecret !== 'string') {
       console.error("Client Secret não é uma string:", typeof clientSecret);
-      setErrorMessage('Erro de configuração do Stripe. Client Secret em formato inválido.');
+      setErrorMessage('Erro de configuração. Token de pagamento em formato inválido.');
       setPaymentStatus('error');
       return;
     }
@@ -109,20 +89,21 @@ export default function PaymentFormWrapper({
     
     const setupElements = async () => {
       try {
-        console.log("Setting up Stripe Elements with clientSecret:", clientSecret);
+        console.log("Setting up Stripe Elements with clientSecret:", clientSecret.substring(0, 10) + "...");
         const stripe = await stripePromise;
         
         if (!stripe) {
           console.error("Stripe não foi carregado corretamente");
-          setErrorMessage('Erro na inicialização do Stripe. Verifique suas configurações.');
+          setErrorMessage('Erro na inicialização do sistema de pagamento. Verifique suas configurações.');
           setPaymentStatus('error');
           return;
         }
 
+        // Definir as opções para o Stripe Elements
         const options = {
           clientSecret,
           appearance: {
-            theme: 'stripe',
+            theme: 'stripe' as const,
             variables: {
               colorPrimary: '#10b981',
               colorBackground: '#ffffff',
@@ -134,7 +115,7 @@ export default function PaymentFormWrapper({
           },
         };
 
-        console.log("Creating elements with options:", options);
+        console.log("Creating Stripe elements");
         
         try {
           const elements = stripe.elements(options);
@@ -149,12 +130,12 @@ export default function PaymentFormWrapper({
               
               if (!paymentElementContainer) {
                 console.error("Container #payment-element não encontrado no DOM");
-                setErrorMessage('Erro na montagem do formulário. Elemento de pagamento não encontrado.');
+                setErrorMessage('Erro na montagem do formulário. Elemento de pagamento não encontrado no DOM.');
                 setPaymentStatus('error');
                 return;
               }
               
-              console.log("Mounting payment element to:", paymentElementContainer);
+              console.log("Mounting payment element to DOM");
               
               // Limpar o conteúdo anterior, se houver
               paymentElementContainer.innerHTML = '';
@@ -165,25 +146,26 @@ export default function PaymentFormWrapper({
                 paymentElement.mount('#payment-element');
                 
                 setStripeElements({ stripe, elements, paymentElement });
-              } catch (elemError) {
+                console.log("Payment element mounted successfully");
+              } catch (elemError: any) {
                 console.error('Erro ao criar ou montar elemento de pagamento:', elemError);
-                setErrorMessage('Não foi possível inicializar o formulário de pagamento. Erro interno.');
+                setErrorMessage('Erro ao inicializar o formulário de pagamento: ' + (elemError.message || 'Erro interno'));
                 setPaymentStatus('error');
               }
-            } catch (domError) {
+            } catch (domError: any) {
               console.error('Erro ao interagir com o DOM:', domError);
-              setErrorMessage('Erro de interface. Tente recarregar a página.');
+              setErrorMessage('Erro de interface: ' + (domError.message || 'Tente recarregar a página'));
               setPaymentStatus('error');
             }
-          }, 100);
-        } catch (elementsError) {
+          }, 500); // Aumentado para 500ms para garantir que o DOM esteja pronto
+        } catch (elementsError: any) {
           console.error('Erro ao criar Stripe Elements:', elementsError);
-          setErrorMessage('Erro na criação do formulário de pagamento. Verifique o Client Secret.');
+          setErrorMessage('Erro ao configurar o formulário de pagamento: ' + (elementsError.message || 'Verifique o token de pagamento'));
           setPaymentStatus('error');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao configurar Stripe Elements:', error);
-        setErrorMessage('Não foi possível carregar o formulário de pagamento. Por favor, tente novamente.');
+        setErrorMessage('Não foi possível configurar o sistema de pagamento: ' + (error.message || 'Tente novamente mais tarde'));
         setPaymentStatus('error');
       }
     };
@@ -193,18 +175,28 @@ export default function PaymentFormWrapper({
     return () => {
       mounted = false;
     };
-  }, [stripePromise, clientSecret]);
+  }, [clientSecret, stripePromise]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!stripeElements) {
+      toast({
+        title: "Erro de inicialização",
+        description: "O sistema de pagamento não foi inicializado corretamente. Tente novamente.",
+        variant: "destructive",
+      });
       return;
     }
     
     const { stripe, elements } = stripeElements;
     
     if (!stripe || !elements) {
+      toast({
+        title: "Erro de configuração",
+        description: "Componentes do sistema de pagamento não encontrados.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -286,7 +278,7 @@ export default function PaymentFormWrapper({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <div id="payment-element" className="p-4 border rounded-md" />
+            <div id="payment-element" className="p-4 border rounded-md min-h-[200px]" />
             
             {paymentStatus === 'processing' ? (
               <Button disabled className="w-full">
