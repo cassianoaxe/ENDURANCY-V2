@@ -1048,12 +1048,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { paymentIntentId, organizationId } = req.body;
       
-      if (!paymentIntentId || !organizationId) {
-        return res.status(400).json({ message: "Payment intent ID and organization ID are required" });
+      console.log("Recebida solicitação para confirmar pagamento:", { 
+        paymentIntentId, 
+        organizationId,
+        organizationIdType: typeof organizationId 
+      });
+      
+      if (!paymentIntentId) {
+        console.error("paymentIntentId é obrigatório");
+        return res.status(400).json({ 
+          success: false,
+          message: "ID do intent de pagamento é obrigatório" 
+        });
+      }
+      
+      if (!organizationId) {
+        console.error("organizationId é obrigatório");
+        return res.status(400).json({ 
+          success: false,
+          message: "ID da organização é obrigatório" 
+        });
+      }
+      
+      // Converter para número
+      const numericOrgId = Number(organizationId);
+      if (isNaN(numericOrgId) || numericOrgId <= 0) {
+        console.error("organizationId inválido:", organizationId);
+        return res.status(400).json({ 
+          success: false,
+          message: "ID da organização inválido" 
+        });
       }
       
       // Verify payment was successful
+      console.log("Verificando status do pagamento:", paymentIntentId);
       const paymentIntent = await checkPaymentStatus(paymentIntentId);
+      console.log("Status do pagamento:", paymentIntent.status);
       
       if (paymentIntent.status === 'succeeded') {
         // Buscar organização antes de atualizar
