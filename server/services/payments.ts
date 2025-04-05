@@ -35,7 +35,15 @@ export async function createPlanPaymentIntent(planId: number, isNewOrganization:
       },
     });
 
-    return paymentIntent.client_secret || '';
+    // Verificar se o client_secret é válido antes de retornar
+    if (!paymentIntent.client_secret) {
+      console.error('Stripe não retornou client_secret válido. PaymentIntent:', JSON.stringify(paymentIntent));
+      throw new Error('Falha ao obter client_secret do Stripe');
+    }
+
+    console.log(`Payment Intent criado com sucesso. Client Secret: ${paymentIntent.client_secret.substring(0, 10)}...`);
+    
+    return paymentIntent.client_secret;
   } catch (error) {
     console.error('Erro ao criar intent de pagamento para plano:', error);
     throw error;
@@ -75,7 +83,15 @@ export async function createModulePaymentIntent(modulePlanId: number, organizati
       },
     });
 
-    return paymentIntent.client_secret || '';
+    // Verificar se o client_secret é válido antes de retornar
+    if (!paymentIntent.client_secret) {
+      console.error('Stripe não retornou client_secret válido para módulo. PaymentIntent:', JSON.stringify(paymentIntent));
+      throw new Error('Falha ao obter client_secret do Stripe para módulo');
+    }
+
+    console.log(`Payment Intent para módulo criado com sucesso. Client Secret: ${paymentIntent.client_secret.substring(0, 10)}...`);
+    
+    return paymentIntent.client_secret;
   } catch (error) {
     console.error('Erro ao criar intent de pagamento para módulo:', error);
     throw error;
