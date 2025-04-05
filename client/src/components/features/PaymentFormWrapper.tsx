@@ -1,179 +1,209 @@
-import { useState, useEffect } from 'react';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Check, CreditCard } from 'lucide-react';
+"use client";
 
-// Inicialize o Stripe com sua chave pública
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Spinner } from '@/components/ui/spinner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+import { Plan } from '@shared/schema';
+
+// Importação condicional de stripe para funcionar com SSR
+let loadStripe: any;
+
+if (typeof window !== "undefined") {
+  import('@stripe/stripe-js').then((module) => {
+    loadStripe = module.loadStripe;
+  });
+}
 
 interface PaymentFormWrapperProps {
   clientSecret: string;
-  onSuccess: (paymentIntentId: string) => void;
-  onCancel?: () => void;
-  planName?: string;
-  planPrice?: string;
+  onSuccess: (paymentIntent: string) => void;
+  onCancel: () => void;
+  planName: string;
+  planPrice: string;
 }
 
 export default function PaymentFormWrapper({
   clientSecret,
   onSuccess,
   onCancel,
-  planName = 'Plano Selecionado',
-  planPrice = 'R$ 0,00'
+  planName,
+  planPrice
 }: PaymentFormWrapperProps) {
-  if (!clientSecret) {
-    return <div>Carregando formulário de pagamento...</div>;
-  }
-
-  const options = {
-    clientSecret,
-    appearance: {
-      theme: 'stripe' as const,
-      variables: {
-        colorPrimary: '#4f46e5',
-        borderRadius: '4px',
-      },
-    },
-  };
-
-  return (
-    <Elements stripe={stripePromise} options={options}>
-      <PaymentForm 
-        onSuccess={onSuccess} 
-        onCancel={onCancel} 
-        planName={planName}
-        planPrice={planPrice}
-      />
-    </Elements>
-  );
-}
-
-interface PaymentFormProps {
-  onSuccess: (paymentIntentId: string) => void;
-  onCancel?: () => void;
-  planName: string;
-  planPrice: string;
-}
-
-function PaymentForm({ onSuccess, onCancel, planName, planPrice }: PaymentFormProps) {
-  const stripe = useStripe();
-  const elements = useElements();
   const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<any>(null);
+  const [stripeElements, setStripeElements] = useState<any>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'initial' | 'processing' | 'success' | 'error'>('initial');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Inicializar Stripe apenas no lado do cliente
+  useEffect(() => {
+    if (typeof window !== "undefined" && loadStripe) {
+      // Substituir pela chave pública do Stripe disponível nas variáveis de ambiente
+      const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_yourkey';
+      const promise = loadStripe(stripePublicKey);
+      setStripePromise(promise);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!stripePromise || !clientSecret) return;
+
+    const setupElements = async () => {
+      try {
+        const stripe = await stripePromise;
+        
+        if (!stripe) {
+          console.error("Stripe não foi carregado corretamente");
+          return;
+        }
+
+        const options = {
+          clientSecret,
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#10b981',
+              colorBackground: '#ffffff',
+              colorText: '#30313d',
+              colorDanger: '#df1b41',
+              fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif',
+              borderRadius: '4px',
+            },
+          },
+        };
+
+        const elements = stripe.elements(options);
+        
+        // Criar e montar o formulário de pagamento
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+        
+        setStripeElements({ stripe, elements, paymentElement });
+      } catch (error) {
+        console.error('Erro ao configurar Stripe Elements:', error);
+        setErrorMessage('Não foi possível carregar o formulário de pagamento. Por favor, tente novamente.');
+        setPaymentStatus('error');
+      }
+    };
+
+    setupElements();
+  }, [stripePromise, clientSecret]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!stripe || !elements) {
-      // Stripe.js ainda não carregou.
-      // Desabilite o botão de envio até que o Stripe.js seja carregado.
+    
+    if (!stripeElements) {
       return;
     }
-
-    setIsProcessing(true);
-    setPaymentError(null);
-
+    
+    const { stripe, elements } = stripeElements;
+    
+    if (!stripe || !elements) {
+      return;
+    }
+    
+    setPaymentStatus('processing');
+    
     try {
-      const result = await stripe.confirmPayment({
+      const { error: submitError, paymentIntent } = await stripe.confirmPayment({
         elements,
+        confirmParams: {
+          return_url: window.location.origin + '/payment-callback',
+        },
         redirect: 'if_required',
       });
-
-      if (result.error) {
-        // Mostrar erro para o cliente (como, pagamento inválido)
-        setPaymentError(result.error.message || 'Houve um erro ao processar o pagamento');
+      
+      if (submitError) {
+        console.error('Erro no pagamento:', submitError);
+        setErrorMessage(submitError.message || 'Houve um erro ao processar o pagamento.');
+        setPaymentStatus('error');
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         toast({
-          title: 'Erro no pagamento',
-          description: result.error.message || 'Houve um erro ao processar o pagamento',
-          variant: 'destructive',
+          title: "Pagamento confirmado!",
+          description: "Sua assinatura foi ativada com sucesso.",
         });
-      } else if (result.paymentIntent) {
-        // O pagamento foi processado com sucesso!
-        setIsComplete(true);
+        setPaymentStatus('success');
+        onSuccess(paymentIntent.id);
+      } else {
+        // Pagamento em andamento ou com autenticação
         toast({
-          title: 'Pagamento confirmado',
-          description: 'Seu pagamento foi processado com sucesso!',
+          title: "Processando pagamento",
+          description: "Estamos processando seu pagamento. Por favor, aguarde.",
         });
-        // Extrair o ID do payment intent e retorná-lo para o callback onSuccess
-        onSuccess(result.paymentIntent.id);
       }
-    } catch (error: any) {
-      setPaymentError(error.message || 'Ocorreu um erro ao processar o pagamento');
-      toast({
-        title: 'Erro ao processar pagamento',
-        description: error.message || 'Ocorreu um erro ao processar o pagamento',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsProcessing(false);
+    } catch (err: any) {
+      console.error('Erro ao confirmar pagamento:', err);
+      setErrorMessage(err.message || 'Houve um erro ao processar o pagamento.');
+      setPaymentStatus('error');
     }
   };
 
+  if (paymentStatus === 'success') {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <div className="flex items-center justify-center mb-4">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
+          <CardTitle className="text-center">Pagamento confirmado!</CardTitle>
+          <CardDescription className="text-center">
+            Sua assinatura foi ativada com sucesso.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => onSuccess('payment-succeeded')} className="w-full">
+            Continuar para o painel
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-lg mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-primary" />
-          Finalizar Pagamento
-        </CardTitle>
+        <CardTitle>Finalizar assinatura</CardTitle>
         <CardDescription>
-          Insira os dados do cartão para continuar
+          Plano: {planName} - R$ {planPrice}/mês
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-50 p-4 rounded-lg mb-4">
-          <h3 className="font-medium text-gray-800">{planName}</h3>
-          <p className="text-xl font-bold text-primary">{planPrice}</p>
-          <div className="text-sm text-gray-500 mt-1">Pagamento mensal</div>
-        </div>
-
-        {paymentError && (
-          <div className="bg-red-50 text-red-700 p-3 rounded-lg flex items-start gap-2 mb-4">
-            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-            <div>{paymentError}</div>
-          </div>
+        {paymentStatus === 'error' && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro no pagamento</AlertTitle>
+            <AlertDescription>
+              {errorMessage}
+            </AlertDescription>
+          </Alert>
         )}
 
-        {isComplete ? (
-          <div className="bg-green-50 text-green-700 p-4 rounded-lg flex items-center gap-2">
-            <Check className="h-5 w-5" />
-            <div>
-              <p className="font-medium">Pagamento confirmado</p>
-              <p className="text-sm">Seu cadastro está sendo finalizado...</p>
-            </div>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div id="payment-element" className="p-4 border rounded-md" />
+            
+            {paymentStatus === 'processing' ? (
+              <Button disabled className="w-full">
+                <Spinner className="mr-2" size="sm" />
+                Processando...
+              </Button>
+            ) : (
+              <div className="flex justify-between mt-4">
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  Voltar
+                </Button>
+                <Button type="submit" disabled={!stripeElements}>
+                  Confirmar pagamento
+                </Button>
+              </div>
+            )}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <PaymentElement />
-          </form>
-        )}
+        </form>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        {!isComplete && (
-          <>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              disabled={isProcessing}
-            >
-              Voltar
-            </Button>
-            <Button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={!stripe || !elements || isProcessing}
-            >
-              {isProcessing ? 'Processando...' : 'Pagar Agora'}
-            </Button>
-          </>
-        )}
-      </CardFooter>
     </Card>
   );
 }

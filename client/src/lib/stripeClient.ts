@@ -1,103 +1,53 @@
-import { loadStripe } from '@stripe/stripe-js';
-import { apiRequest } from './queryClient';
-import { Plan, ModulePlan } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
+import { Plan } from '@shared/schema';
 
-// Carrega a chave pública do Stripe a partir das variáveis de ambiente
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-
-if (!stripeKey) {
-  console.warn('Stripe publishable key não encontrada. Os pagamentos não funcionarão corretamente.');
-}
-
-// Inicializa o cliente Stripe apenas uma vez para evitar múltiplas instâncias
-export const stripePromise = stripeKey 
-  ? loadStripe(stripeKey) 
-  : null;
-
-/**
- * Busca todos os planos disponíveis na plataforma
- */
 export const fetchPlans = async (): Promise<Plan[]> => {
   try {
-    const response = await apiRequest('GET', '/api/plans');
-    return await response.json();
+    const response = await apiRequest('/api/plans', {
+      method: 'GET',
+    });
+    return response;
   } catch (error) {
     console.error('Erro ao buscar planos:', error);
     throw error;
   }
 };
 
-/**
- * Cria um intent de pagamento para um plano
- */
-export const createPlanPaymentIntent = async (planId: number) => {
+export const createPaymentIntent = async (planId: number, organizationId: number): Promise<{ clientSecret: string }> => {
   try {
-    const response = await apiRequest('POST', '/api/payments/create-plan-intent', { planId });
-    const data = await response.json();
-    return data.clientSecret;
-  } catch (error) {
-    console.error('Erro ao criar intent de pagamento para plano:', error);
-    throw error;
-  }
-};
-
-/**
- * Cria um intent de pagamento para um módulo add-on
- */
-export const createModulePaymentIntent = async (modulePlanId: number, organizationId?: number) => {
-  try {
-    const response = await apiRequest('POST', '/api/payments/create-module-intent', { 
-      modulePlanId, 
-      organizationId 
+    const response = await apiRequest('/api/payments/create-intent', {
+      method: 'POST',
+      body: JSON.stringify({ planId, organizationId }),
     });
-    const data = await response.json();
-    return data.clientSecret;
+    return response;
   } catch (error) {
-    console.error('Erro ao criar intent de pagamento para módulo:', error);
+    console.error('Erro ao criar intent de pagamento:', error);
     throw error;
   }
 };
 
-/**
- * Confirma um pagamento de plano
- */
-export const confirmPlanPayment = async (paymentIntentId: string, organizationId: number) => {
+export const confirmPayment = async (paymentIntentId: string, organizationId: number): Promise<{ success: boolean, message?: string }> => {
   try {
-    const response = await apiRequest('POST', '/api/payments/confirm-plan-payment', {
-      paymentIntentId,
-      organizationId
+    const response = await apiRequest('/api/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify({ paymentIntentId, organizationId }),
     });
-    return await response.json();
+    return response;
   } catch (error) {
-    console.error('Erro ao confirmar pagamento do plano:', error);
+    console.error('Erro ao confirmar pagamento:', error);
     throw error;
   }
 };
 
-/**
- * Confirma um pagamento de módulo
- */
-export const confirmModulePayment = async (paymentIntentId: string) => {
+export const createOrganizationSubscription = async (planId: number, organizationId: number): Promise<{ success: boolean, message?: string }> => {
   try {
-    const response = await apiRequest('POST', '/api/payments/confirm-module-payment', {
-      paymentIntentId
+    const response = await apiRequest('/api/subscriptions/create', {
+      method: 'POST',
+      body: JSON.stringify({ planId, organizationId }),
     });
-    return await response.json();
+    return response;
   } catch (error) {
-    console.error('Erro ao confirmar pagamento do módulo:', error);
-    throw error;
-  }
-};
-
-/**
- * Verifica o status de um pagamento
- */
-export const checkPaymentStatus = async (paymentIntentId: string) => {
-  try {
-    const response = await apiRequest('GET', `/api/payments/check-status/${paymentIntentId}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Erro ao verificar status do pagamento:', error);
+    console.error('Erro ao criar assinatura:', error);
     throw error;
   }
 };
