@@ -22,6 +22,7 @@ import PlanSettings from "@/pages/plans/settings";
 import CreatePlan from "@/pages/plans/create";
 import EditPlan from "@/pages/plans/edit";
 import Modules from "@/pages/Modules";
+import Modulos from "@/pages/Modulos";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
@@ -539,6 +540,7 @@ function AppContent() {
       case '/plans/create': Component = CreatePlan; break;
       case '/plans/settings': Component = PlanSettings; break;
       case '/modules': Component = Modules; break;
+      case '/modulos': Component = Modulos; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': Component = Organizations; break;
