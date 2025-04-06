@@ -627,17 +627,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Obtendo lista de organizações (método simplificado)...");
       
-      // Usar Pool diretamente para evitar problemas de mapeamento
-      const { pool } = db;
-      const result = await pool.query('SELECT * FROM organizations ORDER BY id DESC');
+      // Usar o método select() para consultar as organizações
+      const orgResults = await db.select()
+        .from(organizations)
+        .orderBy(desc(organizations.id));
       
-      console.log(`Método pool direto encontrou ${result.rows.length} organizações`);
+      console.log(`Método db.select() encontrou ${orgResults.length} organizações`);
       
-      if (result.rows.length > 0) {
-        console.log(`Primeiras organizações: ${result.rows.slice(0, 3).map(org => org.id).join(', ')}`);
+      if (orgResults.length > 0) {
+        console.log(`Primeiras organizações: ${orgResults.slice(0, 3).map(org => org.id).join(', ')}`);
       }
       
-      res.json(result.rows);
+      res.json(orgResults);
     } catch (error) {
       console.error("Error fetching organizations:", error);
       res.status(500).json({ message: "Failed to fetch organizations" });
