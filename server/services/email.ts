@@ -24,7 +24,8 @@ export type EmailTemplate =
   | "ticket_update"
   | "ticket_status_update"
   | "invitation"
-  | "reminder";
+  | "reminder"
+  | "payment_link";
 
 // Cria o transporter do nodemailer com as configurações do ambiente
 function createTransporter() {
@@ -185,6 +186,35 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
           <p><strong>Usuário:</strong> ${data.username}</p>
           <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
           <p>Atenciosamente,<br>Equipe Endurancy</p>
+        `;
+      }
+      
+      if (template === "payment_link") {
+        return `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+            </div>
+            <h2 style="color: #333; text-align: center;">Pagamento Pendente</h2>
+            <p style="color: #555; line-height: 1.6;">Olá ${data.adminName || 'Administrador'},</p>
+            <p style="color: #555; line-height: 1.6;">Agradecemos por se registrar na plataforma Endurancy!</p>
+            <p style="color: #555; line-height: 1.6;">Para ativar sua conta e começar a usar todos os recursos do plano <strong>${data.planName}</strong>, é necessário finalizar o pagamento.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${data.paymentLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Finalizar Pagamento</a>
+            </div>
+            
+            <p style="color: #555; line-height: 1.6;">Este link de pagamento é válido por <strong>48 horas</strong>. Após esse período, será necessário solicitar um novo link.</p>
+            
+            <p style="color: #555; line-height: 1.6;">Caso tenha alguma dúvida, entre em contato com nossa equipe de suporte.</p>
+            
+            <p style="color: #555; line-height: 1.6;">Atenciosamente,<br>Equipe Endurancy</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #999; font-size: 12px;">
+              <p>Se você não solicitou este cadastro, ignore este e-mail.</p>
+              <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+            </div>
+          </div>
         `;
       }
       
