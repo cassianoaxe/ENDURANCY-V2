@@ -62,7 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       // Construir o corpo da requisição com base nos parâmetros disponíveis
-      let requestBody: any = { username, password };
+      let requestBody: any = { password };
+      
+      // Verificar se a entrada parece um email
+      const isEmail = username.includes('@');
+      
+      // Se parece um email, enviar como 'email', caso contrário como 'username'
+      if (isEmail) {
+        requestBody.email = username;
+      } else {
+        requestBody.username = username;
+      }
       
       // Adicionar tipo de usuário se disponível
       if (userType) {
@@ -74,7 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         requestBody.orgCode = orgCode;
       }
       
-      console.log("Tentando login com:", { username, userType, hasOrgCode: !!orgCode });
+      console.log("Tentando login com:", { 
+        ...(isEmail ? { email: username } : { username }),
+        userType, 
+        hasOrgCode: !!orgCode 
+      });
         
       const response = await fetch('/api/auth/login', {
         method: 'POST',
