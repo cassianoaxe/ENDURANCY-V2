@@ -20,85 +20,240 @@ import { useAuth } from '@/contexts/AuthContext';
 import TourGuide from '@/components/features/TourGuide';
 import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings, Layers } from 'lucide-react';
 
-// Dados de demonstração
-const organizationsData = [
-  { month: 'Jan', organizations: 15 },
-  { month: 'Fev', organizations: 20 },
-  { month: 'Mar', organizations: 28 },
-  { month: 'Abr', organizations: 32 },
-  { month: 'Mai', organizations: 45 },
-  { month: 'Jun', organizations: 52 },
-  { month: 'Jul', organizations: 58 },
-];
+import { useQuery } from '@tanstack/react-query';
 
-const usersData = [
-  { month: 'Jan', admins: 2, doctors: 20, patients: 100 },
-  { month: 'Fev', admins: 3, doctors: 25, patients: 130 },
-  { month: 'Mar', admins: 4, doctors: 30, patients: 180 },
-  { month: 'Abr', admins: 4, doctors: 35, patients: 230 },
-  { month: 'Mai', admins: 5, doctors: 45, patients: 300 },
-  { month: 'Jun', admins: 6, doctors: 55, patients: 350 },
-  { month: 'Jul', admins: 7, doctors: 60, patients: 400 },
-];
+// Função para obter dados das organizações a partir da API
+const useOrganizationData = () => {
+  const { data: organizations, isLoading: loadingOrgs } = useQuery({
+    queryKey: ['/api/organizations'],
+  });
 
-const activeStatusData = [
-  { name: 'Ativas', value: 75, color: '#4CAF50' },
-  { name: 'Pendentes', value: 20, color: '#FFC107' },
-  { name: 'Suspensas', value: 5, color: '#F44336' },
-];
+  const { data: plans, isLoading: loadingPlans } = useQuery({
+    queryKey: ['/api/plans'],
+  });
 
-const COLORS = ['#4CAF50', '#FFC107', '#F44336'];
+  const { data: modules, isLoading: loadingModules } = useQuery({
+    queryKey: ['/api/modules'],
+  });
 
-// Dados de planos
-const plansDistributionData = [
-  { name: 'Freemium', value: 15, color: '#9e9e9e' },
-  { name: 'Seed', value: 30, color: '#4CAF50' },
-  { name: 'Grow', value: 35, color: '#2196F3' },
-  { name: 'Pro', value: 20, color: '#9C27B0' },
-];
+  const { data: orgModules, isLoading: loadingOrgModules } = useQuery({
+    queryKey: ['/api/organization-modules/all'],
+  });
 
-// Dados de módulos
-const moduleDistributionData = [
-  { name: 'Financeiro', value: 40, color: '#4CAF50' },
-  { name: 'RH', value: 25, color: '#2196F3' },
-  { name: 'Logística', value: 20, color: '#FFC107' },
-  { name: 'Suporte', value: 15, color: '#9C27B0' },
-];
+  const isLoading = loadingOrgs || loadingPlans || loadingModules || loadingOrgModules;
 
-// Dados de distribuição de planos por módulo
-const modulesPlanDistribution = [
-  { module: 'Financeiro', plan: 'Freemium', count: 10 },
-  { module: 'Financeiro', plan: 'Seed', count: 15 },
-  { module: 'Financeiro', plan: 'Grow', count: 35 },
-  { module: 'Financeiro', plan: 'Pro', count: 50 },
-  { module: 'RH', plan: 'Freemium', count: 15 },
-  { module: 'RH', plan: 'Seed', count: 25 },
-  { module: 'RH', plan: 'Grow', count: 45 },
-  { module: 'RH', plan: 'Pro', count: 30 },
-  { module: 'Logística', plan: 'Freemium', count: 20 },
-  { module: 'Logística', plan: 'Seed', count: 40 },
-  { module: 'Logística', plan: 'Grow', count: 35 },
-  { module: 'Logística', plan: 'Pro', count: 25 },
-  { module: 'Suporte', plan: 'Freemium', count: 15 },
-  { module: 'Suporte', plan: 'Seed', count: 20 },
-  { module: 'Suporte', plan: 'Grow', count: 40 },
-  { module: 'Suporte', plan: 'Pro', count: 40 },
-];
+  // Processar dados para exibição nos gráficos apenas quando todos estiverem carregados
+  const processData = () => {
+    if (isLoading || !organizations || !plans || !modules || !orgModules) {
+      return {
+        organizationsData: [],
+        plansDistributionData: [],
+        moduleDistributionData: [],
+        modulesPlanDistribution: [],
+        plansSalesData: [],
+        activeStatusData: []
+      };
+    }
 
-// Crescimento de vendas de planos por mês
-const plansSalesData = [
-  { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
-  { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
-  { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
-  { month: 'Abr', freemium: 35, seed: 26, grow: 30, pro: 15 },
-  { month: 'Mai', freemium: 40, seed: 32, grow: 40, pro: 20 },
-  { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
-  { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
-];
+    // Contar organizações por status
+    const statusCounts = {
+      active: 0,
+      pending: 0,
+      blocked: 0,
+      review: 0
+    };
+
+    const orgArray = Array.isArray(organizations) ? organizations : [];
+    const plansArray = Array.isArray(plans) ? plans : [];
+    const modulesArray = Array.isArray(modules) ? modules : [];
+    const orgModulesArray = Array.isArray(orgModules) ? orgModules : [];
+
+    // Contar organizações por status
+    orgArray.forEach(org => {
+      if (org.status === 'active') statusCounts.active++;
+      else if (org.status === 'pending') statusCounts.pending++;
+      else if (org.status === 'blocked') statusCounts.blocked++;
+      else if (org.status === 'review') statusCounts.review++;
+    });
+
+    // Preparar dados de status para o gráfico
+    const activeStatusData = [
+      { name: 'Ativas', value: statusCounts.active, color: '#4CAF50' },
+      { name: 'Pendentes', value: statusCounts.pending, color: '#FFC107' },
+      { name: 'Em Análise', value: statusCounts.review, color: '#2196F3' },
+      { name: 'Bloqueadas', value: statusCounts.blocked, color: '#F44336' },
+    ].filter(item => item.value > 0); // Remover categorias vazias
+
+    // Contar planos por tipo
+    const planCounts = {};
+    const planColors = {
+      'Freemium': '#9e9e9e',
+      'Básico': '#9e9e9e',
+      'Seed': '#4CAF50',
+      'Grow': '#2196F3',
+      'Pro': '#9C27B0',
+      'Empresarial': '#FF5722'
+    };
+
+    // Inicializar contagem de planos
+    plansArray.forEach(plan => {
+      planCounts[plan.name] = 0;
+    });
+
+    // Contar organizações por plano
+    orgArray.forEach(org => {
+      const planName = plansArray.find(p => p.id === org.planId)?.name || 'Básico';
+      planCounts[planName] = (planCounts[planName] || 0) + 1;
+    });
+
+    // Preparar dados de distribuição de planos
+    const plansDistributionData = Object.keys(planCounts).map(planName => ({
+      name: planName,
+      value: planCounts[planName],
+      color: planColors[planName] || '#9e9e9e'
+    })).filter(item => item.value > 0); // Remover planos sem organizações
+
+    // Contar módulos ativos
+    const moduleCounts = {};
+    const moduleColors = {
+      'Financeiro': '#4CAF50',
+      'RH': '#2196F3',
+      'Logística': '#FFC107',
+      'Suporte': '#9C27B0',
+      'CRM': '#FF5722',
+      'Dashboard': '#607D8B',
+      'Vendas': '#795548',
+      'Estoque': '#3F51B5'
+    };
+
+    // Inicializar contagem de módulos
+    modulesArray.forEach(mod => {
+      moduleCounts[mod.name] = 0;
+    });
+
+    // Contar módulos ativos por organização
+    orgModulesArray.forEach(orgModule => {
+      if (orgModule.status === 'active') {
+        const moduleName = modulesArray.find(m => m.id === orgModule.moduleId)?.name || 'Desconhecido';
+        moduleCounts[moduleName] = (moduleCounts[moduleName] || 0) + 1;
+      }
+    });
+
+    // Preparar dados de distribuição de módulos
+    const moduleDistributionData = Object.keys(moduleCounts).map(moduleName => ({
+      name: moduleName,
+      value: moduleCounts[moduleName],
+      color: moduleColors[moduleName] || '#9e9e9e'
+    })).filter(item => item.value > 0); // Remover módulos sem organizações
+
+    // Calcular distribuição de módulos por plano
+    const modulePlanMatrix = {};
+
+    // Inicializar a matriz
+    modulesArray.forEach(mod => {
+      modulePlanMatrix[mod.name] = {};
+      plansArray.forEach(plan => {
+        modulePlanMatrix[mod.name][plan.name] = 0;
+      });
+    });
+
+    // Preencher a matriz com dados reais
+    orgModulesArray.forEach(orgModule => {
+      if (orgModule.status === 'active' && orgModule.organizationId) {
+        const organization = orgArray.find(org => org.id === orgModule.organizationId);
+        if (organization) {
+          const planName = plansArray.find(p => p.id === organization.planId)?.name || 'Básico';
+          const moduleName = modulesArray.find(m => m.id === orgModule.moduleId)?.name || 'Desconhecido';
+          if (moduleName in modulePlanMatrix && planName) {
+            modulePlanMatrix[moduleName][planName] = (modulePlanMatrix[moduleName][planName] || 0) + 1;
+          }
+        }
+      }
+    });
+
+    // Converter a matriz em um array para o gráfico
+    const modulesPlanDistribution = [];
+    Object.keys(modulePlanMatrix).forEach(moduleName => {
+      Object.keys(modulePlanMatrix[moduleName]).forEach(planName => {
+        const count = modulePlanMatrix[moduleName][planName];
+        if (count > 0) { // Incluir apenas combinações com pelo menos uma ocorrência
+          modulesPlanDistribution.push({
+            module: moduleName,
+            plan: planName,
+            count: count
+          });
+        }
+      });
+    });
+
+    // Criar dados de crescimento mensal (simulados por enquanto, pois precisaríamos de dados históricos reais)
+    // Em uma implementação real, estes dados viriam de uma API que forneceria dados históricos
+    const plansSalesData = [
+      { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
+      { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
+      { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
+      { month: 'Abr', freemium: 35, seed: 26, grow: 30, pro: 15 },
+      { month: 'Mai', freemium: 40, seed: 32, grow: 40, pro: 20 },
+      { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
+      { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
+    ];
+
+    // Calcular dados de organizações por mês (também simulados)
+    const organizationsData = [
+      { month: 'Jan', organizations: Math.round(orgArray.length * 0.25) },
+      { month: 'Fev', organizations: Math.round(orgArray.length * 0.35) },
+      { month: 'Mar', organizations: Math.round(orgArray.length * 0.45) },
+      { month: 'Abr', organizations: Math.round(orgArray.length * 0.55) },
+      { month: 'Mai', organizations: Math.round(orgArray.length * 0.7) },
+      { month: 'Jun', organizations: Math.round(orgArray.length * 0.85) },
+      { month: 'Jul', organizations: orgArray.length },
+    ];
+    
+    // Dados de usuários para o gráfico (simulados)
+    const usersData = [
+      { month: 'Jan', users: 10 },
+      { month: 'Fev', users: 20 },
+      { month: 'Mar', users: 35 },
+      { month: 'Abr', users: 45 },
+      { month: 'Mai', users: 60 },
+      { month: 'Jun', users: 80 },
+      { month: 'Jul', users: 100 },
+    ];
+
+    return {
+      organizationsData,
+      plansDistributionData,
+      moduleDistributionData,
+      modulesPlanDistribution,
+      plansSalesData,
+      activeStatusData,
+      usersData
+    };
+  };
+
+  return {
+    ...processData(),
+    isLoading
+  };
+};
+
+const COLORS = ['#4CAF50', '#FFC107', '#F44336', '#2196F3', '#9C27B0', '#FF5722'];
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Buscar dados dinâmicos para o dashboard
+  const {
+    organizationsData,
+    plansDistributionData,
+    moduleDistributionData,
+    modulesPlanDistribution,
+    plansSalesData,
+    activeStatusData,
+    usersData,
+    isLoading
+  } = useOrganizationData();
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -531,7 +686,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={usersData}>
+                    <BarChart data={usersData || []}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />

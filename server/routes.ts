@@ -422,9 +422,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth Routes
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { username, password, userType, orgCode } = req.body;
+      const { username, password, userType, orgCode, email } = req.body;
       
-      console.log("Login attempt:", { username, userType, hasOrgCode: !!orgCode });
+      console.log("Login attempt:", { username, email, userType, hasOrgCode: !!orgCode });
       
       // Se temos um código de organização, verificar se é válido
       if (orgCode) {
@@ -433,32 +433,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Se o código não foi encontrado ou a organização não está ativa, rejeitar o login
         if (orgsFound.length === 0 || orgsFound[0].status !== 'active') {
           console.log("Invalid organization code:", orgCode);
-          return res.status(401).json({ message: "Invalid organization code" });
+          return res.status(401).json({ message: "Código de organização inválido" });
         }
         
         console.log("Valid organization code:", { code: orgCode, orgId: orgsFound[0].id });
         
-        // Aqui poderia ser feita a conexão com o banco de dados específico da organização
-        // Por enquanto, vamos buscar no banco de dados principal
+        // Buscar usuário pelo nome de usuário ou email e organizationId
+        let usersFound = [];
         
-        // Buscar usuário pelo nome de usuário e organizationId
-        const usersFound = await db.select().from(users)
-          .where(and(
-            eq(users.username, username),
-            eq(users.organizationId, orgsFound[0].id)
-          ));
+        if (email) {
+          // Se temos email, usar para buscar o usuário
+          usersFound = await db.select().from(users)
+            .where(and(
+              eq(users.email, email),
+              eq(users.organizationId, orgsFound[0].id)
+            ));
+        } else if (username) {
+          // Se temos username, verificar se deve ser buscado exatamente ou usar o formato username+id
+          const possibleGeneratedUsername = username.split('@')[0].toLowerCase() + orgsFound[0].id;
+          
+          // Primeiro tentar com o username exato
+          usersFound = await db.select().from(users)
+            .where(and(
+              eq(users.username, username),
+              eq(users.organizationId, orgsFound[0].id)
+            ));
+            
+          // Se não encontrar, tentar com o possível username gerado
+          if (usersFound.length === 0) {
+            usersFound = await db.select().from(users)
+              .where(and(
+                eq(users.username, possibleGeneratedUsername),
+                eq(users.organizationId, orgsFound[0].id)
+              ));
+          }
+        }
         
         if (usersFound.length === 0) {
-          console.log("User not found in organization:", { username, orgId: orgsFound[0].id });
-          return res.status(401).json({ message: "Invalid credentials" });
+          console.log("User not found in organization:", { username, email, orgId: orgsFound[0].id });
+          return res.status(401).json({ message: "Credenciais inválidas" });
         }
         
         const user = usersFound[0];
         
-        // Verificar a senha
-        if (user.password !== password) {
-          console.log("Invalid password for:", username);
-          return res.status(401).json({ message: "Invalid credentials" });
+        // Verificar a senha - compatível com senhas antigas e novas com hash
+        let passwordValid = false;
+        
+        // Se a senha parece ser um hash bcrypt (começa com $2a$, $2b$, etc), usar bcrypt.compare
+        if (user.password && user.password.startsWith('$2')) {
+          passwordValid = await bcrypt.compare(password, user.password);
+        } else {
+          // Compatibilidade com senhas antigas (comparação direta)
+          passwordValid = (user.password === password);
+        }
+        
+        if (!passwordValid) {
+          console.log("Invalid password for:", username || email);
+          return res.status(401).json({ message: "Credenciais inválidas" });
         }
         
         // Remove password from user object before sending to client
@@ -481,32 +512,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         });
         
-        console.log("Login successful for:", { username, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
+        console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
         res.json(userWithoutPassword);
         return;
       }
       
       // Login normal sem código de organização
-      // Primeiro, buscar usuário pelo nome de usuário
-      const usersFound = await db.select().from(users).where(eq(users.username, username));
+      // Buscar usuário pelo email ou nome de usuário
+      let usersFound = [];
+      
+      if (email) {
+        // Se temos email, usar para buscar o usuário
+        usersFound = await db.select().from(users).where(eq(users.email, email));
+      } else if (username) {
+        // Se temos username, buscar pelo username
+        usersFound = await db.select().from(users).where(eq(users.username, username));
+      }
       
       if (usersFound.length === 0) {
-        console.log("User not found:", username);
-        return res.status(401).json({ message: "Invalid credentials" });
+        console.log("User not found:", username || email);
+        return res.status(401).json({ message: "Credenciais inválidas" });
       }
       
       // Se temos um user type, verificar se o usuário tem a role correspondente
       const user = usersFound[0];
       
-      if (userType && user.role !== userType && !(userType === 'admin' && username === 'admin')) {
+      if (userType && user.role !== userType && !(userType === 'admin' && (username === 'admin' || email === 'admin@exemplo.com'))) {
         console.log("Role mismatch:", { requestedRole: userType, actualRole: user.role });
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Credenciais inválidas" });
       }
       
-      // Verificar a senha
-      if (user.password !== password) { // In production, use proper password hashing
-        console.log("Invalid password for:", username);
-        return res.status(401).json({ message: "Invalid credentials" });
+      // Verificar a senha - compatível com senhas antigas e novas com hash
+      let passwordValid = false;
+      
+      // Se a senha parece ser um hash bcrypt (começa com $2a$, $2b$, etc), usar bcrypt.compare
+      if (user.password && user.password.startsWith('$2')) {
+        passwordValid = await bcrypt.compare(password, user.password);
+      } else {
+        // Compatibilidade com senhas antigas (comparação direta)
+        passwordValid = (user.password === password);
+      }
+      
+      if (!passwordValid) {
+        console.log("Invalid password for:", username || email);
+        return res.status(401).json({ message: "Credenciais inválidas" });
       }
       
       // Remove password from user object before sending to client
@@ -529,11 +578,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
-      console.log("Login successful for:", { username, role: user.role, sessionID: req.sessionID });
+      console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, sessionID: req.sessionID });
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ message: "Login failed" });
+      res.status(500).json({ message: "Falha no login. Tente novamente." });
     }
   });
   
@@ -818,6 +867,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (userError) {
         console.error("Erro ao criar usuário admin:", userError);
         // Não interromper o fluxo se a criação do usuário ou envio de e-mail falhar
+      }
+
+      // Atribuir módulos com base no plano selecionado
+      try {
+        if (planId > 0) {
+          console.log(`Atribuindo módulos para organização ${organization.id} com planId ${planId}`);
+          
+          // Buscar módulos disponíveis para este plano
+          const planModulesList = await db.select()
+            .from(planModules)
+            .where(eq(planModules.planId, planId));
+            
+          console.log(`Encontrados ${planModulesList.length} módulos para o plano ${planId}`);
+          
+          // Para cada módulo do plano, criar uma relação com a organização
+          for (const planModule of planModulesList) {
+            await db.insert(organizationModules)
+              .values({
+                organizationId: organization.id,
+                moduleId: planModule.moduleId,
+                status: 'active',
+                startDate: new Date(),
+                // Módulos adicionados via criação de organização têm validade de 30 dias para testes
+                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                createdAt: new Date()
+              });
+              
+            console.log(`Módulo ${planModule.moduleId} atribuído à organização ${organization.id}`);
+          }
+        } else {
+          console.log(`Organização ${organization.id} cadastrada com plano básico, nenhum módulo premium atribuído.`);
+        }
+      } catch (moduleError) {
+        console.error("Erro ao atribuir módulos:", moduleError);
+        // Não interromper o fluxo se a atribuição de módulos falhar
       }
 
       // Retornar a organização com campos adicionais
@@ -1505,12 +1589,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = await db.execute(sql`
         SELECT 
           om.id, 
-          om."organizationId", 
+          om.organization_id as "organizationId", 
           o.name as "organizationName",
-          om."moduleId",
+          om.module_id as "moduleId",
           m.name as "moduleName",
           m.type as "moduleType",
-          om."planId",
+          om.plan_id as "planId",
           mp.name as "planName",
           mp.price,
           mp.billing_cycle as "billingCycle",
@@ -1518,9 +1602,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           om.active,
           om."createdAt"
         FROM organization_modules om
-        JOIN organizations o ON om."organizationId" = o.id
-        JOIN modules m ON om."moduleId" = m.id
-        JOIN module_plans mp ON om."planId" = mp.id
+        JOIN organizations o ON om.organization_id = o.id
+        JOIN modules m ON om.module_id = m.id
+        JOIN module_plans mp ON om.plan_id = mp.id
         ORDER BY o.name, m.name
       `);
       
