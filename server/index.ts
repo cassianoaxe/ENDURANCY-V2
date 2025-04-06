@@ -174,11 +174,11 @@ app.use((req, res, next) => {
     }
   ];
   
-  // Override padrão para as APIs de organizações
-  app.get('/api/organizations', (req, res, next) => {
-    // Método direto para acesso ao endpoint sem necessidade de autenticação (apenas para teste)
-    return res.status(200).json(global.mockOrganizations);
-  });
+  // Removendo o override para utilizar a rota real de organizações
+  // Se precisar usar dados mockados, descomente a linha abaixo
+  // app.get('/api/organizations', (req, res, next) => {
+  //   return res.status(200).json(global.mockOrganizations);
+  // });
   
   // Rota simplificada para obter todas as organizações
   app.get('/api/organizations-all', (req, res) => {

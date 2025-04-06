@@ -105,13 +105,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (userData.role === 'admin') {
         redirectPath = '/dashboard';
+        console.log("Redirecionando admin para o dashboard administrativo");
       } else if (userData.role === 'org_admin') {
         redirectPath = '/organization/dashboard';
+        console.log("Redirecionando org_admin para o dashboard da organização");
       } else if (userData.role === 'doctor') {
         redirectPath = '/doctor/dashboard';
       } else if (userData.role === 'patient') {
         redirectPath = '/patient/dashboard';
       }
+      
+      console.log(`Login bem-sucedido como ${userData.role}, redirecionando para ${redirectPath}`);
       
       // Use window.history instead of wouter
       window.history.pushState({}, '', redirectPath);
