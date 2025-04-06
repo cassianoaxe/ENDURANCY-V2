@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -7,13 +7,42 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, DollarSign, Building2, Download } from "lucide-react";
-import { Link } from "wouter";
+import { 
+  ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, 
+  DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
+  MoreVertical, Trash2, AlertTriangle, LucideIcon
+} from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { Organization, Plan } from '@shared/schema';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import axios from 'axios';
 
 export default function Cadastro() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTab, setCurrentTab] = useState("todas");
+  const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [_, navigate] = useLocation();
 
   // Buscar organizações
   const { data: organizations, isLoading: loadingOrgs } = useQuery({
@@ -25,6 +54,80 @@ export default function Cadastro() {
   const { data: plans, isLoading: loadingPlans } = useQuery({
     queryKey: ['/api/plans'],
   });
+  
+  // Mutação para atualizar status da organização
+  const updateOrgStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: number, status: string }) => {
+      const response = await axios.patch(`/api/organizations/${id}`, { status });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Organização atualizada",
+        description: "O status da organização foi alterado com sucesso.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      setShowStatusDialog(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar organização:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a organização.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Mutação para excluir organização
+  const deleteOrganization = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await axios.delete(`/api/organizations/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Organização excluída",
+        description: "A organização foi excluída com sucesso.",
+        variant: "default",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      setShowDeleteDialog(false);
+    },
+    onError: (error) => {
+      console.error("Erro ao excluir organização:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a organização.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Função para entrar como administrador da organização
+  const loginAsAdmin = async (organizationId: number) => {
+    try {
+      const response = await axios.post('/api/auth/login-as-admin', { organizationId });
+      
+      if (response.data.success) {
+        toast({
+          title: "Login bem-sucedido",
+          description: "Você está acessando como administrador da organização.",
+          variant: "default",
+        });
+        // Redirecionar para o dashboard da organização
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login como admin:", error);
+      toast({
+        title: "Erro de autenticação",
+        description: "Não foi possível acessar como administrador.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Filtrar organizações por termo de busca e status
   const filteredOrganizations = Array.isArray(organizations) 
@@ -234,15 +337,79 @@ export default function Cadastro() {
                         <TableCell>
                           <div className="flex gap-2">
                             <Link href={`/organizations/${org.id}`}>
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" title="Visualizar detalhes">
                                 <Eye size={16} className="text-gray-500" />
                               </Button>
                             </Link>
                             <Link href={`/organizations/${org.id}/change-plan`}>
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" title="Alterar plano">
                                 <DollarSign size={16} className="text-gray-500" />
                               </Button>
                             </Link>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical size={16} className="text-gray-500" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedOrg(org);
+                                    setTimeout(() => {
+                                      const editUrl = `/organizations/${org.id}/edit`;
+                                      navigate(editUrl);
+                                    }, 100);
+                                  }}
+                                >
+                                  <Edit size={14} className="mr-2" /> Editar
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    loginAsAdmin(org.id);
+                                  }}
+                                >
+                                  <User size={14} className="mr-2" /> Entrar como Admin
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuSeparator />
+                                
+                                {org.status === 'active' ? (
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-amber-600"
+                                    onClick={() => {
+                                      setSelectedOrg(org);
+                                      setShowStatusDialog(true);
+                                    }}
+                                  >
+                                    <Lock size={14} className="mr-2" /> Suspender
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-green-600"
+                                    onClick={() => {
+                                      setSelectedOrg(org);
+                                      updateOrgStatus.mutate({ id: org.id, status: 'active' });
+                                    }}
+                                  >
+                                    <Power size={14} className="mr-2" /> Ativar
+                                  </DropdownMenuItem>
+                                )}
+                                
+                                <DropdownMenuItem
+                                  className="cursor-pointer text-red-600"
+                                  onClick={() => {
+                                    setSelectedOrg(org);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                >
+                                  <Trash2 size={14} className="mr-2" /> Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -285,6 +452,83 @@ export default function Cadastro() {
           {/* Conteúdo similar ao de "todas", mas com organizações em análise */}
         </TabsContent>
       </Tabs>
+
+      {/* Diálogo de confirmação para excluir organização */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle size={18} /> Confirmar exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir a organização <strong>{selectedOrg?.name}</strong>?
+              Esta ação é irreversível e removerá todos os dados associados.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="border rounded-md p-4 bg-red-50 text-red-700 text-sm mb-4">
+            <p className="flex items-center gap-2">
+              <AlertTriangle size={14} className="shrink-0" />
+              <span>
+                Serão excluídos todos os módulos, usuários e dados cadastrados para esta organização.
+              </span>
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteOrganization.mutate(selectedOrg?.id!)}
+              disabled={deleteOrganization.isPending}
+            >
+              {deleteOrganization.isPending ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                'Confirmar exclusão'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de confirmação para alterar status */}
+      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <Lock size={18} /> Suspender organização
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja suspender o acesso da organização <strong>{selectedOrg?.name}</strong>?
+              Os usuários não poderão acessar a plataforma enquanto estiver suspensa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button 
+              variant="default" 
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => updateOrgStatus.mutate({ id: selectedOrg?.id!, status: 'blocked' })}
+              disabled={updateOrgStatus.isPending}
+            >
+              {updateOrgStatus.isPending ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Processando...
+                </>
+              ) : (
+                'Suspender acesso'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
