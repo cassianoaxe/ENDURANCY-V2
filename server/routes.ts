@@ -2094,6 +2094,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API para gerenciamento de links de pagamento
+  app.post("/api/payment-links/send", authenticate, async (req, res) => {
+    try {
+      // Verificar se o usuário é admin do sistema
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Apenas administradores podem enviar links de pagamento"
+        });
+      }
+      
+      const { organizationId } = req.body;
+      
+      if (!organizationId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "ID da organização é obrigatório"
+        });
+      }
+      
+      // Importar o serviço de links de pagamento
+      const { sendPaymentLinkFromAdmin } = await import('./services/payment-links');
+      
+      // Enviar o link de pagamento
+      const result = await sendPaymentLinkFromAdmin(Number(organizationId));
+      
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error("Erro ao enviar link de pagamento:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Falha ao enviar link de pagamento",
+        error: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      });
+    }
+  });
+  
   // API para gerenciamento de organizações e planos
   
   // Rota para obter dados da organização atual
