@@ -82,7 +82,7 @@ export default function OrganizationRegistration() {
     resolver: zodResolver(insertOrganizationSchema),
     defaultValues: {
       type: 'Empresa',
-      status: 'pending',
+      status: 'active', // Alterado de 'pending' para 'active' já que a ativação é automática
       termsAccepted: false,
       adminName: '',
       website: '',
@@ -382,13 +382,13 @@ export default function OrganizationRegistration() {
     }
     
     toast({
-      title: "Solicitação enviada",
-      description: "Sua solicitação de registro foi enviada com sucesso e está em análise.",
+      title: "Registro concluído",
+      description: "Seu registro foi concluído com sucesso! Você receberá um e-mail com as instruções de acesso.",
     });
   };
 
   const onSubmit = async (data: InsertOrganization) => {
-    // Todas as organizações começam com status pending para revisão de documentação
+    // As organizações agora começam com status active para ativação automática
     submitOrganization();
   };
 
@@ -1073,8 +1073,8 @@ export default function OrganizationRegistration() {
                           <div>
                             <h4 className="font-medium text-blue-800">Próximos passos</h4>
                             <p className="text-sm text-blue-700 mt-1">
-                              Após a finalização do pagamento, sua organização será ativada automaticamente e você receberá
-                              um e-mail com as instruções de acesso.
+                              Após a finalização do cadastro, sua organização será ativada automaticamente e você receberá
+                              um e-mail com as instruções de acesso. O acesso ao sistema estará disponível imediatamente.
                             </p>
                           </div>
                         </div>
