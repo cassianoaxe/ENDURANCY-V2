@@ -289,7 +289,7 @@ function AppContent() {
   }
   
   // Role-specific dashboards
-  if (currentPath === '/dashboard' || currentPath === '/') {
+  if (currentPath === '/dashboard') {
     let DashboardComponent = Dashboard;
     
     if (userRole === 'admin') {
