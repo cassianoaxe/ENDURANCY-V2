@@ -370,8 +370,8 @@ export default function Cadastro() {
                               title="Visualizar detalhes"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                // Usar window.location para garantir a navegação completa
-                                window.location.href = `/organizations/${org.id}`;
+                                // Usar navigate em vez de window.location para manter o estado
+                                navigate(`/organizations/${org.id}`);
                               }}
                             >
                               <Eye size={16} className="text-gray-500" />
@@ -382,8 +382,8 @@ export default function Cadastro() {
                               title="Alterar plano"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                // Usar window.location para garantir a navegação completa
-                                window.location.href = `/organizations/${org.id}/change-plan`;
+                                // Usar navigate em vez de window.location para manter o estado
+                                navigate(`/organizations/${org.id}/change-plan`);
                               }}
                             >
                               <DollarSign size={16} className="text-gray-500" />
@@ -399,8 +399,8 @@ export default function Cadastro() {
                                   className="cursor-pointer"
                                   onClick={() => {
                                     setSelectedOrg(org);
-                                    // Usar window.location para garantir a navegação completa
-                                    window.location.href = `/organizations/${org.id}/edit`;
+                                    // Usar navigate em vez de window.location para manter o estado
+                                    navigate(`/organizations/${org.id}/edit`);
                                   }}
                                 >
                                   <Edit size={14} className="mr-2" /> Editar
@@ -476,8 +476,7 @@ export default function Cadastro() {
                     href="/organization-registration" 
                     onClick={(e) => {
                       e.preventDefault();
-                      window.history.pushState({}, '', '/organization-registration');
-                      window.dispatchEvent(new Event('popstate'));
+                      navigate('/organization-registration');
                     }}
                   >
                     <Button className="gap-1.5">
