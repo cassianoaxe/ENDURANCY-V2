@@ -64,8 +64,7 @@ const menuItems: MenuItem[] = [
       { icon: Package, label: "Módulos por Organização", path: "/organization-modules" }
     ]
   },
-  { icon: Building2, label: "Organizações", path: "/organizations" },
-  { icon: DollarSign, label: "Vendas", path: "/vendas" },
+  { icon: Building2, label: "Cadastro", path: "/cadastro" },
   { 
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
