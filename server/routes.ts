@@ -20,7 +20,7 @@ import {
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
-import { inArray, and, eq, sql, desc, asc, gte, lte } from "drizzle-orm";
+import { inArray, and, eq, sql, desc, asc, gte, lte, like, ilike } from "drizzle-orm";
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
 // Importar rotas de integração
@@ -445,6 +445,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eq(users.email, email),
               eq(users.organizationId, orgsFound[0].id)
             ));
+          
+          // Se não encontrou com email exato, e o email tem formato válido
+          if (usersFound.length === 0 && email.includes('@')) {
+            // Extrair a parte de usuário do email (antes do @)
+            const emailBase = email.split('@')[0].toLowerCase();
+            
+            // Tentar encontrar por username contendo emailBase
+            usersFound = await db.select().from(users)
+              .where(and(
+                like(users.username, `${emailBase}%`),
+                eq(users.organizationId, orgsFound[0].id)
+              ));
+            
+            console.log(`Tentativa de login com base "${emailBase}" na organização ${orgsFound[0].id}. Encontrados: ${usersFound.length}`);
+          }
         } else if (username) {
           // Se temos username, verificar se deve ser buscado exatamente ou usar o formato username+id
           const possibleGeneratedUsername = username.split('@')[0].toLowerCase() + orgsFound[0].id;
@@ -519,22 +534,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let usersFound = [];
       
       if (email) {
-        // Se temos email, usar para buscar o usuário
+        // Se temos email, usar para buscar o usuário exato primeiro
         usersFound = await db.select().from(users).where(eq(users.email, email));
         
-        // Se não encontrou pelo email exato, verificar se é um login org_admin com email básico
-        if (usersFound.length === 0) {
-          // Tentar encontrar usuários que tenham o mesmo email base (parte antes do @)
+        // Se não encontrou com email exato, tentar busca mais ampla para org_admin
+        if (usersFound.length === 0 && email.includes('@')) {
           const emailBase = email.split('@')[0].toLowerCase();
-          const allUsers = await db.select().from(users);
           
-          usersFound = allUsers.filter(user => 
-            user.email === email || 
-            (user.username && user.username.startsWith(emailBase))
-          );
+          // Buscar apenas usuários que sejam org_admin, limitando a consulta para ser mais eficiente
+          usersFound = await db.select().from(users)
+            .where(and(
+              eq(users.role, 'org_admin'),
+              like(users.username, `${emailBase}%`)
+            ));
           
-          console.log(`Tentativa de login com email base "${emailBase}". Usuários encontrados:`, 
-            usersFound.map(u => ({ id: u.id, username: u.username, email: u.email }))
+          console.log(`Tentativa de login com email base "${emailBase}" como org_admin. Usuários encontrados:`, 
+            usersFound.length > 0 ? usersFound.map(u => ({ id: u.id, username: u.username, email: u.email })) : 'Nenhum'
           );
         }
       } else if (username) {
