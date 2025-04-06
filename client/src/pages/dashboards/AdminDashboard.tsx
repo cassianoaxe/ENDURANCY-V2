@@ -186,27 +186,9 @@ const useOrganizationData = () => {
       });
     });
 
-    // Obter dados de crescimento mensal das assinaturas de módulos
+    // Dados de crescimento mensal das assinaturas de módulos
     // Em uma implementação real, estes dados viriam de uma API com dados históricos
-    const { data: moduleSalesStats } = useQuery({
-      queryKey: ['/api/module-subscriptions/stats/monthly'],
-      queryFn: async () => {
-        // Dados simulados para módulos de planos por mês
-        // Na implementação final, esta função seria substituída por uma chamada de API real
-        return [
-          { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
-          { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
-          { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
-          { month: 'Abr', freemium: 35, seed: 26, grow: 30, pro: 15 },
-          { month: 'Mai', freemium: 40, seed: 32, grow: 40, pro: 20 },
-          { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
-          { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
-        ];
-      },
-    });
-    
-    // Usar os dados da API ou fallback para dados locais se a API ainda não estiver disponível
-    const plansSalesData = moduleSalesStats || [
+    const moduleSalesStats = [
       { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
       { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
       { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
@@ -215,6 +197,9 @@ const useOrganizationData = () => {
       { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
       { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
     ];
+    
+    // Usar os dados mockados para o gráfico
+    const plansSalesData = moduleSalesStats;
 
     // Calcular dados de organizações por mês (também simulados)
     const organizationsData = [
