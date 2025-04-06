@@ -228,7 +228,7 @@ export default function Login() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Email</FormLabel>
+                          <FormLabel className="text-gray-700">Email ou Usuário</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
