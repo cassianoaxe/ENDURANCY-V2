@@ -370,7 +370,8 @@ export default function Cadastro() {
                               title="Visualizar detalhes"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                navigate(`/organizations/${org.id}`);
+                                // Usar window.location para garantir a navegação completa
+                                window.location.href = `/organizations/${org.id}`;
                               }}
                             >
                               <Eye size={16} className="text-gray-500" />
@@ -381,7 +382,8 @@ export default function Cadastro() {
                               title="Alterar plano"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                navigate(`/organizations/${org.id}/change-plan`);
+                                // Usar window.location para garantir a navegação completa
+                                window.location.href = `/organizations/${org.id}/change-plan`;
                               }}
                             >
                               <DollarSign size={16} className="text-gray-500" />
@@ -397,8 +399,8 @@ export default function Cadastro() {
                                   className="cursor-pointer"
                                   onClick={() => {
                                     setSelectedOrg(org);
-                                    const editUrl = `/organizations/${org.id}/edit`;
-                                    navigate(editUrl);
+                                    // Usar window.location para garantir a navegação completa
+                                    window.location.href = `/organizations/${org.id}/edit`;
                                   }}
                                 >
                                   <Edit size={14} className="mr-2" /> Editar
