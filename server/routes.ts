@@ -885,13 +885,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           for (const planModule of planModulesList) {
             await db.insert(organizationModules)
               .values({
-                organizationId: organization.id,
-                moduleId: planModule.module_id,
+                organization_id: organization.id,
+                module_id: planModule.module_id,
                 status: 'active',
-                startDate: new Date(),
+                start_date: new Date(),
                 // Módulos adicionados via criação de organização têm validade de 30 dias para testes
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                createdAt: new Date()
+                expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                created_at: new Date(),
+                updated_at: new Date()
               });
               
             console.log(`Módulo ${planModule.module_id} atribuído à organização ${organization.id}`);
@@ -1600,7 +1601,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           mp.billing_cycle as "billingCycle",
           o.status,
           om.active,
-          om."createdAt"
+          om.created_at as "createdAt"
         FROM organization_modules om
         JOIN organizations o ON om.organization_id = o.id
         JOIN modules m ON om.module_id = m.id
@@ -1840,7 +1841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [updated] = await db.update(organizationModules)
         .set({ 
           active, 
-          updatedAt: new Date() 
+          updated_at: new Date() 
         })
         .where(eq(organizationModules.id, parseInt(id)))
         .returning();
@@ -3158,7 +3159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await db.update(organizationModules)
             .set({ 
               active: true,
-              updatedAt: new Date()
+              updated_at: new Date()
             })
             .where(eq(organizationModules.id, existingModule.id));
           
