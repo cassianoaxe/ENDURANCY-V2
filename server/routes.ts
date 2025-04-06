@@ -521,6 +521,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (email) {
         // Se temos email, usar para buscar o usuário
         usersFound = await db.select().from(users).where(eq(users.email, email));
+        
+        // Se não encontrou pelo email exato, verificar se é um login org_admin com email básico
+        if (usersFound.length === 0) {
+          // Tentar encontrar usuários que tenham o mesmo email base (parte antes do @)
+          const emailBase = email.split('@')[0].toLowerCase();
+          const allUsers = await db.select().from(users);
+          
+          usersFound = allUsers.filter(user => 
+            user.email === email || 
+            (user.username && user.username.startsWith(emailBase))
+          );
+          
+          console.log(`Tentativa de login com email base "${emailBase}". Usuários encontrados:`, 
+            usersFound.map(u => ({ id: u.id, username: u.username, email: u.email }))
+          );
+        }
       } else if (username) {
         // Se temos username, buscar pelo username
         usersFound = await db.select().from(users).where(eq(users.username, username));

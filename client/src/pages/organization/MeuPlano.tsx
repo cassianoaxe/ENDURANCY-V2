@@ -232,6 +232,16 @@ export default function MeuPlano() {
     // Filtrar para obter apenas módulos que podem ser adicionados
     return availableModules.filter(m => !activeModuleIds.includes(m.id) && m.is_active);
   };
+  
+  // Filtrar para mostrar apenas os planos específicos solicitados (Freemium, Seed, Grow, Pro)
+  const getFilteredPlans = () => {
+    if (!availablePlans) return [];
+    
+    // Filtrar apenas os planos solicitados
+    return availablePlans.filter(plan => 
+      ['free', 'seed', 'grow', 'pro'].includes(plan.tier)
+    ).sort((a, b) => getPlanLevel(a.tier) - getPlanLevel(b.tier));
+  };
 
   // Obter o nível do plano para comparação
   const getPlanLevel = (planTier: string): number => {
@@ -496,11 +506,7 @@ export default function MeuPlano() {
             <TabsContent value="planos">
               <h2 className="text-xl font-bold mb-6">Planos Disponíveis</h2>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-                {availablePlans ? availablePlans
-                  // Filtrar apenas para mostrar planos Freemium, Seed, Grow e Pro
-                  .filter(plan => 
-                    plan.isModulePlan !== true && 
-                    ['free', 'seed', 'grow', 'pro'].includes(plan.tier))
+                {availablePlans ? getFilteredPlans()
                   .map((plan) => (
                     <Card 
                       key={plan.id} 
