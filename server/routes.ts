@@ -41,17 +41,10 @@ import { z } from "zod";
 import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
-import { initializePlans } from "./services/stripe";
 import { sendMail, isEmailServiceConfigured, sendTemplateEmail, EmailTemplate } from "./services/email";
-import { 
-  createPlanPaymentIntent, 
-  createModulePaymentIntent, 
-  processPlanPayment, 
-  processModulePayment, 
-  checkPaymentStatus 
-} from "./services/payments";
-import { createSubscription, cancelSubscription, updateSubscriptionPlan, getSubscriptionDetails } from './services/subscriptions';
-import { handleStripeWebhook } from './services/webhooks';
+import { updateOrganizationPlan, cancelPlan, getOrganizationPlanDetails } from './services/subscriptions';
+import { handlePaymentNotification } from './services/webhooks';
+import { validatePaymentToken, processPaymentFromToken, handlePaymentFailure } from './services/payment-links';
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -289,7 +282,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   initializeAdmin();
   
   // Initialize sample plans
-  initializePlans();
+  import('./services/stripe').then(({ initializePlans }) => {
+    initializePlans();
+  }).catch(err => {
+    console.error("Error importing and initializing plans:", err);
+  });
   
   // Function to initialize sample modules
   const initializeModules = async () => {
@@ -3408,12 +3405,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serviços de assinatura já importados do topo do arquivo
   
   // Webhook do Stripe
-  app.post('/api/webhooks/stripe', async (req, res) => {
+  app.post('/api/webhooks/payment', async (req, res) => {
     try {
-      await handleStripeWebhook(req, res);
+      await handlePaymentNotification(req, res);
     } catch (error) {
-      console.error("Error handling Stripe webhook:", error);
-      res.status(500).json({ message: "Failed to handle webhook" });
+      console.error("Error handling payment notification:", error);
+      res.status(500).json({ message: "Failed to handle payment notification" });
     }
   });
 
