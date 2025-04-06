@@ -344,16 +344,32 @@ export default function Cadastro() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Link href={`/organizations/${org.id}`}>
-                              <Button variant="ghost" size="icon" title="Visualizar detalhes">
-                                <Eye size={16} className="text-gray-500" />
-                              </Button>
-                            </Link>
-                            <Link href={`/organizations/${org.id}/change-plan`}>
-                              <Button variant="ghost" size="icon" title="Alterar plano">
-                                <DollarSign size={16} className="text-gray-500" />
-                              </Button>
-                            </Link>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title="Visualizar detalhes"
+                              onClick={() => {
+                                setSelectedOrg(org);
+                                setTimeout(() => {
+                                  navigate(`/organizations/${org.id}`);
+                                }, 100);
+                              }}
+                            >
+                              <Eye size={16} className="text-gray-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              title="Alterar plano"
+                              onClick={() => {
+                                setSelectedOrg(org);
+                                setTimeout(() => {
+                                  navigate(`/organizations/${org.id}/change-plan`);
+                                }, 100);
+                              }}
+                            >
+                              <DollarSign size={16} className="text-gray-500" />
+                            </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
