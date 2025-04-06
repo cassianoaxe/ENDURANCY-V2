@@ -593,6 +593,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Rota para login como administrador de uma organização
+  app.post("/api/auth/login-as-admin", authenticate, async (req: Request, res: Response) => {
+    const { organizationId } = req.body;
+    
+    try {
+      // Verificar se o usuário atual é um administrador do sistema
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ 
+          success: false,
+          message: "Apenas administradores do sistema podem usar essa funcionalidade"
+        });
+      }
+      
+      // Buscar a organização
+      const organization = await db.query.organizations.findFirst({
+        where: eq(organizations.id, organizationId)
+      });
+      
+      if (!organization) {
+        return res.status(404).json({
+          success: false,
+          message: "Organização não encontrada"
+        });
+      }
+      
+      // Buscar o administrador da organização ou criar um usuário de sessão temporário
+      let adminUser = await db.query.users.findFirst({
+        where: and(
+          eq(users.organizationId, organizationId),
+          eq(users.role, 'org_admin')
+        )
+      });
+      
+      if (!adminUser) {
+        // Se não existir um administrador, criar um objeto de sessão baseado na organização
+        const sessionUser = {
+          id: -1, // ID especial para indicar usuário temporário
+          username: `admin@${organization.name.toLowerCase().replace(/\s+/g, '-')}.com`,
+          role: 'org_admin' as const,
+          name: `Admin ${organization.name}`,
+          email: organization.email || `admin@${organization.name.toLowerCase().replace(/\s+/g, '-')}.com`,
+          organizationId: organization.id,
+          profilePhoto: null,
+          phoneNumber: organization.phone || null,
+          bio: null,
+          lastPasswordChange: null,
+          createdAt: new Date()
+        };
+        
+        // Salvar na sessão
+        req.session.user = sessionUser;
+        req.session.originalAdmin = req.session.user;
+        
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Erro ao salvar sessão:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        
+        return res.status(200).json({
+          success: true,
+          message: "Login como administrador temporário realizado com sucesso",
+          user: sessionUser
+        });
+      } else {
+        // Salvar o usuário admin atual para poder restaurar depois
+        req.session.originalAdmin = req.session.user;
+        
+        // Criar sessão como o admin da organização
+        const sessionUser = {
+          id: adminUser.id,
+          username: adminUser.username,
+          role: adminUser.role,
+          name: adminUser.name,
+          email: adminUser.email,
+          organizationId: adminUser.organizationId,
+          profilePhoto: adminUser.profilePhoto,
+          phoneNumber: adminUser.phoneNumber,
+          bio: adminUser.bio,
+          lastPasswordChange: adminUser.lastPasswordChange,
+          createdAt: adminUser.createdAt
+        };
+        
+        req.session.user = sessionUser;
+        
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Erro ao salvar sessão:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        
+        return res.status(200).json({
+          success: true,
+          message: "Login como administrador realizado com sucesso",
+          user: sessionUser
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao acessar como administrador:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Erro interno ao processar a solicitação"
+      });
+    }
+  });
+  
+  // Rota para voltar ao login de administrador original
+  app.post("/api/auth/return-to-admin", authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se existe um administrador original na sessão
+      if (!req.session.originalAdmin) {
+        return res.status(400).json({
+          success: false,
+          message: "Não há administrador original para retornar"
+        });
+      }
+      
+      // Restaurar o administrador original
+      req.session.user = req.session.originalAdmin;
+      
+      // Remover o originalAdmin para evitar uso indevido
+      delete req.session.originalAdmin;
+      
+      // Salvar a sessão
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Erro ao salvar sessão:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+      
+      return res.status(200).json({
+        success: true,
+        message: "Retornado para conta de administrador",
+        user: req.session.user
+      });
+    } catch (error) {
+      console.error("Erro ao retornar para administrador:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Erro interno ao processar a solicitação"
+      });
+    }
+  });
+  
   app.get("/api/auth/me", (req, res) => {
     console.log("Verificando autenticação:", {
       hasSession: !!req.session,
