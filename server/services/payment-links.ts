@@ -253,6 +253,85 @@ export async function processPaymentFromToken(token: string, paymentType: string
 /**
  * Função para tratamento de falha no pagamento - acionar plano gratuito
  */
+/**
+ * Enviar link de pagamento via interface do admin
+ */
+export async function sendPaymentLinkFromAdmin(organizationId: number): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    // Buscar a organização
+    const [organization] = await db.select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId));
+      
+    if (!organization) {
+      return {
+        success: false,
+        message: 'Organização não encontrada'
+      };
+    }
+    
+    // Verificar se a organização tem um plano atribuído
+    if (!organization.planId) {
+      return {
+        success: false,
+        message: 'Organização não possui plano atribuído'
+      };
+    }
+    
+    // Buscar o plano atual
+    const [plan] = await db.select()
+      .from(plans)
+      .where(eq(plans.id, organization.planId));
+    
+    if (!plan) {
+      return {
+        success: false,
+        message: 'Plano não encontrado'
+      };
+    }
+    
+    // Verificar se existe um email para envio
+    const emailToUse = organization.email || organization.adminEmail;
+    
+    if (!emailToUse) {
+      return {
+        success: false,
+        message: 'A organização não possui email para contato'
+      };
+    }
+    
+    // Enviar o link de pagamento
+    const sent = await createAndSendPaymentLink({
+      organizationId: organization.id,
+      planId: organization.planId,
+      email: emailToUse,
+      adminName: organization.adminName || 'Administrador',
+      organizationName: organization.name
+    });
+    
+    if (!sent) {
+      return {
+        success: false,
+        message: 'Erro ao enviar o email com link de pagamento'
+      };
+    }
+    
+    return {
+      success: true,
+      message: `Link de pagamento enviado com sucesso para ${emailToUse}`
+    };
+  } catch (error: any) {
+    console.error('Erro ao enviar link de pagamento:', error);
+    return {
+      success: false,
+      message: 'Erro ao processar o envio: ' + (error.message || 'Erro desconhecido')
+    };
+  }
+}
+
 export async function handlePaymentFailure(organizationId: number): Promise<boolean> {
   try {
     // Buscar a organização

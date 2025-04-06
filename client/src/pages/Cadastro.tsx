@@ -107,6 +107,28 @@ export default function Cadastro() {
     },
   });
   
+  // Função para enviar link de pagamento
+  const sendPaymentLink = async (organizationId: number) => {
+    try {
+      const response = await axios.post('/api/payment-links/send', { organizationId });
+      
+      if (response.data.success) {
+        toast({
+          title: "Link enviado",
+          description: "Link de pagamento enviado com sucesso.",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao enviar link:", error);
+      toast({
+        title: "Erro ao enviar link",
+        description: "Não foi possível enviar o link de pagamento.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para entrar como administrador da organização
   const loginAsAdmin = async (organizationId: number) => {
     try {
@@ -123,9 +145,7 @@ export default function Cadastro() {
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
         
         // Redirecionar para o dashboard da organização
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 500);
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error("Erro ao fazer login como admin:", error);
@@ -350,9 +370,7 @@ export default function Cadastro() {
                               title="Visualizar detalhes"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                setTimeout(() => {
-                                  navigate(`/organizations/${org.id}`);
-                                }, 100);
+                                navigate(`/organizations/${org.id}`);
                               }}
                             >
                               <Eye size={16} className="text-gray-500" />
@@ -363,9 +381,7 @@ export default function Cadastro() {
                               title="Alterar plano"
                               onClick={() => {
                                 setSelectedOrg(org);
-                                setTimeout(() => {
-                                  navigate(`/organizations/${org.id}/change-plan`);
-                                }, 100);
+                                navigate(`/organizations/${org.id}/change-plan`);
                               }}
                             >
                               <DollarSign size={16} className="text-gray-500" />
@@ -381,10 +397,8 @@ export default function Cadastro() {
                                   className="cursor-pointer"
                                   onClick={() => {
                                     setSelectedOrg(org);
-                                    setTimeout(() => {
-                                      const editUrl = `/organizations/${org.id}/edit`;
-                                      navigate(editUrl);
-                                    }, 100);
+                                    const editUrl = `/organizations/${org.id}/edit`;
+                                    navigate(editUrl);
                                   }}
                                 >
                                   <Edit size={14} className="mr-2" /> Editar
@@ -397,6 +411,15 @@ export default function Cadastro() {
                                   }}
                                 >
                                   <User size={14} className="mr-2" /> Entrar como Admin
+                                </DropdownMenuItem>
+                                
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    sendPaymentLink(org.id);
+                                  }}
+                                >
+                                  <DollarSign size={14} className="mr-2" /> Enviar link de pagamento
                                 </DropdownMenuItem>
                                 
                                 <DropdownMenuSeparator />
