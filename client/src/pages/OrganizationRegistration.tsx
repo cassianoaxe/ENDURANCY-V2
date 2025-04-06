@@ -125,33 +125,18 @@ export default function OrganizationRegistration() {
       // Salvar o ID da organização recém-criada
       setOrganizationId(data.id);
       
-      // Exibir toast de sucesso na criação da organização
+      // Exibir toast de sucesso na criação da organização e redirecionar
       toast({
         title: "Organização criada com sucesso!",
-        description: "Agora você pode concluir o processo de pagamento.",
+        description: "Sua organização foi criada e você receberá acesso em breve.",
       });
       
-      // Se o plano selecionado não for gratuito (free), iniciar o processo de pagamento
-      if (selectedPlan && selectedPlan.tier !== 'free') {
-        // Criar intent de pagamento com o ID da organização
-        // Garantir que o planId seja sempre um número
-        createPaymentIntent.mutate({ 
-          planId: Number(selectedPlan.id), 
-          organizationId: Number(data.id) 
-        });
-        
-        console.log("Iniciando criação de payment intent para:", {
-          planId: Number(selectedPlan.id),
-          organizationId: Number(data.id)
-        });
+      // Redirecionar para a tela de confirmação ou login
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser && currentUser.role === 'admin') {
+        navigate('/requests');
       } else {
-        // Se for um plano gratuito, seguir para a página de confirmação
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (currentUser && currentUser.role === 'admin') {
-          navigate('/requests');
-        } else {
-          navigate('/organization-confirmation');
-        }
+        navigate('/login?status=registered');
       }
     },
     onError: (error) => {

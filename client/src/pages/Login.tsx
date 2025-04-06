@@ -39,6 +39,7 @@ export default function Login() {
   const [orgCode, setOrgCode] = useState<string | null>(null);
   const [isOrgLogin, setIsOrgLogin] = useState(false);
   const [location, navigate] = useLocation();
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
   // Extrair código da organização da URL, se houver
   useEffect(() => {
@@ -48,6 +49,14 @@ export default function Login() {
       setOrgCode(matches[1]);
       setIsOrgLogin(true);
       setUserType('org_admin'); // Se tiver um código de organização, presumimos login como administrador da organização
+    }
+    
+    // Verifica se há parâmetro de status na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    if (status === 'registered') {
+      setRegistrationSuccess(true);
+      setUserType('org_admin'); // Se veio do registro, presumimos login como admin da organização
     }
   }, [location]);
 
@@ -147,6 +156,13 @@ export default function Login() {
               <div className="mt-2 px-4 py-2 bg-gray-100 rounded-md flex items-center justify-center gap-2">
                 <Building className="h-4 w-4 text-gray-500" />
                 <span className="text-sm font-semibold text-gray-700">{orgCode}</span>
+              </div>
+            </div>
+          ) : registrationSuccess ? (
+            <div className="mt-2">
+              <div className="mt-1 px-4 py-3 bg-green-50 text-green-800 rounded-md border border-green-100">
+                <p className="text-sm font-medium">Organização registrada com sucesso!</p>
+                <p className="text-xs mt-1">Verifique seu email para acessar as informações de login.</p>
               </div>
             </div>
           ) : (

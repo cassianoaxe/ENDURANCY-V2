@@ -15,6 +15,8 @@ export type EmailTemplate =
   | "organization_created"
   | "organization_approved"
   | "organization_rejected"
+  | "organization_registration"
+  | "organization_activated"
   | "payment_success"
   | "payment_failed"
   | "invoice"
@@ -163,6 +165,30 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
         <p>Atenciosamente,<br>Equipe Endurancy</p>
       `;
     default:
+      // Templates adicionais
+      if (template === "organization_registration") {
+        return `
+          <h1>Registro de Organização Recebido</h1>
+          <p>Olá ${data.adminName || 'Administrador'},</p>
+          <p>Recebemos o registro da sua organização "${data.organizationName}".</p>
+          <p>Seus dados estão sendo processados e você receberá o acesso em breve.</p>
+          <p>Atenciosamente,<br>Equipe Endurancy</p>
+        `;
+      }
+      
+      if (template === "organization_activated") {
+        return `
+          <h1>Organização Ativada!</h1>
+          <p>Olá ${data.adminName || 'Administrador'},</p>
+          <p>Sua organização "${data.organizationName}" foi ativada com sucesso!</p>
+          <p>Você pode acessar o sistema com as seguintes credenciais:</p>
+          <p><strong>Usuário:</strong> ${data.username}</p>
+          <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
+          <p>Atenciosamente,<br>Equipe Endurancy</p>
+        `;
+      }
+      
+      // Template padrão para casos não tratados
       return `
         <h1>Notificação Endurancy</h1>
         <p>Olá ${data.name || 'usuário'},</p>
