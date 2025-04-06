@@ -14,7 +14,7 @@ import {
   DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
   MoreVertical, Trash2, AlertTriangle, LucideIcon
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Organization, Plan } from '@shared/schema';
 import {
   DropdownMenu,
@@ -34,7 +34,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import axios from 'axios';
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Cadastro() {
@@ -46,7 +45,12 @@ export default function Cadastro() {
   const [blockReason, setBlockReason] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [_, navigate] = useLocation();
+  
+  // Função de navegação que funciona com o sistema do App.tsx
+  const navigate = (path: string) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new Event('popstate'));
+  };
 
   // Buscar organizações
   const { data: organizations, isLoading: loadingOrgs } = useQuery({
