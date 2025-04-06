@@ -186,9 +186,27 @@ const useOrganizationData = () => {
       });
     });
 
-    // Criar dados de crescimento mensal (simulados por enquanto, pois precisaríamos de dados históricos reais)
-    // Em uma implementação real, estes dados viriam de uma API que forneceria dados históricos
-    const plansSalesData = [
+    // Obter dados de crescimento mensal das assinaturas de módulos
+    // Em uma implementação real, estes dados viriam de uma API com dados históricos
+    const { data: moduleSalesStats } = useQuery({
+      queryKey: ['/api/module-subscriptions/stats/monthly'],
+      queryFn: async () => {
+        // Dados simulados para módulos de planos por mês
+        // Na implementação final, esta função seria substituída por uma chamada de API real
+        return [
+          { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
+          { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
+          { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
+          { month: 'Abr', freemium: 35, seed: 26, grow: 30, pro: 15 },
+          { month: 'Mai', freemium: 40, seed: 32, grow: 40, pro: 20 },
+          { month: 'Jun', freemium: 45, seed: 38, grow: 45, pro: 25 },
+          { month: 'Jul', freemium: 50, seed: 42, grow: 50, pro: 30 },
+        ];
+      },
+    });
+    
+    // Usar os dados da API ou fallback para dados locais se a API ainda não estiver disponível
+    const plansSalesData = moduleSalesStats || [
       { month: 'Jan', freemium: 20, seed: 12, grow: 15, pro: 5 },
       { month: 'Fev', freemium: 25, seed: 18, grow: 20, pro: 8 },
       { month: 'Mar', freemium: 30, seed: 22, grow: 25, pro: 12 },
@@ -300,7 +318,7 @@ export default function AdminDashboard() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 dashboard-stats">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 dashboard-stats">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Organizações Totais</CardTitle>
@@ -328,9 +346,43 @@ export default function AdminDashboard() {
                 <p className="text-xs text-green-500">+22% em relação ao mês anterior</p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">R$ 32.800</div>
+                <p className="text-xs text-green-500">+18% em relação ao mês anterior</p>
+              </CardContent>
+            </Card>
           </div>
           
           <div className="grid grid-cols-1 gap-4">
+            {/* Novo card para Crescimento de Vendas por Plano */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Crescimento de Vendas por Plano</CardTitle>
+                <CardDescription>Tendência mensal de assinaturas por tipo de plano</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={plansSalesData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="freemium" stroke="#9e9e9e" strokeWidth={2} name="Freemium" />
+                      <Line type="monotone" dataKey="seed" stroke="#4CAF50" strokeWidth={2} name="Seed" />
+                      <Line type="monotone" dataKey="grow" stroke="#2196F3" strokeWidth={2} name="Grow" />
+                      <Line type="monotone" dataKey="pro" stroke="#9C27B0" strokeWidth={2} name="Pro" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
@@ -398,6 +450,30 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição de Planos por Módulo</CardTitle>
+                <CardDescription>Análise detalhada de assinaturas de planos por módulo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={modulesPlanDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="module" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`${value} assinaturas`, 'Quantidade']} />
+                      <Legend />
+                      <Bar dataKey="count" stackId="a" name="Assinaturas" fill="#4CAF50" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
             
             <Card>
               <CardHeader>

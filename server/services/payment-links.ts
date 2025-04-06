@@ -1,9 +1,10 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
 import Stripe from 'stripe';
-import { sendMail } from './email';
+import { sendMail, sendTemplateEmail } from './email';
 import { eq, and } from 'drizzle-orm';
 import { organizations, plans, orders } from '@shared/schema';
+import { completeOrganizationActivation } from './auto-organization-setup';
 
 // Configurar a integração com o Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -231,6 +232,7 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
       .set({ 
         planId: plan.id,
         status: 'active',
+        planTier: plan.tier,
         planHistory: [
           ...(organization.planHistory || []),
           {
@@ -263,6 +265,35 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
     const tokenIndex = paymentTokens.findIndex(pt => pt.token === token);
     if (tokenIndex >= 0) {
       paymentTokens[tokenIndex].used = true;
+    }
+    
+    // Ativar a organização automaticamente (configurar módulos e criar usuário admin)
+    try {
+      const activationResult = await completeOrganizationActivation(organization.id, plan.id);
+      console.log(`Ativação automática da organização ${organization.id} foi ${activationResult ? 'bem-sucedida' : 'falhou'}`);
+      
+      // Enviar email de confirmação de ativação
+      if (activationResult) {
+        // Buscar a URL base para os links
+        const baseUrl = process.env.BASE_URL || 'http://localhost';
+        const accessLink = `${baseUrl}/login`;
+        
+        // Enviar email de ativação da organização
+        await sendTemplateEmail(
+          validation.email,
+          `Sua organização ${organization.name} foi ativada - Acesso imediato`,
+          'organization_activated',
+          {
+            adminName: organization.adminName || 'Administrador',
+            organizationName: organization.name,
+            username: validation.email, // O email é usado como nome de usuário por padrão
+            accessLink,
+          }
+        );
+      }
+    } catch (activationError) {
+      console.error(`Erro durante a ativação automática da organização ${organization.id}:`, activationError);
+      // Não impedir o fluxo principal se a ativação falhar - um admin pode fazer isso manualmente depois
     }
     
     // Verificar se é necessário autenticação adicional
@@ -327,6 +358,7 @@ export async function handlePaymentFailure(organizationId: number): Promise<bool
       .set({ 
         planId: freemiumPlan.id,
         status: 'active',
+        planTier: 'free',
         planHistory: [
           ...(organization.planHistory || []),
           {
@@ -353,6 +385,35 @@ export async function handlePaymentFailure(organizationId: number): Promise<bool
       createdAt: new Date(),
       updatedAt: new Date()
     });
+    
+    // Ativar a organização automaticamente com o plano gratuito
+    try {
+      const activationResult = await completeOrganizationActivation(organization.id, freemiumPlan.id);
+      console.log(`Ativação automática (plano gratuito) da organização ${organization.id} foi ${activationResult ? 'bem-sucedida' : 'falhou'}`);
+      
+      if (activationResult && organization.email) {
+        // Buscar a URL base para os links
+        const baseUrl = process.env.BASE_URL || 'http://localhost';
+        const accessLink = `${baseUrl}/login`;
+        
+        // Enviar email informando sobre a ativação com plano gratuito
+        await sendTemplateEmail(
+          organization.email,
+          `Sua organização ${organization.name} foi ativada com o Plano Gratuito`,
+          'organization_activated_free',
+          {
+            adminName: organization.adminName || 'Administrador',
+            organizationName: organization.name,
+            username: organization.email, // O email é usado como nome de usuário por padrão
+            accessLink,
+            upgradePlanLink: `${baseUrl}/organization/meu-plano`
+          }
+        );
+      }
+    } catch (activationError) {
+      console.error(`Erro durante a ativação automática da organização ${organization.id} com plano gratuito:`, activationError);
+      // Não impedir o fluxo principal se a ativação falhar - um admin pode fazer isso manualmente depois
+    }
     
     return true;
   } catch (error) {
