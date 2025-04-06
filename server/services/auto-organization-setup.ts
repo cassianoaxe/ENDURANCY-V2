@@ -2,12 +2,11 @@
  * Serviço para configuração automática de organizações após pagamento
  */
 import { db } from '../db';
-import { schema } from '../../shared/schema';
+import { users, organizations, modules, plans, organizationModules, planModules } from '../../shared/schema';
 import { generatePassword } from '../utils/password';
 import { hashPassword } from '../utils/auth';
 import { sendTemplateEmail } from './email';
-
-const { users, organizations, modules, plans, organizationModules, planModules } = schema;
+import { and, eq, or } from 'drizzle-orm';
 
 /**
  * Interface para mapeamento de nível de plano para valor numérico
@@ -149,8 +148,8 @@ function determineModuleRequiredLevel(moduleId: number, moduleSlug?: string): nu
     17: 4  // Integração
   };
   
-  // Retorna o nível configurado para o módulo ou 4 (nível Pro) como padrão seguro
-  return moduleRequirements[moduleId] || 4;
+  // Retorna o nível configurado para o módulo ou 1 (nível Free) como padrão seguro
+  return moduleRequirements[moduleId] || 1;
 }
 
 /**
@@ -367,15 +366,7 @@ export async function handlePaymentFailure(organizationId: number): Promise<bool
     
     // 2. Buscar o plano gratuito (Freemium ou Básico)
     const freePlan = await db.query.plans.findFirst({
-      where: (plans, { and }) => and(
-        eq(plans.is_active, true),
-        or(
-          eq(plans.tier, 'freemium'),
-          eq(plans.tier, 'Freemium'),
-          eq(plans.tier, 'básico'),
-          eq(plans.tier, 'Básico')
-        )
-      )
+      where: (plans, { eq }) => eq(plans.tier, 'free')
     });
     
     if (!freePlan) {
