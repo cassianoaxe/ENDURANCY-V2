@@ -8,9 +8,34 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  url: string,
-  options?: RequestInit,
+  methodOrUrl: string,
+  urlOrOptions?: string | RequestInit,
+  data?: any,
 ): Promise<any> {
+  // Handle both calling conventions:
+  // 1. apiRequest(url, options)
+  // 2. apiRequest(method, url, data)
+  
+  let method: string = 'GET';
+  let url: string;
+  let options: RequestInit = {};
+  
+  if (typeof urlOrOptions === 'string') {
+    // Second format: apiRequest(method, url, data)
+    method = methodOrUrl;
+    url = urlOrOptions;
+    options = {
+      method,
+      body: data ? (data instanceof FormData ? data : JSON.stringify(data)) : undefined
+    };
+  } else {
+    // First format: apiRequest(url, options)
+    url = methodOrUrl;
+    options = urlOrOptions || {};
+  }
+  
+  console.log(`API Request: ${method} ${url}`, data || 'No data');
+  
   const headers: HeadersInit = {
     'Accept': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
