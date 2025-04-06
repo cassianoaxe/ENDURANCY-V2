@@ -85,11 +85,11 @@ export default function OrganizationDetail() {
     isLoading: isOrgLoading, 
     error: orgError 
   } = useQuery<Organization>({
-    queryKey: ['/api/organizations-direct', orgId],
+    queryKey: ['/api/organizations', orgId],
     queryFn: async () => {
       if (!orgId) throw new Error("ID da organização não disponível");
-      // Usar a nova rota direta que não requer autenticação e sempre retorna os dados mockados
-      const response = await fetch(`/api/organizations-direct/${orgId}`);
+      // Usar a rota autenticada que busca dados reais do banco de dados
+      const response = await apiRequest("GET", `/api/organizations/${orgId}`);
       if (!response.ok) {
         throw new Error(`Erro ao buscar organização: ${response.status}`);
       }
@@ -172,7 +172,7 @@ export default function OrganizationDetail() {
       });
       setIsEditDialogOpen(false);
       // Recarregar dados
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations-direct', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', orgId] });
     },
     onError: (error: Error) => {
       toast({
@@ -210,7 +210,7 @@ export default function OrganizationDetail() {
       setLogoFile(null);
       setIsUploadingLogo(false);
       // Recarregar dados
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations-direct', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', orgId] });
     },
     onError: (error: Error) => {
       toast({
@@ -239,7 +239,7 @@ export default function OrganizationDetail() {
       setIsSuspendDialogOpen(false);
       setSuspendReason('');
       // Recarregar dados
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations-direct', orgId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', orgId] });
     },
     onError: (error: Error) => {
       toast({
