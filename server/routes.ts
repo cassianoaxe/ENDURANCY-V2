@@ -1818,22 +1818,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar informações dos módulos associados
       const moduleIds = orgModules.map(om => om.moduleId);
       
-      // Aplicar uma abordagem simples para a consulta
-      const moduleDetails = await db.select()
-      .from(modules)
-      .where(inArray(modules.id, moduleIds));
+      // Usar SQL direta para evitar o problema do nome da coluna
+      const moduleDetails = await db.execute(
+        sql`SELECT 
+          "id", 
+          "name", 
+          "description", 
+          "type", 
+          "icon_name", 
+          "is_active", 
+          "slug", 
+          "created_at", 
+          "updated_at" 
+        FROM "modules" 
+        WHERE "id" IN (${sql.join(moduleIds, sql`, `)})`
+      );
       
       // Verificar se temos as informações dos módulos
-      if (!moduleDetails.length) {
+      if (!moduleDetails.rows || moduleDetails.rows.length === 0) {
         console.log("Nenhum detalhe de módulo encontrado para os IDs:", moduleIds);
         return res.json([]);
       }
       
-      console.log("Detalhes dos módulos encontrados:", moduleDetails.length);
+      console.log("Detalhes dos módulos encontrados:", moduleDetails.rows.length);
       
       // Combinar os dados para ter informações completas
       const results = orgModules.map(orgModule => {
-        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId) || {
+        const moduleInfo = moduleDetails.rows.find((m: any) => m.id === orgModule.moduleId) || {
           name: `Módulo ${orgModule.moduleId}`,
           description: "Descrição não disponível"
         };
