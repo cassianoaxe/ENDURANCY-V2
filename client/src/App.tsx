@@ -543,7 +543,12 @@ function AppContent() {
       case '/modulos': Component = Modulos; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
-      case '/organizations': Component = Organizations; break;
+      case '/organizations': 
+        // Redirecionar para /cadastro para evitar duplicidade
+        window.history.pushState({}, '', '/cadastro');
+        window.dispatchEvent(new Event('popstate'));
+        Component = Cadastro; 
+        break;
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/vendas': Component = Vendas; break;
       case '/cadastro': Component = Cadastro; break;
