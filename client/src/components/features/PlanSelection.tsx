@@ -19,18 +19,22 @@ export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSele
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Filtrar apenas os planos Freemium, Seed, Grow e Pro
+  const allowedTiers = ['free', 'seed', 'grow', 'pro'];
+  const filteredPlans = plans.filter(plan => allowedTiers.includes(plan.tier));
+  
   useEffect(() => {
     // Definir o plano padrão quando os planos são carregados
-    if (plans.length > 0 && !selectedPlanId) {
+    if (filteredPlans.length > 0 && !selectedPlanId) {
       // Ordenar os planos por nível: Free, Seed, Grow, Pro
       const tierOrder = { free: 1, seed: 2, grow: 3, pro: 4 };
-      const sortedPlans = [...plans].sort((a, b) => 
+      const sortedPlans = [...filteredPlans].sort((a, b) => 
         tierOrder[a.tier as keyof typeof tierOrder] - tierOrder[b.tier as keyof typeof tierOrder]
       );
       
       setSelectedPlanId(sortedPlans[0].id);
     }
-  }, [plans, selectedPlanId]);
+  }, [filteredPlans, selectedPlanId]);
 
   const handleContinue = () => {
     if (selectedPlanId) {
@@ -60,7 +64,7 @@ export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSele
       </div>
     );
   }
-
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-6">Selecione um Plano</h2>
@@ -79,9 +83,9 @@ export default function PlanSelection({ plans, onSelectPlan, onClose }: PlanSele
             }
           }, 300);
         }}
-        className="grid md:grid-cols-3 gap-6 mb-6"
+        className="grid md:grid-cols-4 gap-4 mb-6"
       >
-        {plans.map((plan) => (
+        {filteredPlans.map((plan) => (
           <div key={plan.id} className="relative">
             <RadioGroupItem
               value={plan.id.toString()}
