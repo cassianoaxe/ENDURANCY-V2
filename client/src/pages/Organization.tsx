@@ -88,12 +88,8 @@ export default function OrganizationDetail() {
     queryKey: ['/api/organizations', orgId],
     queryFn: async () => {
       if (!orgId) throw new Error("ID da organização não disponível");
-      // Usar a rota autenticada que busca dados reais do banco de dados
-      const response = await apiRequest("GET", `/api/organizations/${orgId}`);
-      if (!response.ok) {
-        throw new Error(`Erro ao buscar organização: ${response.status}`);
-      }
-      return response.json();
+      // Usar apiRequest diretamente com o método GET
+      return await apiRequest("GET", `/api/organizations/${orgId}`);
     },
     enabled: !!orgId,
   });
@@ -434,7 +430,7 @@ export default function OrganizationDetail() {
 
   // Filtragem de planos para o módulo selecionado
   const availableModulePlans = selectedModule 
-    ? modulePlans.filter(plan => plan.module_id === selectedModule)
+    ? modulePlans.filter(plan => plan.moduleId === selectedModule)
     : [];
 
   if (isOrgLoading) {
