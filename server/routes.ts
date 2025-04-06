@@ -886,7 +886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await db.insert(organizationModules)
               .values({
                 organizationId: organization.id,
-                moduleId: planModule.moduleId,
+                moduleId: planModule.module_id,
                 status: 'active',
                 startDate: new Date(),
                 // Módulos adicionados via criação de organização têm validade de 30 dias para testes
@@ -894,7 +894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 createdAt: new Date()
               });
               
-            console.log(`Módulo ${planModule.moduleId} atribuído à organização ${organization.id}`);
+            console.log(`Módulo ${planModule.module_id} atribuído à organização ${organization.id}`);
           }
         } else {
           console.log(`Organização ${organization.id} cadastrada com plano básico, nenhum módulo premium atribuído.`);
@@ -1273,24 +1273,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .from(organizationModules)
               .where(
                 and(
-                  eq(organizationModules.organizationId, organizationId),
-                  eq(organizationModules.moduleId, planModule.module_id)
+                  eq(organizationModules.organization_id, organizationId),
+                  eq(organizationModules.module_id, planModule.module_id)
                 )
               );
             
             if (existingModule.length === 0) {
               // Inserir apenas se não existir
               await db.insert(organizationModules).values({
-                organizationId,
-                moduleId: planModule.module_id,
-                planId: planId, // Associar ao plano também
+                organization_id: organizationId,
+                module_id: planModule.module_id,
+                plan_id: planId, // Associar ao plano também
                 active: true,
                 status: 'active',
-                startDate: new Date(),
-                expiryDate: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)), // 30 dias
-                billingDay: new Date().getDate(), // Para cobrança recorrente
-                createdAt: new Date(),
-                updatedAt: new Date()
+                start_date: new Date(),
+                expiry_date: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)), // 30 dias
+                billing_day: new Date().getDate(), // Para cobrança recorrente
+                created_at: new Date(),
+                updated_at: new Date()
               });
               
               console.log(`Módulo ${planModule.module_id} associado à organização ${organizationId}`);
@@ -1660,7 +1660,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fazemos uma seleção básica para evitar problemas com nomes de colunas
       const orgModulesQuery = db.select()
         .from(organizationModules)
-        .where(eq(organizationModules.organizationId, parseInt(orgId)));
+        .where(eq(organizationModules.organization_id, parseInt(orgId)));
         
       const orgModules = await orgModulesQuery;
       
@@ -1670,7 +1670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Buscar informações dos módulos associados
-      const moduleIds = orgModules.map(om => om.moduleId);
+      const moduleIds = orgModules.map(om => om.module_id);
       const moduleDetails = await db.select()
         .from(modules)
         .where(inArray(modules.id, moduleIds));
@@ -1685,21 +1685,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Combinar os dados para ter informações completas
       const results = orgModules.map(orgModule => {
-        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId) || {
-          name: `Módulo ${orgModule.moduleId}`,
+        const moduleInfo = moduleDetails.find(m => m.id === orgModule.module_id) || {
+          name: `Módulo ${orgModule.module_id}`,
           description: "Descrição não disponível"
         };
         return {
           id: orgModule.id,
-          organizationId: orgModule.organizationId, 
-          moduleId: orgModule.moduleId,
-          planId: orgModule.planId,
+          organizationId: orgModule.organization_id, 
+          moduleId: orgModule.module_id,
+          planId: orgModule.plan_id,
           status: orgModule.status,
           active: orgModule.active,
-          startDate: orgModule.startDate,
-          expiryDate: orgModule.expiryDate,
-          createdAt: orgModule.createdAt,
-          updatedAt: orgModule.updatedAt,
+          startDate: orgModule.start_date,
+          expiryDate: orgModule.expiry_date,
+          createdAt: orgModule.created_at,
+          updatedAt: orgModule.updated_at,
           // Adicionamos as propriedades do módulo explicitamente no objeto retornado
           name: moduleInfo?.name || 'Módulo desconhecido',
           description: moduleInfo?.description || 'Sem descrição',
@@ -1719,18 +1719,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organization-modules", authenticate, async (req, res) => {
     try {
-      const { organizationId, moduleId, planId, active = true } = req.body;
+      const { organization_id, module_id, plan_id, active = true } = req.body;
       
-      if (!organizationId || !moduleId || !planId) {
-        return res.status(400).json({ message: "organizationId, moduleId, and planId are required" });
+      if (!organization_id || !module_id || !plan_id) {
+        return res.status(400).json({ message: "organization_id, module_id, and plan_id are required" });
       }
       
       // Check if this organization already has this module
       const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organizationId, organizationId),
-          eq(organizationModules.moduleId, moduleId)
+          eq(organizationModules.organization_id, organization_id),
+          eq(organizationModules.module_id, module_id)
         ));
       
       if (existingModules.length > 0) {
@@ -1740,12 +1740,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new organization module entry
       const [orgModule] = await db.insert(organizationModules)
         .values({
-          organizationId,
-          moduleId,
-          planId,
+          organization_id,
+          module_id,
+          plan_id,
           active,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          created_at: new Date(),
+          updated_at: new Date()
         })
         .returning();
       
@@ -1797,8 +1797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organizationId, parseInt(organizationId)),
-          eq(organizationModules.moduleId, moduleData.id)
+          eq(organizationModules.organization_id, parseInt(organizationId)),
+          eq(organizationModules.module_id, moduleData.id)
         ));
       
       if (existingModules.length > 0) {
@@ -1810,12 +1810,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Remover campos que não existem na tabela
       const [newOrgModule] = await db.insert(organizationModules)
         .values({
-          organizationId: parseInt(organizationId),
-          moduleId: moduleData.id,
+          organization_id: parseInt(organizationId),
+          module_id: moduleData.id,
           status: 'pending',
           active: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          created_at: new Date(),
+          updated_at: new Date()
         })
         .returning();
       
@@ -3148,8 +3148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [existingModule] = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organizationId, organizationId),
-          eq(organizationModules.moduleId, moduleId)
+          eq(organizationModules.organization_id, organizationId),
+          eq(organizationModules.module_id, moduleId)
         ));
       
       if (existingModule) {
@@ -3169,8 +3169,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Adicionar o novo módulo
         await db.insert(organizationModules).values({
-          organizationId,
-          moduleId,
+          organization_id: organizationId,
+          module_id: moduleId,
           planId: planId || null,
           active: true,
         });
@@ -3472,13 +3472,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Processa os módulos add-on da organização
         const orgModules = await db.select()
           .from(organizationModules)
-          .where(eq(organizationModules.organizationId, org.id));
+          .where(eq(organizationModules.organization_id, org.id));
         
         for (const orgModule of orgModules) {
-          const modulePlanDetails = modulePlansData.find(mp => mp.id === orgModule.planId);
+          const modulePlanDetails = modulePlansData.find(mp => mp.id === orgModule.plan_id);
           if (!modulePlanDetails) continue;
           
-          const moduleDetails = modulesData.find(m => m.id === orgModule.moduleId);
+          const moduleDetails = modulesData.find(m => m.id === orgModule.module_id);
           if (!moduleDetails) continue;
           
           // Verifica se já existe uma transação para este módulo
@@ -3509,7 +3509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               status: 'pago',
               dueDate: new Date(),
               paymentDate: new Date(),
-              documentNumber: `MODULO-${org.id}-${orgModule.moduleId}-${Date.now()}`,
+              documentNumber: `MODULO-${org.id}-${orgModule.module_id}-${Date.now()}`,
               paymentMethod: 'cartão de crédito',
               notes: 'Transação gerada automaticamente pela sincronização de pagamentos',
               createdAt: new Date(),
