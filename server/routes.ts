@@ -1784,62 +1784,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/organization-modules/:orgId", async (req, res) => {
+
+  // Rota para buscar os módulos de uma organização específica
+  app.get("/api/organization-modules/:organizationId", async (req, res) => {
     try {
-      const { orgId } = req.params;
-      const organizationId = parseInt(orgId);
+      const { organizationId } = req.params;
+      const orgId = parseInt(organizationId);
       
       console.log("Buscando módulos para organização:", orgId);
       
       // Verificar primeiro se temos um mock em server/index.ts
       if (global.mockOrganizations) {
         // @ts-ignore - mockOrganizations é adicionado ao objeto global em server/index.ts
-        const mockOrg = global.mockOrganizations.find(o => o.id === organizationId);
+        const mockOrg = global.mockOrganizations.find(o => o.id === orgId);
         if (mockOrg && mockOrg.modules) {
-          console.log(`Retornando ${mockOrg.modules.length} módulos mockados para organização ${organizationId}`);
+          console.log(`Retornando ${mockOrg.modules.length} módulos mockados para organização ${orgId}`);
           return res.json(mockOrg.modules);
         }
       }
       
-      // Verificar se a tabela existe e suas colunas
-      try {
-        // Usar uma consulta SQL bruta para verificar se a tabela existe
-        const tableCheck = await db.execute(
-          sql`SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name = 'organization_modules'
-          )`
-        );
-        console.log("Tabela organization_modules existe:", tableCheck);
-        
-        // Verificar as colunas da tabela
-        const columnCheck = await db.execute(
-          sql`SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_schema = 'public' 
-            AND table_name = 'organization_modules'`
-        );
-        console.log("Colunas disponíveis:", columnCheck.rows.map(r => r.column_name));
-      } catch (e) {
-        console.error("Erro ao verificar tabela:", e);
-      }
-      
-      // Buscar organizationModules - selecionando apenas os campos que existem
-      // Fazemos uma seleção básica para evitar problemas com nomes de colunas
-      const orgModulesQuery = db.select()
+      // Buscar módulos da organização
+      const orgModules = await db.select()
         .from(organizationModules)
-        .where(eq(organizationModules.organization_id, parseInt(orgId)));
-        
-      const orgModules = await orgModulesQuery;
+        .where(eq(organizationModules.organizationId, orgId));
       
-      // Se não encontrou módulos, retornar array vazio
+      console.log(`${orgModules.length} módulos encontrados para organização ${orgId}`);
+      
       if (!orgModules.length) {
+        console.log("Nenhum módulo encontrado para esta organização");
         return res.json([]);
       }
       
       // Buscar informações dos módulos associados
-      const moduleIds = orgModules.map(om => om.module_id);
+      const moduleIds = orgModules.map(om => om.moduleId);
       const moduleDetails = await db.select()
         .from(modules)
         .where(inArray(modules.id, moduleIds));
@@ -1854,21 +1831,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Combinar os dados para ter informações completas
       const results = orgModules.map(orgModule => {
-        const moduleInfo = moduleDetails.find(m => m.id === orgModule.module_id) || {
-          name: `Módulo ${orgModule.module_id}`,
+        const moduleInfo = moduleDetails.find(m => m.id === orgModule.moduleId) || {
+          name: `Módulo ${orgModule.moduleId}`,
           description: "Descrição não disponível"
         };
         return {
           id: orgModule.id,
-          organizationId: orgModule.organization_id, 
-          moduleId: orgModule.module_id,
-          planId: orgModule.plan_id,
+          organizationId: orgModule.organizationId, 
+          moduleId: orgModule.moduleId,
+          planId: orgModule.planId,
           status: orgModule.status,
           active: orgModule.active,
-          startDate: orgModule.start_date,
-          expiryDate: orgModule.expiry_date,
-          createdAt: orgModule.created_at,
-          updatedAt: orgModule.updated_at,
+          startDate: orgModule.startDate,
+          expiryDate: orgModule.expiryDate,
+          createdAt: orgModule.createdAt,
+          updatedAt: orgModule.updatedAt,
           // Adicionamos as propriedades do módulo explicitamente no objeto retornado
           name: moduleInfo?.name || 'Módulo desconhecido',
           description: moduleInfo?.description || 'Sem descrição',
@@ -1888,18 +1865,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/organization-modules", authenticate, async (req, res) => {
     try {
-      const { organization_id, module_id, plan_id, active = true } = req.body;
+      const { organizationId, moduleId, planId, active = true } = req.body;
       
-      if (!organization_id || !module_id || !plan_id) {
-        return res.status(400).json({ message: "organization_id, module_id, and plan_id are required" });
+      if (!organizationId || !moduleId || !planId) {
+        return res.status(400).json({ message: "organizationId, moduleId, and planId are required" });
       }
       
       // Check if this organization already has this module
       const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organization_id, organization_id),
-          eq(organizationModules.module_id, module_id)
+          eq(organizationModules.organizationId, organizationId),
+          eq(organizationModules.moduleId, moduleId)
         ));
       
       if (existingModules.length > 0) {
@@ -1909,12 +1886,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new organization module entry
       const [orgModule] = await db.insert(organizationModules)
         .values({
-          organization_id,
-          module_id,
-          plan_id,
+          organizationId,
+          moduleId,
+          planId,
           active,
-          created_at: new Date(),
-          updated_at: new Date()
+          createdAt: new Date(),
+          updatedAt: new Date()
         })
         .returning();
       
@@ -1966,8 +1943,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingModules = await db.select()
         .from(organizationModules)
         .where(and(
-          eq(organizationModules.organization_id, parseInt(organizationId)),
-          eq(organizationModules.module_id, moduleData.id)
+          eq(organizationModules.organizationId, parseInt(organizationId)),
+          eq(organizationModules.moduleId, moduleData.id)
         ));
       
       if (existingModules.length > 0) {
@@ -1976,15 +1953,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Adicionar o módulo à organização com status pendente
-      // Remover campos que não existem na tabela
       const [newOrgModule] = await db.insert(organizationModules)
         .values({
-          organization_id: parseInt(organizationId),
-          module_id: moduleData.id,
+          organizationId: parseInt(organizationId),
+          moduleId: moduleData.id,
           status: 'pending',
           active: false,
-          created_at: new Date(),
-          updated_at: new Date()
+          createdAt: new Date(),
+          updatedAt: new Date()
         })
         .returning();
       
@@ -2009,7 +1985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [updated] = await db.update(organizationModules)
         .set({ 
           active, 
-          updated_at: new Date() 
+          updatedAt: new Date() 
         })
         .where(eq(organizationModules.id, parseInt(id)))
         .returning();
