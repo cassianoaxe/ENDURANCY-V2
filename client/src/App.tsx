@@ -230,9 +230,12 @@ function AppContent() {
     );
   }
   
-  // Check if the path matches an organization detail pattern (/organizations/123)
+  // Check if the path matches organization detail patterns (/organizations/123, /organizations/123/edit, /organizations/123/change-plan)
   const orgDetailMatch = currentPath.match(/^\/organizations\/(\d+)$/);
-  if (orgDetailMatch && userRole === 'admin') {
+  const orgEditMatch = currentPath.match(/^\/organizations\/(\d+)\/edit$/);
+  const orgChangePlanMatch = currentPath.match(/^\/organizations\/(\d+)\/change-plan$/);
+  
+  if ((orgDetailMatch || orgEditMatch || orgChangePlanMatch) && userRole === 'admin') {
     return (
       <Layout>
         <OrganizationDetail />
