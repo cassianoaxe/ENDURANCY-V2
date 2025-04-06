@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, 
   DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Cadastro() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,6 +43,7 @@ export default function Cadastro() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [blockReason, setBlockReason] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [_, navigate] = useLocation();
@@ -59,9 +63,8 @@ export default function Cadastro() {
   const updateOrgStatus = useMutation({
     mutationFn: async ({ id, status, reason }: { id: number, status: string, reason?: string }) => {
       console.log(`Alterando status da organização ${id} para ${status}${reason ? ` com motivo: ${reason}` : ''}`);
-      // Usando a nova rota específica para status
-      const response = await axios.put(`/api/organizations/${id}/status`, { status, reason });
-      return response.data;
+      // Usando apiRequest em vez de axios diretamente
+      return await apiRequest('PUT', `/api/organizations/${id}/status`, { status, reason });
     },
     onSuccess: (data) => {
       console.log("Status atualizado com sucesso:", data);
@@ -88,8 +91,7 @@ export default function Cadastro() {
   // Mutação para excluir organização
   const deleteOrganization = useMutation({
     mutationFn: async (id: number) => {
-      const response = await axios.delete(`/api/organizations/${id}`);
-      return response.data;
+      return await apiRequest('DELETE', `/api/organizations/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -110,54 +112,64 @@ export default function Cadastro() {
     },
   });
   
-  // Função para enviar link de pagamento
-  const sendPaymentLink = async (organizationId: number) => {
-    try {
-      const response = await axios.post('/api/payment-links/send', { organizationId });
-      
-      if (response.data.success) {
-        toast({
-          title: "Link enviado",
-          description: "Link de pagamento enviado com sucesso.",
-          variant: "default",
-        });
-      }
-    } catch (error) {
+  // Mutação para enviar link de pagamento
+  const sendPaymentLinkMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      return await apiRequest('POST', '/api/payment-links/send', { organizationId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Link enviado",
+        description: "Link de pagamento enviado com sucesso.",
+        variant: "default",
+      });
+    },
+    onError: (error) => {
       console.error("Erro ao enviar link:", error);
       toast({
         title: "Erro ao enviar link",
         description: "Não foi possível enviar o link de pagamento.",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  // Função wrapper para enviar link de pagamento
+  const sendPaymentLink = (organizationId: number) => {
+    sendPaymentLinkMutation.mutate(organizationId);
   };
 
-  // Função para entrar como administrador da organização
-  const loginAsAdmin = async (organizationId: number) => {
-    try {
-      const response = await axios.post('/api/auth/login-as-admin', { organizationId });
+  // Mutação para entrar como administrador da organização
+  const loginAsAdminMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      return await apiRequest('POST', '/api/auth/login-as-admin', { organizationId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Login bem-sucedido",
+        description: "Você está acessando como administrador da organização.",
+        variant: "default",
+      });
       
-      if (response.data.success) {
-        toast({
-          title: "Login bem-sucedido",
-          description: "Você está acessando como administrador da organização.",
-          variant: "default",
-        });
-        
-        // Atualizar o contexto de autenticação
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-        
-        // Redirecionar para o dashboard da organização
-        navigate('/dashboard');
-      }
-    } catch (error) {
+      // Atualizar o contexto de autenticação
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // Redirecionar para o dashboard da organização
+      navigate('/dashboard');
+    },
+    onError: (error) => {
       console.error("Erro ao fazer login como admin:", error);
       toast({
         title: "Erro de autenticação",
         description: "Não foi possível acessar como administrador.",
         variant: "destructive",
       });
-    }
+    },
+  });
+  
+  // Função wrapper para login como admin
+  const loginAsAdmin = (organizationId: number) => {
+    loginAsAdminMutation.mutate(organizationId);
   };
 
   // Filtrar organizações por termo de busca e status
@@ -547,7 +559,10 @@ export default function Cadastro() {
       </Dialog>
 
       {/* Diálogo de confirmação para alterar status */}
-      <Dialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
+      <Dialog open={showStatusDialog} onOpenChange={(open) => {
+        setShowStatusDialog(open);
+        if (!open) setBlockReason("");
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-amber-600">
@@ -558,6 +573,19 @@ export default function Cadastro() {
               Os usuários não poderão acessar a plataforma enquanto estiver suspensa.
             </DialogDescription>
           </DialogHeader>
+          
+          <div className="py-3">
+            <Label htmlFor="block-reason" className="mb-2 block">Motivo da suspensão</Label>
+            <Textarea 
+              id="block-reason" 
+              placeholder="Informe o motivo da suspensão (opcional)"
+              value={blockReason}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBlockReason(e.target.value)}
+              className="resize-none"
+              rows={3}
+            />
+          </div>
+          
           <DialogFooter className="gap-2 sm:gap-0">
             <DialogClose asChild>
               <Button variant="outline">Cancelar</Button>
@@ -565,7 +593,11 @@ export default function Cadastro() {
             <Button 
               variant="default" 
               className="bg-amber-600 hover:bg-amber-700"
-              onClick={() => updateOrgStatus.mutate({ id: selectedOrg?.id!, status: 'blocked' })}
+              onClick={() => updateOrgStatus.mutate({ 
+                id: selectedOrg?.id!, 
+                status: 'blocked',
+                reason: blockReason || 'Suspensão administrativa' 
+              })}
               disabled={updateOrgStatus.isPending}
             >
               {updateOrgStatus.isPending ? (
