@@ -57,11 +57,14 @@ export default function Cadastro() {
   
   // Mutação para atualizar status da organização
   const updateOrgStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: number, status: string }) => {
-      const response = await axios.patch(`/api/organizations/${id}`, { status });
+    mutationFn: async ({ id, status, reason }: { id: number, status: string, reason?: string }) => {
+      console.log(`Alterando status da organização ${id} para ${status}${reason ? ` com motivo: ${reason}` : ''}`);
+      // Usando a nova rota específica para status
+      const response = await axios.put(`/api/organizations/${id}/status`, { status, reason });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Status atualizado com sucesso:", data);
       toast({
         title: "Organização atualizada",
         description: "O status da organização foi alterado com sucesso.",
@@ -71,10 +74,10 @@ export default function Cadastro() {
       setShowStatusDialog(false);
     },
     onError: (error) => {
-      console.error("Erro ao atualizar organização:", error);
+      console.error("Erro ao atualizar status da organização:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a organização.",
+        description: "Não foi possível atualizar o status da organização.",
         variant: "destructive",
       });
     },
