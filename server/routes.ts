@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { db } from "./db";
 import { 
@@ -698,7 +699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...restOrgData,
         plan: planName || 'Básico', // Garantir valor não nulo para o campo plan
         planId: planId, 
-        status: 'pending',
+        status: 'active', // Ativar automaticamente a organização
         planHistory: JSON.stringify([{
           planId: planId,
           planName: planName || 'Básico',
@@ -762,31 +763,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(organizations.id, organization.id));
       }
 
-      // Enviar e-mail de confirmação de registro
+      // Gerar código único para a organização
+      const orgCode = `ORG-${organization.id}-${Date.now().toString(36).toUpperCase()}`;
+      
+      // Atualizar organização com o código
+      await db.update(organizations)
+        .set({ orgCode })
+        .where(eq(organizations.id, organization.id));
+      
+      // Criar usuário administrador automaticamente
       try {
+        // Hash da senha fornecida
+        const hashedPassword = await bcrypt.hash(organizationData.password || 'changeme', 10);
+        
+        // Criar usuário com perfil de org_admin
+        const [adminUser] = await db.insert(users)
+          .values({
+            username: organizationData.email.split('@')[0].toLowerCase() + organization.id,
+            email: organizationData.email,
+            password: hashedPassword,
+            name: organizationData.adminName || 'Administrador',
+            role: 'org_admin',
+            organizationId: organization.id,
+            bio: `Administrador da organização ${organizationData.name}`,
+            lastPasswordChange: new Date(),
+            createdAt: new Date(),
+          })
+          .returning();
+          
+        console.log(`Usuário administrador criado: ${adminUser.username}`);
+        
+        // Construir os links de acesso
+        const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+        const accessLink = `${baseUrl}/login`;
+        const passwordLink = `${baseUrl}/reset-password?code=${orgCode}`;
+        
+        // Enviar e-mail com os dados de acesso
         await sendTemplateEmail(
           organizationData.email,
-          "Registro de Organização Recebido - Endurancy",
-          "organization_registration",
+          "Organização Criada com Sucesso - Endurancy",
+          "organization_activated",
           {
             organizationName: organizationData.name,
             adminName: organizationData.adminName || "Administrador",
+            username: adminUser.username,
+            accessLink: accessLink,
+            passwordLink: passwordLink,
+            orgCode: orgCode
           }
         );
-        console.log(`Confirmation email sent to ${organizationData.email}`);
-      } catch (emailError) {
-        console.error("Error sending confirmation email:", emailError);
-        // Não interromper o fluxo se o e-mail falhar
+        console.log(`E-mail de ativação enviado para ${organizationData.email}`);
+      } catch (userError) {
+        console.error("Erro ao criar usuário admin:", userError);
+        // Não interromper o fluxo se a criação do usuário ou envio de e-mail falhar
       }
 
-      // Retornar a organização com campos adicionais para o processo de pagamento
-      // Especificamente, retornamos flags indicando que a organização foi criada
-      // e está pronta para o processo de pagamento com Stripe
+      // Retornar a organização com campos adicionais
       res.status(201).json({
         ...organization,
-        readyForPayment: true,
-        paymentRequired: true,
-        organizationId: organization.id // Garantir que o ID está explícito para o cliente
+        orgCode,
+        status: 'active',
+        message: "Organização criada e ativada com sucesso."
       });
     } catch (error) {
       console.error("Error creating organization:", error);
