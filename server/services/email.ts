@@ -17,6 +17,8 @@ export type EmailTemplate =
   | "organization_rejected"
   | "organization_registration"
   | "organization_activated"
+  | "organization_activated_free"
+  | "new_admin_credentials"
   | "payment_success"
   | "payment_failed"
   | "invoice"
@@ -165,60 +167,82 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
         <p>Acesse o ticket <a href="${data.ticketLink}">aqui</a>.</p>
         <p>Atenciosamente,<br>Equipe Endurancy</p>
       `;
-    default:
-      // Templates adicionais
-      if (template === "organization_registration") {
-        return `
-          <h1>Registro de Organização Recebido</h1>
-          <p>Olá ${data.adminName || 'Administrador'},</p>
-          <p>Recebemos o registro da sua organização "${data.organizationName}".</p>
-          <p>Seus dados estão sendo processados e você receberá o acesso em breve.</p>
-          <p>Atenciosamente,<br>Equipe Endurancy</p>
-        `;
-      }
+    case "organization_registration":
+      return `
+        <h1>Registro de Organização Recebido</h1>
+        <p>Olá ${data.adminName || 'Administrador'},</p>
+        <p>Recebemos o registro da sua organização "${data.organizationName}".</p>
+        <p>O acesso ao sistema será liberado automaticamente após a confirmação do pagamento.</p>
+        <p>Atenciosamente,<br>Equipe Endurancy</p>
+      `;
       
-      if (template === "organization_activated") {
-        return `
-          <h1>Organização Ativada!</h1>
-          <p>Olá ${data.adminName || 'Administrador'},</p>
-          <p>Sua organização "${data.organizationName}" foi ativada com sucesso!</p>
-          <p>Você pode acessar o sistema com as seguintes credenciais:</p>
-          <p><strong>Usuário:</strong> ${data.username}</p>
-          <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
-          <p>Atenciosamente,<br>Equipe Endurancy</p>
-        `;
-      }
+    case "organization_activated":
+      return `
+        <h1>Organização Ativada!</h1>
+        <p>Olá ${data.adminName || 'Administrador'},</p>
+        <p>Sua organização "${data.organizationName}" foi ativada com sucesso!</p>
+        <p>Você já pode acessar o sistema com suas credenciais:</p>
+        <p><strong>Usuário:</strong> ${data.username}</p>
+        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
+        <p>Atenciosamente,<br>Equipe Endurancy</p>
+      `;
       
-      if (template === "payment_link") {
-        return `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
-            </div>
-            <h2 style="color: #333; text-align: center;">Pagamento Pendente</h2>
-            <p style="color: #555; line-height: 1.6;">Olá ${data.adminName || 'Administrador'},</p>
-            <p style="color: #555; line-height: 1.6;">Agradecemos por se registrar na plataforma Endurancy!</p>
-            <p style="color: #555; line-height: 1.6;">Para ativar sua conta e começar a usar todos os recursos do plano <strong>${data.planName}</strong>, é necessário finalizar o pagamento.</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${data.paymentLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Finalizar Pagamento</a>
-            </div>
-            
-            <p style="color: #555; line-height: 1.6;">Este link de pagamento é válido por <strong>48 horas</strong>. Após esse período, será necessário solicitar um novo link.</p>
-            
-            <p style="color: #555; line-height: 1.6;">Caso tenha alguma dúvida, entre em contato com nossa equipe de suporte.</p>
-            
-            <p style="color: #555; line-height: 1.6;">Atenciosamente,<br>Equipe Endurancy</p>
-            
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #999; font-size: 12px;">
-              <p>Se você não solicitou este cadastro, ignore este e-mail.</p>
-              <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
-            </div>
+    case "organization_activated_free":
+      return `
+        <h1>Organização Ativada com Plano Gratuito</h1>
+        <p>Olá ${data.adminName || 'Administrador'},</p>
+        <p>Sua organização "${data.organizationName}" foi ativada com o <strong>Plano Gratuito</strong>!</p>
+        <p>Devido a problemas no processamento do pagamento, sua organização foi configurada com o plano gratuito, que fornece recursos básicos para você iniciar suas atividades.</p>
+        <p>Você já pode acessar o sistema com suas credenciais:</p>
+        <p><strong>Usuário:</strong> ${data.username}</p>
+        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
+        <p>Para fazer upgrade para um plano com mais recursos, acesse a seção <a href="${data.upgradePlanLink}">Meu Plano</a> no painel da sua organização.</p>
+        <p>Atenciosamente,<br>Equipe Endurancy</p>
+      `;
+    
+    case "new_admin_credentials":
+      return `
+        <h1>Suas Credenciais de Acesso ao Endurancy</h1>
+        <p>Olá ${data.adminName || 'Administrador'},</p>
+        <p>Suas credenciais de acesso para a organização "${data.organizationName}" foram criadas:</p>
+        <p><strong>Usuário:</strong> ${data.username}</p>
+        <p><strong>Senha:</strong> ${data.password}</p>
+        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
+        <p>Recomendamos que você altere sua senha após o primeiro acesso através da opção "Perfil" no menu do usuário.</p>
+        <p>Se preferir, você pode redefinir sua senha clicando <a href="${data.passwordResetLink}">aqui</a>.</p>
+        <p>Atenciosamente,<br>Equipe Endurancy</p>
+      `;
+      
+    case "payment_link":
+      return `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
           </div>
-        `;
-      }
+          <h2 style="color: #333; text-align: center;">Pagamento Pendente</h2>
+          <p style="color: #555; line-height: 1.6;">Olá ${data.adminName || 'Administrador'},</p>
+          <p style="color: #555; line-height: 1.6;">Agradecemos por se registrar na plataforma Endurancy!</p>
+          <p style="color: #555; line-height: 1.6;">Para ativar sua conta e começar a usar todos os recursos do plano <strong>${data.planName}</strong>, é necessário finalizar o pagamento.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.paymentLink}" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Finalizar Pagamento</a>
+          </div>
+          
+          <p style="color: #555; line-height: 1.6;">Este link de pagamento é válido por <strong>24 horas</strong>. Após esse período, será necessário solicitar um novo link.</p>
+          
+          <p style="color: #555; line-height: 1.6;">Caso tenha alguma dúvida, entre em contato com nossa equipe de suporte.</p>
+          
+          <p style="color: #555; line-height: 1.6;">Atenciosamente,<br>Equipe Endurancy</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #999; font-size: 12px;">
+            <p>Se você não solicitou este cadastro, ignore este e-mail.</p>
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      `;
       
-      // Template padrão para casos não tratados
+    // Template padrão para casos não tratados
+    default:
       return `
         <h1>Notificação Endurancy</h1>
         <p>Olá ${data.name || 'usuário'},</p>
