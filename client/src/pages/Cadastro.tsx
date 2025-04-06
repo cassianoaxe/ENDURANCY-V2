@@ -80,6 +80,8 @@ export default function Cadastro() {
     },
   });
   
+
+  
   // Mutação para excluir organização
   const deleteOrganization = useMutation({
     mutationFn: async (id: number) => {
@@ -116,8 +118,14 @@ export default function Cadastro() {
           description: "Você está acessando como administrador da organização.",
           variant: "default",
         });
+        
+        // Atualizar o contexto de autenticação
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+        
         // Redirecionar para o dashboard da organização
-        navigate('/dashboard');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
       }
     } catch (error) {
       console.error("Erro ao fazer login como admin:", error);
