@@ -151,11 +151,18 @@ export default function Cadastro() {
           <Button variant="outline" size="sm" className="gap-1.5">
             <Download size={16} /> Exportar
           </Button>
-          <Link href="/organization-registration">
+          <a 
+            href="/organization-registration" 
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, '', '/organization-registration');
+              window.dispatchEvent(new Event('popstate'));
+            }}
+          >
             <Button className="gap-1.5">
               <Plus size={16} /> Nova Organização
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -249,11 +256,18 @@ export default function Cadastro() {
                   <p className="text-sm text-gray-500 mb-4">
                     Não existem organizações cadastradas ou que correspondam aos filtros aplicados.
                   </p>
-                  <Link href="/organization-registration">
+                  <a 
+                    href="/organization-registration" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.pushState({}, '', '/organization-registration');
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                  >
                     <Button className="gap-1.5">
                       <Plus size={16} /> Cadastrar organização
                     </Button>
-                  </Link>
+                  </a>
                 </div>
               )}
             </CardContent>
