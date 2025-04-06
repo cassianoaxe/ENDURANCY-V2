@@ -39,6 +39,8 @@ import UserGroups from "@/pages/UserGroups";
 import UserInvitations from "@/pages/UserInvitations";
 import AcceptInvitation from "@/pages/AcceptInvitation";
 import ModuleSubscriptionSales from "@/pages/ModuleSubscriptionSales";
+import Payment from "@/pages/Payment";
+import PaymentTest from "@/pages/PaymentTest";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
@@ -115,7 +117,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     if (!isLoading && !isAuthenticated && !isPublicPath) {
@@ -148,6 +150,14 @@ function AppContent() {
     // Esta rota não precisa de autenticação e deve estar acessível para usuários não logados
     return <AcceptInvitation />;
   }
+  
+  // Verificar se é uma rota de pagamento com token
+  const paymentMatch = currentPath.match(/^\/payment\/([^\/]+)$/);
+  if (paymentMatch) {
+    const token = paymentMatch[1];
+    // Esta rota não precisa de autenticação e deve estar acessível para usuários não logados
+    return <Payment />;
+  }
 
   // If not authenticated, handle login pages and public pages
   if (!isAuthenticated) {
@@ -161,6 +171,11 @@ function AppContent() {
     // Regular login
     if (currentPath === '/login') {
       return <Login />;
+    }
+    
+    // Página de teste de pagamento (públicamente acessível para testes)
+    if (currentPath === '/payment-test') {
+      return <PaymentTest />;
     }
     
     // Organization registration page (público)
@@ -537,6 +552,7 @@ function AppContent() {
       case '/user-groups': Component = UserGroups; break;
       case '/user-invitations': Component = UserInvitations; break;
       case '/module-subscription-sales': Component = ModuleSubscriptionSales; break;
+      case '/payment-test': Component = PaymentTest; break;
       
       // Rotas de integracoes
       case '/integracoes': Component = Integracoes; break;

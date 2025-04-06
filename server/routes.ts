@@ -26,6 +26,8 @@ import adminRouter from "./routes/admin";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
+// Importar rotas de links de pagamento
+import paymentLinksRouter from './routes/payment-links';
 // Importar rotas de grupos de usuários, permissões e convites
 import { registerUserGroupRoutes } from './routes/user-groups';
 import { registerUserInvitationsRoutes } from './routes/user-invitations';
@@ -4475,6 +4477,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas para gestão de módulos e relações com planos
   app.use('/api', modulesRouter);
+  
+  // Rotas de links de pagamento
+  app.use('/api/payment-links', paymentLinksRouter);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
