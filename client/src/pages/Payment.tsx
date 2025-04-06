@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'wouter';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, CheckCircle2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import PaymentForm from '../components/features/PaymentForm';
 import { apiRequest } from '../lib/queryClient';
@@ -15,7 +15,7 @@ const ErrorState = ({ message }: { message: string }) => (
         <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
     </div>
-    <h2 className="text-xl font-semibold text-red-800 mb-2">Problemas com o pagamento</h2>
+    <h2 className="text-xl font-semibold text-red-800 mb-2">Problemas com a solicitação</h2>
     <p className="text-red-700">{message}</p>
     <a href="/" className="mt-4 inline-block py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
       Voltar para o início
@@ -23,8 +23,8 @@ const ErrorState = ({ message }: { message: string }) => (
   </div>
 );
 
-// Componente de pagamento concluído
-const PaymentSuccess = () => (
+// Componente de pedido concluído
+const OrderSuccess = () => (
   <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
     <div className="text-green-500 text-4xl mb-4">
       <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -32,9 +32,9 @@ const PaymentSuccess = () => (
         <polyline points="22 4 12 14.01 9 11.01" />
       </svg>
     </div>
-    <h2 className="text-xl font-semibold text-green-800 mb-2">Pagamento concluído!</h2>
-    <p className="text-green-700">Seu pagamento foi processado com sucesso.</p>
-    <p className="text-green-700 mt-2">Sua organização está ativa e você já pode acessar o sistema.</p>
+    <h2 className="text-xl font-semibold text-green-800 mb-2">Pedido recebido com sucesso!</h2>
+    <p className="text-green-700">As instruções para pagamento foram enviadas para seu e-mail.</p>
+    <p className="text-green-700 mt-2">Sua organização já está ativa e você pode acessar o sistema.</p>
     <a href="/login" className="mt-4 inline-block py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
       Ir para o login
     </a>
@@ -69,40 +69,36 @@ export default function Payment() {
     // Se o token for inválido, mostrar erro
     else if (data && !data.success) {
       setPaymentStatus('error');
-      setErrorMessage(data.message || 'Token de pagamento inválido ou expirado.');
+      setErrorMessage(data.message || 'Link de pagamento inválido ou expirado.');
     }
   }, [data]);
 
-  // Função para processar o pagamento
-  const handlePayment = async (paymentMethodId: string) => {
+  // Função para confirmar o pedido e informar o tipo de pagamento
+  const handlePayment = async (paymentType: string) => {
     setPaymentStatus('processing');
     
     try {
       const response = await apiRequest('/api/payment-links/process', {
         method: 'POST',
-        data: {
+        body: JSON.stringify({
           token: params.token,
-          paymentMethodId
+          paymentType
+        }),
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
       
       if (response.success) {
-        // Verificar se precisa de autenticação adicional (3D Secure)
-        if (response.clientSecret) {
-          // Aqui implementaríamos a confirmação do 3D Secure
-          // Para simplificar, vamos apenas considerar que a autenticação foi bem-sucedida
-          setPaymentStatus('success');
-        } else {
-          // Pagamento concluído sem autenticação adicional
-          setPaymentStatus('success');
-        }
+        // Pedido confirmado com sucesso
+        setPaymentStatus('success');
       } else {
-        // Erro no pagamento
+        // Erro no processamento do pedido
         setPaymentStatus('error');
-        setErrorMessage(response.message || 'Ocorreu um erro ao processar o pagamento.');
+        setErrorMessage(response.message || 'Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.');
       }
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
+      console.error('Erro ao confirmar pedido:', error);
       setPaymentStatus('error');
       setErrorMessage('Erro de comunicação com o servidor. Tente novamente mais tarde.');
     }
@@ -113,7 +109,7 @@ export default function Payment() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="p-8 bg-white shadow-lg rounded-lg text-center">
           <LoaderCircle className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">Validando token de pagamento...</h2>
+          <h2 className="text-xl font-semibold text-gray-700">Validando link de pagamento...</h2>
         </div>
       </div>
     );
@@ -123,7 +119,7 @@ export default function Payment() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md w-full">
-          <ErrorState message={errorMessage || 'Ocorreu um erro ao validar o token de pagamento.'} />
+          <ErrorState message={errorMessage || 'Ocorreu um erro ao validar o link de pagamento.'} />
         </div>
       </div>
     );
@@ -133,7 +129,7 @@ export default function Payment() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md w-full">
-          <PaymentSuccess />
+          <OrderSuccess />
         </div>
       </div>
     );
@@ -144,8 +140,8 @@ export default function Payment() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="p-8 bg-white shadow-lg rounded-lg text-center">
           <LoaderCircle className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">Processando seu pagamento...</h2>
-          <p className="text-gray-500 mt-2">Por favor, aguarde enquanto processamos seu pagamento.</p>
+          <h2 className="text-xl font-semibold text-gray-700">Processando sua solicitação...</h2>
+          <p className="text-gray-500 mt-2">Por favor, aguarde enquanto confirmamos seu pedido.</p>
         </div>
       </div>
     );
@@ -155,14 +151,14 @@ export default function Payment() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="max-w-lg w-full bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="p-6 bg-primary text-white">
-          <h1 className="text-2xl font-bold">Finalizar Pagamento</h1>
-          <p className="opacity-90">Complete seu pagamento para ativar sua conta.</p>
+          <h1 className="text-2xl font-bold">Confirmar Assinatura</h1>
+          <p className="opacity-90">Escolha sua forma de pagamento para ativar sua conta.</p>
         </div>
         
         {tokenData && (
           <div className="p-6">
             <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-4">Detalhes da compra</h2>
+              <h2 className="text-lg font-semibold mb-4">Detalhes da assinatura</h2>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Organização:</span>
@@ -174,16 +170,25 @@ export default function Payment() {
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-gray-600">Valor mensal:</span>
-                  <span className="font-medium">R$ {tokenData.planPrice.toFixed(2).replace('.', ',')}</span>
+                  <span className="font-medium">R$ {typeof tokenData.planPrice === 'number' ? 
+                    tokenData.planPrice.toFixed(2).replace('.', ',') : 
+                    parseFloat(tokenData.planPrice).toFixed(2).replace('.', ',')}</span>
                 </div>
                 <div className="text-sm text-gray-500 mt-2">
-                  A cobrança será recorrente e você pode cancelar a qualquer momento.
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                    <span>Sua conta será ativada imediatamente.</span>
+                  </div>
+                  <div className="flex items-center mt-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                    <span>Você receberá as instruções de pagamento por e-mail.</span>
+                  </div>
                 </div>
               </div>
             </div>
             
             <div className="border-t pt-6">
-              <h2 className="text-lg font-semibold mb-4">Dados de pagamento</h2>
+              <h2 className="text-lg font-semibold mb-4">Forma de pagamento</h2>
               <PaymentForm token={params.token} onSuccess={handlePayment} />
             </div>
           </div>

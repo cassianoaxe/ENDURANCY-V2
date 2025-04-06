@@ -1,125 +1,66 @@
-import Stripe from 'stripe';
-import { plans } from '@shared/schema';
+import { plans, planTierEnum } from '@shared/schema';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
 
-// Initialize Stripe with the secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 /**
- * Creates a payment intent for the given plan and returns client secret
- */
-export async function createPaymentIntent(planId: number): Promise<string> {
-  try {
-    // Get plan details from database
-    const [plan] = await db.select().from(plans).where(eq(plans.id, planId));
-    
-    if (!plan) {
-      throw new Error(`Plan with ID ${planId} not found`);
-    }
-    
-    // Convert plan price from decimal to integer cents (Stripe uses smallest currency unit)
-    const amount = Math.round(Number(plan.price) * 100);
-    
-    // Create a payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency: 'brl', // Using Brazilian Real
-      description: `Payment for ${plan.name} plan`,
-      metadata: {
-        planId: plan.id.toString(),
-        planName: plan.name,
-      },
-    });
-    
-    return paymentIntent.client_secret as string;
-  } catch (error) {
-    console.error('Error creating payment intent:', error);
-    throw error;
-  }
-}
-
-/**
- * Retrieves a payment intent by its ID
- */
-export async function retrievePaymentIntent(paymentIntentId: string) {
-  try {
-    return await stripe.paymentIntents.retrieve(paymentIntentId);
-  } catch (error) {
-    console.error('Error retrieving payment intent:', error);
-    throw error;
-  }
-}
-
-/**
- * Creates a customer in Stripe
- */
-export async function createCustomer(name: string, email: string) {
-  try {
-    const customer = await stripe.customers.create({
-      name,
-      email,
-    });
-    return customer;
-  } catch (error) {
-    console.error('Error creating customer:', error);
-    throw error;
-  }
-}
-
-/**
- * Creates a subscription for a customer
- */
-export async function createSubscription(customerId: string, priceId: string) {
-  try {
-    const subscription = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      expand: ['latest_invoice.payment_intent'],
-    });
-    return subscription;
-  } catch (error) {
-    console.error('Error creating subscription:', error);
-    throw error;
-  }
-}
-
-/**
- * Initializes sample plans in the database (used for testing)
+ * Inicializa planos no banco de dados (usado para teste e inicialização)
  */
 export async function initializePlans() {
   try {
     const existingPlans = await db.select().from(plans);
     
     if (existingPlans.length === 0) {
-      // Create sample plans
+      console.log("Criando planos padrão...");
+      
+      // Criar plano Free
       await db.insert(plans).values({
-        name: 'Básico',
-        description: 'Plano básico para pequenas organizações',
-        price: '99.90',
-        features: ['Registro de até 10 usuários', 'Suporte básico', 'Relatórios mensais'],
+        name: 'Freemium',
+        description: 'Plano gratuito para conhecer o sistema',
+        price: '0',
+        tier: 'free',
+        features: JSON.stringify(['Acesso básico', 'Limite de usuários: 3', 'Suporte por e-mail']),
+        isActive: true,
+        isPopular: false,
       });
       
+      // Criar plano Seed
       await db.insert(plans).values({
-        name: 'Intermediário',
-        description: 'Plano intermediário para organizações em crescimento',
-        price: '199.90',
-        features: ['Registro de até 50 usuários', 'Suporte prioritário', 'Relatórios semanais', 'Acesso a APIs'],
+        name: 'Seed',
+        description: 'Plano inicial para pequenas organizações',
+        price: '149.90',
+        tier: 'seed',
+        features: JSON.stringify(['Até 10 usuários', 'Módulos básicos', 'Suporte por e-mail e chat']),
+        isActive: true,
+        isPopular: true,
       });
       
+      // Criar plano Grow
       await db.insert(plans).values({
-        name: 'Avançado',
-        description: 'Plano avançado para grandes organizações',
-        price: '399.90',
-        features: ['Usuários ilimitados', 'Suporte 24/7', 'Relatórios personalizados', 'API completa', 'Treinamento dedicado'],
+        name: 'Grow',
+        description: 'Plano para organizações em crescimento',
+        price: '299.90',
+        tier: 'grow',
+        features: JSON.stringify(['Até 30 usuários', 'Todos os módulos básicos', 'Módulos adicionais', 'Suporte prioritário']),
+        isActive: true,
+        isPopular: false,
       });
       
-      console.log('Sample plans created');
+      // Criar plano Pro
+      await db.insert(plans).values({
+        name: 'Pro',
+        description: 'Plano completo para organizações estabelecidas',
+        price: '499.90',
+        tier: 'pro',
+        features: JSON.stringify(['Usuários ilimitados', 'Todos os módulos', 'Atendimento personalizado', 'API completa', 'Suporte 24/7']),
+        isActive: true,
+        isPopular: false,
+      });
+      
+      console.log('Planos padrão criados com sucesso!');
+    } else {
+      console.log(`${existingPlans.length} planos já existem no sistema`);
     }
   } catch (error) {
-    console.error('Error initializing plans:', error);
+    console.error('Erro ao inicializar planos:', error);
   }
 }
-
-export default stripe;
