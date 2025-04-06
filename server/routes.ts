@@ -1817,9 +1817,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Buscar informações dos módulos associados
       const moduleIds = orgModules.map(om => om.moduleId);
+      
+      // Aplicar uma abordagem simples para a consulta
       const moduleDetails = await db.select()
-        .from(modules)
-        .where(inArray(modules.id, moduleIds));
+      .from(modules)
+      .where(inArray(modules.id, moduleIds));
       
       // Verificar se temos as informações dos módulos
       if (!moduleDetails.length) {
