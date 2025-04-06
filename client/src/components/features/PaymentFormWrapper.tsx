@@ -19,7 +19,7 @@ interface PaymentFormWrapperProps {
 }
 
 // Criar a Promise do Stripe uma única vez fora do componente
-const stripePromise = loadStripe('pk_test_51QrzguFYDCrcCFsoH95bZv29ggT58pLwC3C3PEwOYCXXTNVfCBPH7QUkZZdDCzLuPakAMjRSHbfj3dOQNWVgqJgR005cKz7VSc');
+const stripePromise = loadStripe('pk_live_51QrzgiFWXqtPEhT6MFvVRUedbhVmjvE4i12BdDB5f7pV0Gq453iiv4EOXKJwf6hg9MkINpyNxXYjBpzg1kSH8V5q00fCh3JVGD');
 
 // Componente principal que exportamos
 export default function PaymentFormWrapper(props: PaymentFormWrapperProps) {
