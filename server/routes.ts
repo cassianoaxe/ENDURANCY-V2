@@ -2299,6 +2299,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para alterar o status de uma organização
+  app.put("/api/organizations/:id/status", authenticate, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      // Apenas admin pode alterar o status de uma organização
+      if (req.session?.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Apenas administradores podem alterar o status de uma organização" });
+      }
+      
+      const { status, reason } = req.body;
+      
+      // Validar o status recebido
+      if (!status || !['active', 'suspended', 'blocked', 'pending', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Status inválido. Valores aceitos: active, suspended, blocked, pending, rejected" });
+      }
+      
+      // Registrar o motivo da suspensão/bloqueio, se fornecido
+      const updateData: any = { 
+        status, 
+        updatedAt: new Date() 
+      };
+      
+      if ((status === 'suspended' || status === 'blocked' || status === 'rejected') && reason) {
+        updateData.statusReason = reason;
+      }
+      
+      const [updatedOrganization] = await db.update(organizations)
+        .set(updateData)
+        .where(eq(organizations.id, id))
+        .returning();
+      
+      if (!updatedOrganization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      // Log da operação
+      console.log(`Status da organização ${id} alterado para ${status} por ${req.session?.user?.id}`);
+      
+      // Enviar e-mail para organização informando a mudança de status
+      // Isso poderia ser implementado aqui ou chamando um serviço separado
+      
+      res.json(updatedOrganization);
+    } catch (error) {
+      console.error("Erro ao atualizar status da organização:", error);
+      res.status(500).json({ message: "Falha ao atualizar status da organização" });
+    }
+  });
+  
   // Rota para upload de logo da organização
   app.post("/api/organizations/:id/logo", authenticate, logoUpload.single('logo'), async (req, res) => {
     try {
