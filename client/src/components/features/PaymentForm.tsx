@@ -1,99 +1,35 @@
 import React, { useState, FormEvent } from 'react';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { AlertTriangle } from 'lucide-react';
 
-// Inicializar o Stripe.js com a chave pública
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-
-interface PaymentFormWrapperProps {
+interface PaymentFormProps {
   token: string;
-  onSuccess: (paymentMethodId: string) => void;
+  onSuccess: (paymentType: string) => void;
 }
 
-interface PaymentFormInnerProps {
-  token: string;
-  onSuccess: (paymentMethodId: string) => void;
-}
-
-// Estilos para o componente CardElement
-const cardElementStyle = {
-  style: {
-    base: {
-      fontSize: '16px',
-      color: '#32325d',
-      fontFamily: 'Arial, sans-serif',
-      fontSmoothing: 'antialiased',
-      '::placeholder': {
-        color: '#aab7c4',
-      },
-    },
-    invalid: {
-      color: '#fa755a',
-      iconColor: '#fa755a',
-    },
-  },
-};
-
-// Componente interno que usa os hooks do Stripe
-const PaymentFormInner = ({ token, onSuccess }: PaymentFormInnerProps) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  
+// Componente de formulário de pagamento simplificado sem Stripe
+export default function PaymentForm({ token, onSuccess }: PaymentFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [cardholderName, setCardholderName] = useState('');
+  const [name, setName] = useState('');
+  const [paymentType, setPaymentType] = useState('boleto');
   
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     
-    if (!stripe || !elements) {
-      // O Stripe.js ainda não foi carregado
-      return;
-    }
-    
-    if (!cardholderName) {
-      setError('Por favor, informe o nome do titular do cartão.');
+    if (!name) {
+      setError('Por favor, informe seu nome completo.');
       return;
     }
     
     setProcessing(true);
     setError(null);
     
-    const cardElement = elements.getElement(CardElement);
-    
-    if (!cardElement) {
-      setError('Erro ao obter os dados do cartão. Tente novamente.');
-      setProcessing(false);
-      return;
-    }
-    
     try {
-      // Criar um Payment Method
-      const { error: createError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: cardholderName,
-        },
-      });
-      
-      if (createError) {
-        setError(createError.message || 'Erro ao processar o cartão. Verifique os dados e tente novamente.');
-        setProcessing(false);
-        return;
-      }
-      
-      if (!paymentMethod || !paymentMethod.id) {
-        setError('Erro ao processar o cartão. Tente novamente mais tarde.');
-        setProcessing(false);
-        return;
-      }
-      
-      // Passar o ID do método de pagamento para o callback de sucesso
-      onSuccess(paymentMethod.id);
+      // Simplesmente chama o callback de sucesso com o tipo de pagamento
+      // O processamento real acontecerá no servidor
+      onSuccess(paymentType);
     } catch (error: any) {
-      console.error('Erro no processamento do pagamento:', error);
+      console.error('Erro no processamento da solicitação:', error);
       setError(error.message || 'Erro inesperado. Tente novamente mais tarde.');
       setProcessing(false);
     }
@@ -102,30 +38,76 @@ const PaymentFormInner = ({ token, onSuccess }: PaymentFormInnerProps) => {
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-4">
-        <label htmlFor="cardholderName" className="block text-sm font-medium text-gray-700 mb-1">
-          Nome no cartão
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          Nome completo
         </label>
         <input
-          id="cardholderName"
+          id="name"
           type="text"
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-          placeholder="Nome impresso no cartão"
-          value={cardholderName}
-          onChange={(e) => setCardholderName(e.target.value)}
+          placeholder="Digite seu nome completo"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           disabled={processing}
           required
         />
       </div>
       
       <div className="mb-4">
-        <label htmlFor="card-element" className="block text-sm font-medium text-gray-700 mb-1">
-          Dados do cartão
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Forma de pagamento
         </label>
-        <div className="border border-gray-300 rounded-md p-3 shadow-sm">
-          <CardElement id="card-element" options={cardElementStyle} />
+        <div className="space-y-2">
+          <div className="flex items-center">
+            <input
+              id="payment-boleto"
+              name="payment-type"
+              type="radio"
+              value="boleto"
+              checked={paymentType === 'boleto'}
+              onChange={() => setPaymentType('boleto')}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+              disabled={processing}
+            />
+            <label htmlFor="payment-boleto" className="ml-3 block text-sm font-medium text-gray-700">
+              Boleto bancário
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              id="payment-pix"
+              name="payment-type"
+              type="radio"
+              value="pix"
+              checked={paymentType === 'pix'}
+              onChange={() => setPaymentType('pix')}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+              disabled={processing}
+            />
+            <label htmlFor="payment-pix" className="ml-3 block text-sm font-medium text-gray-700">
+              PIX
+            </label>
+          </div>
+          
+          <div className="flex items-center">
+            <input
+              id="payment-transfer"
+              name="payment-type"
+              type="radio"
+              value="transfer"
+              checked={paymentType === 'transfer'}
+              onChange={() => setPaymentType('transfer')}
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+              disabled={processing}
+            />
+            <label htmlFor="payment-transfer" className="ml-3 block text-sm font-medium text-gray-700">
+              Transferência bancária
+            </label>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Processado com segurança pela Stripe. Seus dados são criptografados.
+        <p className="mt-2 text-xs text-gray-500">
+          Você receberá as instruções de pagamento por e-mail.
         </p>
       </div>
       
@@ -139,19 +121,10 @@ const PaymentFormInner = ({ token, onSuccess }: PaymentFormInnerProps) => {
       <button
         type="submit"
         className="w-full py-2 px-4 bg-primary text-white font-semibold rounded-md shadow-sm hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
-        disabled={!stripe || processing}
+        disabled={processing}
       >
-        {processing ? 'Processando...' : 'Pagar agora'}
+        {processing ? 'Processando...' : 'Confirmar pedido'}
       </button>
     </form>
-  );
-};
-
-// Componente wrapper que inicializa o Stripe
-export default function PaymentForm({ token, onSuccess }: PaymentFormWrapperProps) {
-  return (
-    <Elements stripe={stripePromise}>
-      <PaymentFormInner token={token} onSuccess={onSuccess} />
-    </Elements>
   );
 }

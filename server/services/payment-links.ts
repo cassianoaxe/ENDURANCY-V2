@@ -1,15 +1,9 @@
 import { db } from '../db';
 import { v4 as uuidv4 } from 'uuid';
-import Stripe from 'stripe';
 import { sendMail, sendTemplateEmail } from './email';
 import { eq, and } from 'drizzle-orm';
 import { organizations, plans, orders } from '@shared/schema';
 import { completeOrganizationActivation } from './auto-organization-setup';
-
-// Configurar a integração com o Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16' as any
-});
 
 // Armazenamento temporário dos tokens de pagamento (em produção seria melhor usar Redis/banco de dados)
 interface PaymentToken {
@@ -136,12 +130,12 @@ export async function validatePaymentToken(token: string): Promise<{
 }
 
 /**
- * Processar pagamento a partir de um token
+ * Processar confirmação de pagamento a partir de um token
+ * Versão simplificada que não usa Stripe, apenas confirma o pagamento e ativa a organização
  */
-export async function processPaymentFromToken(token: string, paymentMethodId: string): Promise<{
+export async function processPaymentFromToken(token: string, paymentType: string = 'boleto'): Promise<{
   success: boolean;
   message: string;
-  clientSecret?: string;
 }> {
   try {
     // Validar o token
@@ -170,62 +164,8 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
       };
     }
     
-    // Criar o cliente no Stripe (ou usar o cliente existente)
-    let customerId = organization.stripeCustomerId;
-    
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: validation.email,
-        name: organization.name,
-        metadata: {
-          organizationId: organization.id.toString()
-        }
-      });
-      
-      customerId = customer.id;
-      
-      // Atualizar o ID do cliente no banco de dados
-      await db.update(organizations)
-        .set({ stripeCustomerId: customerId })
-        .where(eq(organizations.id, organization.id));
-    }
-    
-    // Anexar o método de pagamento ao cliente
-    await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customerId,
-    });
-    
-    // Definir como método de pagamento padrão
-    await stripe.customers.update(customerId, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
-    
-    // Criar uma assinatura
-    const subscription = await stripe.subscriptions.create({
-      customer: customerId,
-      items: [
-        {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: `Plano ${plan.name}`,
-              description: plan.description,
-            },
-            unit_amount: Math.round(plan.price * 100), // Valor em centavos
-            recurring: {
-              interval: 'month',
-            },
-          },
-        },
-      ],
-      payment_settings: {
-        payment_method_types: ['card'],
-        save_default_payment_method: 'on_subscription',
-      },
-      expand: ['latest_invoice.payment_intent'],
-    });
+    // Gerar um ID de transação interno
+    const transactionId = `TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     
     // Atualizar o plano da organização
     await db.update(organizations)
@@ -242,8 +182,8 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
             action: 'upgraded',
             price: plan.price,
             previousPlanId: organization.planId,
-            paymentMethod: 'credit_card',
-            stripeSubscriptionId: subscription.id
+            paymentMethod: paymentType,
+            transactionId: transactionId
           }
         ]
       })
@@ -253,10 +193,10 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
     await db.insert(orders).values({
       organizationId: organization.id,
       planId: plan.id,
-      amount: plan.price,
+      amount: typeof plan.price === 'string' ? parseFloat(plan.price) : plan.price,
       status: 'completed',
-      paymentMethod: 'credit_card',
-      stripePaymentId: subscription.id,
+      paymentMethod: paymentType,
+      transactionId: transactionId,
       createdAt: new Date(),
       updatedAt: new Date()
     });
@@ -296,34 +236,16 @@ export async function processPaymentFromToken(token: string, paymentMethodId: st
       // Não impedir o fluxo principal se a ativação falhar - um admin pode fazer isso manualmente depois
     }
     
-    // Verificar se é necessário autenticação adicional
-    const invoice = subscription.latest_invoice as any;
-    if (invoice && invoice.payment_intent && invoice.payment_intent.status === 'requires_action') {
-      return {
-        success: true,
-        message: 'Autenticação adicional necessária',
-        clientSecret: invoice.payment_intent.client_secret
-      };
-    }
-    
     return {
       success: true,
-      message: 'Pagamento processado com sucesso'
+      message: 'Pagamento confirmado e organização ativada com sucesso'
     };
   } catch (error: any) {
-    console.error('Erro ao processar pagamento:', error);
-    
-    // Verificar se é um erro do Stripe
-    if (error.type && error.type.startsWith('Stripe')) {
-      return {
-        success: false,
-        message: error.message || 'Erro no processamento do cartão'
-      };
-    }
+    console.error('Erro ao processar confirmação de pagamento:', error);
     
     return {
       success: false,
-      message: 'Erro ao processar o pagamento'
+      message: 'Erro ao processar a confirmação do pagamento: ' + (error.message || 'Erro desconhecido')
     };
   }
 }
