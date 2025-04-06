@@ -144,7 +144,7 @@ export default function Cadastro() {
     mutationFn: async (organizationId: number) => {
       return await apiRequest('POST', '/api/auth/login-as-admin', { organizationId });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Login bem-sucedido",
         description: "Você está acessando como administrador da organização.",
@@ -154,8 +154,8 @@ export default function Cadastro() {
       // Atualizar o contexto de autenticação
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
-      // Redirecionar para o dashboard da organização
-      navigate('/dashboard');
+      // Redirecionar para o dashboard da organização (caminho específico para org_admin)
+      navigate('/organization/dashboard');
     },
     onError: (error) => {
       console.error("Erro ao fazer login como admin:", error);
