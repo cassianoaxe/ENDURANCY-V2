@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
@@ -24,10 +25,27 @@ import {
   Activity,
   Clipboard,
   Clock,
-  RefreshCw
+  RefreshCw,
+  PlusCircle,
+  Info,
+  Edit,
+  ExternalLink,
+  Link,
+  FileText,
+  CalendarRange,
+  Boxes,
+  BellRing,
+  PlusSquare,
+  RotateCw,
+  ChevronRight,
+  Eye,
+  Send
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Table,
   TableBody,
@@ -44,13 +62,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Dados de exemplo para rastreamentos
 const mockTrackings = [
@@ -172,15 +201,73 @@ const exampleTrackingEvents = [
   }
 ];
 
+// Lista de transportadoras disponíveis
+const carriers = [
+  "Correios",
+  "JADLOG",
+  "LATAM Cargo",
+  "DHL",
+  "Fedex",
+  "Transportadora Própria",
+  "Azul Cargo"
+];
+
+// Interface para tipagem dos eventos de rastreamento
+interface TrackingEvent {
+  data: string;
+  hora: string;
+  local: string;
+  status: string;
+  detalhes: string;
+  icon?: React.ReactNode;
+}
+
+// Interface para tipagem dos rastreamentos
+interface Tracking {
+  id: string;
+  codigo: string;
+  transportadora: string;
+  dataAtualizacao: string;
+  status: "postado" | "em_transito" | "entregue" | "problemas";
+  previsaoEntrega: string;
+  origem: string;
+  destino: string;
+  progressoEntrega: number;
+  pedido: string;
+  malote: string;
+  ultimaAtualizacao: string;
+}
+
 export default function AtualizacaoRastreios() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTransportadora, setSelectedTransportadora] = useState("");
   const [selectedTracking, setSelectedTracking] = useState<string | null>(null);
   const [trackingInput, setTrackingInput] = useState("");
-  const [trackingEvents, setTrackingEvents] = useState<any[]>([]);
-
+  const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
+  
+  // Estados para modal de atualização de status
+  const [isUpdateStatusModalOpen, setIsUpdateStatusModalOpen] = useState(false);
+  const [trackingToUpdate, setTrackingToUpdate] = useState<Tracking | null>(null);
+  const [newStatus, setNewStatus] = useState("");
+  const [statusNotes, setStatusNotes] = useState("");
+  
+  // Estados para modal de adição de rastreamento
+  const [isAddTrackingModalOpen, setIsAddTrackingModalOpen] = useState(false);
+  const [newTrackingCode, setNewTrackingCode] = useState("");
+  const [newTrackingCarrier, setNewTrackingCarrier] = useState("");
+  const [newTrackingOrder, setNewTrackingOrder] = useState("");
+  const [newTrackingOrigin, setNewTrackingOrigin] = useState("");
+  const [newTrackingDestination, setNewTrackingDestination] = useState("");
+  const [newTrackingPackage, setNewTrackingPackage] = useState("");
+  
+  // Estados para notificações
+  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
+  const [trackingToNotify, setTrackingToNotify] = useState<Tracking | null>(null);
+  const [notifyMessage, setNotifyMessage] = useState("");
+  
   // Função para navegação entre páginas
   const navigateTo = (path: string) => {
     window.history.pushState({}, "", path);
@@ -224,11 +311,25 @@ export default function AtualizacaoRastreios() {
     if (tracking) {
       setSelectedTracking(tracking.id);
       setTrackingEvents(exampleTrackingEvents);
-      // Feedback ao usuário
-      alert(`Rastreamento encontrado: ${tracking.codigo} - ${tracking.status}`);
+      
+      // Feedback ao usuário usando toast
+      toast({
+        title: "Rastreamento encontrado",
+        description: `Código ${tracking.codigo} - Status: ${
+          tracking.status === "postado" ? "Postado" : 
+          tracking.status === "em_transito" ? "Em Trânsito" : 
+          tracking.status === "entregue" ? "Entregue" :
+          "Problemas"
+        }`,
+        variant: "default",
+      });
     } else {
       // Feedback ao usuário
-      alert("Rastreamento não encontrado ou inválido");
+      toast({
+        title: "Rastreamento não encontrado",
+        description: "O código informado não foi encontrado ou é inválido.",
+        variant: "destructive",
+      });
       setTrackingEvents([]);
     }
     
@@ -239,12 +340,113 @@ export default function AtualizacaoRastreios() {
   const atualizarRastreamentos = () => {
     // Simulação de atualização de rastreamentos
     // Em um ambiente real, isso seria uma chamada a APIs das transportadoras
-    alert("Solicitação de atualização de rastreamentos enviada. Isso pode levar alguns minutos.");
+    toast({
+      title: "Atualizando rastreamentos",
+      description: "Solicitação de atualização enviada. Isso pode levar alguns minutos.",
+      variant: "default",
+    });
+  };
+  
+  // Função para adicionar um novo rastreamento
+  const adicionarNovoRastreamento = () => {
+    if (!newTrackingCode || !newTrackingCarrier) {
+      toast({
+        title: "Dados incompletos",
+        description: "Por favor, preencha pelo menos o código e a transportadora.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Em um ambiente real, isso seria uma chamada à API para registrar o rastreamento
+    toast({
+      title: "Rastreamento adicionado",
+      description: `O código ${newTrackingCode} foi adicionado com sucesso.`,
+      variant: "default",
+    });
+    
+    // Limpar campos do formulário
+    setNewTrackingCode("");
+    setNewTrackingCarrier("");
+    setNewTrackingOrder("");
+    setNewTrackingOrigin("");
+    setNewTrackingDestination("");
+    setNewTrackingPackage("");
+    
+    // Fechar modal
+    setIsAddTrackingModalOpen(false);
+  };
+  
+  // Função para atualizar o status de um rastreamento
+  const atualizarStatusRastreamento = () => {
+    if (!trackingToUpdate || !newStatus) {
+      toast({
+        title: "Dados incompletos",
+        description: "Por favor, selecione um status para atualizar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Em um ambiente real, isso seria uma chamada à API para atualizar o status
+    toast({
+      title: "Status atualizado",
+      description: `O rastreamento ${trackingToUpdate.codigo} foi atualizado para ${
+        newStatus === "postado" ? "Postado" : 
+        newStatus === "em_transito" ? "Em Trânsito" : 
+        newStatus === "entregue" ? "Entregue" :
+        "Problemas"
+      }.`,
+      variant: "default",
+    });
+    
+    // Fechar modal e limpar campos
+    setIsUpdateStatusModalOpen(false);
+    setNewStatus("");
+    setStatusNotes("");
+    setTrackingToUpdate(null);
+  };
+  
+  // Função para enviar notificação sobre um rastreamento
+  const enviarNotificacao = () => {
+    if (!trackingToNotify || !notifyMessage) {
+      toast({
+        title: "Mensagem vazia",
+        description: "Por favor, escreva uma mensagem para notificar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Em um ambiente real, isso seria uma chamada à API para enviar notificação
+    toast({
+      title: "Notificação enviada",
+      description: `A notificação sobre o rastreamento ${trackingToNotify.codigo} foi enviada.`,
+      variant: "default",
+    });
+    
+    // Fechar modal e limpar campos
+    setIsNotifyModalOpen(false);
+    setNotifyMessage("");
+    setTrackingToNotify(null);
+  };
+  
+  // Função para abrir modal de atualização de status
+  const openUpdateStatusModal = (tracking: Tracking) => {
+    setTrackingToUpdate(tracking);
+    setNewStatus(tracking.status);
+    setIsUpdateStatusModalOpen(true);
+  };
+  
+  // Função para abrir modal de notificação
+  const openNotifyModal = (tracking: Tracking) => {
+    setTrackingToNotify(tracking);
+    setIsNotifyModalOpen(true);
   };
 
   // Detalhes do rastreamento selecionado
   const selectedTrackingDetails = selectedTracking 
-    ? mockTrackings.find(t => t.id === selectedTracking) 
+    ? mockTrackings.find(t => t.id === selectedTracking) as Tracking | null
     : null;
 
   return (
@@ -268,6 +470,13 @@ export default function AtualizacaoRastreios() {
             </p>
           </div>
           <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAddTrackingModalOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Adicionar Rastreamento
+            </Button>
             <Button onClick={atualizarRastreamentos}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar Rastreamentos
@@ -398,30 +607,62 @@ export default function AtualizacaoRastreios() {
                   </div>
                 </div>
 
-                {/* Histórico de eventos */}
+                {/* Histórico de eventos com timeline */}
                 <div>
-                  <h3 className="text-sm font-medium mb-3">Histórico de Eventos</h3>
-                  <div className="bg-slate-50 rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Hora</TableHead>
-                          <TableHead>Local</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {trackingEvents.map((event, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{event.data}</TableCell>
-                            <TableCell>{event.hora}</TableCell>
-                            <TableCell>{event.local}</TableCell>
-                            <TableCell>{event.status}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-sm font-medium">Histórico de Eventos</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openUpdateStatusModal(selectedTrackingDetails as Tracking)}
+                    >
+                      <PlusSquare className="h-4 w-4 mr-2" />
+                      Adicionar Evento
+                    </Button>
+                  </div>
+                  
+                  <div className="bg-slate-50 rounded-lg p-4">
+                    <div className="space-y-6">
+                      {trackingEvents.map((event, index) => (
+                        <div key={index} className="relative pl-6 pb-6">
+                          {/* Linha vertical conectando os eventos */}
+                          {index !== trackingEvents.length - 1 && (
+                            <div className="absolute left-[10px] top-[24px] bottom-0 w-[2px] bg-slate-200"></div>
+                          )}
+                          
+                          {/* Círculo indicador */}
+                          <div className="absolute left-0 top-1 w-[20px] h-[20px] rounded-full border-2 border-primary bg-background flex items-center justify-center">
+                            {index === 0 ? (
+                              <div className="w-[8px] h-[8px] rounded-full bg-primary"></div>
+                            ) : null}
+                          </div>
+                          
+                          {/* Conteúdo do evento */}
+                          <div className="bg-white rounded-lg border p-3 shadow-sm">
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="font-medium text-sm">{event.status}</div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <CalendarRange className="h-3 w-3 mr-1" />
+                                {event.data} {event.hora}
+                              </div>
+                            </div>
+                            <div className="text-sm text-muted-foreground mb-1">
+                              <MapPin className="h-3 w-3 inline mr-1" />
+                              {event.local}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {event.detalhes}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {trackingEvents.length === 0 && (
+                        <div className="text-center p-4 text-muted-foreground">
+                          Nenhum evento de rastreamento encontrado
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -649,15 +890,30 @@ export default function AtualizacaoRastreios() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem>
-                                        <RefreshCw className="h-4 w-4 mr-2" />
-                                        Atualizar rastreio
+                                      <DropdownMenuItem onClick={() => setSelectedTracking(tracking.id)}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        Ver detalhes
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => openUpdateStatusModal(tracking as Tracking)}>
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Atualizar status
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => openNotifyModal(tracking as Tracking)}>
+                                        <BellRing className="h-4 w-4 mr-2" />
+                                        Enviar notificação
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => setSelectedTracking(tracking.id)}>
                                         <Clock className="h-4 w-4 mr-2" />
                                         Ver histórico
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => {
+                                        toast({
+                                          title: "Etiqueta gerada",
+                                          description: `Etiqueta para o rastreamento ${tracking.codigo} foi gerada.`,
+                                          variant: "default",
+                                        });
+                                      }}>
                                         <Clipboard className="h-4 w-4 mr-2" />
                                         Imprimir etiqueta
                                       </DropdownMenuItem>
@@ -696,6 +952,186 @@ export default function AtualizacaoRastreios() {
           </div>
         )}
       </div>
+      
+      {/* Modal para adicionar novo rastreamento */}
+      <Dialog open={isAddTrackingModalOpen} onOpenChange={setIsAddTrackingModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Rastreamento</DialogTitle>
+            <DialogDescription>
+              Cadastre um novo código de rastreamento para acompanhamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="trackingCode">Código de Rastreamento</Label>
+                <Input
+                  id="trackingCode"
+                  placeholder="Ex: JO123456789BR"
+                  value={newTrackingCode}
+                  onChange={(e) => setNewTrackingCode(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="carrier">Transportadora</Label>
+                <Select value={newTrackingCarrier} onValueChange={setNewTrackingCarrier}>
+                  <SelectTrigger id="carrier">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {carriers.map((carrier) => (
+                      <SelectItem key={carrier} value={carrier}>
+                        {carrier}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="orderNumber">Número do Pedido</Label>
+                <Input
+                  id="orderNumber"
+                  placeholder="Ex: PED-12345"
+                  value={newTrackingOrder}
+                  onChange={(e) => setNewTrackingOrder(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="origin">Origem</Label>
+                <Input
+                  id="origin"
+                  placeholder="Ex: São Paulo, SP"
+                  value={newTrackingOrigin}
+                  onChange={(e) => setNewTrackingOrigin(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="destination">Destino</Label>
+                <Input
+                  id="destination"
+                  placeholder="Ex: Rio de Janeiro, RJ"
+                  value={newTrackingDestination}
+                  onChange={(e) => setNewTrackingDestination(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="package">Malote (opcional)</Label>
+              <Input
+                id="package"
+                placeholder="Ex: MAL-12345"
+                value={newTrackingPackage}
+                onChange={(e) => setNewTrackingPackage(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddTrackingModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={adicionarNovoRastreamento}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Adicionar Rastreamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para atualizar status */}
+      <Dialog open={isUpdateStatusModalOpen} onOpenChange={setIsUpdateStatusModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Atualizar Status do Rastreamento</DialogTitle>
+            <DialogDescription>
+              {trackingToUpdate && (
+                <>Atualize o status do rastreamento {trackingToUpdate.codigo}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="postado">Postado</SelectItem>
+                  <SelectItem value="em_transito">Em Trânsito</SelectItem>
+                  <SelectItem value="entregue">Entregue</SelectItem>
+                  <SelectItem value="problemas">Problemas na Entrega</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Detalhes da Atualização</Label>
+              <Textarea
+                id="notes"
+                placeholder="Descreva os detalhes desta atualização..."
+                value={statusNotes}
+                onChange={(e) => setStatusNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsUpdateStatusModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={atualizarStatusRastreamento}>
+              Atualizar Status
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para enviar notificação */}
+      <Dialog open={isNotifyModalOpen} onOpenChange={setIsNotifyModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Enviar Notificação</DialogTitle>
+            <DialogDescription>
+              {trackingToNotify && (
+                <>Envie uma notificação sobre o rastreamento {trackingToNotify.codigo}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="message">Mensagem</Label>
+              <Textarea
+                id="message"
+                placeholder="Digite a mensagem a ser enviada..."
+                value={notifyMessage}
+                onChange={(e) => setNotifyMessage(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="email" />
+              <Label htmlFor="email">Enviar por e-mail</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="sms" />
+              <Label htmlFor="sms">Enviar por SMS</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNotifyModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={enviarNotificacao}>
+              <Send className="h-4 w-4 mr-2" />
+              Enviar Notificação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </OrganizationLayout>
   );
 }
