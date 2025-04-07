@@ -189,46 +189,46 @@ export default function OrganizationSidebar() {
 
   return (
     <aside className={cn(
-      "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+      "bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300",
       collapsed ? "w-[78px]" : "w-[280px]"
     )}>
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-gray-800">
         {!collapsed ? (
           <div className="flex items-center gap-2">
             {isOrgLoading ? (
-              <div className="h-8 w-8 rounded-md bg-gray-100 flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+              <div className="h-8 w-8 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-400 dark:text-gray-500" />
               </div>
             ) : organization?.logo ? (
               <Avatar className="h-8 w-8 rounded-md">
                 <AvatarImage src={organization.logo} alt={organization.name} />
-                <AvatarFallback className="rounded-md bg-[#e6f7e6]">
-                  <Leaf className="h-5 w-5 text-green-600" />
+                <AvatarFallback className="rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f]">
+                  <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center">
-                <Leaf className="h-5 w-5 text-green-600" />
+              <div className="h-8 w-8 rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f] flex items-center justify-center">
+                <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
             )}
-            <span className="font-semibold text-lg">{organization?.name || "Endurancy"}</span>
+            <span className="font-semibold text-lg dark:text-white">{organization?.name || "Endurancy"}</span>
           </div>
         ) : (
           isOrgLoading ? (
-            <div className="h-8 w-8 rounded-md bg-gray-100 flex items-center justify-center mx-auto">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            <div className="h-8 w-8 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400 dark:text-gray-500" />
             </div>
           ) : organization?.logo ? (
             <Avatar className="h-8 w-8 rounded-md mx-auto">
               <AvatarImage src={organization.logo} alt={organization.name} />
-              <AvatarFallback className="rounded-md bg-[#e6f7e6]">
-                <Leaf className="h-5 w-5 text-green-600" />
+              <AvatarFallback className="rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f]">
+                <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
               </AvatarFallback>
             </Avatar>
           ) : (
-            <div className="h-8 w-8 rounded-md bg-[#e6f7e6] flex items-center justify-center mx-auto">
-              <Leaf className="h-5 w-5 text-green-600" />
+            <div className="h-8 w-8 rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f] flex items-center justify-center mx-auto">
+              <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           )
         )}
@@ -236,7 +236,7 @@ export default function OrganizationSidebar() {
           variant="ghost" 
           size="icon" 
           onClick={() => setCollapsed(!collapsed)}
-          className={cn("text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+          className={cn("text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800",
             collapsed && "mx-auto"
           )}
         >
@@ -246,27 +246,27 @@ export default function OrganizationSidebar() {
 
       {/* User Info */}
       <div className={cn(
-        "border-b border-gray-200 py-4 px-4",
+        "border-b border-gray-200 dark:border-gray-800 py-4 px-4",
         collapsed ? "flex justify-center" : ""
       )}>
         {!collapsed ? (
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
                 {user?.name.charAt(0) || 'U'}
               </div>
               <div className="overflow-hidden">
-                <p className="font-medium text-sm truncate">{user?.name || 'Usuário'}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email || 'usuário@exemplo.com'}</p>
+                <p className="font-medium text-sm truncate dark:text-white">{user?.name || 'Usuário'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || 'usuário@exemplo.com'}</p>
               </div>
             </div>
             <div className="px-1 mt-2">
-              <div className="text-xs text-gray-500 mb-1">Plano Atual</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Plano Atual</div>
               <div className={`text-xs rounded-full px-2 py-1 font-medium inline-flex ${
-                organization?.planTier === 'pro' ? 'bg-purple-50 text-purple-700' :
-                organization?.planTier === 'grow' ? 'bg-blue-50 text-blue-700' :
-                organization?.planTier === 'seed' ? 'bg-green-50 text-green-700' :
-                'bg-gray-50 text-gray-700'
+                organization?.planTier === 'pro' ? 'bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300' :
+                organization?.planTier === 'grow' ? 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+                organization?.planTier === 'seed' ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
               }`}>
                 {organization?.planTier === 'pro' ? 'Plano Pro' :
                   organization?.planTier === 'grow' ? 'Plano Grow' :
@@ -277,7 +277,7 @@ export default function OrganizationSidebar() {
             </div>
           </div>
         ) : (
-          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+          <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-600 dark:text-blue-300 font-medium">
             {user?.name.charAt(0) || 'U'}
           </div>
         )}
@@ -289,20 +289,22 @@ export default function OrganizationSidebar() {
           {/* Módulos Obrigatórios */}
           {!collapsed && (
             <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-gray-500 mb-1">MÓDULOS INCLUÍDOS</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">MÓDULOS INCLUÍDOS</p>
             </div>
           )}
           
           {freeModules.map((item, index) => (
             <div key={`free-${index}`} className={cn(
               "relative",
-              item.active && "bg-green-50"
+              item.active && "bg-green-50 dark:bg-green-900/30"
             )}>
               {!collapsed && (
                 <div 
                   className={cn(
                     "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                    item.active 
+                      ? "text-green-600 dark:text-green-400 font-medium" 
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                   onClick={() => navigateTo(item.path)}
                 >
@@ -312,7 +314,9 @@ export default function OrganizationSidebar() {
                       item.active && "font-semibold"
                     )}>
                       {React.cloneElement(item.icon, { 
-                        className: item.active ? "text-green-600" : "text-gray-500" 
+                        className: item.active 
+                          ? "text-green-600 dark:text-green-400" 
+                          : "text-gray-500 dark:text-gray-400" 
                       })}
                       {item.title}
                     </span>
@@ -321,7 +325,9 @@ export default function OrganizationSidebar() {
                     size={16} 
                     className={cn(
                       "transform transition-transform duration-200",
-                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                      item.active 
+                        ? "rotate-90 text-green-600 dark:text-green-400" 
+                        : "-rotate-90 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
                     )} 
                   />
                 </div>
@@ -330,7 +336,9 @@ export default function OrganizationSidebar() {
                 <div 
                   className={cn(
                     "flex items-center justify-center p-2 cursor-pointer",
-                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                    item.active 
+                      ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30" 
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                   onClick={() => navigateTo(item.path)}
                   title={item.title}
@@ -342,25 +350,27 @@ export default function OrganizationSidebar() {
           ))}
 
           {/* Separador */}
-          <div className="my-2 border-t border-gray-200"></div>
+          <div className="my-2 border-t border-gray-200 dark:border-gray-800"></div>
           
           {/* Configurações */}
           {!collapsed && (
             <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-gray-500 mb-1">SISTEMA</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">SISTEMA</p>
             </div>
           )}
           
           {/* Item de configurações */}
           <div className={cn(
             "relative",
-            configModule.active && "bg-green-50"
+            configModule.active && "bg-green-50 dark:bg-green-900/30"
           )}>
             {!collapsed && (
               <div 
                 className={cn(
                   "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                  configModule.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                  configModule.active 
+                    ? "text-green-600 dark:text-green-400 font-medium" 
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                 )}
                 onClick={() => navigateTo(configModule.path)}
               >
@@ -370,7 +380,9 @@ export default function OrganizationSidebar() {
                     configModule.active && "font-semibold"
                   )}>
                     {React.cloneElement(configModule.icon, { 
-                      className: configModule.active ? "text-green-600" : "text-gray-500" 
+                      className: configModule.active 
+                        ? "text-green-600 dark:text-green-400" 
+                        : "text-gray-500 dark:text-gray-400" 
                     })}
                     {configModule.title}
                   </span>
@@ -379,7 +391,9 @@ export default function OrganizationSidebar() {
                   size={16} 
                   className={cn(
                     "transform transition-transform duration-200",
-                    configModule.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                    configModule.active 
+                      ? "rotate-90 text-green-600 dark:text-green-400" 
+                      : "-rotate-90 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
                   )} 
                 />
               </div>
@@ -388,7 +402,9 @@ export default function OrganizationSidebar() {
               <div 
                 className={cn(
                   "flex items-center justify-center p-2 cursor-pointer",
-                  configModule.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                  configModule.active 
+                    ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30" 
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                 )}
                 onClick={() => navigateTo(configModule.path)}
                 title={configModule.title}
@@ -399,25 +415,27 @@ export default function OrganizationSidebar() {
           </div>
           
           {/* Separador */}
-          <div className="my-2 border-t border-gray-200"></div>
+          <div className="my-2 border-t border-gray-200 dark:border-gray-800"></div>
           
           {/* Módulos Pagos */}
           {!collapsed && (
             <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-gray-500 mb-1">MÓDULOS ADD-ONS</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">MÓDULOS ADD-ONS</p>
             </div>
           )}
           
           {premiumModules.map((item, index) => (
             <div key={`premium-${index}`} className={cn(
               "relative",
-              item.active && "bg-green-50"
+              item.active && "bg-green-50 dark:bg-green-900/30"
             )}>
               {!collapsed && (
                 <div 
                   className={cn(
                     "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                    item.active 
+                      ? "text-green-600 dark:text-green-400 font-medium" 
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                   onClick={() => navigateTo(item.path)}
                 >
@@ -427,7 +445,9 @@ export default function OrganizationSidebar() {
                       item.active && "font-semibold"
                     )}>
                       {React.cloneElement(item.icon, { 
-                        className: item.active ? "text-green-600" : "text-gray-500" 
+                        className: item.active 
+                          ? "text-green-600 dark:text-green-400" 
+                          : "text-gray-500 dark:text-gray-400" 
                       })}
                       {item.title}
                     </span>
@@ -436,7 +456,9 @@ export default function OrganizationSidebar() {
                     size={16} 
                     className={cn(
                       "transform transition-transform duration-200",
-                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                      item.active 
+                        ? "rotate-90 text-green-600 dark:text-green-400" 
+                        : "-rotate-90 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
                     )} 
                   />
                 </div>
@@ -445,7 +467,9 @@ export default function OrganizationSidebar() {
                 <div 
                   className={cn(
                     "flex items-center justify-center p-2 cursor-pointer",
-                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                    item.active 
+                      ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30" 
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
                   onClick={() => navigateTo(item.path)}
                   title={item.title}
@@ -459,17 +483,17 @@ export default function OrganizationSidebar() {
       </div>
 
       {/* Logout Button */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-gray-200 dark:border-gray-800 p-4">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start font-normal text-gray-600 hover:bg-gray-100 hover:text-red-600", 
+            "w-full justify-start font-normal text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-600 dark:hover:text-red-400", 
             collapsed ? "h-10 w-10 p-0 mx-auto" : "h-10 px-3"
           )}
           onClick={logout}
         >
           <LogOut size={20} className={cn(
-            "text-red-500",
+            "text-red-500 dark:text-red-400",
             collapsed ? "mx-auto" : "mr-3"
           )} />
           {!collapsed && <span>Sair</span>}
