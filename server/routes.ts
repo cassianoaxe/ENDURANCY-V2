@@ -72,54 +72,40 @@ const PostgresStore = pgSession(session);
 // Enhanced authentication middleware with session verification and detailed logging
 const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Para a rota /api/auth/me e outras rotas frequentes, não logamos todas as informações
+    // para reduzir a sobrecarga no servidor e melhorar o desempenho
+    const isFrequentRoute = req.path === '/api/auth/me' || 
+                           req.path === '/api/notifications' || 
+                           req.path === '/api/organizations';
+    
     // Check if the Cookie header is present
     if (!req.headers.cookie) {
-      console.warn("Request without cookie:", req.path);
+      if (!isFrequentRoute) {
+        console.warn("Request without cookie:", req.path);
+      }
       return res.status(401).json({ message: "No authorization cookie found" });
     }
     
-    // Detailed information about the session state for debugging
-    console.log("Auth check session:", { 
-      hasSession: !!req.session,
-      hasUser: !!req.session?.user,
-      sessionID: req.sessionID,
-      cookies: req.headers.cookie,
-      path: req.path,
-      method: req.method
-    });
-    
-    // Check if the session exists and has a valid user
-    if (!req.session) {
-      console.log("Session doesn't exist for:", req.path);
-      return res.status(401).json({ message: "Session expired or non-existent" });
-    }
-    
-    if (!req.session.user) {
-      console.log("User not authenticated in session for:", req.path);
+    // Verificações básicas de sessão
+    if (!req.session || !req.session.user) {
+      if (!isFrequentRoute) {
+        console.log("Usuário não autenticado para rota:", req.path);
+      }
       return res.status(401).json({ message: "Não autenticado" });
     }
     
     // Update the session cookie to ensure it doesn't expire
-    req.session.touch();
-    
-    // Save the session explicitly to ensure changes are persisted
-    await new Promise<void>((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) {
-          console.error("Error saving session:", err);
-          reject(err);
-        } else {
-          resolve();
-        }
+    // mas apenas para rotas não frequentes para evitar sobrecarga
+    if (!isFrequentRoute) {
+      req.session.touch();
+      
+      // Registramos o acesso autenticado apenas para rotas não frequentes
+      console.log("Authenticated access:", {
+        userID: req.session.user.id,
+        role: req.session.user.role,
+        path: req.path
       });
-    });
-    
-    // Log successful authenticated access
-    console.log("Authenticated access:", {
-      userID: req.session.user.id,
-      role: req.session.user.role,
-      path: req.path
-    });
+    }
     
     // Continue to the next function/route
     next();
@@ -252,10 +238,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Garantir que o middleware de sessão seja aplicado corretamente
   app.use(session(sessionConfig));
   
-  // Debug de cookies em cada requisição
+  // Middleware de debug reduzido para diminuir a sobrecarga no servidor
   app.use((req, res, next) => {
-    console.log("Cookie na requisição:", req.headers.cookie);
-    console.log("Session ID:", req.sessionID);
+    // Verificar apenas para rotas específicas que não são frequentes
+    if (!req.path.startsWith('/api/auth/me') && 
+        !req.path.startsWith('/api/notifications') && 
+        !req.path.startsWith('/api/organizations') &&
+        !req.path.startsWith('/assets') &&
+        !req.path.startsWith('/uploads')) {
+      // Log reduzido apenas para sessão
+      console.log("Session ID:", req.sessionID);
+    }
     next();
   });
   
@@ -510,19 +503,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set user in session
         req.session.user = userWithoutPassword;
         
-        // Salvar explicitamente a sessão para garantir que as alterações sejam persistidas
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("Error saving session:", err);
-              reject(err);
-            } else {
-              console.log("Session saved successfully, sessionID:", req.sessionID);
-              console.log("Session user data:", req.session.user);
-              resolve();
-            }
+        // Salvar explicitamente a sessão
+        try {
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                console.error("Error saving session:", err);
+                reject(err);
+              } else {
+                resolve();
+              }
+            });
           });
-        });
+          console.log("Login successful, sessionID:", req.sessionID);
+        } catch (error) {
+          console.error("Erro ao salvar sessão:", error);
+        }
         
         console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
         res.json(userWithoutPassword);
@@ -592,19 +588,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set user in session
       req.session.user = userWithoutPassword;
       
-      // Salvar explicitamente a sessão para garantir que as alterações sejam persistidas
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Error saving session:", err);
-            reject(err);
-          } else {
-            console.log("Session saved successfully, sessionID:", req.sessionID);
-            console.log("Session user data:", req.session.user);
-            resolve();
-          }
+      // Salvar explicitamente a sessão
+      try {
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error saving session:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
         });
-      });
+        console.log("Login successful, sessionID:", req.sessionID);
+      } catch (error) {
+        console.error("Erro ao salvar sessão:", error);
+      }
       
       console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, sessionID: req.sessionID });
       res.json(userWithoutPassword);
@@ -784,27 +783,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/auth/me", (req, res) => {
-    console.log("Verificando autenticação:", {
-      hasSession: !!req.session,
-      sessionID: req.sessionID,
-      cookies: req.headers.cookie
-    });
-    
+    // Rota otimizada sem logs extensivos para melhorar performance
+    // já que esta rota é chamada frequentemente
     if (req.session && req.session.user) {
-      // Atualiza o cookie de sessão para garantir que ele não expire
-      req.session.touch();
-      
-      // Salvar explicitamente as alterações na sessão
-      req.session.save((err) => {
-        if (err) {
-          console.error("Erro ao salvar a sessão:", err);
-          return res.status(500).json({ message: "Erro de sessão" });
-        }
-        console.log("Usuário autenticado:", req.session.user);
-        res.json(req.session.user);
-      });
+      // Retorna imediatamente sem tocar na sessão para evitar sobrecarga
+      res.json(req.session.user);
     } else {
-      console.log("Usuário não autenticado");
       res.status(401).json({ message: "Não autenticado" });
     }
   });
