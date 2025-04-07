@@ -3255,7 +3255,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rota para buscar módulos ativos da organização
   // Buscar todos os módulos de uma organização (ativos e inativos)
-  app.get("/api/organization-modules/:organizationId", async (req, res) => {
+  // Esta rota foi movida para a linha ~1820 para evitar duplicação de rota
+  app.get("/api/organization-modules/v2/:organizationId", async (req, res) => {
     try {
       const organizationId = parseInt(req.params.organizationId);
       
