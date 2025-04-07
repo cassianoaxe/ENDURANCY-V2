@@ -2,6 +2,7 @@
  * Serviço de notificações
  * 
  * Este serviço gerencia o envio e a recuperação de notificações no sistema
+ * Inclui sistema de cache em memória para reduzir consultas ao banco de dados
  */
 
 import { db } from "../db";
@@ -10,18 +11,58 @@ import { notifications, insertNotificationSchema, supportTickets, organizations,
 import { InsertNotification, Notification } from "@shared/schema";
 
 /**
- * Criar uma notificação para um usuário
+ * Sistema de cache para notificações
+ * Armazena notificações e estatísticas por um curto período para melhorar desempenho
+ */
+interface NotificationCache {
+  [userId: number]: {
+    notifications: Notification[];
+    unread: Notification[];
+    stats: {
+      total: number;
+      unread: number;
+      byType: { [key: string]: number };
+    };
+    timestamp: number;
+  }
+}
+
+// Cache de notificações - expira em 30 segundos
+const notificationsCache: NotificationCache = {};
+const CACHE_TTL = 30 * 1000; // 30 segundos em milissegundos
+
+// Função para limpar entradas expiradas do cache (chamada periodicamente)
+function cleanupExpiredCache() {
+  const now = Date.now();
+  Object.keys(notificationsCache).forEach(key => {
+    const userId = parseInt(key);
+    if (now - notificationsCache[userId].timestamp > CACHE_TTL) {
+      delete notificationsCache[userId];
+    }
+  });
+}
+
+// Limpar cache a cada minuto
+setInterval(cleanupExpiredCache, 60 * 1000);
+
+/**
+ * Criar uma notificação para um usuário e invalidar o cache
  */
 export async function createNotification(notificationData: InsertNotification): Promise<Notification> {
   const [notification] = await db.insert(notifications)
     .values(notificationData)
     .returning();
   
+  // Invalidar o cache para este usuário se houver
+  if (notificationData.userId && notificationsCache[notificationData.userId]) {
+    delete notificationsCache[notificationData.userId];
+  }
+  
   return notification;
 }
 
 /**
- * Criar uma notificação para um ticket de suporte
+ * Criar uma notificação para um ticket de suporte e invalidar o cache
  */
 export async function createTicketNotification(
   ticketId: number, 
@@ -53,25 +94,59 @@ export async function createTicketNotification(
     })
     .returning();
   
+  // Invalidar o cache para este usuário
+  if (notificationsCache[userId]) {
+    delete notificationsCache[userId];
+  }
+  
   return notification;
 }
 
 /**
- * Buscar notificações de um usuário
+ * Buscar notificações de um usuário (com cache)
  */
 export async function getUserNotifications(userId: number): Promise<Notification[]> {
+  // Verificar se há dados em cache válidos
+  if (notificationsCache[userId] && 
+      Date.now() - notificationsCache[userId].timestamp < CACHE_TTL) {
+    return notificationsCache[userId].notifications;
+  }
+  
+  // Se não houver cache ou estiver expirado, buscar do banco
   const userNotifications = await db.select()
     .from(notifications)
     .where(eq(notifications.userId, userId))
     .orderBy(desc(notifications.createdAt));
   
+  // Inicializar o cache para este usuário se não existir
+  if (!notificationsCache[userId]) {
+    notificationsCache[userId] = {
+      notifications: [],
+      unread: [],
+      stats: { total: 0, unread: 0, byType: {} },
+      timestamp: Date.now()
+    };
+  }
+  
+  // Atualizar o cache
+  notificationsCache[userId].notifications = userNotifications;
+  notificationsCache[userId].timestamp = Date.now();
+  
   return userNotifications;
 }
 
 /**
- * Buscar notificações não lidas de um usuário
+ * Buscar notificações não lidas de um usuário (com cache)
  */
 export async function getUnreadNotifications(userId: number): Promise<Notification[]> {
+  // Verificar se há dados em cache válidos
+  if (notificationsCache[userId] && 
+      notificationsCache[userId].unread &&
+      Date.now() - notificationsCache[userId].timestamp < CACHE_TTL) {
+    return notificationsCache[userId].unread;
+  }
+  
+  // Se não houver cache ou estiver expirado, buscar do banco
   const unreadNotifications = await db.select()
     .from(notifications)
     .where(and(
@@ -79,6 +154,20 @@ export async function getUnreadNotifications(userId: number): Promise<Notificati
       eq(notifications.isRead, false)
     ))
     .orderBy(desc(notifications.createdAt));
+  
+  // Inicializar o cache para este usuário se não existir
+  if (!notificationsCache[userId]) {
+    notificationsCache[userId] = {
+      notifications: [],
+      unread: [],
+      stats: { total: 0, unread: 0, byType: {} },
+      timestamp: Date.now()
+    };
+  }
+  
+  // Atualizar o cache
+  notificationsCache[userId].unread = unreadNotifications;
+  notificationsCache[userId].timestamp = Date.now();
   
   return unreadNotifications;
 }
@@ -96,6 +185,11 @@ export async function markNotificationAsRead(notificationId: number): Promise<No
     throw new Error(`Notificação com ID ${notificationId} não encontrada`);
   }
   
+  // Invalidar o cache para o usuário da notificação
+  if (notification.userId && notificationsCache[notification.userId]) {
+    delete notificationsCache[notification.userId];
+  }
+  
   return notification;
 }
 
@@ -111,17 +205,29 @@ export async function markAllNotificationsAsRead(userId: number): Promise<number
     ))
     .returning({ id: notifications.id });
   
+  // Invalidar o cache para este usuário
+  if (notificationsCache[userId]) {
+    delete notificationsCache[userId];
+  }
+  
   return result.length;
 }
 
 /**
- * Buscar estatísticas de notificações para um usuário
+ * Buscar estatísticas de notificações para um usuário (com cache)
  */
 export async function getNotificationStats(userId: number): Promise<{
   total: number;
   unread: number;
   byType: { [key: string]: number };
 }> {
+  // Verificar se há dados em cache válidos
+  if (notificationsCache[userId] && 
+      notificationsCache[userId].stats &&
+      Date.now() - notificationsCache[userId].timestamp < CACHE_TTL) {
+    return notificationsCache[userId].stats;
+  }
+  
   // Total de notificações
   const [totalResult] = await db.select({ count: sql<number>`count(*)` })
     .from(notifications)
@@ -149,11 +255,27 @@ export async function getNotificationStats(userId: number): Promise<{
     byType[item.type] = Number(item.count);
   });
   
-  return {
+  const stats = {
     total: Number(totalResult.count),
     unread: Number(unreadResult.count),
     byType
   };
+  
+  // Inicializar o cache para este usuário se não existir
+  if (!notificationsCache[userId]) {
+    notificationsCache[userId] = {
+      notifications: [],
+      unread: [],
+      stats,
+      timestamp: Date.now()
+    };
+  } else {
+    // Atualizar apenas as estatísticas no cache
+    notificationsCache[userId].stats = stats;
+    notificationsCache[userId].timestamp = Date.now();
+  }
+  
+  return stats;
 }
 
 /**
@@ -164,9 +286,23 @@ export async function cleanupOldNotifications(): Promise<number> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   
+  // Primeiro obter IDs de usuários afetados para limpar o cache
+  const affectedUsers = await db.select({ userId: notifications.userId })
+    .from(notifications)
+    .where(sql`${notifications.createdAt} < ${thirtyDaysAgo}`)
+    .groupBy(notifications.userId);
+  
+  // Excluir as notificações antigas
   const result = await db.delete(notifications)
     .where(sql`${notifications.createdAt} < ${thirtyDaysAgo}`)
     .returning({ id: notifications.id });
+  
+  // Limpar o cache para usuários afetados
+  affectedUsers.forEach(user => {
+    if (user.userId && notificationsCache[user.userId]) {
+      delete notificationsCache[user.userId];
+    }
+  });
   
   return result.length;
 }
