@@ -73,6 +73,14 @@ import DataImport from "@/pages/DataImport";
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
 import Expedicao from "@/pages/organization/Expedicao";
+import PreparacaoPedidos from "@/pages/organization/expedicao/pedidos";
+import Etiquetas from "@/pages/organization/expedicao/etiquetas";
+import CodigosExpedicao from "@/pages/organization/expedicao/codigos";
+import DocumentacaoExpedicao from "@/pages/organization/expedicao/documentacao";
+import JuncaoPedidos from "@/pages/organization/expedicao/juncao";
+import RegistroMalotes from "@/pages/organization/expedicao/malotes";
+import AtualizacaoRastreios from "@/pages/organization/expedicao/rastreios";
+import EstoqueExpedicao from "@/pages/organization/expedicao/estoque";
 import GerenciarPacientes from "@/pages/organization/GerenciarPacientes";
 import GerenciarProdutos from "@/pages/organization/GerenciarProdutos";
 import VendasOrg from "@/pages/organization/Vendas";
@@ -438,6 +446,39 @@ function AppContent() {
 
     if (currentPath === '/organization/expedicao') {
       return <Expedicao />;
+    }
+    
+    // Subpáginas de Expedição
+    if (currentPath === '/organization/expedicao/pedidos') {
+      return <PreparacaoPedidos />;
+    }
+    
+    if (currentPath === '/organization/expedicao/etiquetas') {
+      return <Etiquetas />;
+    }
+    
+    if (currentPath === '/organization/expedicao/codigos') {
+      return <CodigosExpedicao />;
+    }
+    
+    if (currentPath === '/organization/expedicao/documentacao') {
+      return <DocumentacaoExpedicao />;
+    }
+    
+    if (currentPath === '/organization/expedicao/juncao') {
+      return <JuncaoPedidos />;
+    }
+    
+    if (currentPath === '/organization/expedicao/malotes') {
+      return <RegistroMalotes />;
+    }
+    
+    if (currentPath === '/organization/expedicao/rastreios') {
+      return <AtualizacaoRastreios />;
+    }
+    
+    if (currentPath === '/organization/expedicao/estoque') {
+      return <EstoqueExpedicao />;
     }
 
     if (currentPath === '/organization/gerenciar-pacientes') {

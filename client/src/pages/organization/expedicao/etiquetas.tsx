@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
@@ -10,11 +10,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  ArrowLeft,
+  Printer,
+  Search,
+  Download,
+  FileText,
+  Tag,
+  QrCode,
+  Truck,
+  X,
+  Check
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -22,360 +40,415 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Package,
-  Truck,
-  ArrowUpDown,
-  Search,
-  Filter,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Printer,
-  ClipboardList,
-  FileText,
-  Box,
-  PackageCheck,
-  MoreHorizontal,
-  ArrowRight,
-  ChevronDown,
-  Settings,
-  DownloadCloud,
-  Share2,
-  Tag,
-  TagsIcon,
-  LayoutGrid,
-  Grid3X3
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
-// Modelos simulados de etiquetas
-const modelosEtiquetas = [
-  { id: 1, nome: "Etiqueta Padrão (CORREIOS)", tamanho: "10x15cm", formato: "PDF" },
-  { id: 2, nome: "Etiqueta NF-e", tamanho: "10x15cm", formato: "PDF" },
-  { id: 3, nome: "Etiqueta Pequena", tamanho: "5x7cm", formato: "PDF" },
-  { id: 4, nome: "Etiqueta Transportadora", tamanho: "15x20cm", formato: "PDF" },
-  { id: 5, nome: "Etiqueta Mercado Livre", tamanho: "10x15cm", formato: "PDF" },
-  { id: 6, nome: "Etiqueta Shopee", tamanho: "10x15cm", formato: "PDF" },
-];
-
-// Pedidos simulados
-const pedidosPendentes = [
-  { id: "PED-12345", cliente: "João Silva", transportadora: "Correios", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12346", cliente: "Maria Oliveira", transportadora: "Jadlog", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12347", cliente: "Carlos Eduardo", transportadora: "Correios", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12348", cliente: "Ana Carolina", transportadora: "Sequoia", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12349", cliente: "Roberto Santos", transportadora: "Mercado Envios", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12350", cliente: "Juliana Mendes", transportadora: "Correios", data: "2025-04-07", status: "pendente" },
-  { id: "PED-12351", cliente: "Fernando Costa", transportadora: "Jadlog", data: "2025-04-06", status: "pendente" },
-  { id: "PED-12352", cliente: "Daniela Lima", transportadora: "Shopee Logística", data: "2025-04-06", status: "pendente" }
+// Dados de exemplo para etiquetas
+const mockLabels = [
+  { 
+    id: "ETQ-12345", 
+    pedido: "PED-12345",
+    cliente: "Carlos Silva", 
+    data: "07/04/2025", 
+    transportadora: "Correios", 
+    formato: "10x15cm",
+    status: "pendente"
+  },
+  { 
+    id: "ETQ-12346", 
+    pedido: "PED-12346",
+    cliente: "Maria Oliveira", 
+    data: "07/04/2025", 
+    transportadora: "JADLOG", 
+    formato: "A6",
+    status: "gerada"
+  },
+  { 
+    id: "ETQ-12347", 
+    pedido: "PED-12347",
+    cliente: "João Santos", 
+    data: "06/04/2025", 
+    transportadora: "Correios", 
+    formato: "10x15cm",
+    status: "impressa"
+  },
+  { 
+    id: "ETQ-12348", 
+    pedido: "PED-12348",
+    cliente: "Ana Pereira", 
+    data: "06/04/2025", 
+    transportadora: "LATAM Cargo", 
+    formato: "A4",
+    status: "pendente"
+  },
+  { 
+    id: "ETQ-12349", 
+    pedido: "PED-12349", 
+    cliente: "Roberto Almeida", 
+    data: "05/04/2025", 
+    transportadora: "Transportadora Própria", 
+    formato: "10x15cm",
+    status: "impressa"
+  },
+  { 
+    id: "ETQ-12350", 
+    pedido: "PED-12350",
+    cliente: "Fernanda Costa", 
+    data: "05/04/2025", 
+    transportadora: "Correios", 
+    formato: "A6",
+    status: "gerada"
+  }
 ];
 
 export default function Etiquetas() {
-  const [modeloSelecionado, setModeloSelecionado] = useState<number>(1);
-  const [tipoImpressao, setTipoImpressao] = useState<string>("todos");
-  const [pedidosSelecionados, setPedidosSelecionados] = useState<string[]>([]);
-  const [transportadoraFiltro, setTransportadoraFiltro] = useState<string>("");
-  const [termoBusca, setTermoBusca] = useState<string>("");
-  
-  // Filtragem de pedidos
-  const pedidosFiltrados = pedidosPendentes.filter(pedido => {
-    // Filtro por transportadora
-    if (transportadoraFiltro && pedido.transportadora !== transportadoraFiltro) {
-      return false;
-    }
+  const { user } = useAuth();
+  const [selectedTab, setSelectedTab] = useState("todas");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFormato, setSelectedFormato] = useState("");
+  const [selectedTransportadora, setSelectedTransportadora] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+
+  // Função para navegação entre páginas
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new Event("popstate"));
+  };
+
+  // Função para filtrar etiquetas com base na guia selecionada e no termo de pesquisa
+  const filteredLabels = mockLabels.filter(label => {
+    // Filtro de status
+    if (selectedTab === "pendentes" && label.status !== "pendente") return false;
+    if (selectedTab === "geradas" && label.status !== "gerada") return false;
+    if (selectedTab === "impressas" && label.status !== "impressa") return false;
     
-    // Filtro de busca
-    if (termoBusca && !pedido.id.toLowerCase().includes(termoBusca.toLowerCase()) && 
-        !pedido.cliente.toLowerCase().includes(termoBusca.toLowerCase())) {
-      return false;
+    // Filtro de formato
+    if (selectedFormato && label.formato !== selectedFormato) return false;
+    
+    // Filtro de transportadora
+    if (selectedTransportadora && label.transportadora !== selectedTransportadora) return false;
+    
+    // Filtro de pesquisa
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        label.id.toLowerCase().includes(searchLower) ||
+        label.pedido.toLowerCase().includes(searchLower) ||
+        label.cliente.toLowerCase().includes(searchLower)
+      );
     }
     
     return true;
   });
-  
-  // Todas as transportadoras únicas
-  const transportadoras = Array.from(new Set(pedidosPendentes.map(p => p.transportadora)));
-  
-  // Função para alternar seleção de pedido
-  const togglePedidoSelecionado = (id: string) => {
-    if (pedidosSelecionados.includes(id)) {
-      setPedidosSelecionados(pedidosSelecionados.filter(p => p !== id));
+
+  // Função para lidar com a seleção de etiquetas
+  const toggleLabelSelection = (labelId: string) => {
+    if (selectedLabels.includes(labelId)) {
+      setSelectedLabels(selectedLabels.filter(id => id !== labelId));
     } else {
-      setPedidosSelecionados([...pedidosSelecionados, id]);
+      setSelectedLabels([...selectedLabels, labelId]);
     }
   };
-  
-  // Selecionar/desmarcar todos os pedidos
-  const toggleSelecionarTodos = () => {
-    if (pedidosSelecionados.length === pedidosFiltrados.length) {
-      setPedidosSelecionados([]);
+
+  // Função para selecionar todas as etiquetas
+  const selectAllLabels = () => {
+    if (selectedLabels.length === filteredLabels.length) {
+      setSelectedLabels([]);
     } else {
-      setPedidosSelecionados(pedidosFiltrados.map(p => p.id));
+      setSelectedLabels(filteredLabels.map(label => label.id));
     }
   };
 
   return (
     <OrganizationLayout>
       <div className="container py-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Impressão de Etiquetas</h1>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mb-2"
+              onClick={() => navigateTo("/organization/expedicao")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Dashboard
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Etiquetas</h1>
             <p className="text-muted-foreground mt-1">
-              Gere e imprima etiquetas para pedidos e malotes
+              Gere e imprima etiquetas para seus pedidos
             </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              disabled={selectedLabels.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Baixar ({selectedLabels.length})
             </Button>
-            <Button variant="outline" size="sm">
-              <DownloadCloud className="w-4 h-4 mr-2" />
-              Baixar Modelo
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Printer className="w-4 h-4 mr-2" />
-              Imprimir Selecionados
+            <Button 
+              disabled={selectedLabels.length === 0}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir ({selectedLabels.length})
             </Button>
           </div>
         </div>
-        
-        {/* Área de configuração da impressão */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Configurações de Impressão</CardTitle>
-            <CardDescription>Escolha o modelo e as configurações para impressão de etiquetas</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Seleção de Modelo */}
-              <div className="space-y-3">
-                <Label htmlFor="modelo">Modelo de Etiqueta</Label>
-                <Select
-                  value={modeloSelecionado.toString()}
-                  onValueChange={(value) => setModeloSelecionado(parseInt(value))}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um modelo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {modelosEtiquetas.map((modelo) => (
-                      <SelectItem key={modelo.id} value={modelo.id.toString()}>
-                        {modelo.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Detalhes do modelo selecionado */}
-                {modeloSelecionado && (
-                  <div className="mt-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-                    <p className="text-sm font-medium">Detalhes do modelo:</p>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Tamanho:</span>{' '}
-                        {modelosEtiquetas.find(m => m.id === modeloSelecionado)?.tamanho}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Formato:</span>{' '}
-                        {modelosEtiquetas.find(m => m.id === modeloSelecionado)?.formato}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Tipo de Impressão */}
-              <div className="space-y-3">
-                <Label>Tipo de Impressão</Label>
-                <RadioGroup
-                  value={tipoImpressao}
-                  onValueChange={setTipoImpressao}
-                  className="flex flex-col space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="todos" id="todos" />
-                    <Label htmlFor="todos" className="font-normal">
-                      Imprimir todos selecionados (juntos)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="separados" id="separados" />
-                    <Label htmlFor="separados" className="font-normal">
-                      Separar por transportadora
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="individuais" id="individuais" />
-                    <Label htmlFor="individuais" className="font-normal">
-                      Arquivos individuais por pedido
-                    </Label>
-                  </div>
-                </RadioGroup>
-                
-                {/* Botões rápidos para layouts comuns */}
-                <div className="mt-4">
-                  <Label className="mb-2 block">Layout Rápido</Label>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-9 w-9 p-0">
-                      <Grid3X3 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-9 w-9 p-0">
-                      <LayoutGrid className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-9">
-                      <TagsIcon className="h-4 w-4 mr-2" />
-                      2 por página
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-9">
-                      <TagsIcon className="h-4 w-4 mr-2" />
-                      4 por página
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Seleção de Pedidos */}
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <h2 className="text-xl font-semibold">Pedidos Pendentes</h2>
-            
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar pedido ou cliente..."
-                  className="pl-8"
-                  value={termoBusca}
-                  onChange={(e) => setTermoBusca(e.target.value)}
-                />
-              </div>
-              
-              <Select
-                value={transportadoraFiltro}
-                onValueChange={setTransportadoraFiltro}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Transportadora" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
-                  {transportadoras.map((transportadora) => (
-                    <SelectItem key={transportadora} value={transportadora}>
-                      {transportadora}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">
-                    <Checkbox 
-                      checked={pedidosSelecionados.length === pedidosFiltrados.length && pedidosFiltrados.length > 0}
-                      onCheckedChange={toggleSelecionarTodos}
-                    />
-                  </TableHead>
-                  <TableHead>Pedido</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Transportadora</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pedidosFiltrados.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                      Nenhum pedido encontrado com os filtros selecionados
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  pedidosFiltrados.map((pedido) => (
-                    <TableRow key={pedido.id}>
-                      <TableCell>
-                        <Checkbox 
-                          checked={pedidosSelecionados.includes(pedido.id)}
-                          onCheckedChange={() => togglePedidoSelecionado(pedido.id)}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{pedido.id}</TableCell>
-                      <TableCell>{pedido.cliente}</TableCell>
-                      <TableCell>{pedido.transportadora}</TableCell>
-                      <TableCell>{pedido.data}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Printer className="h-4 w-4 mr-2" />
-                          Imprimir
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {pedidosSelecionados.length} pedidos selecionados de {pedidosFiltrados.length} exibidos
-            </div>
-            
-            {pedidosSelecionados.length > 0 && (
-              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir {pedidosSelecionados.length} {pedidosSelecionados.length === 1 ? 'Etiqueta' : 'Etiquetas'}
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {/* Visualização prévia */}
-        {pedidosSelecionados.length > 0 && (
+
+        {/* Estatísticas de Etiquetas */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Visualização Prévia</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-800 border rounded-md">
-              <div className="text-center">
-                <Tag className="h-10 w-10 mb-2 text-muted-foreground mx-auto" />
-                <p className="text-muted-foreground">
-                  {pedidosSelecionados.length} {pedidosSelecionados.length === 1 ? 'etiqueta selecionada' : 'etiquetas selecionadas'}
-                </p>
-                <Button variant="outline" size="sm" className="mt-2">
-                  Visualizar
-                </Button>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Total de Etiquetas</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">{mockLabels.length}</span>
+                </div>
+                <div className="mt-4 text-blue-600 text-xs">
+                  <Tag className="h-3 w-3 inline mr-1" />
+                  Para {mockLabels.length} pedidos
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Etiquetas Pendentes</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockLabels.filter(label => label.status === "pendente").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-amber-600 text-xs">
+                  <X className="h-3 w-3 inline mr-1" />
+                  Aguardando geração
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Etiquetas Geradas</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockLabels.filter(label => label.status === "gerada").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-blue-600 text-xs">
+                  <QrCode className="h-3 w-3 inline mr-1" />
+                  Prontas para impressão
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Já Impressas</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockLabels.filter(label => label.status === "impressa").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-green-600 text-xs">
+                  <Check className="h-3 w-3 inline mr-1" />
+                  Prontas para expedição
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Barra de pesquisa e filtros */}
+        <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por etiqueta, pedido ou cliente..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Select value={selectedFormato} onValueChange={setSelectedFormato}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Formato" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os formatos</SelectItem>
+                <SelectItem value="10x15cm">10x15cm</SelectItem>
+                <SelectItem value="A6">A6</SelectItem>
+                <SelectItem value="A4">A4</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedTransportadora} onValueChange={setSelectedTransportadora}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Transportadora" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas as transportadoras</SelectItem>
+                <SelectItem value="Correios">Correios</SelectItem>
+                <SelectItem value="JADLOG">JADLOG</SelectItem>
+                <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
+                <SelectItem value="Transportadora Própria">Transportadora Própria</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Tabs de categorias */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="todas">Todas as Etiquetas</TabsTrigger>
+            <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
+            <TabsTrigger value="geradas">Geradas</TabsTrigger>
+            <TabsTrigger value="impressas">Impressas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={selectedTab} className="space-y-4">
+            {/* Tabela de etiquetas */}
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10">
+                        <Checkbox 
+                          checked={selectedLabels.length === filteredLabels.length && filteredLabels.length > 0}
+                          onCheckedChange={selectAllLabels}
+                          aria-label="Selecionar todas as etiquetas"
+                        />
+                      </TableHead>
+                      <TableHead>Nº Etiqueta</TableHead>
+                      <TableHead>Nº Pedido</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Transportadora</TableHead>
+                      <TableHead>Formato</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLabels.length > 0 ? (
+                      filteredLabels.map((label) => (
+                        <TableRow key={label.id}>
+                          <TableCell>
+                            <Checkbox 
+                              checked={selectedLabels.includes(label.id)}
+                              onCheckedChange={() => toggleLabelSelection(label.id)}
+                              aria-label={`Selecionar etiqueta ${label.id}`}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{label.id}</TableCell>
+                          <TableCell>{label.pedido}</TableCell>
+                          <TableCell>{label.cliente}</TableCell>
+                          <TableCell>{label.data}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Truck className="h-3 w-3 mr-1 text-muted-foreground" />
+                              {label.transportadora}
+                            </div>
+                          </TableCell>
+                          <TableCell>{label.formato}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="outline" 
+                              className={`
+                                ${label.status === "pendente" ? "bg-amber-50 text-amber-700 hover:bg-amber-50" : ""}
+                                ${label.status === "gerada" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
+                                ${label.status === "impressa" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
+                              `}
+                            >
+                              {label.status === "pendente" ? "Pendente" : 
+                              label.status === "gerada" ? "Gerada" : 
+                              "Impressa"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {label.status === "pendente" ? (
+                                <Button variant="outline" size="sm">
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Gerar
+                                </Button>
+                              ) : (
+                                <>
+                                  <Button variant="outline" size="sm">
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Printer className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-4">
+                          Nenhuma etiqueta encontrada
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="flex justify-between border-t px-6 py-4">
+                <div className="text-xs text-muted-foreground">
+                  Mostrando {filteredLabels.length} de {mockLabels.length} etiquetas
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
+                    Anterior
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
+                    Próximo
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Modelo de Etiqueta */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Modelos de Etiquetas</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { title: "Padrão 10x15cm", icon: <Tag size={20} />, info: "Correios" },
+              { title: "Formato A6", icon: <Tag size={20} />, info: "JADLOG" },
+              { title: "Formato A4 - 2 por página", icon: <Tag size={20} />, info: "Múltiplas" },
+              { title: "Transportadora Própria", icon: <Tag size={20} />, info: "Personalizada" },
+              { title: "Etiqueta Térmica", icon: <Tag size={20} />, info: "58mm" },
+              { title: "Adicionar novo modelo", icon: <Tag size={20} />, info: "Personalizada" }
+            ].map((modelo, index) => (
+              <Card 
+                key={index} 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center">
+                    {React.cloneElement(modelo.icon, { className: "text-green-600" })}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">{modelo.title}</h3>
+                    <p className="text-xs text-muted-foreground">{modelo.info}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     </OrganizationLayout>
   );
