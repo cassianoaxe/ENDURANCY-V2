@@ -133,19 +133,42 @@ function AppContent() {
     const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
-    if (!isLoading && !isAuthenticated && !isPublicPath) {
+    // Só redirecionamos se não estiver carregando, não estiver autenticado,
+    // não for uma página pública e não estiver já na página de login
+    if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
+      console.log("Redirecionando usuário não autenticado para o login");
       window.history.pushState({}, '', '/login');
       setCurrentPath('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
   
-  // Se o usuário acessar a raiz, redirecionar para login
+  // Se o usuário acessar a raiz, redirecionar para a página correta baseada no papel do usuário
   useEffect(() => {
     if (currentPath === '/') {
-      window.history.pushState({}, '', '/login');
-      setCurrentPath('/login');
+      // Se o usuário já estiver autenticado, redireciona para a dashboard apropriada
+      if (isAuthenticated) {
+        if (userRole === 'admin') {
+          window.history.pushState({}, '', '/dashboard');
+          setCurrentPath('/dashboard');
+        } else if (userRole === 'org_admin') {
+          window.history.pushState({}, '', '/organization/dashboard');
+          setCurrentPath('/organization/dashboard');
+        } else if (userRole === 'doctor') {
+          window.history.pushState({}, '', '/doctor/dashboard');
+          setCurrentPath('/doctor/dashboard');
+        } else if (userRole === 'patient') {
+          window.history.pushState({}, '', '/patient/dashboard');
+          setCurrentPath('/patient/dashboard');
+        } else {
+          window.history.pushState({}, '', '/login');
+          setCurrentPath('/login');
+        }
+      } else {
+        window.history.pushState({}, '', '/login');
+        setCurrentPath('/login');
+      }
     }
-  }, [currentPath]);
+  }, [currentPath, isAuthenticated, userRole]);
 
   // Render loading state
   if (isLoading) {
