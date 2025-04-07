@@ -6,7 +6,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
-import { Settings as SettingsIcon, Globe, Bell, Key, Mail, AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
+import { 
+  Settings as SettingsIcon, 
+  Globe, 
+  Bell, 
+  Key, 
+  Mail, 
+  AlertCircle, 
+  Plug, 
+  CreditCard, 
+  MessageSquare,
+  Brain,
+  Truck,
+  Link as Link2 
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -174,6 +189,7 @@ export default function Settings() {
           <TabsTrigger value="general">Geral</TabsTrigger>
           <TabsTrigger value="notifications">Notificações</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="email">E-mail</TabsTrigger>
           <TabsTrigger value="api">API</TabsTrigger>
         </TabsList>
@@ -253,6 +269,136 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="integrations">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Plug className="h-5 w-5 mr-2" />
+                Integrações
+              </CardTitle>
+              <p className="text-sm text-gray-500">
+                Gerencie todas as integrações do sistema em um único lugar. As integrações configuradas aqui serão aplicadas a todas as organizações.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <Link href="/integracoes/pagamentos/asaas" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <CreditCard className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">Asaas</h3>
+                            <p className="text-sm text-gray-500">Pagamentos</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Ativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Processe pagamentos via cartão, boleto, e PIX e gerencie cobranças recorrentes</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/integracoes/pagamentos/zoop" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <CreditCard className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">Zoop</h3>
+                            <p className="text-sm text-gray-500">Pagamentos</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Ativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Plataforma de pagamentos com taxas competitivas e múltiplas opções</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/integracoes/comunicacao/whatsapp" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <MessageSquare className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">WhatsApp</h3>
+                            <p className="text-sm text-gray-500">Comunicação</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">Ativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Envie mensagens automáticas e notificações via WhatsApp para pacientes e clientes</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/integracoes/ia/chatgpt" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <Brain className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">ChatGPT</h3>
+                            <p className="text-sm text-gray-500">Inteligência Artificial</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">Inativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Utilize o ChatGPT para automação de atendimento e análise de dados</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/integracoes/ia/claude" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <Brain className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">Claude (Anthropic)</h3>
+                            <p className="text-sm text-gray-500">Inteligência Artificial</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">Inativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Assistente de IA avançado para análises complexas e automação</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+                
+                <Link href="/integracoes/logistica/melhor-envio" className="block">
+                  <Card className="h-full hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                          <Truck className="h-8 w-8 text-primary mr-3" />
+                          <div>
+                            <h3 className="font-medium">Melhor Envio</h3>
+                            <p className="text-sm text-gray-500">Logística</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">Inativo</Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4">Calcule fretes e gerencie envios com as principais transportadoras</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
+              <div className="flex justify-center mt-6">
+                <Link href="/integracoes" className="flex items-center gap-2 text-primary hover:underline">
+                  <Link2 className="h-4 w-4" /> Ver todas as integrações disponíveis
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="security">
           <Card>
             <CardHeader>
