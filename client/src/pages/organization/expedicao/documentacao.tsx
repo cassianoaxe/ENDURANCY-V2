@@ -167,10 +167,10 @@ export default function DocumentacaoExpedicao() {
     if (selectedTab === "impressos" && doc.status !== "impresso") return false;
     
     // Filtro de tipo
-    if (selectedTipo && doc.tipo !== selectedTipo) return false;
+    if (selectedTipo && selectedTipo !== "all" && doc.tipo !== selectedTipo) return false;
     
     // Filtro de formato
-    if (selectedFormato && doc.formato !== selectedFormato) return false;
+    if (selectedFormato && selectedFormato !== "all" && doc.formato !== selectedFormato) return false;
     
     // Filtro de pesquisa
     if (searchTerm) {
@@ -299,7 +299,7 @@ export default function DocumentacaoExpedicao() {
                 <SelectValue placeholder="Tipo de Documento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="all">Todos os tipos</SelectItem>
                 <SelectItem value="nota-fiscal">Nota Fiscal</SelectItem>
                 <SelectItem value="manifesto">Manifesto de Carga</SelectItem>
                 <SelectItem value="recibo">Recibo de Entrega</SelectItem>
@@ -313,7 +313,7 @@ export default function DocumentacaoExpedicao() {
                 <SelectValue placeholder="Formato" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os formatos</SelectItem>
+                <SelectItem value="all">Todos os formatos</SelectItem>
                 <SelectItem value="PDF">PDF</SelectItem>
                 <SelectItem value="XML">XML</SelectItem>
                 <SelectItem value="CSV">CSV</SelectItem>
