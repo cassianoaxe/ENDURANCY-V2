@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,9 @@ import {
   UserPlus,
   UserCog,
   Shield,
-  Users
+  Users,
+  Loader2,
+  Check
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -63,6 +65,67 @@ export default function OrganizationSettings() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
+  
+  // Estados para preferências
+  const [preferences, setPreferences] = useState({
+    theme: "system",
+    timezone: "America/Sao_Paulo",
+    dateFormat: "dd/MM/yyyy",
+    language: "pt-BR"
+  });
+  
+  // Estado para controlar salvamento
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
+  
+  // Função para salvar as preferências
+  const savePreferences = async () => {
+    setIsSaving(true);
+    
+    try {
+      // Aqui seria a chamada para a API para salvar as preferências
+      // await apiRequest('/api/organizations/preferences', { method: 'POST', data: preferences });
+      
+      // Aplicar o tema selecionado
+      document.documentElement.classList.remove('light', 'dark');
+      
+      if (preferences.theme === 'light') {
+        document.documentElement.classList.add('light');
+      } else if (preferences.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        // Se for "system", verificar preferência do sistema
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.add('light');
+        }
+      }
+      
+      // Simular um pequeno delay para feedback visual
+      setTimeout(() => {
+        setSavedSuccess(true);
+        toast({
+          title: "Preferências salvas com sucesso!",
+          description: "Suas preferências foram atualizadas."
+        });
+        setIsSaving(false);
+        
+        // Reset do estado de sucesso após 3 segundos
+        setTimeout(() => {
+          setSavedSuccess(false);
+        }, 3000);
+      }, 500);
+    } catch (error) {
+      console.error("Erro ao salvar preferências:", error);
+      toast({
+        title: "Erro ao salvar preferências",
+        description: "Ocorreu um erro ao tentar salvar suas preferências. Tente novamente.",
+        variant: "destructive"
+      });
+      setIsSaving(false);
+    }
+  };
   
   // Estados para formulários
   const [inviteForm, setInviteForm] = useState({
@@ -333,7 +396,10 @@ export default function OrganizationSettings() {
                 <div className="grid gap-6">
                   <div>
                     <Label htmlFor="theme" className="text-sm font-medium mb-2 block">Tema</Label>
-                    <Select defaultValue="system">
+                    <Select 
+                      value={preferences.theme}
+                      onValueChange={(value) => setPreferences({...preferences, theme: value})}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o tema" />
                       </SelectTrigger>
@@ -350,7 +416,10 @@ export default function OrganizationSettings() {
                   
                   <div>
                     <Label htmlFor="timezone" className="text-sm font-medium mb-2 block">Fuso Horário</Label>
-                    <Select defaultValue="America/Sao_Paulo">
+                    <Select 
+                      value={preferences.timezone}
+                      onValueChange={(value) => setPreferences({...preferences, timezone: value})}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o fuso horário" />
                       </SelectTrigger>
@@ -368,7 +437,10 @@ export default function OrganizationSettings() {
                   
                   <div>
                     <Label htmlFor="date-format" className="text-sm font-medium mb-2 block">Formato de Data</Label>
-                    <Select defaultValue="dd/MM/yyyy">
+                    <Select 
+                      value={preferences.dateFormat}
+                      onValueChange={(value) => setPreferences({...preferences, dateFormat: value})}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o formato de data" />
                       </SelectTrigger>
@@ -385,7 +457,10 @@ export default function OrganizationSettings() {
                   
                   <div>
                     <Label htmlFor="language" className="text-sm font-medium mb-2 block">Idioma</Label>
-                    <Select defaultValue="pt-BR">
+                    <Select 
+                      value={preferences.language}
+                      onValueChange={(value) => setPreferences({...preferences, language: value})}
+                    >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o idioma" />
                       </SelectTrigger>
@@ -430,7 +505,24 @@ export default function OrganizationSettings() {
                   </div>
                   
                   <div className="pt-4 flex justify-end">
-                    <Button>Salvar Preferências</Button>
+                    <Button 
+                      onClick={savePreferences}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : savedSuccess ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4" />
+                          Salvo!
+                        </>
+                      ) : (
+                        'Salvar Preferências'
+                      )}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
