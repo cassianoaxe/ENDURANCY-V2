@@ -22,7 +22,16 @@ import {
   File,
   ClipboardList,
   FileSpreadsheet,
-  MoreHorizontal
+  MoreHorizontal,
+  Check,
+  X,
+  Share,
+  Mail,
+  Copy,
+  Archive,
+  EyeIcon,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -42,11 +51,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 // Dados de exemplo para documentos
 const mockDocuments = [
@@ -146,17 +178,235 @@ const documentTypes = [
   }
 ];
 
+// Dados de exemplo de pedidos para selecionar ao criar documentos
+const mockOrders = [
+  { id: "PED-12345", cliente: "Carlos Silva", status: "Em Preparação", data: "07/04/2025", itens: 5 },
+  { id: "PED-12346", cliente: "Maria Oliveira", status: "Pronto para Envio", data: "07/04/2025", itens: 3 },
+  { id: "PED-12347", cliente: "João Santos", status: "Em Preparação", data: "06/04/2025", itens: 2 },
+  { id: "PED-12348", cliente: "Ana Pereira", status: "Aguardando Confirmação", data: "06/04/2025", itens: 4 },
+  { id: "PED-12349", cliente: "Roberto Almeida", status: "Pronto para Envio", data: "05/04/2025", itens: 7 },
+  { id: "PED-12350", cliente: "Fernanda Costa", status: "Em Preparação", data: "05/04/2025", itens: 1 }
+];
+
+// Exemplo de conteúdo para cada tipo de documento
+const documentoExemplo = {
+  "nota-fiscal": `
+NOTA FISCAL ELETRÔNICA - NF-e
+Nº 000.000.001
+SÉRIE: 001
+
+EMITENTE: ENDURANCY LOGISTICS S.A.
+CNPJ: 00.000.000/0001-00
+INSCRIÇÃO ESTADUAL: 000.000.000.000
+
+DESTINATÁRIO:
+NOME: CARLOS SILVA
+CPF/CNPJ: 000.000.000-00
+ENDEREÇO: AV. BRASIL, 1500
+BAIRRO: CENTRO
+CIDADE: SÃO PAULO - SP
+CEP: 00000-000
+
+ITENS:
+1. PRODUTO A - QTD: 2 - VALOR UNIT: R$ S00,00 - VALOR TOTAL: R$ 1.000,00
+2. PRODUTO B - QTD: 1 - VALOR UNIT: R$ 300,00 - VALOR TOTAL: R$ 300,00
+3. PRODUTO C - QTD: 3 - VALOR UNIT: R$ 200,00 - VALOR TOTAL: R$ 600,00
+
+VALOR TOTAL DA NOTA: R$ 1.900,00
+VALOR DO IMPOSTO: R$ 342,00
+
+DATA DE EMISSÃO: 07/04/2025
+CHAVE DE ACESSO: 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+  `,
+  "manifesto": `
+MANIFESTO ELETRÔNICO DE DOCUMENTOS FISCAIS
+MDF-e Nº 000000001
+SÉRIE: 001
+
+EMITENTE: ENDURANCY LOGISTICS S.A.
+CNPJ: 00.000.000/0001-00
+
+INFORMAÇÕES DA CARGA:
+TIPO DE CARGA: PRODUTOS DIVERSOS
+PESO BRUTO: 120,00 KG
+VALOR TOTAL DA CARGA: R$ 10.500,00
+
+MODAL DE TRANSPORTE: RODOVIÁRIO
+VEÍCULO: PLACA ABC-1234
+MOTORISTA: JOÃO SILVA - CPF: 000.000.000-00
+
+DOCUMENTOS VINCULADOS:
+- NF-e 000.000.001 - DESTINATÁRIO: CARLOS SILVA
+- NF-e 000.000.002 - DESTINATÁRIO: MARIA OLIVEIRA
+- NF-e 000.000.003 - DESTINATÁRIO: JOÃO SANTOS
+
+ROTA:
+ORIGEM: SÃO PAULO - SP
+DESTINO: RIO DE JANEIRO - RJ
+PREVISÃO DE ENTREGA: 09/04/2025
+
+OBSERVAÇÕES:
+CARGA CONTÉM PRODUTOS FRÁGEIS. MANUSEAR COM CUIDADO.
+  `,
+  "recibo": `
+RECIBO DE ENTREGA
+Nº 00001
+
+DECLARAMOS QUE RECEBEMOS OS PRODUTOS CONSTANTES DA 
+NOTA FISCAL Nº 000.000.001 EMITIDA POR ENDURANCY LOGISTICS S.A.
+
+NOME DO RECEBEDOR: CARLOS SILVA
+DOCUMENTO: 000.000.000-00
+DATA/HORA DO RECEBIMENTO: 09/04/2025 - 14:30h
+
+CONDIÇÃO DOS PRODUTOS:
+[X] EMBALAGEM ÍNTEGRA
+[X] QUANTIDADE CORRETA
+[X] SEM AVARIAS VISÍVEIS
+
+OBSERVAÇÕES DO RECEBEDOR:
+Produtos recebidos em perfeito estado.
+
+__________________________
+ASSINATURA DO RECEBEDOR
+  `,
+  "lista-embalagem": `
+LISTA DE EMBALAGEM (PACKING LIST)
+PEDIDO: PED-12345
+CLIENTE: CARLOS SILVA
+
+VOLUME 1 DE 2:
+- PRODUTO A - QTD: 2 - PESO: 5 KG
+- PRODUTO B - QTD: 1 - PESO: 3 KG
+PESO TOTAL: 8 KG
+DIMENSÕES: 40 x 30 x 20 cm
+
+VOLUME 2 DE 2:
+- PRODUTO C - QTD: 3 - PESO: 6 KG
+PESO TOTAL: 6 KG
+DIMENSÕES: 35 x 25 x 15 cm
+
+PESO TOTAL DA REMESSA: 14 KG
+TOTAL DE VOLUMES: 2
+CUBAGEM TOTAL: 0,042 m³
+
+OBSERVAÇÕES:
+ARMAZENAR EM LOCAL SECO. 
+NÃO EMPILHAR MAIS DE 3 CAIXAS.
+  `,
+  "conhecimento": `
+CONHECIMENTO DE TRANSPORTE ELETRÔNICO
+CT-e Nº 000000001
+SÉRIE: 001
+
+TRANSPORTADOR: ENDURANCY LOGISTICS S.A.
+CNPJ: 00.000.000/0001-00
+INSCRIÇÃO ESTADUAL: 000.000.000.000
+
+REMETENTE:
+ENDURANCY LOGISTICS S.A.
+CNPJ: 00.000.000/0001-00
+ENDEREÇO: RUA INDUSTRIAL, 1000 - SÃO PAULO - SP
+
+DESTINATÁRIO:
+CARLOS SILVA
+CPF: 000.000.000-00
+ENDEREÇO: AV. BRASIL, 1500 - RIO DE JANEIRO - RJ
+
+DOCUMENTOS VINCULADOS:
+- NF-e 000.000.001
+
+INFORMAÇÕES DA CARGA:
+VOLUMES: 2
+PESO BRUTO: 14 KG
+VALOR TOTAL: R$ 1.900,00
+PREVISÃO DE ENTREGA: 09/04/2025
+
+VALOR DO FRETE: R$ 150,00
+VALOR DO SEGURO: R$ 95,00
+VALOR TOTAL DO CT-e: R$ 245,00
+
+DATA DE EMISSÃO: 07/04/2025
+CHAVE DE ACESSO: 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+  `
+};
+
 export default function DocumentacaoExpedicao() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("");
   const [selectedFormato, setSelectedFormato] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isNewDocModalOpen, setIsNewDocModalOpen] = useState(false);
+  const [isDocSuccessModalOpen, setIsDocSuccessModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [selectedDocType, setSelectedDocType] = useState("");
+  const [observations, setObservations] = useState("");
+  const [newDocId, setNewDocId] = useState("");
 
   // Função para navegação entre páginas
   const navigateTo = (path: string) => {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new Event("popstate"));
+  };
+
+  // Função para abrir a visualização do documento
+  const openDocumentPreview = (doc: any) => {
+    setSelectedDocument(doc);
+    setIsPreviewOpen(true);
+  };
+
+  // Função para baixar documento
+  const downloadDocument = (docId: string) => {
+    toast({
+      title: "Download iniciado",
+      description: `O documento ${docId} está sendo baixado`,
+      variant: "default",
+    });
+  };
+
+  // Função para imprimir documento
+  const printDocument = (docId: string) => {
+    toast({
+      title: "Enviado para impressão",
+      description: `O documento ${docId} foi enviado para impressão`,
+      variant: "default",
+    });
+  };
+
+  // Função para enviar documento por e-mail
+  const sendDocumentByEmail = (docId: string) => {
+    toast({
+      title: "E-mail enviado",
+      description: `O documento ${docId} foi enviado por e-mail com sucesso`,
+      variant: "default",
+    });
+  };
+
+  // Função para gerar novo documento
+  const generateDocument = () => {
+    if (!selectedOrderId || !selectedDocType) {
+      toast({
+        title: "Dados incompletos",
+        description: "Selecione o pedido e o tipo de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Lógica de geração de documento (simulação)
+    const newDocumentId = `DOC-${Math.floor(10000 + Math.random() * 90000)}`;
+    setNewDocId(newDocumentId);
+    setIsNewDocModalOpen(false);
+    setIsDocSuccessModalOpen(true);
+    
+    // Limpar formulário
+    setSelectedOrderId("");
+    setSelectedDocType("");
+    setObservations("");
   };
 
   // Função para filtrar documentos com base na guia selecionada e no termo de pesquisa
@@ -206,7 +456,7 @@ export default function DocumentacaoExpedicao() {
             </p>
           </div>
           <div className="flex space-x-2">
-            <Button>
+            <Button onClick={() => setIsNewDocModalOpen(true)}>
               <FilePlus className="h-4 w-4 mr-2" />
               Novo Documento
             </Button>
@@ -379,16 +629,42 @@ export default function DocumentacaoExpedicao() {
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
                               {doc.status === "pendente" ? (
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Documento gerado com sucesso",
+                                      description: `O documento ${doc.id} foi gerado e está pronto para uso`,
+                                      variant: "default",
+                                    });
+                                    
+                                    // Na implementação real, isso atualizaria o status no banco de dados
+                                    // Aqui apenas abrimos a visualização do documento com um mock atualizado
+                                    const updatedDoc = {...doc, status: "gerado"};
+                                    setTimeout(() => {
+                                      setSelectedDocument(updatedDoc);
+                                      setIsPreviewOpen(true);
+                                    }, 500);
+                                  }}
+                                >
                                   <FileText className="h-4 w-4 mr-2" />
                                   Gerar
                                 </Button>
                               ) : (
                                 <>
-                                  <Button variant="outline" size="sm">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => downloadDocument(doc.id)}
+                                  >
                                     <Download className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="outline" size="sm">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => printDocument(doc.id)}
+                                  >
                                     <Printer className="h-4 w-4" />
                                   </Button>
                                   <DropdownMenu>
@@ -398,10 +674,23 @@ export default function DocumentacaoExpedicao() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem>Visualizar</DropdownMenuItem>
-                                      <DropdownMenuItem>Enviar por e-mail</DropdownMenuItem>
-                                      <DropdownMenuItem>Duplicar</DropdownMenuItem>
-                                      <DropdownMenuItem>Arquivar</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => openDocumentPreview(doc)}>
+                                        <EyeIcon className="h-4 w-4 mr-2" />
+                                        Visualizar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => sendDocumentByEmail(doc.id)}>
+                                        <Mail className="h-4 w-4 mr-2" />
+                                        Enviar por e-mail
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem>
+                                        <Copy className="h-4 w-4 mr-2" />
+                                        Duplicar
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem>
+                                        <Archive className="h-4 w-4 mr-2" />
+                                        Arquivar
+                                      </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </>
@@ -459,6 +748,326 @@ export default function DocumentacaoExpedicao() {
             ))}
           </div>
         </div>
+
+        {/* Modal de Visualização de Documento */}
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                {selectedDocument && (
+                  <>
+                    Documento {selectedDocument.id}
+                    <Badge 
+                      variant="outline" 
+                      className={`ml-3 ${
+                        selectedDocument.status === "pendente" ? "bg-amber-50 text-amber-700" : 
+                        selectedDocument.status === "gerado" ? "bg-blue-50 text-blue-700" : 
+                        "bg-green-50 text-green-700"
+                      }`}
+                    >
+                      {selectedDocument.status === "pendente" ? "Pendente" : 
+                      selectedDocument.status === "gerado" ? "Gerado" : "Impresso"}
+                    </Badge>
+                  </>
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedDocument && (
+                  <span className="text-sm">
+                    Pedido <span className="font-medium">{selectedDocument.pedido}</span> • 
+                    Cliente <span className="font-medium">{selectedDocument.cliente}</span>
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedDocument && (
+              <>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-medium">Informações do Documento</h3>
+                    </div>
+                    <div className="bg-muted rounded-md overflow-hidden">
+                      <div className="grid grid-cols-2 gap-2 text-xs p-3">
+                        <div>
+                          <span className="text-muted-foreground">Tipo:</span>
+                          <span className="font-medium ml-1">
+                            {documentTypes.find(type => type.id === selectedDocument.tipo)?.nome || selectedDocument.tipo}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Data de Emissão:</span>
+                          <span className="font-medium ml-1">{selectedDocument.data}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Formato:</span>
+                          <span className="font-medium ml-1">{selectedDocument.formato}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Tamanho:</span>
+                          <span className="font-medium ml-1">{selectedDocument.tamanho}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground">Última Atualização:</span>
+                          <span className="font-medium ml-1">{selectedDocument.data} às 14:30</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-sm font-medium">Detalhes do Pedido</h3>
+                    </div>
+                    <div className="bg-muted rounded-md overflow-hidden">
+                      <div className="grid grid-cols-2 gap-2 text-xs p-3">
+                        <div>
+                          <span className="text-muted-foreground">Pedido:</span>
+                          <span className="font-medium ml-1">{selectedDocument.pedido}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Data do Pedido:</span>
+                          <span className="font-medium ml-1">{selectedDocument.data}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Cliente:</span>
+                          <span className="font-medium ml-1">{selectedDocument.cliente}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">E-mail:</span>
+                          <span className="font-medium ml-1">{selectedDocument.cliente.toLowerCase().replace(/\s/g, ".") + "@exemplo.com"}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground">Endereço:</span>
+                          <span className="font-medium ml-1">Av. Brasil, 1500 - São Paulo, SP</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="flex flex-col space-y-2">
+                  <h3 className="text-sm font-medium mb-1">Pré-visualização do Documento</h3>
+                  <Card className="border border-gray-200">
+                    <CardContent className="p-3">
+                      <pre className="text-xs whitespace-pre-wrap font-mono overflow-auto max-h-80 bg-slate-50 p-4 rounded-md">
+                        {documentoExemplo[selectedDocument.tipo as keyof typeof documentoExemplo]}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:gap-0">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(false)}>
+                      <X className="h-4 w-4 mr-1" />
+                      Fechar
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        downloadDocument(selectedDocument.id);
+                        setIsPreviewOpen(false);
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Baixar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        printDocument(selectedDocument.id);
+                        setIsPreviewOpen(false);
+                      }}
+                    >
+                      <Printer className="h-4 w-4 mr-1" />
+                      Imprimir
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => {
+                        sendDocumentByEmail(selectedDocument.id);
+                        setIsPreviewOpen(false);
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Enviar por E-mail
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal para criar novo documento */}
+        <Dialog open={isNewDocModalOpen} onOpenChange={setIsNewDocModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FilePlus className="h-5 w-5" />
+                Gerar Novo Documento
+              </DialogTitle>
+              <DialogDescription>
+                Selecione o pedido e o tipo de documento que deseja gerar.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="order">Pedido</Label>
+                <Select value={selectedOrderId} onValueChange={setSelectedOrderId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um pedido" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockOrders.map((order) => (
+                      <SelectItem key={order.id} value={order.id}>
+                        {order.id} - {order.cliente}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedOrderId && (
+                  <div className="mt-2 p-2 bg-slate-50 rounded-md text-xs border">
+                    <div className="font-medium mb-1 text-gray-700">Detalhes do Pedido:</div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      <div><span className="text-gray-500">Cliente:</span> {mockOrders.find(o => o.id === selectedOrderId)?.cliente}</div>
+                      <div><span className="text-gray-500">Status:</span> {mockOrders.find(o => o.id === selectedOrderId)?.status}</div>
+                      <div><span className="text-gray-500">Data:</span> {mockOrders.find(o => o.id === selectedOrderId)?.data}</div>
+                      <div><span className="text-gray-500">Itens:</span> {mockOrders.find(o => o.id === selectedOrderId)?.itens}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="doc-type">Tipo de Documento</Label>
+                <Select value={selectedDocType} onValueChange={setSelectedDocType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de documento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedDocType && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    {documentTypes.find(type => type.id === selectedDocType)?.icone}
+                    <span>{documentTypes.find(type => type.id === selectedDocType)?.descricao}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="observations">Observações (opcional)</Label>
+                <Textarea
+                  id="observations"
+                  placeholder="Adicione informações ou instruções especiais para este documento"
+                  value={observations}
+                  onChange={(e) => setObservations(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsNewDocModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={generateDocument}>
+                Gerar Documento
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Modal de sucesso ao gerar documento */}
+        <Dialog open={isDocSuccessModalOpen} onOpenChange={setIsDocSuccessModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 className="h-5 w-5" />
+                Documento Gerado com Sucesso
+              </DialogTitle>
+              <DialogDescription>
+                O documento foi gerado e está pronto para ser utilizado.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="bg-green-50 p-4 rounded-md border border-green-100 my-2">
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-md p-2 border border-green-200">
+                  <FileText className="h-8 w-8 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium">{newDocId}</h4>
+                  <p className="text-xs text-gray-500">Gerado em {new Date().toLocaleDateString()} às {new Date().toLocaleTimeString()}</p>
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button 
+                  className="flex-1 sm:flex-auto"
+                  variant="outline" 
+                  onClick={() => setIsDocSuccessModalOpen(false)}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  OK
+                </Button>
+                <Button 
+                  className="flex-1 sm:flex-auto"
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDocSuccessModalOpen(false);
+                    setTimeout(() => {
+                      const mockDoc = {
+                        id: newDocId,
+                        pedido: selectedOrderId,
+                        cliente: mockOrders.find(o => o.id === selectedOrderId)?.cliente || "",
+                        data: new Date().toLocaleDateString('pt-BR'),
+                        tipo: selectedDocType,
+                        formato: "PDF",
+                        tamanho: `${Math.floor(100 + Math.random() * 400)} KB`,
+                        status: "gerado"
+                      };
+                      setSelectedDocument(mockDoc);
+                      setIsPreviewOpen(true);
+                    }, 100);
+                  }}
+                >
+                  <EyeIcon className="h-4 w-4 mr-1" />
+                  Visualizar
+                </Button>
+                <Button 
+                  className="flex-1 sm:flex-auto"
+                  variant="default" 
+                  onClick={() => {
+                    downloadDocument(newDocId);
+                    setIsDocSuccessModalOpen(false);
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Baixar
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </OrganizationLayout>
   );
