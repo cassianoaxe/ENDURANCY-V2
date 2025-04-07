@@ -420,6 +420,7 @@ export default function Etiquetas() {
                 margin: 0;
                 padding: 0;
                 background-color: white;
+                line-height: 1.5;
               }
               
               .print-container {
@@ -432,12 +433,15 @@ export default function Etiquetas() {
               }
               
               .label-wrapper {
-                border: 1px solid #ddd;
+                border: 2px solid #e0e0e0;
+                border-radius: 5mm;
                 padding: 15mm;
                 margin: 0 auto;
                 background-color: white;
                 page-break-inside: avoid;
                 box-sizing: border-box;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
               }
               .label-a4 {
                 width: 190mm;
@@ -463,14 +467,21 @@ export default function Etiquetas() {
               h2 {
                 font-size: 18pt;
                 margin: 0 0 3mm 0;
+                color: #2563eb;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 2mm;
               }
               h3 {
                 font-size: 16pt;
-                margin: 0 0 2mm 0;
+                margin: 0 0 3mm 0;
+                color: #111827;
+                font-weight: 600;
               }
               p {
                 font-size: 11pt;
-                margin: 0 0 2mm 0;
+                margin: 0 0 2.5mm 0;
+                color: #374151;
+                line-height: 1.4;
               }
               .barcode {
                 background-color: black;
@@ -487,19 +498,23 @@ export default function Etiquetas() {
               }
               .separator {
                 width: 100%;
-                height: 1px;
-                background-color: #ddd;
-                margin: 6mm 0;
+                height: 2px;
+                background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
+                margin: 8mm 0;
+                border-radius: 1mm;
               }
               .text-small {
                 font-size: 10pt;
-                margin-bottom: 1.5mm;
+                margin-bottom: 2mm;
+                color: #444;
               }
               .observation-box {
-                background-color: #fff9e6;
-                padding: 3mm;
-                border-radius: 2mm;
-                margin-top: 5mm;
+                background-color: #fff6e0;
+                padding: 4mm;
+                border-radius: 3mm;
+                margin-top: 6mm;
+                border-left: 3px solid #ffd166;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
               }
               @media print {
                 @page {
@@ -623,16 +638,29 @@ export default function Etiquetas() {
           <title>Pacote de etiquetas - ${new Date().toLocaleDateString()}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: 'Arial', sans-serif;
               margin: 0;
               padding: 20px;
+              color: #333;
+              background-color: #f9f9f9;
+            }
+            h1 {
+              text-align: center;
+              margin-bottom: 30px;
+              color: #2563eb;
+              font-size: 24pt;
+              border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 10px;
             }
             .label-container {
               max-width: 600px;
-              margin: 0 auto 30px;
-              padding: 20px;
-              border: 1px solid #ccc;
-              border-radius: 5px;
+              margin: 0 auto 40px;
+              padding: 30px;
+              border: 2px solid #e0e0e0;
+              border-radius: 8px;
+              background-color: white;
+              background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
+              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
               page-break-after: always;
             }
             .header {
@@ -640,33 +668,78 @@ export default function Etiquetas() {
               justify-content: space-between;
               margin-bottom: 20px;
             }
+            .header h2 {
+              font-size: 18pt;
+              margin: 0 0 8px 0;
+              color: #2563eb;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 6px;
+            }
+            .header h3 {
+              font-size: 16pt;
+              margin: 0 0 8px 0;
+              color: #111827;
+              font-weight: 600;
+            }
             .address {
-              margin-bottom: 15px;
+              margin-bottom: 20px;
+              line-height: 1.4;
+            }
+            .address p {
+              margin: 0 0 8px 0;
+              color: #374151;
             }
             .barcode {
-              background: #000;
-              color: #fff;
-              padding: 5px 10px;
+              background: linear-gradient(to bottom, #000000, #2c2c2c);
+              color: white;
+              padding: 10px 15px;
               font-family: monospace;
               font-size: 12px;
               display: inline-block;
               margin-top: 10px;
+              letter-spacing: 0.8px;
+              border-radius: 4px;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+              position: relative;
+            }
+            .barcode:after {
+              content: "";
+              display: block;
+              height: 2px;
+              width: 90%;
+              background: rgba(255,255,255,0.2);
+              position: absolute;
+              top: 15%;
+              left: 5%;
+              border-radius: 1px;
             }
             .divider {
-              height: 1px;
-              background: #ddd;
-              margin: 15px 0;
+              height: 2px;
+              background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
+              margin: 25px 0;
+              border-radius: 1px;
             }
             .footer {
               display: flex;
               justify-content: space-between;
             }
+            .footer h4 {
+              font-size: 14pt;
+              margin: 0 0 10px 0;
+              color: #111827;
+            }
+            .footer p {
+              margin: 0 0 6px 0;
+              color: #374151;
+            }
             .notes {
-              margin-top: 15px;
-              padding: 10px;
-              background: #fffbeb;
-              border-radius: 5px;
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #fff6e0;
+              border-radius: 6px;
               font-size: 14px;
+              border-left: 3px solid #ffd166;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
             h1 {
               text-align: center;
@@ -823,11 +896,13 @@ export default function Etiquetas() {
                 padding: 10mm;
               }
               .label-wrapper {
-                border: 1px solid #ddd;
-                padding: 10mm;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                border: 2px solid #e0e0e0;
+                border-radius: 5mm;
+                padding: 15mm;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 margin: 0 auto;
                 background-color: white;
+                background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
                 page-break-inside: avoid;
                 page-break-after: always;
               }
@@ -855,42 +930,67 @@ export default function Etiquetas() {
               h2 {
                 font-size: 18pt;
                 margin: 0 0 3mm 0;
+                color: #2563eb;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 2mm;
               }
               h3 {
                 font-size: 14pt;
-                margin: 0 0 2mm 0;
+                margin: 0 0 3mm 0;
+                color: #111827;
+                font-weight: 600;
               }
               p {
                 font-size: 10pt;
-                margin: 0 0 1mm 0;
+                margin: 0 0 2.5mm 0;
+                color: #374151;
+                line-height: 1.4;
               }
               .barcode {
-                background-color: black;
+                background: linear-gradient(to bottom, #000000, #2c2c2c);
                 color: white;
-                padding: 3mm 4mm;
+                padding: 4mm 6mm;
                 font-family: monospace;
-                border-radius: 1mm;
+                border-radius: 2mm;
                 font-size: 11pt;
                 display: inline-block;
-                margin-bottom: 3mm;
+                margin-bottom: 4mm;
                 text-align: center;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.8px;
                 font-weight: 500;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+                position: relative;
+              }
+              .barcode:after {
+                content: "";
+                display: block;
+                height: 1mm;
+                width: 90%;
+                background: rgba(255,255,255,0.2);
+                position: absolute;
+                top: 15%;
+                left: 5%;
+                border-radius: 0.5mm;
               }
               .separator {
                 width: 100%;
-                height: 1px;
-                background-color: #ddd;
-                margin: 4mm 0;
+                height: 2px;
+                background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
+                margin: 8mm 0;
+                border-radius: 1mm;
               }
               .text-small {
-                font-size: 9pt;
+                font-size: 10pt;
+                margin-bottom: 2mm;
+                color: #444;
               }
               .observation-box {
-                background-color: #fff9e6;
-                padding: 2mm;
-                border-radius: 1mm;
-                margin-top: 3mm;
+                background-color: #fff6e0;
+                padding: 4mm;
+                border-radius: 3mm;
+                margin-top: 6mm;
+                border-left: 3px solid #ffd166;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
               }
               @media print {
                 @page {
@@ -1031,49 +1131,99 @@ export default function Etiquetas() {
           <title>Etiqueta ${label.id}</title>
           <style>
             body {
-              font-family: Arial, sans-serif;
+              font-family: 'Arial', sans-serif;
               margin: 0;
               padding: 20px;
+              color: #333;
+              background-color: #f9f9f9;
             }
             .label-container {
               max-width: 500px;
               margin: 0 auto;
-              padding: 20px;
-              border: 1px solid #ccc;
-              border-radius: 5px;
+              padding: 30px;
+              border: 2px solid #e0e0e0;
+              border-radius: 8px;
+              background-color: white;
+              background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
+              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             }
             .header {
               display: flex;
               justify-content: space-between;
               margin-bottom: 20px;
             }
+            .header h2 {
+              font-size: 18pt;
+              margin: 0 0 8px 0;
+              color: #2563eb;
+              border-bottom: 1px solid #e5e7eb;
+              padding-bottom: 6px;
+            }
+            .header h3 {
+              font-size: 16pt;
+              margin: 0 0 8px 0;
+              color: #111827;
+              font-weight: 600;
+            }
             .address {
-              margin-bottom: 15px;
+              margin-bottom: 20px;
+              line-height: 1.4;
+            }
+            .address p {
+              margin: 0 0 8px 0;
+              color: #374151;
             }
             .barcode {
-              background: #000;
-              color: #fff;
-              padding: 5px 10px;
+              background: linear-gradient(to bottom, #000000, #2c2c2c);
+              color: white;
+              padding: 10px 15px;
               font-family: monospace;
               font-size: 12px;
               display: inline-block;
               margin-top: 10px;
+              letter-spacing: 0.8px;
+              border-radius: 4px;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+              position: relative;
+            }
+            .barcode:after {
+              content: "";
+              display: block;
+              height: 2px;
+              width: 90%;
+              background: rgba(255,255,255,0.2);
+              position: absolute;
+              top: 15%;
+              left: 5%;
+              border-radius: 1px;
             }
             .divider {
-              height: 1px;
-              background: #ddd;
-              margin: 15px 0;
+              height: 2px;
+              background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
+              margin: 25px 0;
+              border-radius: 1px;
             }
             .footer {
               display: flex;
               justify-content: space-between;
             }
+            .footer h4 {
+              font-size: 14pt;
+              margin: 0 0 10px 0;
+              color: #111827;
+            }
+            .footer p {
+              margin: 0 0 6px 0;
+              color: #374151;
+            }
             .notes {
-              margin-top: 15px;
-              padding: 10px;
-              background: #fffbeb;
-              border-radius: 5px;
+              margin-top: 20px;
+              padding: 15px;
+              background-color: #fff6e0;
+              border-radius: 6px;
               font-size: 14px;
+              border-left: 3px solid #ffd166;
+              box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
           </style>
         </head>
