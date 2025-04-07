@@ -1018,7 +1018,9 @@ export default function OrganizationSettings() {
             <div className="grid gap-4 py-4">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  {editingUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  {/* Extraindo iniciais do nome para o avatar */}
+                  {editingUser.name.split(' ').reduce((initials: string, namePart: string) => 
+                    initials + (namePart.charAt(0) || ''), '').substring(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <p className="font-medium">{editingUser.name}</p>
