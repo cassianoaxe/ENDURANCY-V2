@@ -94,7 +94,7 @@ export default function OrganizationDashboard() {
               value="producao" 
               className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             >
-              Produção
+              Expedição
             </TabsTrigger>
           </TabsList>
           
@@ -381,13 +381,13 @@ export default function OrganizationDashboard() {
           <TabsContent value="producao" className="space-y-4">
             <Card className="border rounded-lg shadow-sm bg-white">
               <CardHeader className="p-4">
-                <CardTitle>Controle de Produção</CardTitle>
+                <CardTitle>Controle de Expedição</CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                   <Card className="border">
                     <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-medium">Status de Produção</CardTitle>
+                      <CardTitle className="text-sm font-medium">Status de Expedição</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="space-y-4">
@@ -402,7 +402,7 @@ export default function OrganizationDashboard() {
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-1">
-                            <span>Em Produção</span>
+                            <span>Em Expedição</span>
                             <span>12/20</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -424,7 +424,7 @@ export default function OrganizationDashboard() {
                   
                   <Card className="border">
                     <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-sm font-medium">Produtividade</CardTitle>
+                      <CardTitle className="text-sm font-medium">Eficiência de Expedição</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="h-[200px] flex items-center justify-center bg-gray-50 rounded">
@@ -436,7 +436,7 @@ export default function OrganizationDashboard() {
                 
                 <div className="border rounded-lg">
                   <div className="p-4 border-b bg-gray-50">
-                    <h3 className="font-medium">Lotes em Produção</h3>
+                    <h3 className="font-medium">Lotes em Expedição</h3>
                   </div>
                   <table className="w-full">
                     <thead>
