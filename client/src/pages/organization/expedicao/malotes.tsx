@@ -158,7 +158,7 @@ export default function RegistroMalotes() {
     if (selectedTab === "entregues" && pkg.status !== "entregue") return false;
     
     // Filtro de transportadora
-    if (selectedTransportadora && pkg.transportadora !== selectedTransportadora) return false;
+    if (selectedTransportadora && selectedTransportadora !== "all" && pkg.transportadora !== selectedTransportadora) return false;
     
     // Filtro de pesquisa
     if (searchTerm) {
@@ -293,7 +293,7 @@ export default function RegistroMalotes() {
                 <SelectValue placeholder="Transportadora" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as transportadoras</SelectItem>
+                <SelectItem value="all">Todas as transportadoras</SelectItem>
                 {transportadoras.map((transp) => (
                   <SelectItem key={transp} value={transp}>{transp}</SelectItem>
                 ))}
