@@ -90,7 +90,16 @@ export const orders = pgTable("orders", {
   status: text("status").notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
   items: text("items").array().notNull(),
+  
+  // Campos para pagamentos por email
+  organizationId: integer("organization_id"),
+  planId: integer("plan_id"),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  paymentMethod: text("payment_method"),
+  paymentToken: text("payment_token").unique(),
+  description: text("description"),
 });
 
 export const doctors = pgTable("doctors", {
@@ -248,6 +257,13 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   status: true,
   total: true,
   items: true,
+  organizationId: true,
+  planId: true,
+  amount: true,
+  paymentMethod: true,
+  paymentToken: true,
+  description: true,
+  updatedAt: true,
 });
 
 export const insertPlanSchema = createInsertSchema(plans).pick({
