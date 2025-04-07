@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
@@ -17,12 +18,28 @@ import {
   Box,
   PackagePlus,
   Link,
+  Link2,
   Check,
   Unlink,
   Clock,
   Trash2,
   ArrowUpDown,
-  MoreHorizontal
+  MoreHorizontal,
+  PackageCheck,
+  Filter,
+  FileText,
+  Printer,
+  ExternalLink,
+  X,
+  AlertCircle,
+  Info,
+  Tag,
+  Truck,
+  User,
+  MapPin,
+  CalendarDays,
+  CheckCircle2,
+  Package
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,9 +53,29 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -126,8 +163,67 @@ const mockAvailableOrders = [
   }
 ];
 
+// Dados adicionais de pedidos para visualização detalhada
+const mockOrderDetails = {
+  "PED-12345": {
+    cliente: "Carlos Silva",
+    itens: [
+      { id: "ITEM-001", nome: "Produto A", quantidade: 2, peso: "1.5kg" },
+      { id: "ITEM-002", nome: "Produto B", quantidade: 1, peso: "0.8kg" }
+    ],
+    endereco: "Av. Brasil, 1500, Rio de Janeiro, RJ",
+    cep: "20000-000",
+    status: "separado",
+    valorTotal: "R$ 350,00",
+    pesoTotal: "2.3kg",
+    volumeTotal: "0,015m³",
+    dataPedido: "05/04/2025",
+    dataEntrega: "09/04/2025"
+  },
+  "PED-12346": {
+    cliente: "Maria Oliveira",
+    itens: [
+      { id: "ITEM-003", nome: "Produto C", quantidade: 3, peso: "2.0kg" }
+    ],
+    endereco: "Rua Voluntários da Pátria, 250, Rio de Janeiro, RJ",
+    cep: "20000-001",
+    status: "separado",
+    valorTotal: "R$ 420,00",
+    pesoTotal: "2.0kg",
+    volumeTotal: "0,010m³",
+    dataPedido: "05/04/2025",
+    dataEntrega: "09/04/2025"
+  }
+};
+
+// Transportadoras disponíveis
+const mockCarriers = [
+  { id: "TRANS-001", nome: "Transportadora Rápida", tipo: "Terrestre", tempoEntrega: "2-3 dias" },
+  { id: "TRANS-002", nome: "Envio Express", tipo: "Aérea", tempoEntrega: "1 dia" },
+  { id: "TRANS-003", nome: "Logística Total", tipo: "Terrestre", tempoEntrega: "3-5 dias" },
+  { id: "TRANS-004", nome: "Entrega Econômica", tipo: "Terrestre", tempoEntrega: "5-7 dias" }
+];
+
+// Interface completa para junção
+interface JunctionDetails {
+  id: string;
+  nome: string;
+  data: string;
+  status: string;
+  pedidos: string[];
+  destino: string;
+  responsavel: string;
+  transportadora?: string;
+  observacoes?: string;
+  pesoTotal?: string;
+  volumeTotal?: string;
+  valorTotal?: string;
+  previsaoEntrega?: string;
+}
+
 export default function JuncaoPedidos() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState("ativas");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -137,6 +233,23 @@ export default function JuncaoPedidos() {
     nome: string;
     pedidos: string[];
   } | null>(null);
+  
+  // Estados para o modal de nova junção
+  const [isNewJunctionModalOpen, setIsNewJunctionModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [newJunctionName, setNewJunctionName] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const [selectedCarrier, setSelectedCarrier] = useState("");
+  const [junctionNotes, setJunctionNotes] = useState("");
+  const [createdJunctionId, setCreatedJunctionId] = useState("");
+  
+  // Estado para visualização detalhada de pedido
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<string | null>(null);
+  const [isOrderDetailModalOpen, setIsOrderDetailModalOpen] = useState(false);
+  
+  // Estado para modal de processamento de junção
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const [junctionToProcess, setJunctionToProcess] = useState<JunctionDetails | null>(null);
 
   // Função para navegação entre páginas
   const navigateTo = (path: string) => {
@@ -177,6 +290,11 @@ export default function JuncaoPedidos() {
     return true;
   });
 
+  // Função para filtrar pedidos por destino
+  const filterOrdersByDestination = (destination: string) => {
+    return mockAvailableOrders.filter(order => order.destino === destination);
+  };
+
   // Função para lidar com a seleção de pedidos
   const toggleOrderSelection = (orderId: string) => {
     if (selectedOrders.includes(orderId)) {
@@ -195,11 +313,36 @@ export default function JuncaoPedidos() {
     }
   };
 
+  // Função para calcular peso e volume total dos pedidos selecionados
+  const calculateTotals = () => {
+    return {
+      peso: "5.2kg",
+      volume: "0.025m³",
+      valor: "R$ 1.235,00"
+    };
+  };
+
   // Função para criar uma nova junção
   const createNewJunction = () => {
+    if (!newJunctionName || !selectedDestination || selectedOrders.length === 0) {
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha o nome, destino e selecione pelo menos um pedido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Em produção, isso seria uma chamada de API
-    alert(`Criando nova junção com os pedidos: ${selectedOrders.join(", ")}`);
-    setSelectedOrders([]);
+    const junctionId = `JUNT-${Math.floor(10000 + Math.random() * 90000)}`;
+    setCreatedJunctionId(junctionId);
+    setIsNewJunctionModalOpen(false);
+    setIsSuccessModalOpen(true);
+    
+    toast({
+      title: "Junção criada com sucesso",
+      description: `Junção ${junctionId} criada com ${selectedOrders.length} pedidos.`,
+    });
   };
 
   // Função para simular a adição de pedidos à junção selecionada
@@ -207,7 +350,11 @@ export default function JuncaoPedidos() {
     if (!selectedJunction || selectedOrders.length === 0) return;
     
     // Em produção, isso seria uma chamada de API
-    alert(`Adicionando pedidos: ${selectedOrders.join(", ")} à junção: ${selectedJunction}`);
+    toast({
+      title: "Pedidos adicionados",
+      description: `${selectedOrders.length} pedidos adicionados à junção ${selectedJunction}.`,
+    });
+    
     setSelectedOrders([]);
     setSelectedJunction(null);
   };
@@ -215,6 +362,64 @@ export default function JuncaoPedidos() {
   // Função para abrir detalhes de uma junção
   const viewJunctionDetails = (junction: {id: string; nome: string; pedidos: string[]}) => {
     setActiveJunction(junction);
+  };
+  
+  // Função para abrir visualização detalhada de um pedido
+  const viewOrderDetails = (orderId: string) => {
+    setSelectedOrderDetail(orderId);
+    setIsOrderDetailModalOpen(true);
+  };
+  
+  // Função para processar uma junção
+  const processJunction = (junction: JunctionDetails) => {
+    setJunctionToProcess(junction);
+    setIsProcessModalOpen(true);
+  };
+  
+  // Função para finalizar o processamento de uma junção
+  const finalizeJunctionProcessing = () => {
+    if (!junctionToProcess) return;
+    
+    toast({
+      title: "Junção processada",
+      description: `A junção ${junctionToProcess.id} foi processada e está pronta para expedição.`,
+      variant: "default",
+    });
+    
+    setIsProcessModalOpen(false);
+  };
+  
+  // Função para remover um pedido de uma junção
+  const removeOrderFromJunction = (junctionId: string, orderId: string) => {
+    toast({
+      title: "Pedido removido",
+      description: `O pedido ${orderId} foi removido da junção ${junctionId}.`,
+      variant: "default",
+    });
+  };
+  
+  // Função para gerar etiquetas para uma junção
+  const generateLabelsForJunction = (junctionId: string) => {
+    toast({
+      title: "Etiquetas geradas",
+      description: `As etiquetas para a junção ${junctionId} foram geradas com sucesso.`,
+      variant: "default",
+    });
+    
+    // Navegar para a página de etiquetas em uma aplicação real
+    // navigateTo("/organization/expedicao/etiquetas");
+  };
+  
+  // Função para gerar documentação para uma junção
+  const generateDocumentsForJunction = (junctionId: string) => {
+    toast({
+      title: "Documentação gerada",
+      description: `A documentação para a junção ${junctionId} foi gerada com sucesso.`,
+      variant: "default",
+    });
+    
+    // Navegar para a página de documentação em uma aplicação real
+    // navigateTo("/organization/expedicao/documentacao");
   };
 
   return (
@@ -238,17 +443,459 @@ export default function JuncaoPedidos() {
             </p>
           </div>
           <div className="flex space-x-2">
-            <Button 
-              variant="outline"
-              onClick={() => setActiveJunction(null)}
-            >
-              <Unlink className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
-            <Button>
-              <PackagePlus className="h-4 w-4 mr-2" />
-              Nova Junção
-            </Button>
+            {activeJunction && (
+              <Button 
+                variant="outline"
+                onClick={() => setActiveJunction(null)}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar à lista
+              </Button>
+            )}
+            <Dialog open={isNewJunctionModalOpen} onOpenChange={setIsNewJunctionModalOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  setSelectedOrders([]);
+                  setNewJunctionName("");
+                  setSelectedDestination("");
+                  setSelectedCarrier("");
+                  setJunctionNotes("");
+                  setIsNewJunctionModalOpen(true);
+                }}>
+                  <PackagePlus className="h-4 w-4 mr-2" />
+                  Nova Junção
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Criar Nova Junção de Pedidos</DialogTitle>
+                  <DialogDescription>
+                    Agrupe pedidos com destinos semelhantes para otimizar o envio e reduzir custos.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="nome" className="text-right">
+                      Nome
+                    </Label>
+                    <Input
+                      id="nome"
+                      value={newJunctionName}
+                      onChange={(e) => setNewJunctionName(e.target.value)}
+                      placeholder="Ex: Entrega RJ - 10/04"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="destino" className="text-right">
+                      Destino
+                    </Label>
+                    <Select value={selectedDestination} onValueChange={setSelectedDestination}>
+                      <SelectTrigger className="col-span-3" id="destino">
+                        <SelectValue placeholder="Selecione o destino" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Rio de Janeiro, RJ">Rio de Janeiro, RJ</SelectItem>
+                        <SelectItem value="São Paulo, SP">São Paulo, SP</SelectItem>
+                        <SelectItem value="Belo Horizonte, MG">Belo Horizonte, MG</SelectItem>
+                        <SelectItem value="Porto Alegre, RS">Porto Alegre, RS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="transportadora" className="text-right">
+                      Transportadora
+                    </Label>
+                    <Select value={selectedCarrier} onValueChange={setSelectedCarrier}>
+                      <SelectTrigger className="col-span-3" id="transportadora">
+                        <SelectValue placeholder="Selecione a transportadora (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockCarriers.map(carrier => (
+                          <SelectItem key={carrier.id} value={carrier.id}>
+                            {carrier.nome} ({carrier.tipo} - {carrier.tempoEntrega})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="observacoes" className="text-right">
+                      Observações
+                    </Label>
+                    <Textarea
+                      id="observacoes"
+                      value={junctionNotes}
+                      onChange={(e) => setJunctionNotes(e.target.value)}
+                      placeholder="Informações adicionais sobre esta junção"
+                      className="col-span-3"
+                    />
+                  </div>
+                  
+                  <Separator className="my-2" />
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Pedidos disponíveis</h4>
+                      {selectedOrders.length > 0 && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {selectedOrders.length} pedidos selecionados
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {selectedDestination ? (
+                      <div className="max-h-[200px] overflow-y-auto border rounded-md">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-10">
+                                <Checkbox 
+                                  checked={
+                                    filterOrdersByDestination(selectedDestination).length > 0 && 
+                                    selectedOrders.length === filterOrdersByDestination(selectedDestination).length
+                                  }
+                                  onCheckedChange={() => {
+                                    const ordersForDestination = filterOrdersByDestination(selectedDestination);
+                                    if (ordersForDestination.length === selectedOrders.length) {
+                                      setSelectedOrders([]);
+                                    } else {
+                                      setSelectedOrders(ordersForDestination.map(o => o.id));
+                                    }
+                                  }}
+                                  aria-label="Selecionar todos os pedidos"
+                                />
+                              </TableHead>
+                              <TableHead>Pedido</TableHead>
+                              <TableHead>Cliente</TableHead>
+                              <TableHead>Itens</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filterOrdersByDestination(selectedDestination).length > 0 ? (
+                              filterOrdersByDestination(selectedDestination).map((order) => (
+                                <TableRow key={order.id}>
+                                  <TableCell>
+                                    <Checkbox 
+                                      checked={selectedOrders.includes(order.id)}
+                                      onCheckedChange={() => toggleOrderSelection(order.id)}
+                                      aria-label={`Selecionar pedido ${order.id}`}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-medium">{order.id}</TableCell>
+                                  <TableCell>{order.cliente}</TableCell>
+                                  <TableCell>{order.itens}</TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                                  Nenhum pedido disponível para este destino
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center p-6 border rounded-md text-muted-foreground">
+                        <Info className="h-4 w-4 mr-2" />
+                        Selecione um destino para ver os pedidos disponíveis
+                      </div>
+                    )}
+                  </div>
+                  
+                  {selectedOrders.length > 0 && (
+                    <div className="bg-muted p-3 rounded-md space-y-2">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <PackageCheck className="h-4 w-4 mr-2" />
+                        Resumo da Junção
+                      </h4>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Peso:</span> {calculateTotals().peso}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Volume:</span> {calculateTotals().volume}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Valor:</span> {calculateTotals().valor}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsNewJunctionModalOpen(false)}>Cancelar</Button>
+                  <Button type="submit" onClick={createNewJunction} disabled={!newJunctionName || !selectedDestination || selectedOrders.length === 0}>
+                    Criar Junção
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            {/* Modal de sucesso */}
+            <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center text-green-600">
+                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                    Junção Criada com Sucesso
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="py-6 space-y-4">
+                  <p>A junção <span className="font-medium">{createdJunctionId}</span> foi criada com {selectedOrders.length} pedidos.</p>
+                  
+                  <div className="bg-muted p-4 rounded-md space-y-2">
+                    <h4 className="text-sm font-medium flex items-center">
+                      <Info className="h-4 w-4 mr-2" />
+                      Próximos passos
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <p className="flex items-center">
+                        <Tag className="h-4 w-4 mr-2 text-blue-500" />
+                        Gerar etiquetas para expedição
+                      </p>
+                      <p className="flex items-center">
+                        <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                        Criar documentação de transporte
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => {
+                    setIsSuccessModalOpen(false);
+                    // Recarregar a lista de junções em um caso real
+                  }}>
+                    Entendi
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            {/* Modal de detalhes do pedido */}
+            <Dialog open={isOrderDetailModalOpen} onOpenChange={setIsOrderDetailModalOpen}>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Detalhes do Pedido</DialogTitle>
+                  <DialogDescription>
+                    {selectedOrderDetail && `Informações completas sobre o pedido ${selectedOrderDetail}`}
+                  </DialogDescription>
+                </DialogHeader>
+                {selectedOrderDetail && mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails] && (
+                  <div className="space-y-6 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 flex items-center">
+                          <User className="h-4 w-4 mr-2" />
+                          Informações do Cliente
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>Nome:</span> 
+                            <span className="font-medium text-foreground">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].cliente}</span>
+                          </p>
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>Endereço:</span> 
+                            <span className="font-medium text-foreground">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].endereco}</span>
+                          </p>
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>CEP:</span> 
+                            <span className="font-medium text-foreground">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].cep}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 flex items-center">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          Informações do Pedido
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>Data do Pedido:</span> 
+                            <span className="font-medium text-foreground">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].dataPedido}</span>
+                          </p>
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>Entrega Prevista:</span> 
+                            <span className="font-medium text-foreground">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].dataEntrega}</span>
+                          </p>
+                          <p className="text-muted-foreground flex items-center justify-between">
+                            <span>Status:</span> 
+                            <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-50">
+                              {mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].status}
+                            </Badge>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 flex items-center">
+                        <Package className="h-4 w-4 mr-2" />
+                        Itens do Pedido
+                      </h4>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Produto</TableHead>
+                            <TableHead>Qtd</TableHead>
+                            <TableHead>Peso</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].itens.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">{item.id}</TableCell>
+                              <TableCell>{item.nome}</TableCell>
+                              <TableCell>{item.quantidade}</TableCell>
+                              <TableCell>{item.peso}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    <div className="bg-muted p-4 rounded-md grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-muted-foreground text-sm">Valor Total:</span>
+                        <p className="font-medium">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].valorTotal}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground text-sm">Peso Total:</span>
+                        <p className="font-medium">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].pesoTotal}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground text-sm">Volume Total:</span>
+                        <p className="font-medium">{mockOrderDetails[selectedOrderDetail as keyof typeof mockOrderDetails].volumeTotal}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsOrderDetailModalOpen(false)}>Fechar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            {/* Modal de processamento de junção */}
+            <Dialog open={isProcessModalOpen} onOpenChange={setIsProcessModalOpen}>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Processar Junção</DialogTitle>
+                  <DialogDescription>
+                    {junctionToProcess && `Finalize a junção ${junctionToProcess.id} para expedição`}
+                  </DialogDescription>
+                </DialogHeader>
+                {junctionToProcess && (
+                  <div className="space-y-6 py-4">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <CalendarDays className="h-4 w-4 mr-2" />
+                        Informações da Junção
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">ID:</span> {junctionToProcess.id}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Nome:</span> {junctionToProcess.nome}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Data:</span> {junctionToProcess.data}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Destino:</span> {junctionToProcess.destino}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Responsável:</span> {junctionToProcess.responsavel}
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Status:</span> 
+                          <Badge variant="outline" className={`ml-1
+                            ${junctionToProcess.status === "aberta" ? "bg-amber-50 text-amber-700" : ""}
+                            ${junctionToProcess.status === "processando" ? "bg-blue-50 text-blue-700" : ""}
+                            ${junctionToProcess.status === "finalizada" ? "bg-green-50 text-green-700" : ""}
+                          `}>
+                            {junctionToProcess.status === "aberta" ? "Aberta" : 
+                            junctionToProcess.status === "processando" ? "Processando" : 
+                            "Finalizada"}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <Truck className="h-4 w-4 mr-2" />
+                        Transportadora
+                      </h4>
+                      <Select defaultValue={selectedCarrier} onValueChange={setSelectedCarrier}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a transportadora" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockCarriers.map(carrier => (
+                            <SelectItem key={carrier.id} value={carrier.id}>
+                              {carrier.nome} ({carrier.tipo} - {carrier.tempoEntrega})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label htmlFor="process-notes">Observações</Label>
+                      <Textarea
+                        id="process-notes"
+                        placeholder="Informações adicionais sobre a expedição"
+                        value={junctionNotes}
+                        onChange={(e) => setJunctionNotes(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 bg-muted p-4 rounded-md">
+                      <div>
+                        <span className="text-muted-foreground text-xs">Pedidos</span>
+                        <p className="font-medium">{junctionToProcess.pedidos.length}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground text-xs">Peso estimado</span>
+                        <p className="font-medium">{junctionToProcess.pesoTotal || "5.2kg"}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground text-xs">Volume</span>
+                        <p className="font-medium">{junctionToProcess.volumeTotal || "0.025m³"}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium flex items-center">
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Confirmação
+                      </h4>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="confirm-process" />
+                        <Label htmlFor="confirm-process">
+                          Confirmo que todos os pedidos desta junção foram verificados e estão prontos para expedição
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsProcessModalOpen(false)}>Cancelar</Button>
+                  <Button onClick={finalizeJunctionProcessing}>
+                    Finalizar Processamento
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -369,9 +1016,22 @@ export default function JuncaoPedidos() {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Button variant="ghost" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => viewOrderDetails(pedido)}
+                                  >
+                                    <Info className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => removeOrderFromJunction(activeJunction.id, pedido)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -540,10 +1200,26 @@ export default function JuncaoPedidos() {
                                         </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>Gerar etiquetas</DropdownMenuItem>
-                                        <DropdownMenuItem>Gerar documentação</DropdownMenuItem>
-                                        <DropdownMenuItem>Finalizar junção</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-red-600">Cancelar junção</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => {
+                                          processJunction(junction as JunctionDetails);
+                                        }}>
+                                          <PackageCheck className="h-4 w-4 mr-2" />
+                                          Processar junção
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => generateLabelsForJunction(junction.id)}>
+                                          <Tag className="h-4 w-4 mr-2" />
+                                          Gerar etiquetas
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => generateDocumentsForJunction(junction.id)}>
+                                          <FileText className="h-4 w-4 mr-2" />
+                                          Gerar documentação
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-red-600">
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Cancelar junção
+                                        </DropdownMenuItem>
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </div>
@@ -640,7 +1316,10 @@ export default function JuncaoPedidos() {
                                       >
                                         Adicionar a uma junção
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => viewOrderDetails(order.id)}>
+                                        <Info className="h-4 w-4 mr-2" />
+                                        Ver detalhes
+                                      </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                 </TableCell>
