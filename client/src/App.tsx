@@ -65,6 +65,7 @@ import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
 import OrganizationProfile from "@/pages/organization/profile";
 import MeuPlano from "@/pages/organization/MeuPlano";
+import OrganizationSettings from "@/pages/organization/settings";
 import DataImport from "@/pages/DataImport";
 
 // Import module pages
@@ -383,6 +384,10 @@ function AppContent() {
     if (currentPath === '/organization/meu-plano') {
       return <MeuPlano />;
     }
+    
+    if (currentPath === '/organization/settings') {
+      return <OrganizationSettings />;
+    }
 
     // Módulos específicos da organização
     if (currentPath === '/organization/cultivation') {
@@ -391,6 +396,15 @@ function AppContent() {
 
     if (currentPath === '/organization/production') {
       return <ProductionModule />;
+    }
+    
+    // Rotas de integração da organização
+    if (currentPath.startsWith('/organization/integrations/')) {
+      // Verificar qual integração específica está sendo acessada
+      // Por enquanto, vamos redirecionar para a página de configurações com a aba de integrações selecionada
+      window.history.pushState({}, '', '/organization/settings');
+      window.dispatchEvent(new Event('popstate'));
+      return <OrganizationSettings />;
     }
     
     return <NotFound />;
