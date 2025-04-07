@@ -622,6 +622,7 @@ function AppContent() {
 }
 
 function App() {
+  // O ThemeProvider já foi adicionado no main.tsx para envolver toda a aplicação
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
