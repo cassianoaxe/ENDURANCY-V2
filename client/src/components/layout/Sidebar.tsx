@@ -89,52 +89,6 @@ const menuItems: MenuItem[] = [
       { icon: Settings, label: "Configurações", path: "/financial/settings" }
     ]
   },
-  { 
-    icon: Plug, 
-    label: "Integrações", 
-    submenu: [
-      { icon: CreditCard, label: "Pagamentos", 
-        submenu: [
-          { icon: CreditCard, label: "Asaas", path: "/integracoes/pagamentos/asaas" },
-          { icon: CreditCard, label: "Zoop", path: "/integracoes/pagamentos/zoop" }
-        ]
-      },
-      { icon: Truck, label: "Logística", 
-        submenu: [
-          { icon: Truck, label: "Melhor Envio", path: "/integracoes/logistica/melhor-envio" },
-          { icon: Truck, label: "Azul", path: "/integracoes/logistica/azul-cargo" },
-          { icon: Truck, label: "Correios", path: "/integracoes/logistica/correios" }
-        ]
-      },
-      { icon: ReceiptText, label: "Financeiro", 
-        submenu: [
-          { icon: ReceiptText, label: "Conta Azul", path: "/integracoes/financeiro/conta-azul" }
-        ]
-      },
-      { icon: MessageSquare, label: "Comunicação", 
-        submenu: [
-          { icon: MessageSquare, label: "WhatsApp", path: "/integracoes/comunicacao/whatsapp" }
-        ]
-      },
-      { icon: Users, label: "CRM", 
-        submenu: [
-          { icon: Users, label: "Kentro", path: "/integracoes/crm/kentro" }
-        ]
-      },
-      { icon: Brain, label: "Inteligência Artificial", 
-        submenu: [
-          { icon: Bot, label: "ChatGPT", path: "/integracoes/ia/chatgpt" },
-          { icon: Bot, label: "Claude", path: "/integracoes/ia/claude" }
-        ]
-      },
-      { icon: GitBranch, label: "Desenvolvimento", 
-        submenu: [
-          { icon: GitBranch, label: "GitHub", path: "/integracoes/desenvolvimento/github" }
-        ]
-      },
-      { icon: Link, label: "Todas Integrações", path: "/integracoes" }
-    ]
-  },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Upload, label: "Importação de Dados", path: "/data-import" },
@@ -150,8 +104,7 @@ export default function Sidebar() {
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
     "Módulos": false,
     "Tickets de Suporte": false,
-    "Financeiro": false, // Menu financeiro deve começar retraído como os outros
-    "Integrações": false
+    "Financeiro": false // Menu financeiro deve começar retraído como os outros
   });
   
   // Controla se a sidebar está colapsada/retraída
