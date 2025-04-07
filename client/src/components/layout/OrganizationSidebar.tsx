@@ -126,7 +126,7 @@ export default function OrganizationSidebar() {
       icon: <Leaf size={18} />
     },
     {
-      title: "PRODUÇÃO",
+      title: "EXPEDIÇÃO",
       path: "/organization/production",
       active: currentPath === "/organization/production",
       icon: <Package size={18} />
