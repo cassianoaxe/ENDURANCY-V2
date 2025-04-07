@@ -172,7 +172,7 @@ export default function EstoqueExpedicao() {
     if (selectedTab === "criticos" && item.status !== "critico") return false;
     
     // Filtro de categoria
-    if (selectedCategoria && item.categoria !== selectedCategoria) return false;
+    if (selectedCategoria && selectedCategoria !== "all" && item.categoria !== selectedCategoria) return false;
     
     // Filtro de pesquisa
     if (searchTerm) {
@@ -314,7 +314,7 @@ export default function EstoqueExpedicao() {
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {productCategories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}

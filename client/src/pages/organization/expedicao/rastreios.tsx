@@ -196,7 +196,7 @@ export default function AtualizacaoRastreios() {
     if (selectedTab === "problemas" && tracking.status !== "problemas") return false;
     
     // Filtro de transportadora
-    if (selectedTransportadora && tracking.transportadora !== selectedTransportadora) return false;
+    if (selectedTransportadora && selectedTransportadora !== "all" && tracking.transportadora !== selectedTransportadora) return false;
     
     // Filtro de pesquisa
     if (searchTerm) {
@@ -553,7 +553,7 @@ export default function AtualizacaoRastreios() {
                     <SelectValue placeholder="Transportadora" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="Correios">Correios</SelectItem>
                     <SelectItem value="JADLOG">JADLOG</SelectItem>
                     <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
