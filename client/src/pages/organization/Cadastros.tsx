@@ -147,6 +147,17 @@ export default function Cadastros() {
             />
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-1.5"
+              onClick={() => {
+                window.history.pushState({}, "", "/organization/gerenciar-pacientes");
+                window.dispatchEvent(new Event("popstate"));
+              }}
+            >
+              <User size={16} /> Gerenciar Pacientes
+            </Button>
             <Button variant="outline" size="sm" className="gap-1.5">
               <Filter size={16} /> Filtros avançados
             </Button>
