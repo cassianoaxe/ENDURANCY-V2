@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "wouter";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Settings as SettingsIcon, 
   Globe, 
@@ -45,8 +56,109 @@ export default function OrganizationSettings() {
   const queryClient = useQueryClient();
   const organizationId = user?.organizationId;
   
-  // Estado para aba selecionada atualmente
+  // Estados para controle da interface
   const [activeTab, setActiveTab] = useState("information");
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  
+  // Estados para formulários
+  const [inviteForm, setInviteForm] = useState({
+    email: '',
+    role: 'employee',
+    groupId: '',
+    message: '',
+  });
+  
+  const [groupForm, setGroupForm] = useState({
+    name: '',
+    description: '',
+    permissions: [] as string[],
+  });
+  
+  // Template de grupos pré-definidos
+  const groupTemplates = [
+    {
+      id: 'gerente-farmaceutico',
+      name: 'Gerente Farmacêutico',
+      description: 'Responsável pela gestão da farmácia e produtos farmacêuticos',
+      permissions: ['view_inventory', 'edit_inventory', 'view_patients', 'edit_prescriptions']
+    },
+    {
+      id: 'gerente-cultivo',
+      name: 'Gerente de Cultivo',
+      description: 'Responsável pelo gerenciamento do cultivo de plantas',
+      permissions: ['view_cultivation', 'edit_cultivation', 'view_inventory', 'edit_inventory']
+    },
+    {
+      id: 'gerente-atendimento',
+      name: 'Gerente de Atendimento',
+      description: 'Responsável pelo atendimento a pacientes e clientes',
+      permissions: ['view_patients', 'edit_patients', 'view_appointments', 'edit_appointments']
+    },
+    {
+      id: 'gerente-rh',
+      name: 'Gerente de RH',
+      description: 'Responsável pela gestão de recursos humanos',
+      permissions: ['view_employees', 'edit_employees', 'view_payroll', 'edit_payroll']
+    },
+    {
+      id: 'gerente-vendas',
+      name: 'Gerente de Vendas',
+      description: 'Responsável pela gestão de vendas e marketing',
+      permissions: ['view_sales', 'edit_sales', 'view_marketing', 'edit_marketing']
+    },
+    {
+      id: 'gerente-financeiro',
+      name: 'Gerente Financeiro',
+      description: 'Responsável pela gestão financeira da organização',
+      permissions: ['view_financial', 'edit_financial', 'view_reports', 'edit_reports']
+    },
+    {
+      id: 'gerente-juridico',
+      name: 'Gerente Jurídico',
+      description: 'Responsável pelos assuntos jurídicos e regulatórios',
+      permissions: ['view_legal', 'edit_legal', 'view_compliance', 'edit_compliance']
+    },
+    {
+      id: 'gerente-social',
+      name: 'Gerente de Assistência Social',
+      description: 'Responsável pelos programas sociais e assistência a pacientes',
+      permissions: ['view_patients', 'edit_patients', 'view_social', 'edit_social']
+    },
+    {
+      id: 'gerente-expedicao',
+      name: 'Gerente de Expedição',
+      description: 'Responsável pela expedição e logística de produtos',
+      permissions: ['view_shipping', 'edit_shipping', 'view_inventory', 'edit_inventory']
+    },
+    {
+      id: 'gerente-comunicacao',
+      name: 'Gerente de Comunicação',
+      description: 'Responsável pela comunicação interna e externa',
+      permissions: ['view_communication', 'edit_communication', 'view_marketing', 'edit_marketing']
+    },
+    {
+      id: 'auditoria',
+      name: 'Auditoria',
+      description: 'Responsável pela auditoria interna',
+      permissions: ['view_all', 'view_reports', 'view_financial', 'view_compliance']
+    },
+    {
+      id: 'controladoria',
+      name: 'Controladoria',
+      description: 'Responsável pelo controle financeiro e contábil',
+      permissions: ['view_financial', 'edit_financial', 'view_reports', 'edit_reports']
+    },
+    {
+      id: 'contador',
+      name: 'Contador',
+      description: 'Responsável pela contabilidade da organização',
+      permissions: ['view_financial', 'view_reports', 'edit_reports']
+    }
+  ];
 
   // Integrations data for the organization
   const integrations = [
@@ -386,7 +498,7 @@ export default function OrganizationSettings() {
                   <Users className="h-5 w-5 mr-2" />
                   Usuários e Permissões
                 </CardTitle>
-                <Button size="sm">
+                <Button size="sm" onClick={() => setShowInviteModal(true)}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   Convidar Usuário
                 </Button>
@@ -703,5 +815,371 @@ export default function OrganizationSettings() {
         </Tabs>
       </div>
     </OrganizationLayout>
+  );
+
+  // Modais de interface
+  return (
+    <>
+      {/* Modal de convite de usuário */}
+      <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Convidar Usuário</DialogTitle>
+            <DialogDescription>
+              Envie um convite para um novo usuário entrar na sua organização.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="usuario@exemplo.com.br"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="role">Função</Label>
+              <Select
+                value={inviteForm.role}
+                onValueChange={(value) => setInviteForm({...inviteForm, role: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma função" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="manager">Gerente</SelectItem>
+                  <SelectItem value="doctor">Doutor</SelectItem>
+                  <SelectItem value="employee">Funcionário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="group">Grupo de Usuário</Label>
+              <Select
+                value={inviteForm.groupId}
+                onValueChange={(value) => setInviteForm({...inviteForm, groupId: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um grupo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Administradores</SelectItem>
+                  <SelectItem value="2">Doutores</SelectItem>
+                  <SelectItem value="3">Funcionários</SelectItem>
+                  <SelectItem value="4">Gerente Farmacêutico</SelectItem>
+                  <SelectItem value="5">Gerente de Cultivo</SelectItem>
+                  <SelectItem value="6">Gerente de Vendas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="message">Mensagem personalizada (opcional)</Label>
+              <Textarea
+                id="message"
+                placeholder="Escreva uma mensagem pessoal para o convite..."
+                value={inviteForm.message}
+                onChange={(e) => setInviteForm({...inviteForm, message: e.target.value})}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInviteModal(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Convite enviado",
+                  description: `Um convite foi enviado para ${inviteForm.email}`,
+                });
+                setShowInviteModal(false);
+              }}
+            >
+              Enviar Convite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal de edição de usuário */}
+      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Editar Usuário</DialogTitle>
+            <DialogDescription>
+              Atualize as informações e permissões do usuário.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {editingUser && (
+            <div className="grid gap-4 py-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  {editingUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-medium">{editingUser.name}</p>
+                  <p className="text-sm text-gray-500">{editingUser.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-role">Função</Label>
+                <Select
+                  value={editingUser.role}
+                  onValueChange={(value) => setEditingUser({...editingUser, role: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma função" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="doctor">Doutor</SelectItem>
+                    <SelectItem value="employee">Funcionário</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-group">Grupo de Usuário</Label>
+                <Select
+                  value={editingUser.groupId}
+                  onValueChange={(value) => setEditingUser({...editingUser, groupId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um grupo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Administradores</SelectItem>
+                    <SelectItem value="2">Doutores</SelectItem>
+                    <SelectItem value="3">Funcionários</SelectItem>
+                    <SelectItem value="4">Gerente Farmacêutico</SelectItem>
+                    <SelectItem value="5">Gerente de Cultivo</SelectItem>
+                    <SelectItem value="6">Gerente de Vendas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label className="font-medium mb-1">Permissões Avançadas</Label>
+                <div className="border rounded-md p-4 space-y-3">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox id="perm-view" checked={true} />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="perm-view">Visualizar módulos</Label>
+                      <p className="text-sm text-gray-500">Permite acesso de visualização a todos os módulos do sistema</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-2">
+                    <Checkbox id="perm-edit" checked={editingUser.role === 'admin' || editingUser.role === 'manager'} />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="perm-edit">Editar informações</Label>
+                      <p className="text-sm text-gray-500">Permite editar informações em todos os módulos acessíveis</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-2">
+                    <Checkbox id="perm-admin" checked={editingUser.role === 'admin'} disabled={editingUser.role !== 'admin'} />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="perm-admin">Acesso administrativo</Label>
+                      <p className="text-sm text-gray-500">Controle total sobre todas as configurações do sistema</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUserModal(false)}>Cancelar</Button>
+            <Button variant="destructive" className="mr-auto">Remover Usuário</Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Usuário atualizado",
+                  description: `As informações de ${editingUser?.name} foram atualizadas com sucesso`,
+                });
+                setShowUserModal(false);
+              }}
+            >
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal de grupo de usuários */}
+      <Dialog open={showGroupModal} onOpenChange={setShowGroupModal}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingGroup ? "Editar Grupo" : "Novo Grupo de Usuários"}</DialogTitle>
+            <DialogDescription>
+              {editingGroup 
+                ? "Modifique as informações e permissões do grupo." 
+                : "Crie um novo grupo com permissões específicas."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="group-name">Nome do Grupo</Label>
+              <Input
+                id="group-name"
+                placeholder="Ex: Equipe de Marketing"
+                value={groupForm.name}
+                onChange={(e) => setGroupForm({...groupForm, name: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="group-description">Descrição</Label>
+              <Textarea
+                id="group-description"
+                placeholder="Descreva a função deste grupo..."
+                value={groupForm.description}
+                onChange={(e) => setGroupForm({...groupForm, description: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label className="font-medium mb-1">Permissões</Label>
+              <ScrollArea className="h-[200px] border rounded-md p-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Gerais</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-dashboard" />
+                        <Label htmlFor="perm-dashboard">Dashboard</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-reports" />
+                        <Label htmlFor="perm-reports">Relatórios</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-2 border-t">
+                    <h4 className="text-sm font-medium">Pacientes</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-patients-view" />
+                        <Label htmlFor="perm-patients-view">Visualizar pacientes</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-patients-edit" />
+                        <Label htmlFor="perm-patients-edit">Editar pacientes</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-medical-records" />
+                        <Label htmlFor="perm-medical-records">Prontuários médicos</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-2 border-t">
+                    <h4 className="text-sm font-medium">Inventário</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-inventory-view" />
+                        <Label htmlFor="perm-inventory-view">Visualizar estoque</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-inventory-edit" />
+                        <Label htmlFor="perm-inventory-edit">Gerenciar estoque</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-2 border-t">
+                    <h4 className="text-sm font-medium">Financeiro</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-financial-view" />
+                        <Label htmlFor="perm-financial-view">Visualizar finanças</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-financial-edit" />
+                        <Label htmlFor="perm-financial-edit">Gerenciar finanças</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-2 border-t">
+                    <h4 className="text-sm font-medium">Configurações</h4>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-settings-view" />
+                        <Label htmlFor="perm-settings-view">Visualizar configurações</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="perm-settings-edit" />
+                        <Label htmlFor="perm-settings-edit">Editar configurações</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label className="font-medium mb-1">Usar Template</Label>
+              <Select
+                onValueChange={(value) => {
+                  const template = groupTemplates.find(t => t.id === value);
+                  if (template) {
+                    setGroupForm({
+                      name: template.name,
+                      description: template.description,
+                      permissions: template.permissions
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groupTemplates.map(template => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Aplique um template pré-configurado para este grupo
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGroupModal(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: editingGroup ? "Grupo atualizado" : "Grupo criado",
+                  description: editingGroup
+                    ? `O grupo ${groupForm.name} foi atualizado com sucesso`
+                    : `O grupo ${groupForm.name} foi criado com sucesso`,
+                });
+                setShowGroupModal(false);
+              }}
+            >
+              {editingGroup ? "Salvar Alterações" : "Criar Grupo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
