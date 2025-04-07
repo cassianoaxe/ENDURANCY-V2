@@ -375,7 +375,7 @@ export default function Etiquetas() {
   
   // Função para impressão de etiqueta
   const printLabel = () => {
-    if (!labelRef.current) return;
+    if (!labelRef.current || !selectedLabel) return;
     
     // Feedback visual antes de impressão
     toast({
@@ -383,12 +383,6 @@ export default function Etiquetas() {
       description: "Abrindo caixa de diálogo de impressão...",
       variant: "default",
     });
-    
-    // Cria um novo elemento para impressão que contém apenas a etiqueta
-    const printContent = document.createElement('div');
-    printContent.innerHTML = labelRef.current.outerHTML;
-    printContent.style.width = '100%';
-    printContent.style.padding = '20px';
     
     // Criando um iframe para controlar o conteúdo de impressão
     const printFrame = document.createElement('iframe');
@@ -404,84 +398,108 @@ export default function Etiquetas() {
     // Adiciona o conteúdo ao iframe e formata para impressão
     const frameDoc = printFrame.contentWindow?.document;
     if (frameDoc) {
+      const label = selectedLabel;
+      const formatClass = label.formato === 'A4' ? 'label-a4' : 
+                         label.formato === 'A6' ? 'label-a6' : 'label-10x15';
+      
       frameDoc.open();
       frameDoc.write(`
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Impressão de Etiqueta - ${selectedLabel?.id}</title>
+            <title>Impressão de Etiqueta - ${label.id}</title>
             <style>
+              @page {
+                size: ${label.formato === 'A4' ? 'A4' : 
+                       label.formato === 'A6' ? 'A6' : '100mm 150mm'};
+                margin: 0;
+              }
+              
               body {
                 font-family: 'Arial', sans-serif;
                 margin: 0;
                 padding: 0;
+                background-color: white;
               }
+              
               .print-container {
-                padding: 10mm;
+                padding: 12mm;
                 box-sizing: border-box;
                 page-break-inside: avoid;
+                width: 100%;
+                height: 100%;
+                position: relative;
               }
+              
               .label-wrapper {
                 border: 1px solid #ddd;
-                padding: 10mm;
-                ${selectedTemplate?.format === 'A4' ? 'width: 190mm; height: 277mm;' : 
-                  selectedTemplate?.format === 'A6' ? 'width: 105mm; height: 148mm;' : 
-                  selectedTemplate?.format === '10x15cm' ? 'width: 100mm; height: 150mm;' : 
-                  'width: 100mm; height: 150mm;'}
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                padding: 15mm;
                 margin: 0 auto;
                 background-color: white;
+                page-break-inside: avoid;
+                box-sizing: border-box;
+              }
+              .label-a4 {
+                width: 190mm;
+                height: 277mm;
+              }
+              .label-a6 {
+                width: 105mm;
+                height: 148mm;
+              }
+              .label-10x15 {
+                width: 100mm;
+                height: 150mm;
               }
               .flex-row {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 5mm;
+                margin-bottom: 10mm;
               }
               .flex-col {
                 display: flex;
                 flex-direction: column;
+              }
+              h2 {
+                font-size: 18pt;
+                margin: 0 0 3mm 0;
               }
               h3 {
                 font-size: 16pt;
                 margin: 0 0 2mm 0;
               }
               p {
-                font-size: 10pt;
-                margin: 0 0 1mm 0;
+                font-size: 11pt;
+                margin: 0 0 2mm 0;
               }
               .barcode {
                 background-color: black;
                 color: white;
-                padding: 1mm 2mm;
+                padding: 3mm 4mm;
                 font-family: monospace;
                 border-radius: 1mm;
-                font-size: 9pt;
+                font-size: 11pt;
                 display: inline-block;
+                margin-bottom: 4mm;
+                text-align: center;
+                letter-spacing: 0.5px;
+                font-weight: 500;
               }
               .separator {
                 width: 100%;
                 height: 1px;
                 background-color: #ddd;
-                margin: 4mm 0;
+                margin: 6mm 0;
               }
               .text-small {
-                font-size: 9pt;
+                font-size: 10pt;
+                margin-bottom: 1.5mm;
               }
               .observation-box {
                 background-color: #fff9e6;
-                padding: 2mm;
-                border-radius: 1mm;
-                margin-top: 3mm;
-              }
-              .qr-code {
-                width: 25mm;
-                height: 25mm;
-                background-color: #f0f0f0;
-                margin: 3mm auto 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
+                padding: 3mm;
+                border-radius: 2mm;
+                margin-top: 5mm;
               }
               @media print {
                 @page {
@@ -503,7 +521,49 @@ export default function Etiquetas() {
           </head>
           <body>
             <div class="print-container">
-              ${printContent.innerHTML}
+              <div class="label-wrapper ${formatClass}">
+                <div class="flex-row">
+                  <div class="flex-col">
+                    <h2>Destinatário</h2>
+                    <h3>${label.cliente}</h3>
+                    <p>${label.endereco || 'Endereço não informado'}</p>
+                    <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
+                    <p>Tel: ${label.telefone || 'N/A'}</p>
+                    <p>Email: ${label.email || 'N/A'}</p>
+                  </div>
+                  <div class="flex-col">
+                    <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
+                    <p class="text-small">Etiqueta: ${label.id}</p>
+                    <p class="text-small">Pedido: ${label.pedido}</p>
+                    <p class="text-small">Data: ${label.data}</p>
+                  </div>
+                </div>
+                
+                <div class="separator"></div>
+                
+                <div class="flex-row">
+                  <div class="flex-col">
+                    <h3>Remetente</h3>
+                    <p>Endurancy Ltda.</p>
+                    <p>Rua do Comércio, 500</p>
+                    <p>São Paulo - SP, 04538-132</p>
+                  </div>
+                  <div class="flex-col">
+                    <p><strong>Transportadora:</strong> ${label.transportadora}</p>
+                    <p>Formato: ${label.formato}</p>
+                    <p>Peso: ${label.peso || 'N/A'}</p>
+                    <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
+                    <p>Items: ${label.items || '1'}</p>
+                  </div>
+                </div>
+                
+                ${label.observacoes ? `
+                  <div class="observation-box">
+                    <p><strong>Observações:</strong></p>
+                    <p>${label.observacoes}</p>
+                  </div>
+                ` : ''}
+              </div>
             </div>
           </body>
         </html>
@@ -807,11 +867,15 @@ export default function Etiquetas() {
               .barcode {
                 background-color: black;
                 color: white;
-                padding: 1mm 2mm;
+                padding: 3mm 4mm;
                 font-family: monospace;
                 border-radius: 1mm;
-                font-size: 9pt;
+                font-size: 11pt;
                 display: inline-block;
+                margin-bottom: 3mm;
+                text-align: center;
+                letter-spacing: 0.5px;
+                font-weight: 500;
               }
               .separator {
                 width: 100%;
@@ -1693,94 +1757,56 @@ export default function Etiquetas() {
               {/* Conteúdo da Etiqueta - Simulação visual */}
               <div 
                 ref={labelRef} 
-                className="p-4 border border-gray-200 rounded-lg bg-white"
+                className="p-6 border border-gray-200 rounded-lg bg-white"
+                style={{pageBreakInside: 'avoid'}}
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-lg font-bold">Destinatário</h3>
-                    <p className="text-base font-semibold mt-1">{selectedLabel.cliente}</p>
-                    <p className="text-sm mt-2">
-                      {selectedLabel.endereco || "Av. Paulista, 1000, Apto 123"}
-                    </p>
-                    <p className="text-sm">
-                      {selectedLabel.cidade || "São Paulo"} - {selectedLabel.estado || "SP"}, {selectedLabel.cep || "01310-100"}
-                    </p>
-                    <div className="flex items-center mt-1 text-sm">
-                      <Phone className="h-3 w-3 mr-1" />
-                      {selectedLabel.telefone || "(11) 98765-4321"}
-                    </div>
-                    <div className="flex items-center mt-1 text-sm">
-                      <Mail className="h-3 w-3 mr-1" />
-                      {selectedLabel.email || "cliente@exemplo.com"}
+                    <h2 className="text-xl font-semibold mb-1">Destinatário</h2>
+                    <h3 className="text-lg font-bold mb-2">{selectedLabel.cliente}</h3>
+                    <div className="space-y-1">
+                      <p>{selectedLabel.endereco || 'Endereço não informado'}</p>
+                      <p>{selectedLabel.cidade || '-'} - {selectedLabel.estado || '-'}, {selectedLabel.cep || '-'}</p>
+                      <p>Tel: {selectedLabel.telefone || 'N/A'}</p>
+                      <p>Email: {selectedLabel.email || 'N/A'}</p>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className="bg-black text-white inline-flex items-center px-2 py-1 rounded text-xs font-mono">
-                      <Barcode className="h-3 w-3 mr-1" />
-                      {selectedLabel.codigoRastreio || "BR123456789BR"}
+                    <div className="bg-black text-white px-3 py-2 rounded font-mono text-sm mb-3 inline-block">
+                      {selectedLabel.codigoRastreio || "N/A"}
                     </div>
-                    <div className="mt-2 text-sm text-gray-500">
-                      <Calendar className="h-3 w-3 inline mr-1" />
-                      Data: {selectedLabel.data}
-                    </div>
-                    <div className="flex flex-col items-end mt-1">
-                      <div className="mt-2 text-sm">
-                        <Package className="h-3 w-3 inline mr-1" />
-                        {selectedLabel.items || "4"} itens
-                      </div>
-                      <div className="mt-1 text-sm">
-                        Peso: {selectedLabel.peso || "1,2 kg"}
-                      </div>
-                      <div className="mt-1 text-sm">
-                        Dim: {selectedLabel.dimensoes || "30x20x10 cm"}
-                      </div>
-                    </div>
+                    <p className="text-sm mb-1">Etiqueta: {selectedLabel.id}</p>
+                    <p className="text-sm mb-1">Pedido: {selectedLabel.pedido}</p>
+                    <p className="text-sm mb-1">Data: {selectedLabel.data}</p>
                   </div>
                 </div>
                 
-                <Separator className="my-4" />
+                <Separator className="my-5" />
                 
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-bold">Remetente</h3>
-                    <p className="text-sm">
-                      {user?.organizationId ? "Sua Empresa" : "Endurancy Ltda."}
-                    </p>
-                    <p className="text-sm">Rua do Comércio, 500</p>
-                    <p className="text-sm">São Paulo - SP, 04538-132</p>
+                <div className="flex justify-between">
+                  <div className="flex-col">
+                    <h3 className="text-lg font-semibold mb-2">Remetente</h3>
+                    <p>Endurancy Ltda.</p>
+                    <p>Rua do Comércio, 500</p>
+                    <p>São Paulo - SP, 04538-132</p>
                   </div>
                   
-                  <div className="text-right">
-                    <div className="bg-gray-100 px-2 py-1 rounded">
-                      <p className="text-xs font-semibold">Transportadora</p>
-                      <div className="flex items-center text-sm">
-                        <Truck className="h-3 w-3 mr-1" />
-                        {selectedLabel.transportadora}
-                      </div>
-                    </div>
-                    
-                    <p className="text-sm mt-2">
-                      Formato: {selectedLabel.formato}
-                    </p>
+                  <div className="flex-col text-right">
+                    <p><strong>Transportadora:</strong> {selectedLabel.transportadora}</p>
+                    <p>Formato: {selectedLabel.formato}</p>
+                    <p>Peso: {selectedLabel.peso || 'N/A'}</p>
+                    <p>Dimensões: {selectedLabel.dimensoes || 'N/A'}</p>
+                    <p>Items: {selectedLabel.items || '1'}</p>
                   </div>
                 </div>
                 
                 {selectedLabel.observacoes && (
-                  <>
-                    <Separator className="my-4" />
-                    <div className="bg-amber-50 p-2 rounded-md text-sm">
-                      <p className="font-medium">Observações:</p>
-                      <p>{selectedLabel.observacoes}</p>
-                    </div>
-                  </>
-                )}
-                
-                <div className="mt-4 flex justify-center">
-                  <div className="bg-gray-100 p-3 inline-block">
-                    <QrCode className="h-16 w-16" />
+                  <div className="mt-5 p-4 bg-amber-50 rounded-md">
+                    <p className="font-semibold">Observações:</p>
+                    <p>{selectedLabel.observacoes}</p>
                   </div>
-                </div>
+                )}
               </div>
               
               <DialogFooter className="space-x-2">
