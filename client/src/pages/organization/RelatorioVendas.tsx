@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Tabs, TabsContent, TabsList, TabsTrigger 
 } from "@/components/ui/tabs";
@@ -13,7 +13,8 @@ import {
 import { 
   FileText, Download, Filter, Calendar, 
   TrendingUp, ArrowUpRight, ArrowDownRight,
-  LineChart as LineChartIcon
+  LineChart as LineChartIcon,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -35,53 +36,14 @@ import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 
-// Dados simulados
-const vendasUltimos12Meses = [
-  { name: 'Abr', vendas: 42000, meta: 45000 },
-  { name: 'Mai', vendas: 38900, meta: 45000 },
-  { name: 'Jun', vendas: 42500, meta: 45000 },
-  { name: 'Jul', vendas: 49800, meta: 45000 },
-  { name: 'Ago', vendas: 52000, meta: 45000 },
-  { name: 'Set', vendas: 47500, meta: 45000 },
-  { name: 'Out', vendas: 58200, meta: 45000 },
-  { name: 'Nov', vendas: 54800, meta: 45000 },
-  { name: 'Dez', vendas: 62000, meta: 45000 },
-  { name: 'Jan', vendas: 49000, meta: 45000 },
-  { name: 'Fev', vendas: 38500, meta: 45000 },
-  { name: 'Mar', vendas: 42300, meta: 45000 },
-];
-
-const canalVendas = [
-  { name: 'Site Próprio', value: 55 },
-  { name: 'Marketplace', value: 25 },
-  { name: 'Loja Física', value: 15 },
-  { name: 'Vendedores', value: 5 },
-];
-
-const vendasDiarias = [
-  { name: '01/04', vendas: 4200 },
-  { name: '02/04', vendas: 3800 },
-  { name: '03/04', vendas: 4500 },
-  { name: '04/04', vendas: 5200 },
-  { name: '05/04', vendas: 4800 },
-  { name: '06/04', vendas: 3200 },
-  { name: '07/04', vendas: 3900 },
-];
-
-const produtosMaisVendidos = [
-  { name: 'Óleo CBD 500mg', vendas: 245, porcentagem: 22, crescimento: 8.5 },
-  { name: 'Creme Terapêutico', vendas: 187, porcentagem: 16, crescimento: 12.3 },
-  { name: 'Cápsulas CBD 300mg', vendas: 165, porcentagem: 14, crescimento: -3.2 },
-  { name: 'Spray Oral CBD', vendas: 132, porcentagem: 12, crescimento: 5.7 },
-  { name: 'Kit Bem-estar', vendas: 98, porcentagem: 9, crescimento: 15.4 },
-];
-
-const metricas = [
-  { id: 1, nome: 'Número de Pedidos', valor: 587, crescimento: 12.4, periodo: 'vs mês anterior' },
-  { id: 2, nome: 'Valor Médio de Pedido', valor: 'R$ 243,50', crescimento: 5.2, periodo: 'vs mês anterior' },
-  { id: 3, nome: 'Taxa de Conversão', valor: '4.2%', crescimento: -0.8, periodo: 'vs mês anterior' },
-  { id: 4, nome: 'Clientes Novos', valor: 112, crescimento: 18.7, periodo: 'vs mês anterior' },
-];
+// Placeholders para os dados enquanto estão carregando
+const PLACEHOLDER_DATA = {
+  vendasMensais: [],
+  vendasCanal: [],
+  vendasDiarias: [],
+  produtosMaisVendidos: [],
+  metricas: []
+};
 
 const COLORS = ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -91,6 +53,86 @@ export default function RelatorioVendas() {
   const [periodoSelecionado, setPeriodoSelecionado] = useState("mensal");
   const [dataInicio, setDataInicio] = useState<Date | undefined>(new Date(2025, 2, 1)); // 1 de Março de 2025
   const [dataFim, setDataFim] = useState<Date | undefined>(new Date(2025, 2, 31)); // 31 de Março de 2025
+  
+  // Estados para armazenar os dados da API
+  const [vendasUltimos12Meses, setVendasUltimos12Meses] = useState([]);
+  const [canalVendas, setCanalVendas] = useState([]);
+  const [vendasDiarias, setVendasDiarias] = useState([]);
+  const [produtosMaisVendidos, setProdutosMaisVendidos] = useState([]);
+  const [metricas, setMetricas] = useState([]);
+  
+  // Estados para controlar o carregamento
+  const [loadingMensal, setLoadingMensal] = useState(true);
+  const [loadingCanal, setLoadingCanal] = useState(true);
+  const [loadingDiario, setLoadingDiario] = useState(true);
+  const [loadingProdutos, setLoadingProdutos] = useState(true);
+  const [loadingMetricas, setLoadingMetricas] = useState(true);
+  
+  // Estado para controlar erros
+  const [error, setError] = useState(null);
+  
+  // Função para carregar os dados das APIs
+  const carregarDados = async () => {
+    try {
+      // Carregar vendas mensais
+      setLoadingMensal(true);
+      const resMensal = await fetch('/api/reports/sales/monthly');
+      if (!resMensal.ok) throw new Error('Falha ao carregar dados de vendas mensais');
+      const dataMensal = await resMensal.json();
+      setVendasUltimos12Meses(dataMensal.data || []);
+      setLoadingMensal(false);
+      
+      // Carregar vendas por canal
+      setLoadingCanal(true);
+      const resCanal = await fetch('/api/reports/sales/by-channel');
+      if (!resCanal.ok) throw new Error('Falha ao carregar dados de vendas por canal');
+      const dataCanal = await resCanal.json();
+      setCanalVendas(dataCanal.data || []);
+      setLoadingCanal(false);
+      
+      // Carregar vendas diárias
+      setLoadingDiario(true);
+      const resDiario = await fetch('/api/reports/sales/daily');
+      if (!resDiario.ok) throw new Error('Falha ao carregar dados de vendas diárias');
+      const dataDiario = await resDiario.json();
+      setVendasDiarias(dataDiario.data || []);
+      setLoadingDiario(false);
+      
+      // Carregar produtos mais vendidos
+      setLoadingProdutos(true);
+      const resProdutos = await fetch('/api/reports/sales/top-products');
+      if (!resProdutos.ok) throw new Error('Falha ao carregar dados de produtos mais vendidos');
+      const dataProdutos = await resProdutos.json();
+      setProdutosMaisVendidos(dataProdutos.data || []);
+      setLoadingProdutos(false);
+      
+      // Carregar métricas
+      setLoadingMetricas(true);
+      const resMetricas = await fetch('/api/reports/sales/metrics');
+      if (!resMetricas.ok) throw new Error('Falha ao carregar métricas de vendas');
+      const dataMetricas = await resMetricas.json();
+      setMetricas(dataMetricas.data || []);
+      setLoadingMetricas(false);
+      
+      // Limpar qualquer erro anterior
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+      setError(err.message || 'Erro ao carregar dados de vendas');
+      
+      // Ajustar estados de loading
+      setLoadingMensal(false);
+      setLoadingCanal(false);
+      setLoadingDiario(false);
+      setLoadingProdutos(false);
+      setLoadingMetricas(false);
+    }
+  };
+  
+  // Carregar dados quando o componente montar
+  useEffect(() => {
+    carregarDados();
+  }, []);
 
   return (
     <OrganizationLayout>
@@ -239,29 +281,39 @@ export default function RelatorioVendas() {
                   <CardDescription>Vendas dos últimos 12 meses com meta mensal</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="h-[350px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={vendasUltimos12Meses}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
-                        <Legend />
-                        <Bar dataKey="vendas" name="Vendas" fill="#10b981" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="meta" name="Meta" fill="#d1d5db" radius={[4, 4, 0, 0]} />
-                        <Line
-                          type="monotone"
-                          dataKey="meta"
-                          stroke="#ef4444"
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={false}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="h-[350px] relative">
+                    {loadingMensal ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : vendasUltimos12Meses.length === 0 ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-muted-foreground">Nenhum dado disponível</p>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={vendasUltimos12Meses}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => [`R$ ${value}`, 'Valor']} />
+                          <Legend />
+                          <Bar dataKey="vendas" name="Vendas" fill="#10b981" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="meta" name="Meta" fill="#d1d5db" radius={[4, 4, 0, 0]} />
+                          <Line
+                            type="monotone"
+                            dataKey="meta"
+                            stroke="#ef4444"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={false}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -272,27 +324,37 @@ export default function RelatorioVendas() {
                   <CardDescription>Distribuição de vendas por canal de distribuição</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={canalVendas}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          fill="#8884d8"
-                          paddingAngle={2}
-                          dataKey="value"
-                          label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {canalVendas.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => [`${value}%`, 'Porcentagem']} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="h-[300px] relative">
+                    {loadingCanal ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : canalVendas.length === 0 ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-muted-foreground">Nenhum dado disponível</p>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={canalVendas}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={90}
+                            fill="#8884d8"
+                            paddingAngle={2}
+                            dataKey="value"
+                            label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {canalVendas.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [`${value}%`, 'Porcentagem']} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -303,31 +365,41 @@ export default function RelatorioVendas() {
                   <CardDescription>Últimos 7 dias</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={vendasDiarias}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient id="colorVendas" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => [`R$ ${value}`, 'Vendas']} />
-                        <Area 
-                          type="monotone" 
-                          dataKey="vendas" 
-                          stroke="#10b981" 
-                          fillOpacity={1} 
-                          fill="url(#colorVendas)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <div className="h-[300px] relative">
+                    {loadingDiario ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : vendasDiarias.length === 0 ? (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <p className="text-muted-foreground">Nenhum dado disponível</p>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={vendasDiarias}
+                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient id="colorVendas" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip formatter={(value) => [`R$ ${value}`, 'Vendas']} />
+                          <Area 
+                            type="monotone" 
+                            dataKey="vendas" 
+                            stroke="#10b981" 
+                            fillOpacity={1} 
+                            fill="url(#colorVendas)" 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -341,46 +413,56 @@ export default function RelatorioVendas() {
                 <CardDescription>Top 5 produtos com maior volume de vendas</CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-4 text-sm font-medium">Produto</th>
-                        <th className="text-center py-3 px-4 text-sm font-medium">Unidades Vendidas</th>
-                        <th className="text-center py-3 px-4 text-sm font-medium">% do Total</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium">Crescimento</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {produtosMaisVendidos.map((produto, index) => (
-                        <tr key={index} className="border-b hover:bg-muted/50">
-                          <td className="py-3 px-4 font-medium">{produto.name}</td>
-                          <td className="py-3 px-4 text-center">{produto.vendas}</td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div 
-                                  className="bg-green-600 dark:bg-green-500 h-2 rounded-full" 
-                                  style={{ width: `${produto.porcentagem}%` }}
-                                ></div>
-                              </div>
-                              <span>{produto.porcentagem}%</span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className={`flex items-center justify-end gap-1 ${produto.crescimento >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {produto.crescimento >= 0 ? (
-                                <ArrowUpRight className="h-3 w-3" />
-                              ) : (
-                                <ArrowDownRight className="h-3 w-3" />
-                              )}
-                              {Math.abs(produto.crescimento)}%
-                            </span>
-                          </td>
+                <div className="overflow-x-auto relative">
+                  {loadingProdutos ? (
+                    <div className="flex justify-center items-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : produtosMaisVendidos.length === 0 ? (
+                    <div className="flex justify-center items-center py-8">
+                      <p className="text-muted-foreground">Nenhum dado disponível</p>
+                    </div>
+                  ) : (
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 text-sm font-medium">Produto</th>
+                          <th className="text-center py-3 px-4 text-sm font-medium">Unidades Vendidas</th>
+                          <th className="text-center py-3 px-4 text-sm font-medium">% do Total</th>
+                          <th className="text-right py-3 px-4 text-sm font-medium">Crescimento</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {produtosMaisVendidos.map((produto, index) => (
+                          <tr key={index} className="border-b hover:bg-muted/50">
+                            <td className="py-3 px-4 font-medium">{produto.name}</td>
+                            <td className="py-3 px-4 text-center">{produto.vendas}</td>
+                            <td className="py-3 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div 
+                                    className="bg-green-600 dark:bg-green-500 h-2 rounded-full" 
+                                    style={{ width: `${produto.porcentagem}%` }}
+                                  ></div>
+                                </div>
+                                <span>{produto.porcentagem}%</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className={`flex items-center justify-end gap-1 ${produto.crescimento >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {produto.crescimento >= 0 ? (
+                                  <ArrowUpRight className="h-3 w-3" />
+                                ) : (
+                                  <ArrowDownRight className="h-3 w-3" />
+                                )}
+                                {Math.abs(produto.crescimento)}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
                 
                 <div className="mt-6">
