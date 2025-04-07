@@ -336,9 +336,13 @@ export default function Expedicao() {
               { title: "Preparação de Pedidos", icon: <ListChecks size={20} />, path: "/organization/expedicao/pedidos" },
               { title: "Etiquetas", icon: <Printer size={20} />, path: "/organization/expedicao/etiquetas" },
               { title: "Leitura de Códigos", icon: <QrCode size={20} />, path: "/organization/expedicao/codigos" },
+              { title: "Leitura de Códigos V2", icon: <QrCode size={20} />, path: "/organization/expedicao/codigos-v2", badge: "Novo" },
               { title: "Documentação", icon: <FileText size={20} />, path: "/organization/expedicao/documentacao" },
+              { title: "Documentação V2", icon: <FileText size={20} />, path: "/organization/expedicao/documentacao-v2", badge: "Novo" },
               { title: "Junção de Pedidos", icon: <Box size={20} />, path: "/organization/expedicao/juncao" },
+              { title: "Junção de Pedidos V2", icon: <Box size={20} />, path: "/organization/expedicao/juncao-v2", badge: "Novo" },
               { title: "Registro de Malotes", icon: <Package size={20} />, path: "/organization/expedicao/malotes" },
+              { title: "Registro de Malotes V2", icon: <Package size={20} />, path: "/organization/expedicao/malotes-v2", badge: "Novo" },
               { title: "Atualização de Rastreios", icon: <Truck size={20} />, path: "/organization/expedicao/rastreios" },
               { title: "Estoque da Expedição", icon: <Package size={20} />, path: "/organization/expedicao/estoque" }
             ].map((module, index) => (
@@ -351,7 +355,14 @@ export default function Expedicao() {
                   <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center mb-3">
                     {React.cloneElement(module.icon, { className: "text-green-600" })}
                   </div>
-                  <h3 className="text-sm font-medium">{module.title}</h3>
+                  <div className="relative">
+                    <h3 className="text-sm font-medium">{module.title}</h3>
+                    {module.badge && (
+                      <span className="absolute -top-3 -right-8 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded">
+                        {module.badge}
+                      </span>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
