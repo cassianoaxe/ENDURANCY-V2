@@ -11,7 +11,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Package, Users, Truck, ArrowRight, BarChart4, Clock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Package, 
+  Truck, 
+  ArrowRight, 
+  BarChart4, 
+  Clock, 
+  CheckCircle2, 
+  Loader2, 
+  FileText, 
+  Printer, 
+  QrCode, 
+  Box,
+  CalendarCheck, 
+  AlertTriangle,
+  MapPin,
+  ListChecks
+} from "lucide-react";
 
 export default function Expedicao() {
   const { user } = useAuth();
@@ -26,274 +43,314 @@ export default function Expedicao() {
     <OrganizationLayout>
       <div className="container py-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Expedição</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard de Expedição</h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie processos de expedição, pacientes e produtos.
+            Acompanhe o status de pedidos, malotes e entregas
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Card Gerenciar Pacientes */}
-          <Card className="overflow-hidden border-2 hover:border-green-500 transition-all duration-300 hover:shadow-md">
-            <CardHeader className="bg-gray-50 dark:bg-gray-800 pb-2 flex flex-row items-center gap-2">
-              <Users className="h-6 w-6 text-green-600" />
-              <div>
-                <CardTitle>Gerenciar Pacientes</CardTitle>
-                <CardDescription>
-                  Cadastre e gerencie informações dos pacientes
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    73
-                  </div>
-                  <div className="text-sm text-green-700 dark:text-green-500">
-                    Pacientes Ativos
-                  </div>
+        {/* KPI Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Pedidos Hoje</span>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-3xl font-bold">24</span>
+                  <span className="text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full flex items-center">
+                    <ArrowRight className="h-3 w-3 rotate-45 mr-1" />
+                    12% em relação a ontem
+                  </span>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    12
-                  </div>
-                  <div className="text-sm text-blue-700 dark:text-blue-500">
-                    Novos este mês
-                  </div>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                    25
-                  </div>
-                  <div className="text-sm text-amber-700 dark:text-amber-500">
-                    Aguardando Expedição
-                  </div>
+                <div className="mt-4 text-amber-600 text-xs">
+                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                  5 pedidos urgentes
                 </div>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Gerencie cadastros de pacientes, histórico médico e informações de contato. 
-                Tenha acesso rápido aos dados para expedição de produtos.
-              </p>
-              <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Cadastro completo de pacientes
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Histórico de prescrições e pedidos
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Acompanhamento de tratamentos
-                </li>
-              </ul>
             </CardContent>
-            <CardFooter className="bg-gray-50 dark:bg-gray-800 pt-2">
-              <Button 
-                className="w-full" 
-                onClick={() => navigateTo("/organization/gerenciar-pacientes")}
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Gerenciar Pacientes
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
           </Card>
 
-          {/* Card Gerenciar Produtos */}
-          <Card className="overflow-hidden border-2 hover:border-green-500 transition-all duration-300 hover:shadow-md">
-            <CardHeader className="bg-gray-50 dark:bg-gray-800 pb-2 flex flex-row items-center gap-2">
-              <Package className="h-6 w-6 text-green-600" />
-              <div>
-                <CardTitle>Gerenciar Produtos</CardTitle>
-                <CardDescription>
-                  Cadastre e gerencie o catálogo de produtos
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    56
-                  </div>
-                  <div className="text-sm text-green-700 dark:text-green-500">
-                    Produtos Ativos
-                  </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Pedidos Aguardando</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">18</span>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    8
-                  </div>
-                  <div className="text-sm text-blue-700 dark:text-blue-500">
-                    Categorias
-                  </div>
-                </div>
-                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg text-center">
-                  <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                    5
-                  </div>
-                  <div className="text-sm text-amber-700 dark:text-amber-500">
-                    Estoque Baixo
-                  </div>
+                <div className="flex justify-between mt-4 text-xs">
+                  <span className="text-blue-600 font-medium">
+                    <Clock className="h-3 w-3 inline mr-1" />
+                    12 em preparação
+                  </span>
+                  <span className="text-amber-600 font-medium">
+                    <CheckCircle2 className="h-3 w-3 inline mr-1" />
+                    6 em revisão
+                  </span>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Gerencie o catálogo de produtos, controle de estoque e informações de preços.
-                Tenha visibilidade completa para gerenciar seu inventário.
-              </p>
-              <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mb-4">
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Cadastro detalhado de produtos
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Controle de estoque e alertas
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                  Categorização e organização
-                </li>
-              </ul>
             </CardContent>
-            <CardFooter className="bg-gray-50 dark:bg-gray-800 pt-2">
-              <Button 
-                className="w-full" 
-                variant="secondary"
-                onClick={() => navigateTo("/organization/gerenciar-produtos")}
-              >
-                <Package className="mr-2 h-4 w-4" />
-                Gerenciar Produtos
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardFooter>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Malotes Enviados</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">4</span>
+                </div>
+                <div className="mt-4 text-blue-600 text-xs">
+                  <Box className="h-3 w-3 inline mr-1" />
+                  45 pedidos processados
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Taxa de Entrega</span>
+                <div className="flex justify-between items-center mt-1">
+                  <span className="text-3xl font-bold">97%</span>
+                  <span className="text-green-600 text-xs font-medium bg-green-50 px-2 py-1 rounded-full flex items-center">
+                    <ArrowRight className="h-3 w-3 rotate-45 mr-1" />
+                    2% em relação ao mês anterior
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 rounded-full mt-3">
+                  <div className="h-2 bg-green-500 rounded-full" style={{ width: "97%" }}></div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
 
-        {/* Seção de Atividades Recentes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-medium">
-              Atividades Recentes de Expedição
-            </CardTitle>
-            <CardDescription>
-              Últimas atualizações e atividades do módulo de Expedição
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-start gap-3 pb-3 border-b border-gray-100 last:border-b-0 last:pb-0">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white ${
-                    i % 3 === 0 ? "bg-green-500" :
-                    i % 3 === 1 ? "bg-blue-500" :
-                    "bg-amber-500"
-                  }`}>
-                    {i % 3 === 0 ? <Truck size={14} /> :
-                     i % 3 === 1 ? <Package size={14} /> :
-                     <Users size={14} />
-                    }
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {i % 3 === 0 
-                        ? 'Pedido #' + (1000+i) + ' expedido para Paciente ' + i
-                        : i % 3 === 1 
-                        ? 'Estoque atualizado: Produto ' + i + ' - ' + (10 + i) + ' unidades'
-                        : 'Cadastro atualizado: Paciente ' + i
-                      }
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">
-                        {(30-i*4)} minutos atrás
-                      </p>
+        {/* Tabs e gráficos */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="packages">Malotes</TabsTrigger>
+            <TabsTrigger value="tracking">Rastreamento</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Desempenho Semanal */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-medium">Desempenho Semanal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative h-[300px] w-full">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-full flex flex-col">
+                        {/* Simulação de um gráfico de barras */}
+                        <div className="flex-1 flex items-end justify-between gap-1 px-2">
+                          {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day, i) => (
+                            <div key={day} className="flex flex-col items-center gap-1 w-full">
+                              <div className="relative w-full">
+                                <div 
+                                  className="w-full bg-blue-500 rounded-t"
+                                  style={{ 
+                                    height: `${[60, 75, 82, 100, 65, 40, 20][i]}%`,
+                                  }}
+                                ></div>
+                                <div 
+                                  className="w-full bg-green-400 rounded-t absolute bottom-0 left-0"
+                                  style={{ 
+                                    height: `${[50, 55, 65, 80, 50, 30, 10][i]}%`,
+                                    zIndex: 1
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-500">{day}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-4 flex items-center justify-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                            <span className="text-xs text-gray-500">Pedidos</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-400 rounded"></div>
+                            <span className="text-xs text-gray-500">Entregas</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
+
+              {/* Status de Pedidos */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-medium">Status de Pedidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Em preparação</span>
+                        <span className="text-sm font-medium">8 pedidos</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full">
+                        <div className="h-2 bg-amber-400 rounded-full" style={{ width: "30%" }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Em revisão</span>
+                        <span className="text-sm font-medium">4 pedidos</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full">
+                        <div className="h-2 bg-blue-500 rounded-full" style={{ width: "15%" }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Documentação</span>
+                        <span className="text-sm font-medium">6 pedidos</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full">
+                        <div className="h-2 bg-purple-500 rounded-full" style={{ width: "22%" }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Aguardando despacho</span>
+                        <span className="text-sm font-medium">9 pedidos</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full">
+                        <div className="h-2 bg-green-500 rounded-full" style={{ width: "33%" }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Cards informativos */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Status de Expedição</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Pedidos em Fila</span>
-                    <span>12/30</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pedidos Prioritários */}
+              <Card>
+                <CardHeader className="pb-3 flex justify-between items-center">
+                  <CardTitle className="text-lg font-medium">Pedidos Prioritários</CardTitle>
+                  <Button variant="outline" size="sm">Ver todos</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                        <div className="flex items-center">
+                          <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                            <AlertTriangle className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">PED-123{i}5</div>
+                            <div className="text-xs text-muted-foreground">
+                              {i === 1 ? "Aguardando documentação" : 
+                               i === 2 ? "Em preparação" : 
+                               "Em revisão"}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">
+                          Urgente
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '40%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Em Expedição</span>
-                    <span>8/20</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '40%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Concluídos Hoje</span>
-                    <span>16/40</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '40%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Estatísticas de Entrega</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-gray-800">98%</div>
-                  <div className="text-xs text-gray-500">Entregues no Prazo</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-gray-800">24h</div>
-                  <div className="text-xs text-gray-500">Tempo Médio</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-gray-800">128</div>
-                  <div className="text-xs text-gray-500">Entregas este mês</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-gray-800">4.9</div>
-                  <div className="text-xs text-gray-500">Avaliação Média</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Rastreios Recentes */}
+              <Card>
+                <CardHeader className="pb-3 flex justify-between items-center">
+                  <CardTitle className="text-lg font-medium">Rastreios Recentes</CardTitle>
+                  <Button variant="outline" size="sm">Atualizar rastreios</Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                        <div className="flex items-center">
+                          <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <Truck className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">LE{i}234567890BR</div>
+                            <div className="text-xs text-muted-foreground">
+                              {i === 1 ? "Em trânsito - São Paulo, SP" : 
+                               i === 2 ? "Saiu para entrega" : 
+                               "Entregue - 12:45"}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          i === 1 ? "bg-blue-50 text-blue-700" : 
+                          i === 2 ? "bg-amber-50 text-amber-700" : 
+                          "bg-green-50 text-green-700"
+                        }`}>
+                          {i === 1 ? "Em trânsito" : 
+                           i === 2 ? "Em entrega" : 
+                           "Entregue"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="orders">
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">Conteúdo da aba Pedidos</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="packages">
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">Conteúdo da aba Malotes</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="tracking">
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">Conteúdo da aba Rastreamento</p>
+            </div>
+          </TabsContent>
+        </Tabs>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Eficiência de Expedição</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <div className="h-[180px] flex items-center justify-center bg-gray-50 rounded">
-                <BarChart4 className="h-full w-full text-gray-300" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Módulos de Expedição */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Módulos de Expedição</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {[
+              { title: "Dashboard Expedição", icon: <BarChart4 size={20} />, path: "/organization/expedicao" },
+              { title: "Preparação de Pedidos", icon: <ListChecks size={20} />, path: "/organization/expedicao/pedidos" },
+              { title: "Etiquetas", icon: <Printer size={20} />, path: "/organization/expedicao/etiquetas" },
+              { title: "Leitura de Códigos", icon: <QrCode size={20} />, path: "/organization/expedicao/codigos" },
+              { title: "Documentação", icon: <FileText size={20} />, path: "/organization/expedicao/documentacao" },
+              { title: "Junção de Pedidos", icon: <Box size={20} />, path: "/organization/expedicao/juncao" },
+              { title: "Registro de Malotes", icon: <Package size={20} />, path: "/organization/expedicao/malotes" },
+              { title: "Atualização de Rastreios", icon: <Truck size={20} />, path: "/organization/expedicao/rastreios" }
+            ].map((module, index) => (
+              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                  <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center mb-3">
+                    {React.cloneElement(module.icon, { className: "text-green-600" })}
+                  </div>
+                  <h3 className="text-sm font-medium">{module.title}</h3>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </OrganizationLayout>

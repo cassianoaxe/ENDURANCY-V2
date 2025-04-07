@@ -58,7 +58,8 @@ export default function OrganizationSidebar() {
     {
       title: "CADASTROS",
       path: "/organization/cadastros",
-      active: currentPath === "/organization/cadastros",
+      active: currentPath === "/organization/cadastros" || 
+              currentPath === "/organization/gerenciar-pacientes",
       icon: <Users size={18} />
     },
     {
@@ -75,18 +76,19 @@ export default function OrganizationSidebar() {
     },
     {
       title: "VENDAS",
-      path: "/organization/sales",
-      active: currentPath === "/organization/sales",
+      path: "/organization/vendas",
+      active: currentPath === "/organization/vendas" || 
+              currentPath === "/organization/sales" ||
+              currentPath === "/organization/gerenciar-produtos",
       icon: <ShoppingCart size={18} />
     },
     {
       title: "EXPEDIÇÃO",
       path: "/organization/expedicao",
       active: currentPath === "/organization/expedicao" || 
-              currentPath === "/organization/gerenciar-pacientes" || 
-              currentPath === "/organization/gerenciar-produtos" || 
               currentPath === "/organization/expedition" || 
-              currentPath === "/organization/producao",
+              currentPath === "/organization/producao" ||
+              currentPath.startsWith("/organization/expedicao/"),
       icon: <Truck size={18} />
     },
     {
