@@ -45,6 +45,9 @@ import PaymentTest from "@/pages/PaymentTest";
 // Importar novas páginas de pagamento por email
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
+// Importar páginas do portal do paciente
+import PatientLogin from "@/pages/PatientLogin";
+import PatientDashboardPage from "@/pages/patient/Dashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
@@ -141,7 +144,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -239,6 +242,11 @@ function AppContent() {
     // Regular login
     if (currentPath === '/login') {
       return <Login />;
+    }
+    
+    // Login de paciente
+    if (currentPath === '/patient-login') {
+      return <PatientLogin />;
     }
     
     // Página de teste de pagamento (públicamente acessível para testes)
@@ -615,7 +623,7 @@ function AppContent() {
     if (currentPath === '/patient/dashboard') {
       return (
         <Layout>
-          <PatientDashboard />
+          <PatientDashboardPage />
         </Layout>
       );
     }
