@@ -11,7 +11,7 @@ import {
   Scale, LineChart, MessageCircle, Building, TestTube,
   Clipboard, FileClock, Share2, Send, Network, 
   Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
-  PackageOpen, BadgePercent
+  PackageOpen, BadgePercent, Printer, QrCode, Box
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -141,7 +141,64 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/expedition" || 
               currentPath === "/organization/producao" ||
               currentPath.startsWith("/organization/expedicao/"),
-      icon: <Truck size={18} />
+      icon: <Truck size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Expedição",
+          path: "/organization/expedicao",
+          active: currentPath === "/organization/expedicao" && !currentPath.includes("/organization/expedicao/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Preparação de Pedidos",
+          path: "/organization/expedicao/pedidos",
+          active: currentPath === "/organization/expedicao/pedidos",
+          icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Etiquetas",
+          path: "/organization/expedicao/etiquetas",
+          active: currentPath === "/organization/expedicao/etiquetas",
+          icon: <Printer size={16} />
+        },
+        {
+          title: "Leitura de Códigos",
+          path: "/organization/expedicao/codigos",
+          active: currentPath === "/organization/expedicao/codigos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Documentação",
+          path: "/organization/expedicao/documentacao",
+          active: currentPath === "/organization/expedicao/documentacao",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Junção de Pedidos",
+          path: "/organization/expedicao/juncao",
+          active: currentPath === "/organization/expedicao/juncao",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Registro de Malotes",
+          path: "/organization/expedicao/malotes",
+          active: currentPath === "/organization/expedicao/malotes",
+          icon: <PackageOpen size={16} />
+        },
+        {
+          title: "Atualização de Rastreios",
+          path: "/organization/expedicao/rastreios",
+          active: currentPath === "/organization/expedicao/rastreios",
+          icon: <Truck size={16} />
+        },
+        {
+          title: "Estoque da Expedição",
+          path: "/organization/expedicao/estoque",
+          active: currentPath === "/organization/expedicao/estoque",
+          icon: <Package size={16} />
+        }
+      ]
     },
     {
       title: "CHATGPT AI",
