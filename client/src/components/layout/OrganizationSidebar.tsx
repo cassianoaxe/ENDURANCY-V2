@@ -56,9 +56,9 @@ export default function OrganizationSidebar() {
       icon: <LayoutDashboard size={18} />
     },
     {
-      title: "ASSOCIADOS",
-      path: "/organization/associates",
-      active: currentPath === "/organization/associates",
+      title: "CADASTROS",
+      path: "/organization/cadastros",
+      active: currentPath === "/organization/cadastros",
       icon: <Users size={18} />
     },
     {
