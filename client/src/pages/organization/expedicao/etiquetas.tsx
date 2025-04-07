@@ -29,7 +29,9 @@ import {
   Calendar,
   Barcode,
   Info,
-  ClipboardCopy
+  ClipboardCopy,
+  Plus,
+  Folder
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +67,23 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+
+// Tipo para modelo de etiqueta
+interface LabelTemplate {
+  id: string;
+  title: string;
+  format: string;
+  carrier: string;
+  description: string;
+  dimensions: string;
+  isDefault: boolean;
+  paperSize: string;
+  labelsPerPage?: number;
+  previewImage?: string;
+}
 
 // Tipo para etiqueta
 interface ShippingLabel {
@@ -213,6 +231,62 @@ const mockLabels: ShippingLabel[] = [
   }
 ];
 
+// Dados de exemplo para modelos de etiquetas
+const labelTemplates: LabelTemplate[] = [
+  {
+    id: "template-1",
+    title: "Padrão 10x15cm",
+    format: "10x15cm",
+    carrier: "Correios",
+    description: "Etiqueta padrão dos Correios para encomendas nacionais",
+    dimensions: "10x15cm",
+    isDefault: true,
+    paperSize: "Personalizado",
+    labelsPerPage: 1
+  },
+  {
+    id: "template-2",
+    title: "Formato A6",
+    format: "A6",
+    carrier: "JADLOG",
+    description: "Etiqueta no formato A6 para JADLOG",
+    dimensions: "10.5x14.8cm",
+    isDefault: false,
+    paperSize: "A6"
+  },
+  {
+    id: "template-3",
+    title: "Formato A4 - 2 por página",
+    format: "A4",
+    carrier: "Múltiplas",
+    description: "Layout A4 com 2 etiquetas por página, para qualquer transportadora",
+    dimensions: "21x29.7cm",
+    isDefault: false,
+    paperSize: "A4",
+    labelsPerPage: 2
+  },
+  {
+    id: "template-4",
+    title: "Transportadora Própria",
+    format: "10x15cm",
+    carrier: "Transportadora Própria",
+    description: "Etiqueta personalizada para transportadora própria",
+    dimensions: "10x15cm",
+    isDefault: false,
+    paperSize: "Personalizado"
+  },
+  {
+    id: "template-5",
+    title: "Etiqueta Térmica",
+    format: "58mm",
+    carrier: "Múltiplas",
+    description: "Etiqueta para impressora térmica de 58mm",
+    dimensions: "5.8x8cm",
+    isDefault: false,
+    paperSize: "Rolo 58mm"
+  }
+];
+
 export default function Etiquetas() {
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState("todas");
@@ -223,6 +297,9 @@ export default function Etiquetas() {
   const [selectedLabel, setSelectedLabel] = useState<ShippingLabel | null>(null);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const labelRef = useRef<HTMLDivElement>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<LabelTemplate | null>(labelTemplates[0]);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [newTemplateModalOpen, setNewTemplateModalOpen] = useState(false);
 
   // Função para navegação entre páginas
   const navigateTo = (path: string) => {
@@ -351,6 +428,13 @@ export default function Etiquetas() {
             >
               <Download className="h-4 w-4 mr-2" />
               Baixar ({selectedLabels.length})
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setTemplateDialogOpen(true)}
+            >
+              <Folder className="h-4 w-4 mr-2" />
+              Modelos
             </Button>
             <Button 
               disabled={selectedLabels.length === 0}
@@ -668,6 +752,227 @@ export default function Etiquetas() {
         </div>
       </div>
 
+      {/* Diálogo de seleção de modelo de etiqueta */}
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Folder className="h-5 w-5" />
+              Modelos de Etiquetas
+            </DialogTitle>
+            <DialogDescription>
+              Selecione um modelo de etiqueta existente ou crie um novo modelo personalizado para usar na geração de etiquetas.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+            {labelTemplates.map((template) => (
+              <Card 
+                key={template.id} 
+                className={`cursor-pointer transition-all hover:shadow-md ${selectedTemplate?.id === template.id ? 'ring-2 ring-primary' : ''}`}
+                onClick={() => setSelectedTemplate(template)}
+              >
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-sm">{template.title}</CardTitle>
+                  <CardDescription className="text-xs">{template.carrier}</CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Formato:</span>
+                      <span className="font-medium">{template.format}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Dimensões:</span>
+                      <span className="font-medium">{template.dimensions}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Papel:</span>
+                      <span className="font-medium">{template.paperSize}</span>
+                    </div>
+                    {template.labelsPerPage && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Etiquetas por página:</span>
+                        <span className="font-medium">{template.labelsPerPage}</span>
+                      </div>
+                    )}
+                    {template.isDefault && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50 mt-2">
+                        Padrão
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            
+            {/* Card para adicionar novo modelo */}
+            <Card 
+              className="cursor-pointer transition-all hover:shadow-md border-dashed border-2"
+              onClick={() => {
+                setTemplateDialogOpen(false);
+                setNewTemplateModalOpen(true);
+              }}
+            >
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
+                <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                  <Plus className="h-5 w-5 text-blue-600" />
+                </div>
+                <h3 className="text-sm font-medium">Criar novo modelo</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Personalize um modelo para suas necessidades
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              disabled={!selectedTemplate}
+              onClick={() => {
+                toast({
+                  title: "Modelo selecionado",
+                  description: `O modelo "${selectedTemplate?.title}" será usado para as próximas etiquetas`,
+                  variant: "default",
+                });
+                setTemplateDialogOpen(false);
+              }}
+            >
+              Usar modelo selecionado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para criar novo modelo de etiqueta */}
+      <Dialog open={newTemplateModalOpen} onOpenChange={setNewTemplateModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Criar Novo Modelo de Etiqueta
+            </DialogTitle>
+            <DialogDescription>
+              Preencha as informações para criar um modelo personalizado de etiqueta.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="col-span-2">
+              <Label htmlFor="template-title" className="text-right">
+                Nome do Modelo
+              </Label>
+              <Input id="template-title" placeholder="Ex: Etiqueta Padrão Correios" />
+            </div>
+            <div className="col-span-1">
+              <Label htmlFor="template-format" className="text-right">
+                Formato
+              </Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o formato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10x15cm">10x15cm</SelectItem>
+                  <SelectItem value="A6">A6</SelectItem>
+                  <SelectItem value="A5">A5</SelectItem>
+                  <SelectItem value="A4">A4</SelectItem>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-1">
+              <Label htmlFor="template-carrier" className="text-right">
+                Transportadora
+              </Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a transportadora" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Correios">Correios</SelectItem>
+                  <SelectItem value="JADLOG">JADLOG</SelectItem>
+                  <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
+                  <SelectItem value="Transportadora Própria">Transportadora Própria</SelectItem>
+                  <SelectItem value="Múltiplas">Múltiplas transportadoras</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-1">
+              <Label htmlFor="template-paper" className="text-right">
+                Tipo de Papel
+              </Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o papel" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A4">A4</SelectItem>
+                  <SelectItem value="A5">A5</SelectItem>
+                  <SelectItem value="A6">A6</SelectItem>
+                  <SelectItem value="Letter">Carta (Letter)</SelectItem>
+                  <SelectItem value="Rolo 58mm">Rolo 58mm</SelectItem>
+                  <SelectItem value="Rolo 80mm">Rolo 80mm</SelectItem>
+                  <SelectItem value="Personalizado">Personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-1">
+              <Label htmlFor="template-per-page" className="text-right">
+                Etiquetas por página
+              </Label>
+              <Input 
+                id="template-per-page" 
+                type="number" 
+                min="1" 
+                max="10" 
+                placeholder="Ex: 1" 
+              />
+            </div>
+            <div className="col-span-2">
+              <Label htmlFor="template-desc" className="text-right">
+                Descrição
+              </Label>
+              <Textarea 
+                id="template-desc" 
+                placeholder="Descreva as características deste modelo de etiqueta" 
+                rows={3}
+              />
+            </div>
+            <div className="col-span-2 flex items-center space-x-2">
+              <Checkbox id="template-default" />
+              <Label htmlFor="template-default">
+                Definir como modelo padrão
+              </Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setNewTemplateModalOpen(false);
+              setTemplateDialogOpen(true);
+            }}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Modelo criado com sucesso",
+                  description: "Seu novo modelo de etiqueta foi adicionado à lista de modelos disponíveis",
+                  variant: "default",
+                });
+                setNewTemplateModalOpen(false);
+              }}
+            >
+              Criar modelo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Modal de visualização da etiqueta */}
       <Dialog open={labelModalOpen} onOpenChange={setLabelModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
