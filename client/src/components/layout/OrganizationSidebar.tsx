@@ -93,39 +93,17 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Integrações disponíveis
-  const integrationModules = [
-    {
-      title: "COMPLYCHAT",
-      path: "/organization/integrations/complychat",
-      active: currentPath === "/organization/integrations/complychat",
-      icon: <MessageSquare size={18} />
-    },
-    {
-      title: "WHATSAPP",
-      path: "/organization/integrations/whatsapp",
-      active: currentPath === "/organization/integrations/whatsapp",
-      icon: <MessageCircle size={18} />
-    },
-    {
-      title: "MELHOR ENVIO",
-      path: "/organization/integrations/melhor-envio",
-      active: currentPath === "/organization/integrations/melhor-envio",
-      icon: <Send size={18} />
-    },
-    {
-      title: "AZUL CARGO",
-      path: "/organization/integrations/azul-cargo",
-      active: currentPath === "/organization/integrations/azul-cargo",
-      icon: <Plane size={18} />
-    },
-    {
-      title: "CORREIOS",
-      path: "/organization/integrations/correios",
-      active: currentPath === "/organization/integrations/correios",
-      icon: <Mailbox size={18} />
-    }
-  ];
+  // Configurações da organização
+  const configModule = {
+    title: "CONFIGURAÇÕES",
+    path: "/organization/settings",
+    active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings") || 
+            currentPath.startsWith("/organization/integrations"),
+    icon: <Settings size={18} />
+  };
+  
+  // Lista vazia para evitar erros (não usada mais)
+  const integrationModules: any[] = [];
 
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
@@ -366,60 +344,59 @@ export default function OrganizationSidebar() {
           {/* Separador */}
           <div className="my-2 border-t border-gray-200"></div>
           
-          {/* Integrações */}
+          {/* Configurações */}
           {!collapsed && (
             <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-gray-500 mb-1">INTEGRAÇÕES</p>
+              <p className="text-xs font-semibold text-gray-500 mb-1">SISTEMA</p>
             </div>
           )}
           
-          {integrationModules.map((item, index) => (
-            <div key={`integration-${index}`} className={cn(
-              "relative",
-              item.active && "bg-green-50"
-            )}>
-              {!collapsed && (
-                <div 
-                  className={cn(
-                    "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                    item.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
-                  )}
-                  onClick={() => navigateTo(item.path)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm flex items-center gap-2",
-                      item.active && "font-semibold"
-                    )}>
-                      {React.cloneElement(item.icon, { 
-                        className: item.active ? "text-green-600" : "text-gray-500" 
-                      })}
-                      {item.title}
-                    </span>
-                  </div>
-                  <ChevronLeft 
-                    size={16} 
-                    className={cn(
-                      "transform transition-transform duration-200",
-                      item.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
-                    )} 
-                  />
+          {/* Item de configurações */}
+          <div className={cn(
+            "relative",
+            configModule.active && "bg-green-50"
+          )}>
+            {!collapsed && (
+              <div 
+                className={cn(
+                  "flex items-center justify-between px-4 py-2 cursor-pointer group",
+                  configModule.active ? "text-green-600 font-medium" : "text-gray-600 hover:bg-gray-50"
+                )}
+                onClick={() => navigateTo(configModule.path)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "text-sm flex items-center gap-2",
+                    configModule.active && "font-semibold"
+                  )}>
+                    {React.cloneElement(configModule.icon, { 
+                      className: configModule.active ? "text-green-600" : "text-gray-500" 
+                    })}
+                    {configModule.title}
+                  </span>
                 </div>
-              )}
-              {collapsed && (
-                <div 
+                <ChevronLeft 
+                  size={16} 
                   className={cn(
-                    "flex items-center justify-center p-2 cursor-pointer",
-                    item.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
-                  )}
-                  onClick={() => navigateTo(item.path)}
-                  title={item.title}
-                >
-                  {item.icon}
-                </div>
-              )}
-            </div>
-          ))}
+                    "transform transition-transform duration-200",
+                    configModule.active ? "rotate-90 text-green-600" : "-rotate-90 text-gray-400 group-hover:text-gray-600"
+                  )} 
+                />
+              </div>
+            )}
+            {collapsed && (
+              <div 
+                className={cn(
+                  "flex items-center justify-center p-2 cursor-pointer",
+                  configModule.active ? "text-green-600 bg-green-50" : "text-gray-500 hover:bg-gray-50"
+                )}
+                onClick={() => navigateTo(configModule.path)}
+                title={configModule.title}
+              >
+                {configModule.icon}
+              </div>
+            )}
+          </div>
           
           {/* Separador */}
           <div className="my-2 border-t border-gray-200"></div>
