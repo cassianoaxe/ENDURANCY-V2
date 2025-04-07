@@ -42,6 +42,9 @@ import AcceptInvitation from "@/pages/AcceptInvitation";
 import ModuleSubscriptionSales from "@/pages/ModuleSubscriptionSales";
 import Payment from "@/pages/Payment";
 import PaymentTest from "@/pages/PaymentTest";
+// Importar novas páginas de pagamento por email
+import PaymentConfirmar from "@/pages/pagamento/confirmar";
+import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
@@ -138,7 +141,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -201,6 +204,27 @@ function AppContent() {
     const token = paymentMatch[1];
     // Esta rota não precisa de autenticação e deve estar acessível para usuários não logados
     return <Payment />;
+  }
+  
+  // Verificar se é uma rota de confirmação de pagamento por email
+  const paymentConfirmacaoMatch = currentPath.match(/^\/pagamento\/confirmacao\/([^\/]+)$/);
+  if (paymentConfirmacaoMatch) {
+    const token = paymentConfirmacaoMatch[1];
+    // Esta rota não precisa de autenticação
+    return <PaymentConfirmacao />;
+  }
+  
+  // Verificar se é uma rota para confirmar pagamento por email
+  const paymentConfirmarMatch = currentPath.match(/^\/pagamento\/confirmar\/([^\/]+)$/);
+  if (paymentConfirmarMatch) {
+    const token = paymentConfirmarMatch[1];
+    // Esta rota não precisa de autenticação
+    return <PaymentConfirmar />;
+  }
+  
+  // Rota para a página de geração de links de pagamento
+  if (currentPath === '/pagamento/confirmar') {
+    return <PaymentConfirmar />;
   }
 
   // If not authenticated, handle login pages and public pages
