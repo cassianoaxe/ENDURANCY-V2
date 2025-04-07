@@ -53,6 +53,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/AuthContext";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 
+// Função auxiliar para obter o tema atual do sistema (independente do contexto)
+function getCurrentThemeFromLocalStorage() {
+  if (typeof window === 'undefined') return 'light';
+  const savedTheme = localStorage.getItem('theme');
+  return (savedTheme as 'light' | 'dark' | 'system') || 'system';
+}
+
 export default function OrganizationSettings() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -67,8 +74,26 @@ export default function OrganizationSettings() {
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
   
-  // Importação do contexto de tema
-  const { theme, setTheme } = useTheme();
+  // Em vez de usar useTheme, implementamos a funcionalidade diretamente
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark' | 'system'>(getCurrentThemeFromLocalStorage());
+  
+  // Função para alterar o tema manualmente
+  const changeTheme = (newTheme: 'light' | 'dark' | 'system') => {
+    setCurrentTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Aplicar classe no elemento html
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    
+    if (newTheme === 'system') {
+      // Usar preferência do sistema
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.add(systemPrefersDark ? 'dark' : 'light');
+    } else {
+      root.classList.add(newTheme);
+    }
+  };
   
   // Estados para preferências
   const [preferences, setPreferences] = useState<{
@@ -77,19 +102,17 @@ export default function OrganizationSettings() {
     dateFormat: string;
     language: string;
   }>({
-    theme: theme as 'light' | 'dark' | 'system',
+    theme: currentTheme,
     timezone: "America/Sao_Paulo",
     dateFormat: "dd/MM/yyyy",
     language: "pt-BR"
   });
   
-  // Atualizar preferências quando o tema global mudar
+  // Efeito para inicializar o tema quando o componente montar
   useEffect(() => {
-    setPreferences(prev => ({
-      ...prev,
-      theme: theme as 'light' | 'dark' | 'system'
-    }));
-  }, [theme]);
+    // Inicializa o tema baseado no estado
+    changeTheme(currentTheme);
+  }, []);
   
   // Estado para controlar salvamento
   const [isSaving, setIsSaving] = useState(false);
@@ -103,8 +126,8 @@ export default function OrganizationSettings() {
       // Aqui seria a chamada para a API para salvar as preferências
       // await apiRequest('/api/organizations/preferences', { method: 'POST', data: preferences });
       
-      // Aplicar o tema selecionado usando nosso novo contexto ThemeContext
-      setTheme(preferences.theme as 'light' | 'dark' | 'system');
+      // Aplicar o tema selecionado usando nossa função personalizada
+      changeTheme(preferences.theme);
       
       // Simular um pequeno delay para feedback visual
       setTimeout(() => {
