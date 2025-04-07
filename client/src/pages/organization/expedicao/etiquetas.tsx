@@ -377,15 +377,563 @@ export default function Etiquetas() {
   const printLabel = () => {
     if (!labelRef.current) return;
     
-    // Simular impressão com feedback visual
+    // Feedback visual antes de impressão
     toast({
-      title: "Enviando para impressão",
-      description: "A etiqueta foi enviada para a fila de impressão",
+      title: "Preparando impressão",
+      description: "Abrindo caixa de diálogo de impressão...",
       variant: "default",
     });
     
-    // Em um ambiente real, aqui seria implementada a lógica de impressão
-    // window.print();
+    // Cria um novo elemento para impressão que contém apenas a etiqueta
+    const printContent = document.createElement('div');
+    printContent.innerHTML = labelRef.current.outerHTML;
+    printContent.style.width = '100%';
+    printContent.style.padding = '20px';
+    
+    // Criando um iframe para controlar o conteúdo de impressão
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    
+    document.body.appendChild(printFrame);
+    
+    // Adiciona o conteúdo ao iframe e formata para impressão
+    const frameDoc = printFrame.contentWindow?.document;
+    if (frameDoc) {
+      frameDoc.open();
+      frameDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Impressão de Etiqueta - ${selectedLabel?.id}</title>
+            <style>
+              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+              }
+              .print-container {
+                padding: 10mm;
+                box-sizing: border-box;
+                page-break-inside: avoid;
+              }
+              .label-wrapper {
+                border: 1px solid #ddd;
+                padding: 10mm;
+                ${selectedTemplate?.format === 'A4' ? 'width: 190mm; height: 277mm;' : 
+                  selectedTemplate?.format === 'A6' ? 'width: 105mm; height: 148mm;' : 
+                  selectedTemplate?.format === '10x15cm' ? 'width: 100mm; height: 150mm;' : 
+                  'width: 100mm; height: 150mm;'}
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin: 0 auto;
+                background-color: white;
+              }
+              .flex-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5mm;
+              }
+              .flex-col {
+                display: flex;
+                flex-direction: column;
+              }
+              h3 {
+                font-size: 16pt;
+                margin: 0 0 2mm 0;
+              }
+              p {
+                font-size: 10pt;
+                margin: 0 0 1mm 0;
+              }
+              .barcode {
+                background-color: black;
+                color: white;
+                padding: 1mm 2mm;
+                font-family: monospace;
+                border-radius: 1mm;
+                font-size: 9pt;
+                display: inline-block;
+              }
+              .separator {
+                width: 100%;
+                height: 1px;
+                background-color: #ddd;
+                margin: 4mm 0;
+              }
+              .text-small {
+                font-size: 9pt;
+              }
+              .observation-box {
+                background-color: #fff9e6;
+                padding: 2mm;
+                border-radius: 1mm;
+                margin-top: 3mm;
+              }
+              .qr-code {
+                width: 25mm;
+                height: 25mm;
+                background-color: #f0f0f0;
+                margin: 3mm auto 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+              }
+              @media print {
+                @page {
+                  size: ${selectedTemplate?.paperSize === 'A4' ? 'A4' : 
+                    selectedTemplate?.paperSize === 'A6' ? 'A6' : 
+                    selectedTemplate?.paperSize === 'Letter' ? 'letter' : 
+                    'auto'};
+                  margin: 0;
+                }
+                body {
+                  margin: 0;
+                }
+                .label-wrapper {
+                  box-shadow: none;
+                  border: none;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="print-container">
+              ${printContent.innerHTML}
+            </div>
+          </body>
+        </html>
+      `);
+      frameDoc.close();
+      
+      // Aguarda o carregamento do conteúdo antes de imprimir
+      setTimeout(() => {
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+        
+        // Remover o iframe depois que a impressão for concluída ou cancelada
+        printFrame.contentWindow?.addEventListener('afterprint', () => {
+          document.body.removeChild(printFrame);
+          toast({
+            title: "Impressão concluída",
+            description: "A etiqueta foi enviada para a impressora",
+            variant: "default",
+          });
+        });
+      }, 500);
+    }
+  };
+  
+  // Função para download em massa de múltiplas etiquetas
+  const downloadMultipleLabels = () => {
+    if (selectedLabels.length === 0) return;
+    
+    // Filtrar apenas etiquetas que não estão pendentes
+    const labelsToDownload = mockLabels.filter(label => 
+      selectedLabels.includes(label.id) && label.status !== "pendente"
+    );
+    
+    if (labelsToDownload.length === 0) {
+      toast({
+        title: "Não há etiquetas para baixar",
+        description: "Selecione etiquetas que já foram geradas para download.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Preparando download",
+      description: `Preparando ${labelsToDownload.length} etiquetas para download...`,
+      variant: "default",
+    });
+    
+    try {
+      // Em um ambiente real, aqui seria usado um serviço de geração de ZIP ou PDF
+      // Para esta simulação, vamos baixar um arquivo HTML com todas as etiquetas
+      
+      let htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pacote de etiquetas - ${new Date().toLocaleDateString()}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+            }
+            .label-container {
+              max-width: 600px;
+              margin: 0 auto 30px;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+              page-break-after: always;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 20px;
+            }
+            .address {
+              margin-bottom: 15px;
+            }
+            .barcode {
+              background: #000;
+              color: #fff;
+              padding: 5px 10px;
+              font-family: monospace;
+              font-size: 12px;
+              display: inline-block;
+              margin-top: 10px;
+            }
+            .divider {
+              height: 1px;
+              background: #ddd;
+              margin: 15px 0;
+            }
+            .footer {
+              display: flex;
+              justify-content: space-between;
+            }
+            .notes {
+              margin-top: 15px;
+              padding: 10px;
+              background: #fffbeb;
+              border-radius: 5px;
+              font-size: 14px;
+            }
+            h1 {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            @media print {
+              h1 {
+                display: none;
+              }
+              .label-container {
+                page-break-after: always;
+                border: none;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Pacote com ${labelsToDownload.length} etiquetas - ${new Date().toLocaleDateString()}</h1>
+      `;
+      
+      // Adiciona cada etiqueta ao HTML
+      labelsToDownload.forEach(label => {
+        htmlContent += `
+          <div class="label-container">
+            <div class="header">
+              <div>
+                <h2>Destinatário</h2>
+                <h3>${label.cliente}</h3>
+              </div>
+              <div>
+                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
+                <div>Data: ${label.data}</div>
+                <div>Etiqueta: ${label.id}</div>
+                <div>Pedido: ${label.pedido}</div>
+              </div>
+            </div>
+            
+            <div class="address">
+              <p>${label.endereco || 'Endereço não informado'}</p>
+              <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
+              <p>Tel: ${label.telefone || 'N/A'}</p>
+              <p>Email: ${label.email || 'N/A'}</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="footer">
+              <div>
+                <h4>Remetente</h4>
+                <p>Endurancy Ltda.</p>
+                <p>Rua do Comércio, 500</p>
+                <p>São Paulo - SP, 04538-132</p>
+              </div>
+              <div>
+                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
+                <p>Formato: ${label.formato}</p>
+                <p>Peso: ${label.peso || 'N/A'}</p>
+                <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
+                <p>Items: ${label.items || 'N/A'}</p>
+              </div>
+            </div>
+            
+            ${label.observacoes ? `
+              <div class="notes">
+                <p><strong>Observações:</strong></p>
+                <p>${label.observacoes}</p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      htmlContent += `
+        </body>
+      </html>
+      `;
+      
+      // Cria um objeto Blob a partir do HTML
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      
+      // Cria uma URL para o Blob
+      const url = URL.createObjectURL(blob);
+      
+      // Cria um elemento de link para o download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Etiquetas-Pacote-${labelsToDownload.length}-${new Date().toISOString().slice(0, 10)}.html`;
+      
+      // Anexa o link ao documento e simula um clique nele
+      document.body.appendChild(link);
+      link.click();
+      
+      // Limpa o link
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download concluído",
+        description: `Pacote com ${labelsToDownload.length} etiquetas baixado com sucesso`,
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error("Erro ao gerar o download em massa:", error);
+      
+      toast({
+        title: "Erro ao baixar",
+        description: "Ocorreu um erro ao tentar baixar as etiquetas. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Função para impressão em massa de múltiplas etiquetas
+  const printMultipleLabels = () => {
+    if (selectedLabels.length === 0) return;
+    
+    toast({
+      title: "Preparando impressão em massa",
+      description: `Preparando ${selectedLabels.length} etiquetas para impressão...`,
+      variant: "default",
+    });
+    
+    // Cria uma nova janela para concentrar todas as etiquetas
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    
+    document.body.appendChild(printFrame);
+    
+    // Adiciona o conteúdo ao iframe e formata para impressão
+    const frameDoc = printFrame.contentWindow?.document;
+    if (frameDoc) {
+      frameDoc.open();
+      frameDoc.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Impressão de múltiplas etiquetas</title>
+            <style>
+              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+              }
+              .print-container {
+                display: flex;
+                flex-direction: column;
+                gap: 20mm;
+                padding: 10mm;
+              }
+              .label-wrapper {
+                border: 1px solid #ddd;
+                padding: 10mm;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                margin: 0 auto;
+                background-color: white;
+                page-break-inside: avoid;
+                page-break-after: always;
+              }
+              .label-a4 {
+                width: 190mm;
+                height: 277mm;
+              }
+              .label-a6 {
+                width: 105mm;
+                height: 148mm;
+              }
+              .label-10x15 {
+                width: 100mm;
+                height: 150mm;
+              }
+              .flex-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5mm;
+              }
+              .flex-col {
+                display: flex;
+                flex-direction: column;
+              }
+              h2 {
+                font-size: 18pt;
+                margin: 0 0 3mm 0;
+              }
+              h3 {
+                font-size: 14pt;
+                margin: 0 0 2mm 0;
+              }
+              p {
+                font-size: 10pt;
+                margin: 0 0 1mm 0;
+              }
+              .barcode {
+                background-color: black;
+                color: white;
+                padding: 1mm 2mm;
+                font-family: monospace;
+                border-radius: 1mm;
+                font-size: 9pt;
+                display: inline-block;
+              }
+              .separator {
+                width: 100%;
+                height: 1px;
+                background-color: #ddd;
+                margin: 4mm 0;
+              }
+              .text-small {
+                font-size: 9pt;
+              }
+              .observation-box {
+                background-color: #fff9e6;
+                padding: 2mm;
+                border-radius: 1mm;
+                margin-top: 3mm;
+              }
+              @media print {
+                @page {
+                  margin: 0;
+                }
+                body {
+                  margin: 0;
+                }
+                .label-wrapper {
+                  box-shadow: none;
+                  border: none;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="print-container">
+      `);
+      
+      // Seleciona as etiquetas para impressão
+      const labelsToprint = mockLabels.filter(label => selectedLabels.includes(label.id) && label.status !== "pendente");
+      
+      // Adiciona cada etiqueta ao documento
+      labelsToprint.forEach(label => {
+        const formatClass = label.formato === 'A4' ? 'label-a4' : 
+                           label.formato === 'A6' ? 'label-a6' : 'label-10x15';
+        
+        frameDoc.write(`
+          <div class="label-wrapper ${formatClass}">
+            <div class="flex-row">
+              <div class="flex-col">
+                <h2>Destinatário</h2>
+                <h3>${label.cliente}</h3>
+                <p>${label.endereco || 'Endereço não informado'}</p>
+                <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
+                <p>Tel: ${label.telefone || 'N/A'}</p>
+                <p>Email: ${label.email || 'N/A'}</p>
+              </div>
+              <div class="flex-col">
+                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
+                <p class="text-small">Etiqueta: ${label.id}</p>
+                <p class="text-small">Pedido: ${label.pedido}</p>
+                <p class="text-small">Data: ${label.data}</p>
+              </div>
+            </div>
+            
+            <div class="separator"></div>
+            
+            <div class="flex-row">
+              <div class="flex-col">
+                <h3>Remetente</h3>
+                <p>Endurancy Ltda.</p>
+                <p>Rua do Comércio, 500</p>
+                <p>São Paulo - SP, 04538-132</p>
+              </div>
+              <div class="flex-col">
+                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
+                <p>Formato: ${label.formato}</p>
+                <p>Peso: ${label.peso || 'N/A'}</p>
+                <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
+                <p>Items: ${label.items || '1'}</p>
+              </div>
+            </div>
+            
+            ${label.observacoes ? `
+              <div class="observation-box">
+                <p><strong>Observações:</strong></p>
+                <p>${label.observacoes}</p>
+              </div>
+            ` : ''}
+          </div>
+        `);
+      });
+      
+      frameDoc.write(`
+            </div>
+          </body>
+        </html>
+      `);
+      frameDoc.close();
+      
+      // Aguarda o carregamento do conteúdo antes de imprimir
+      setTimeout(() => {
+        if (labelsToprint.length === 0) {
+          document.body.removeChild(printFrame);
+          toast({
+            title: "Não há etiquetas para imprimir",
+            description: "Selecione etiquetas que já foram geradas para impressão.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+        
+        // Remover o iframe depois que a impressão for concluída ou cancelada
+        printFrame.contentWindow?.addEventListener('afterprint', () => {
+          document.body.removeChild(printFrame);
+          toast({
+            title: "Impressão concluída",
+            description: `${labelsToprint.length} etiquetas foram enviadas para a impressora`,
+            variant: "default",
+          });
+        });
+      }, 500);
+    }
   };
   
   // Função para download da etiqueta
@@ -393,12 +941,160 @@ export default function Etiquetas() {
     const label = mockLabels.find(l => l.id === labelId);
     if (!label) return;
     
-    // Simulando o download da etiqueta
+    // Feedback visual para o usuário
     toast({
-      title: "Download iniciado",
-      description: `A etiqueta ${labelId} está sendo baixada`,
+      title: "Preparando download",
+      description: `Gerando arquivo PDF para a etiqueta ${labelId}...`,
       variant: "default",
     });
+    
+    if (!labelRef.current) {
+      // Se não temos a referência da etiqueta (porque o modal não está aberto)
+      // abra o modal de visualização primeiro
+      viewLabel(label);
+      // E depois de um curto atraso, tente novamente o download
+      setTimeout(() => downloadLabel(labelId), 500);
+      return;
+    }
+    
+    try {
+      // Em um sistema real, aqui chamaríamos uma API de geração de PDF ou usaríamos uma biblioteca
+      // Para esta simulação, criamos um "data URL" com HTML que representa a etiqueta
+      const labelHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Etiqueta ${label.id}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+            }
+            .label-container {
+              max-width: 500px;
+              margin: 0 auto;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 20px;
+            }
+            .address {
+              margin-bottom: 15px;
+            }
+            .barcode {
+              background: #000;
+              color: #fff;
+              padding: 5px 10px;
+              font-family: monospace;
+              font-size: 12px;
+              display: inline-block;
+              margin-top: 10px;
+            }
+            .divider {
+              height: 1px;
+              background: #ddd;
+              margin: 15px 0;
+            }
+            .footer {
+              display: flex;
+              justify-content: space-between;
+            }
+            .notes {
+              margin-top: 15px;
+              padding: 10px;
+              background: #fffbeb;
+              border-radius: 5px;
+              font-size: 14px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="label-container">
+            <div class="header">
+              <div>
+                <h2>Destinatário</h2>
+                <h3>${label.cliente}</h3>
+              </div>
+              <div>
+                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
+                <div>Data: ${label.data}</div>
+              </div>
+            </div>
+            
+            <div class="address">
+              <p>${label.endereco || 'Endereço não informado'}</p>
+              <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
+              <p>Tel: ${label.telefone || 'N/A'}</p>
+              <p>Email: ${label.email || 'N/A'}</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="footer">
+              <div>
+                <h4>Remetente</h4>
+                <p>Endurancy Ltda.</p>
+                <p>Rua do Comércio, 500</p>
+                <p>São Paulo - SP, 04538-132</p>
+              </div>
+              <div>
+                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
+                <p>Formato: ${label.formato}</p>
+                <p>Peso: ${label.peso || 'N/A'}</p>
+                <p>Dims: ${label.dimensoes || 'N/A'}</p>
+                <p>Items: ${label.items || 'N/A'}</p>
+              </div>
+            </div>
+            
+            ${label.observacoes ? `
+              <div class="notes">
+                <p><strong>Observações:</strong></p>
+                <p>${label.observacoes}</p>
+              </div>
+            ` : ''}
+          </div>
+        </body>
+      </html>
+      `;
+      
+      // Cria um objeto Blob a partir do HTML
+      const blob = new Blob([labelHTML], { type: 'text/html' });
+      
+      // Cria uma URL para o Blob
+      const url = URL.createObjectURL(blob);
+      
+      // Cria um elemento de link para o download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Etiqueta-${label.id}-${label.cliente.replace(/\s+/g, '-')}.html`;
+      
+      // Anexa o link ao documento e simula um clique nele
+      document.body.appendChild(link);
+      link.click();
+      
+      // Limpa o link
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download concluído",
+        description: `A etiqueta ${label.id} foi baixada com sucesso`,
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Erro ao gerar o download:", error);
+      
+      toast({
+        title: "Erro ao baixar",
+        description: "Ocorreu um erro ao tentar baixar a etiqueta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -425,6 +1121,7 @@ export default function Etiquetas() {
             <Button 
               variant="outline"
               disabled={selectedLabels.length === 0}
+              onClick={() => downloadMultipleLabels()}
             >
               <Download className="h-4 w-4 mr-2" />
               Baixar ({selectedLabels.length})
@@ -438,6 +1135,7 @@ export default function Etiquetas() {
             </Button>
             <Button 
               disabled={selectedLabels.length === 0}
+              onClick={() => printMultipleLabels()}
             >
               <Printer className="h-4 w-4 mr-2" />
               Imprimir ({selectedLabels.length})
