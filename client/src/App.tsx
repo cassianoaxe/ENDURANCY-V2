@@ -77,6 +77,11 @@ import GerenciarPacientes from "@/pages/organization/GerenciarPacientes";
 import GerenciarProdutos from "@/pages/organization/GerenciarProdutos";
 import VendasOrg from "@/pages/organization/Vendas";
 import RelatorioVendas from "@/pages/organization/RelatorioVendas";
+import DashboardVendas from "@/pages/organization/DashboardVendas";
+import Pedidos from "@/pages/organization/Pedidos";
+import Produtos from "@/pages/organization/Produtos";
+import Promocoes from "@/pages/organization/Promocoes";
+import Rastreamento from "@/pages/organization/Rastreamento";
 
 // Import onboarding course pages
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
@@ -426,6 +431,26 @@ function AppContent() {
 
     if (currentPath === '/organization/relatorio-vendas') {
       return <RelatorioVendas />;
+    }
+    
+    if (currentPath === '/organization/dashboard-vendas') {
+      return <DashboardVendas />;
+    }
+    
+    if (currentPath === '/organization/pedidos') {
+      return <Pedidos />;
+    }
+    
+    if (currentPath === '/organization/produtos') {
+      return <Produtos />;
+    }
+    
+    if (currentPath === '/organization/promocoes') {
+      return <Promocoes />;
+    }
+    
+    if (currentPath === '/organization/rastreamento') {
+      return <Rastreamento />;
     }
     
     // Rotas de integração da organização

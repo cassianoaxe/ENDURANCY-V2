@@ -5,12 +5,13 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, LogOut, Leaf, Loader2,
+  Menu, ChevronLeft, ChevronDown, LogOut, Leaf, Loader2,
   Brain, Truck, ShoppingCart, CreditCard, DollarSign,
   Landmark, HeartPulse, BadgeHelp, Users2, Briefcase,
   Scale, LineChart, MessageCircle, Building, TestTube,
   Clipboard, FileClock, Share2, Send, Network, 
-  Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon
+  Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
+  PackageOpen, BadgePercent
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -34,6 +35,18 @@ export default function OrganizationSidebar() {
     window.dispatchEvent(new Event('popstate'));
   };
 
+  // Estado para controlar os submenus expandidos
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  
+  // Função para alternar a exibição de um submenu
+  const toggleSubmenu = (menuTitle: string) => {
+    if (expandedMenu === menuTitle) {
+      setExpandedMenu(null);
+    } else {
+      setExpandedMenu(menuTitle);
+    }
+  };
+  
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)
   const freeModules = [
     {
@@ -79,8 +92,47 @@ export default function OrganizationSidebar() {
       path: "/organization/vendas",
       active: currentPath === "/organization/vendas" || 
               currentPath === "/organization/sales" ||
-              currentPath === "/organization/gerenciar-produtos",
-      icon: <ShoppingCart size={18} />
+              currentPath === "/organization/gerenciar-produtos" ||
+              currentPath === "/organization/dashboard-vendas" || 
+              currentPath === "/organization/relatorio-vendas" ||
+              currentPath === "/organization/pedidos" || 
+              currentPath === "/organization/produtos" || 
+              currentPath === "/organization/promocoes" || 
+              currentPath === "/organization/rastreamento",
+      icon: <ShoppingCart size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Vendas",
+          path: "/organization/dashboard-vendas",
+          active: currentPath === "/organization/dashboard-vendas",
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Pedidos",
+          path: "/organization/pedidos",
+          active: currentPath === "/organization/pedidos",
+          icon: <PackageOpen size={16} />
+        },
+        {
+          title: "Produtos",
+          path: "/organization/produtos",
+          active: currentPath === "/organization/produtos",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Promoções",
+          path: "/organization/promocoes",
+          active: currentPath === "/organization/promocoes",
+          icon: <BadgePercent size={16} />
+        },
+        {
+          title: "Rastreamento",
+          path: "/organization/rastreamento",
+          active: currentPath === "/organization/rastreamento",
+          icon: <Truck size={16} />
+        }
+      ]
     },
     {
       title: "EXPEDIÇÃO",
@@ -300,38 +352,82 @@ export default function OrganizationSidebar() {
               item.active && "bg-green-50 dark:bg-green-900/30"
             )}>
               {!collapsed && (
-                <div 
-                  className={cn(
-                    "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                    item.active 
-                      ? "text-green-600 dark:text-green-400 font-medium" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  )}
-                  onClick={() => navigateTo(item.path)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm flex items-center gap-2",
-                      item.active && "font-semibold"
-                    )}>
-                      {React.cloneElement(item.icon, { 
-                        className: item.active 
-                          ? "text-green-600 dark:text-green-400" 
-                          : "text-gray-500 dark:text-gray-400" 
-                      })}
-                      {item.title}
-                    </span>
-                  </div>
-                  <ChevronLeft 
-                    size={16} 
+                <>
+                  <div 
                     className={cn(
-                      "transform transition-transform duration-200",
+                      "flex items-center justify-between px-4 py-2 cursor-pointer group",
                       item.active 
-                        ? "rotate-90 text-green-600 dark:text-green-400" 
-                        : "-rotate-90 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-                    )} 
-                  />
-                </div>
+                        ? "text-green-600 dark:text-green-400 font-medium" 
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    )}
+                    onClick={() => item.isSubmenu ? toggleSubmenu(item.title) : navigateTo(item.path)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-sm flex items-center gap-2",
+                        item.active && "font-semibold"
+                      )}>
+                        {React.cloneElement(item.icon, { 
+                          className: item.active 
+                            ? "text-green-600 dark:text-green-400" 
+                            : "text-gray-500 dark:text-gray-400" 
+                        })}
+                        {item.title}
+                      </span>
+                    </div>
+                    {item.isSubmenu ? (
+                      <ChevronDown
+                        size={16}
+                        className={cn(
+                          "transition-transform duration-200",
+                          expandedMenu === item.title ? "transform rotate-180" : "",
+                          item.active
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                        )}
+                      />
+                    ) : (
+                      <ChevronLeft 
+                        size={16} 
+                        className={cn(
+                          "transform transition-transform duration-200",
+                          item.active 
+                            ? "rotate-90 text-green-600 dark:text-green-400" 
+                            : "-rotate-90 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                        )} 
+                      />
+                    )}
+                  </div>
+
+                  {/* SubItems */}
+                  {item.isSubmenu && expandedMenu === item.title && (
+                    <div className="pl-7 space-y-1 mt-1 mb-1">
+                      {item.subItems?.map((subItem, subIndex) => (
+                        <div
+                          key={`subitem-${subIndex}`}
+                          className={cn(
+                            "flex items-center px-4 py-2 text-sm cursor-pointer rounded-md",
+                            subItem.active
+                              ? "text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20"
+                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                          )}
+                          onClick={() => navigateTo(subItem.path)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {React.cloneElement(subItem.icon, {
+                              className: subItem.active
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-gray-500 dark:text-gray-400"
+                            })}
+                            <span className={cn(subItem.active && "font-medium")}>
+                              {subItem.title}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
               {collapsed && (
                 <div 
