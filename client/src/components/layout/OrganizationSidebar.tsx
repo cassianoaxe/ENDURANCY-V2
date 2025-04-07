@@ -81,8 +81,12 @@ export default function OrganizationSidebar() {
     },
     {
       title: "EXPEDIÇÃO",
-      path: "/organization/expedition",
-      active: currentPath === "/organization/expedition" || currentPath === "/organization/producao",
+      path: "/organization/expedicao",
+      active: currentPath === "/organization/expedicao" || 
+              currentPath === "/organization/gerenciar-pacientes" || 
+              currentPath === "/organization/gerenciar-produtos" || 
+              currentPath === "/organization/expedition" || 
+              currentPath === "/organization/producao",
       icon: <Truck size={18} />
     },
     {
