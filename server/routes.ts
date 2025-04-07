@@ -5823,5 +5823,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fechar a rota PUT duplicada que foi comentada acima
   */
   
+  // === RELATÓRIOS DE VENDAS ===
+
+  // Rota para obter dados dos últimos 12 meses de vendas
+  app.get('/api/reports/sales/monthly', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const userRole = req.session.user.role;
+      
+      // Se for admin sem organização, pedir o id da organização
+      if (!organizationId && userRole !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      // Pegar os últimos 12 meses
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      startDate.setMonth(startDate.getMonth() - 11); // Ir 11 meses para trás (para ter 12 meses no total)
+      
+      // Dados simulados para demonstração
+      // Em uma implementação real, buscaríamos esses dados do banco
+      const monthlyData = [
+        { name: 'Abr', vendas: 42000, meta: 45000 },
+        { name: 'Mai', vendas: 38900, meta: 45000 },
+        { name: 'Jun', vendas: 42500, meta: 45000 },
+        { name: 'Jul', vendas: 49800, meta: 45000 },
+        { name: 'Ago', vendas: 52000, meta: 45000 },
+        { name: 'Set', vendas: 47500, meta: 45000 },
+        { name: 'Out', vendas: 58200, meta: 45000 },
+        { name: 'Nov', vendas: 54800, meta: 45000 },
+        { name: 'Dez', vendas: 62000, meta: 45000 },
+        { name: 'Jan', vendas: 49000, meta: 45000 },
+        { name: 'Fev', vendas: 38500, meta: 45000 },
+        { name: 'Mar', vendas: 42300, meta: 45000 },
+      ];
+      
+      res.json({ success: true, data: monthlyData });
+    } catch (error) {
+      console.error('Erro ao buscar dados de vendas mensais:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar dados de vendas mensais',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Rota para obter dados de vendas por canal
+  app.get('/api/reports/sales/by-channel', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const userRole = req.session.user.role;
+      
+      // Se for admin sem organização, pedir o id da organização
+      if (!organizationId && userRole !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      // Dados simulados para demonstração
+      const channelData = [
+        { name: 'Site Próprio', value: 55 },
+        { name: 'Marketplace', value: 25 },
+        { name: 'Loja Física', value: 15 },
+        { name: 'Vendedores', value: 5 },
+      ];
+      
+      res.json({ success: true, data: channelData });
+    } catch (error) {
+      console.error('Erro ao buscar dados de vendas por canal:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar dados de vendas por canal',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Rota para obter dados de vendas diárias
+  app.get('/api/reports/sales/daily', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const userRole = req.session.user.role;
+      
+      // Se for admin sem organização, pedir o id da organização
+      if (!organizationId && userRole !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      // Pegar a semana atual
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - 6); // 7 dias atrás
+      
+      // Dados simulados para demonstração
+      const dailyData = [
+        { name: '01/04', vendas: 4200 },
+        { name: '02/04', vendas: 3800 },
+        { name: '03/04', vendas: 4500 },
+        { name: '04/04', vendas: 5200 },
+        { name: '05/04', vendas: 4800 },
+        { name: '06/04', vendas: 3200 },
+        { name: '07/04', vendas: 3900 },
+      ];
+      
+      res.json({ success: true, data: dailyData });
+    } catch (error) {
+      console.error('Erro ao buscar dados de vendas diárias:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar dados de vendas diárias',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Rota para obter produtos mais vendidos
+  app.get('/api/reports/sales/top-products', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const userRole = req.session.user.role;
+      
+      // Se for admin sem organização, pedir o id da organização
+      if (!organizationId && userRole !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      // Dados simulados para demonstração
+      const topProducts = [
+        { name: 'Óleo CBD 500mg', vendas: 245, porcentagem: 22, crescimento: 8.5 },
+        { name: 'Creme Terapêutico', vendas: 187, porcentagem: 16, crescimento: 12.3 },
+        { name: 'Cápsulas CBD 300mg', vendas: 165, porcentagem: 14, crescimento: -3.2 },
+        { name: 'Spray Oral CBD', vendas: 132, porcentagem: 12, crescimento: 5.7 },
+        { name: 'Kit Bem-estar', vendas: 98, porcentagem: 9, crescimento: 15.4 },
+      ];
+      
+      res.json({ success: true, data: topProducts });
+    } catch (error) {
+      console.error('Erro ao buscar produtos mais vendidos:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar produtos mais vendidos',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Rota para obter métricas de vendas
+  app.get('/api/reports/sales/metrics', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const userRole = req.session.user.role;
+      
+      // Se for admin sem organização, pedir o id da organização
+      if (!organizationId && userRole !== 'admin') {
+        return res.status(400).json({ success: false, message: 'ID da organização é obrigatório' });
+      }
+      
+      // Dados simulados para demonstração
+      const metrics = [
+        { id: 1, nome: 'Número de Pedidos', valor: 587, crescimento: 12.4, periodo: 'vs mês anterior' },
+        { id: 2, nome: 'Valor Médio de Pedido', valor: 'R$ 243,50', crescimento: 5.2, periodo: 'vs mês anterior' },
+        { id: 3, nome: 'Taxa de Conversão', valor: '4.2%', crescimento: -0.8, periodo: 'vs mês anterior' },
+        { id: 4, nome: 'Clientes Novos', valor: 112, crescimento: 18.7, periodo: 'vs mês anterior' },
+      ];
+      
+      res.json({ success: true, data: metrics });
+    } catch (error) {
+      console.error('Erro ao buscar métricas de vendas:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao buscar métricas de vendas',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
   return server;
 }
