@@ -339,9 +339,14 @@ export default function Expedicao() {
               { title: "Documentação", icon: <FileText size={20} />, path: "/organization/expedicao/documentacao" },
               { title: "Junção de Pedidos", icon: <Box size={20} />, path: "/organization/expedicao/juncao" },
               { title: "Registro de Malotes", icon: <Package size={20} />, path: "/organization/expedicao/malotes" },
-              { title: "Atualização de Rastreios", icon: <Truck size={20} />, path: "/organization/expedicao/rastreios" }
+              { title: "Atualização de Rastreios", icon: <Truck size={20} />, path: "/organization/expedicao/rastreios" },
+              { title: "Estoque da Expedição", icon: <Package size={20} />, path: "/organization/expedicao/estoque" }
             ].map((module, index) => (
-              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
+              <Card 
+                key={index} 
+                className="cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => navigateTo(module.path)}
+              >
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                   <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center mb-3">
                     {React.cloneElement(module.icon, { className: "text-green-600" })}
