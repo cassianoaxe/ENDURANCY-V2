@@ -72,6 +72,9 @@ import DataImport from "@/pages/DataImport";
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
+import Expedicao from "@/pages/organization/Expedicao";
+import GerenciarPacientes from "@/pages/organization/GerenciarPacientes";
+import GerenciarProdutos from "@/pages/organization/GerenciarProdutos";
 
 // Import onboarding course pages
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
@@ -401,6 +404,18 @@ function AppContent() {
 
     if (currentPath === '/organization/production') {
       return <ProductionModule />;
+    }
+
+    if (currentPath === '/organization/expedicao') {
+      return <Expedicao />;
+    }
+
+    if (currentPath === '/organization/gerenciar-pacientes') {
+      return <GerenciarPacientes />;
+    }
+
+    if (currentPath === '/organization/gerenciar-produtos') {
+      return <GerenciarProdutos />;
     }
     
     // Rotas de integração da organização
