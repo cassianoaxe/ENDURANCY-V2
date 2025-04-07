@@ -73,10 +73,6 @@ import DataImport from "@/pages/DataImport";
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
 import Expedicao from "@/pages/organization/Expedicao";
-import DocumentacaoV2 from "@/pages/organization/expedicao/documentacao-v2";
-import CodigosV2 from "@/pages/organization/expedicao/codigos-v2";
-import JuncaoV2 from "@/pages/organization/expedicao/juncao-v2";
-import MalotesV2 from "@/pages/organization/expedicao/malotes-v2";
 import GerenciarPacientes from "@/pages/organization/GerenciarPacientes";
 import GerenciarProdutos from "@/pages/organization/GerenciarProdutos";
 import VendasOrg from "@/pages/organization/Vendas";
@@ -442,23 +438,6 @@ function AppContent() {
 
     if (currentPath === '/organization/expedicao') {
       return <Expedicao />;
-    }
-    
-    // Novas versões V2 das páginas de expedição
-    if (currentPath === '/organization/expedicao/documentacao-v2') {
-      return <DocumentacaoV2 />;
-    }
-    
-    if (currentPath === '/organization/expedicao/codigos-v2') {
-      return <CodigosV2 />;
-    }
-    
-    if (currentPath === '/organization/expedicao/juncao-v2') {
-      return <JuncaoV2 />;
-    }
-    
-    if (currentPath === '/organization/expedicao/malotes-v2') {
-      return <MalotesV2 />;
     }
 
     if (currentPath === '/organization/gerenciar-pacientes') {
