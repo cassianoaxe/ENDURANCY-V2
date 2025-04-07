@@ -33,6 +33,8 @@ import { paymentEmailRouter } from './routes/payment-email';
 // Importar rotas de grupos de usuários, permissões e convites
 import { registerUserGroupRoutes } from './routes/user-groups';
 import { registerUserInvitationsRoutes } from './routes/user-invitations';
+// Importar rotas de autenticação de pacientes
+import { patientAuthRouter } from './routes/patient-auth';
 // Importar rotas para gerenciamento de planos
 import planChangesRouter from './routes/plan-changes';
 // Importar rotas para gerenciamento de módulos
@@ -4837,6 +4839,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de pagamento por email
   app.use('/api/payment-email', paymentEmailRouter);
+  
+  // Rotas de autenticação de pacientes
+  app.use(patientAuthRouter);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
