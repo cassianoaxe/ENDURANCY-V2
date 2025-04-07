@@ -66,6 +66,7 @@ import Onboarding from "@/pages/organization/Onboarding";
 import OrganizationProfile from "@/pages/organization/profile";
 import MeuPlano from "@/pages/organization/MeuPlano";
 import OrganizationSettings from "@/pages/organization/settings";
+import Cadastros from "@/pages/organization/Cadastros";
 import DataImport from "@/pages/DataImport";
 
 // Import module pages
@@ -387,6 +388,10 @@ function AppContent() {
     
     if (currentPath === '/organization/settings') {
       return <OrganizationSettings />;
+    }
+    
+    if (currentPath === '/organization/cadastros') {
+      return <Cadastros />;
     }
 
     // Módulos específicos da organização
