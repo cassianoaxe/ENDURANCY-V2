@@ -82,7 +82,7 @@ export default function OrganizationSidebar() {
     {
       title: "EXPEDIÇÃO",
       path: "/organization/expedition",
-      active: currentPath === "/organization/expedition",
+      active: currentPath === "/organization/expedition" || currentPath === "/organization/producao",
       icon: <Truck size={18} />
     },
     {
@@ -125,12 +125,7 @@ export default function OrganizationSidebar() {
       active: currentPath === "/organization/cultivation",
       icon: <Leaf size={18} />
     },
-    {
-      title: "EXPEDIÇÃO",
-      path: "/organization/production",
-      active: currentPath === "/organization/production",
-      icon: <Package size={18} />
-    },
+
     {
       title: "COMPRAS E ESTOQUE",
       path: "/organization/purchases-inventory",
