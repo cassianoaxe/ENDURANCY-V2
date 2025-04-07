@@ -26,7 +26,7 @@ import Modulos from "@/pages/Modulos";
 import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
-import Vendas from "@/pages/Vendas";
+import VendasAdmin from "@/pages/Vendas";
 import Cadastro from "@/pages/Cadastro";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
@@ -75,6 +75,8 @@ import ProductionModule from "@/pages/organization/production";
 import Expedicao from "@/pages/organization/Expedicao";
 import GerenciarPacientes from "@/pages/organization/GerenciarPacientes";
 import GerenciarProdutos from "@/pages/organization/GerenciarProdutos";
+import VendasOrg from "@/pages/organization/Vendas";
+import RelatorioVendas from "@/pages/organization/RelatorioVendas";
 
 // Import onboarding course pages
 import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
@@ -419,7 +421,11 @@ function AppContent() {
     }
 
     if (currentPath === '/organization/vendas') {
-      return <Vendas />;
+      return <VendasOrg />;
+    }
+
+    if (currentPath === '/organization/relatorio-vendas') {
+      return <RelatorioVendas />;
     }
     
     // Rotas de integração da organização
@@ -588,7 +594,7 @@ function AppContent() {
         Component = Cadastro; 
         break;
       case '/organization-registration': Component = OrganizationRegistration; break;
-      case '/vendas': Component = Vendas; break;
+      case '/vendas': Component = VendasAdmin; break;
       case '/cadastro': Component = Cadastro; break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
