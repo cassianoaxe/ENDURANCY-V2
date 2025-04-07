@@ -163,7 +163,7 @@ export default function Pedidos() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [selectedPedido, setSelectedPedido] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -200,7 +200,7 @@ export default function Pedidos() {
       pedido.cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.cliente.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || pedido.status === statusFilter;
+    const matchesStatus = !statusFilter || statusFilter === "todos" || pedido.status === statusFilter;
     
     return matchesTerm && matchesStatus;
   });
@@ -274,7 +274,7 @@ export default function Pedidos() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="Concluído">Concluído</SelectItem>
                 <SelectItem value="Em processamento">Em processamento</SelectItem>
                 <SelectItem value="Enviado">Enviado</SelectItem>
@@ -285,7 +285,7 @@ export default function Pedidos() {
             
             <Button variant="outline" size="sm" className="h-9" onClick={() => {
               setSearchTerm("");
-              setStatusFilter(undefined);
+              setStatusFilter("todos");
             }}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Limpar
