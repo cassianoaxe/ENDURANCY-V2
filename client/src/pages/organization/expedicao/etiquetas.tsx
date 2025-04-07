@@ -122,10 +122,10 @@ export default function Etiquetas() {
     if (selectedTab === "impressas" && label.status !== "impressa") return false;
     
     // Filtro de formato
-    if (selectedFormato && label.formato !== selectedFormato) return false;
+    if (selectedFormato && selectedFormato !== "all" && label.formato !== selectedFormato) return false;
     
     // Filtro de transportadora
-    if (selectedTransportadora && label.transportadora !== selectedTransportadora) return false;
+    if (selectedTransportadora && selectedTransportadora !== "all" && label.transportadora !== selectedTransportadora) return false;
     
     // Filtro de pesquisa
     if (searchTerm) {
@@ -281,7 +281,7 @@ export default function Etiquetas() {
                 <SelectValue placeholder="Formato" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os formatos</SelectItem>
+                <SelectItem value="all">Todos os formatos</SelectItem>
                 <SelectItem value="10x15cm">10x15cm</SelectItem>
                 <SelectItem value="A6">A6</SelectItem>
                 <SelectItem value="A4">A4</SelectItem>
@@ -293,7 +293,7 @@ export default function Etiquetas() {
                 <SelectValue placeholder="Transportadora" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as transportadoras</SelectItem>
+                <SelectItem value="all">Todas as transportadoras</SelectItem>
                 <SelectItem value="Correios">Correios</SelectItem>
                 <SelectItem value="JADLOG">JADLOG</SelectItem>
                 <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
