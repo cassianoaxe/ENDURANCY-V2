@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
@@ -10,368 +10,592 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  AlertCircle,
+import { 
+  ArrowLeft,
   QrCode,
-  Scan,
-  Settings,
+  Barcode,
+  Camera,
+  Upload,
+  Search,
   CheckCircle2,
   XCircle,
-  ListChecks,
-  History,
-  Camera,
+  RefreshCw,
   Package,
-  Truck,
-  AlertTriangle,
-  Download
+  ClipboardList,
+  FileCheck,
+  X
 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 
-// Histórico de verificações simuladas
-const historicoDeLeituras = [
-  {
-    id: 1,
-    codigo: "PED-12345-P3",
-    tipo: "pedido",
-    resultado: "sucesso",
-    mensagem: "Pedido verificado com sucesso",
-    data: "2025-04-07T14:35:10",
+// Dados de exemplo para escanemento de códigos
+const mockScanHistory = [
+  { 
+    id: 1, 
+    codigo: "COD-12345678", 
+    tipo: "qrcode", 
+    timestamp: "07/04/2025 14:23:15", 
+    status: "valido", 
+    pedido: "PED-12345",
+    destino: "Separação"
   },
-  {
-    id: 2,
-    codigo: "ME-987654",
-    tipo: "malote",
-    resultado: "sucesso",
-    mensagem: "Malote verificado com sucesso",
-    data: "2025-04-07T14:32:05",
+  { 
+    id: 2, 
+    codigo: "BAR-87654321", 
+    tipo: "barcode", 
+    timestamp: "07/04/2025 14:22:03", 
+    status: "valido", 
+    pedido: "PED-12346",
+    destino: "Embalagem"
   },
-  {
-    id: 3,
-    codigo: "PED-12347-P2",
-    tipo: "pedido",
-    resultado: "erro",
-    mensagem: "Produto não consta no pedido",
-    data: "2025-04-07T14:30:22",
+  { 
+    id: 3, 
+    codigo: "COD-23456789", 
+    tipo: "qrcode", 
+    timestamp: "07/04/2025 14:18:45", 
+    status: "invalido", 
+    pedido: null,
+    destino: null
   },
-  {
-    id: 4,
-    codigo: "ETQ-789456",
-    tipo: "produto",
-    resultado: "sucesso",
-    mensagem: "Produto verificado com sucesso",
-    data: "2025-04-07T14:25:48",
+  { 
+    id: 4, 
+    codigo: "BAR-98765432", 
+    tipo: "barcode", 
+    timestamp: "07/04/2025 14:15:22", 
+    status: "valido", 
+    pedido: "PED-12347",
+    destino: "Expedição"
   },
-  {
-    id: 5,
-    codigo: "ME-987651",
-    tipo: "malote",
-    resultado: "erro",
-    mensagem: "Malote não encontrado",
-    data: "2025-04-07T14:20:15",
+  { 
+    id: 5, 
+    codigo: "COD-34567890", 
+    tipo: "qrcode", 
+    timestamp: "07/04/2025 14:10:17", 
+    status: "valido", 
+    pedido: "PED-12348",
+    destino: "Separação"
   },
-  {
-    id: 6,
-    codigo: "PED-12342-P1",
-    tipo: "pedido",
-    resultado: "sucesso",
-    mensagem: "Pedido verificado com sucesso",
-    data: "2025-04-07T14:15:33",
-  },
+  { 
+    id: 6, 
+    codigo: "BAR-09876543", 
+    tipo: "barcode", 
+    timestamp: "07/04/2025 14:05:51", 
+    status: "invalido", 
+    pedido: null,
+    destino: null
+  }
 ];
 
-export default function LeituraCodigos() {
-  const { toast } = useToast();
-  const [codigo, setCodigo] = useState("");
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [ultimoResultado, setUltimoResultado] = useState<{
+export default function CodigosExpedicao() {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState("scanner");
+  const [manualCode, setManualCode] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCamera, setShowCamera] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState<{
     codigo: string;
     tipo: string;
-    resultado: "sucesso" | "erro";
+    status: string;
     mensagem: string;
+    pedido?: string | null;
+    destino?: string | null;
   } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Função para processar a leitura de código
-  const processarCodigo = () => {
-    if (!codigo) {
-      toast({
-        title: "Erro de leitura",
-        description: "Nenhum código foi informado",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Lógica simulada para identificar o tipo de código e validar
-    let tipo = "";
-    let resultado: "sucesso" | "erro" = "sucesso";
-    let mensagem = "";
-
-    if (codigo.startsWith("PED-")) {
-      tipo = "pedido";
-      // Simulando 80% de sucesso para pedidos
-      if (Math.random() > 0.2) {
-        resultado = "sucesso";
-        mensagem = "Pedido verificado com sucesso";
-      } else {
-        resultado = "erro";
-        mensagem = "Pedido não encontrado ou inválido";
-      }
-    } else if (codigo.startsWith("ME-")) {
-      tipo = "malote";
-      // Simulando 90% de sucesso para malotes
-      if (Math.random() > 0.1) {
-        resultado = "sucesso";
-        mensagem = "Malote verificado com sucesso";
-      } else {
-        resultado = "erro";
-        mensagem = "Malote não encontrado";
-      }
-    } else if (codigo.startsWith("ETQ-")) {
-      tipo = "produto";
-      // Simulando 85% de sucesso para produtos
-      if (Math.random() > 0.15) {
-        resultado = "sucesso";
-        mensagem = "Produto verificado com sucesso";
-      } else {
-        resultado = "erro";
-        mensagem = "Produto não encontrado no sistema";
-      }
-    } else {
-      tipo = "desconhecido";
-      resultado = "erro";
-      mensagem = "Formato de código não reconhecido";
-    }
-
-    // Definir o resultado da leitura
-    setUltimoResultado({
-      codigo,
-      tipo,
-      resultado,
-      mensagem,
-    });
-
-    // Exibir toast conforme o resultado
-    toast({
-      title: resultado === "sucesso" ? "Leitura realizada" : "Erro na leitura",
-      description: mensagem,
-      variant: resultado === "sucesso" ? "default" : "destructive",
-    });
-
-    // Limpar campo de entrada
-    setCodigo("");
-    
-    // Focar novamente no input para próxima leitura
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+  // Função para navegação entre páginas
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new Event("popstate"));
   };
 
-  // Formatar a data
-  const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
-    return data.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // Função para filtrar histórico de escaneamentos
+  const filteredHistory = mockScanHistory.filter(scan => {
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        scan.codigo.toLowerCase().includes(searchLower) ||
+        (scan.pedido && scan.pedido.toLowerCase().includes(searchLower)) ||
+        scan.tipo.toLowerCase().includes(searchLower)
+      );
+    }
+    return true;
+  });
+
+  // Função para simular escaneamento de código manual
+  const processManualCode = () => {
+    if (!manualCode.trim()) return;
+    
+    // Simular processamento (em produção, isso seria uma chamada de API)
+    const isValid = Math.random() > 0.2; // 80% de chance de ser válido
+    const codeType = manualCode.startsWith("COD") ? "qrcode" : "barcode";
+    
+    const scannedResult = {
+      codigo: manualCode,
+      tipo: codeType,
+      status: isValid ? "valido" : "invalido",
+      mensagem: isValid ? "Código processado com sucesso!" : "Código inválido ou não reconhecido.",
+      pedido: isValid ? `PED-${Math.floor(10000 + Math.random() * 90000)}` : null,
+      destino: isValid ? (Math.random() > 0.5 ? "Separação" : "Expedição") : null
+    };
+    
+    setLastScannedCode(scannedResult);
+    setManualCode("");
+  };
+
+  // Função para simular escaneamento via câmera
+  const simulateCameraScan = () => {
+    // Simular o resultado de um escaneamento de câmera
+    const códigos = ["COD-54321678", "BAR-87654321", "COD-87654321", "BAR-12345678"];
+    const codigoAleatorio = códigos[Math.floor(Math.random() * códigos.length)];
+    
+    const isValid = Math.random() > 0.2; // 80% de chance de ser válido
+    const codeType = codigoAleatorio.startsWith("COD") ? "qrcode" : "barcode";
+    
+    const scannedResult = {
+      codigo: codigoAleatorio,
+      tipo: codeType,
+      status: isValid ? "valido" : "invalido",
+      mensagem: isValid ? "Código escaneado com sucesso!" : "Código inválido ou não reconhecido.",
+      pedido: isValid ? `PED-${Math.floor(10000 + Math.random() * 90000)}` : null,
+      destino: isValid ? (Math.random() > 0.5 ? "Separação" : "Expedição") : null
+    };
+    
+    setLastScannedCode(scannedResult);
+    setShowCamera(false);
   };
 
   return (
     <OrganizationLayout>
       <div className="container py-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between">
           <div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mb-2"
+              onClick={() => navigateTo("/organization/expedicao")}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Dashboard
+            </Button>
             <h1 className="text-2xl font-bold tracking-tight">Leitura de Códigos</h1>
             <p className="text-muted-foreground mt-1">
-              Escaneie códigos de barras e QR codes para verificação
+              Escaneie códigos de barras e QR codes para acompanhamento de pedidos
             </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsCameraActive(!isCameraActive)}>
-              <Camera className="w-4 h-4 mr-2" />
-              {isCameraActive ? "Desativar Câmera" : "Ativar Câmera"}
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar Histórico
+          <div className="flex space-x-2">
+            <Button variant="outline">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Ver Relatório
             </Button>
           </div>
         </div>
-        
-        {/* Área de Leitura */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Leitor de Códigos</CardTitle>
-            <CardDescription>
-              Digite ou escaneie o código de barras ou QR code para verificação
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label htmlFor="codigo">Código</Label>
-                <div className="flex mt-2">
+
+        {/* Estatísticas de Leitura */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Total de Escaneamentos</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">{mockScanHistory.length}</span>
+                </div>
+                <div className="mt-4 text-blue-600 text-xs">
+                  <QrCode className="h-3 w-3 inline mr-1" />
+                  {mockScanHistory.filter(scan => scan.tipo === "qrcode").length} QR codes
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Códigos de Barra</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockScanHistory.filter(scan => scan.tipo === "barcode").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-blue-600 text-xs">
+                  <Barcode className="h-3 w-3 inline mr-1" />
+                  Leituras de código de barras
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Leituras Válidas</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockScanHistory.filter(scan => scan.status === "valido").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-green-600 text-xs">
+                  <CheckCircle2 className="h-3 w-3 inline mr-1" />
+                  Taxa de sucesso: {Math.round((mockScanHistory.filter(scan => scan.status === "valido").length / mockScanHistory.length) * 100)}%
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-sm">Leituras Inválidas</span>
+                <div className="mt-1">
+                  <span className="text-3xl font-bold">
+                    {mockScanHistory.filter(scan => scan.status === "invalido").length}
+                  </span>
+                </div>
+                <div className="mt-4 text-red-600 text-xs">
+                  <XCircle className="h-3 w-3 inline mr-1" />
+                  Escaneamentos com erro
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tabs de leitura */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="scanner">Scanner</TabsTrigger>
+            <TabsTrigger value="historico">Histórico</TabsTrigger>
+            <TabsTrigger value="manual">Entrada Manual</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="scanner" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Scanner de Códigos</CardTitle>
+                <CardDescription>
+                  Posicione o código em frente à câmera para escaneamento automático
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col items-center space-y-4">
+                  {!showCamera ? (
+                    <div className="flex flex-col items-center">
+                      <Button 
+                        size="lg" 
+                        className="mb-4"
+                        onClick={() => setShowCamera(true)}
+                      >
+                        <Camera className="h-5 w-5 mr-2" />
+                        Iniciar Scanner
+                      </Button>
+                      <div className="text-muted-foreground text-center text-sm max-w-md">
+                        Clique no botão acima para iniciar o scanner de códigos.
+                        Certifique-se de permitir o acesso à câmera quando solicitado.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-md">
+                      {/* Simulação de interface de câmera */}
+                      <div className="border-2 border-dashed border-gray-300 rounded-md bg-gray-50 aspect-video flex flex-col items-center justify-center p-4">
+                        <div className="w-full h-full relative flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="border-2 border-green-500 w-3/4 h-1/2 rounded-md flex items-center justify-center">
+                              <QrCode className="h-16 w-16 text-gray-300" />
+                            </div>
+                          </div>
+                          <div className="absolute top-4 right-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="bg-white/80"
+                              onClick={() => setShowCamera(false)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-center mt-4">
+                        <Button 
+                          className="w-full"
+                          onClick={simulateCameraScan}
+                        >
+                          <QrCode className="h-4 w-4 mr-2" />
+                          Simular Escaneamento
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Resultado do último escaneamento */}
+                  {lastScannedCode && (
+                    <Card className="w-full max-w-md mt-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center">
+                          {lastScannedCode.status === "valido" ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                          )}
+                          Resultado do Escaneamento
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Código:</span>
+                            <span className="font-medium">{lastScannedCode.codigo}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Tipo:</span>
+                            <span className="font-medium">
+                              {lastScannedCode.tipo === "qrcode" ? "QR Code" : "Código de Barras"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Status:</span>
+                            <Badge 
+                              variant="outline" 
+                              className={`w-fit ${
+                                lastScannedCode.status === "valido" 
+                                  ? "bg-green-50 text-green-700 hover:bg-green-50" 
+                                  : "bg-red-50 text-red-700 hover:bg-red-50"
+                              }`}
+                            >
+                              {lastScannedCode.status === "valido" ? "Válido" : "Inválido"}
+                            </Badge>
+                          </div>
+                          {lastScannedCode.pedido && (
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">Pedido:</span>
+                              <span className="font-medium">{lastScannedCode.pedido}</span>
+                            </div>
+                          )}
+                          {lastScannedCode.destino && (
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">Destino:</span>
+                              <span className="font-medium">{lastScannedCode.destino}</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col pt-2">
+                            <span className="text-sm">{lastScannedCode.mensagem}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setLastScannedCode(null)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Novo Escaneamento
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="historico" className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl">Histórico de Escaneamentos</CardTitle>
+                <CardDescription>
+                  Visualize todos os códigos escaneados recentemente
+                </CardDescription>
+                <div className="relative mt-2">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="codigo"
-                    ref={inputRef}
-                    placeholder="Digite ou escaneie o código..."
-                    value={codigo}
-                    onChange={(e) => setCodigo(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        processarCodigo();
-                      }
-                    }}
-                    className="flex-1"
-                    autoFocus
+                    placeholder="Buscar por código, pedido ou tipo..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <Button 
-                    onClick={processarCodigo}
-                    className="ml-2 bg-green-600 hover:bg-green-700"
-                  >
-                    <Scan className="mr-2 h-4 w-4" />
-                    Verificar
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Data/Hora</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Pedido</TableHead>
+                      <TableHead>Destino</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredHistory.length > 0 ? (
+                      filteredHistory.map((scan) => (
+                        <TableRow key={scan.id}>
+                          <TableCell className="font-medium">{scan.codigo}</TableCell>
+                          <TableCell>
+                            {scan.tipo === "qrcode" ? (
+                              <div className="flex items-center">
+                                <QrCode className="h-3 w-3 mr-1 text-blue-600" />
+                                <span>QR Code</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center">
+                                <Barcode className="h-3 w-3 mr-1 text-gray-600" />
+                                <span>Código de Barras</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>{scan.timestamp}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="outline" 
+                              className={`
+                                ${scan.status === "valido" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
+                                ${scan.status === "invalido" ? "bg-red-50 text-red-700 hover:bg-red-50" : ""}
+                              `}
+                            >
+                              {scan.status === "valido" ? "Válido" : "Inválido"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{scan.pedido || "-"}</TableCell>
+                          <TableCell>{scan.destino || "-"}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-4">
+                          Nenhum escaneamento encontrado
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="flex justify-between border-t px-6 py-4">
+                <div className="text-xs text-muted-foreground">
+                  Mostrando {filteredHistory.length} de {mockScanHistory.length} registros
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" disabled={filteredHistory.length === 0}>
+                    Anterior
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={filteredHistory.length === 0}>
+                    Próximo
                   </Button>
                 </div>
-              </div>
-            </div>
-            
-            {/* Resultado da última leitura */}
-            {ultimoResultado && (
-              <Alert variant={ultimoResultado.resultado === "sucesso" ? "default" : "destructive"}>
-                <div className="flex items-center">
-                  {ultimoResultado.resultado === "sucesso" ? (
-                    <CheckCircle2 className="h-5 w-5 mr-2 text-green-600" />
-                  ) : (
-                    <XCircle className="h-5 w-5 mr-2 text-red-600" />
-                  )}
-                  <div>
-                    <AlertTitle>
-                      {ultimoResultado.resultado === "sucesso"
-                        ? "Verificação bem-sucedida"
-                        : "Erro na verificação"}
-                    </AlertTitle>
-                    <AlertDescription className="mt-1">
-                      <div className="text-sm">
-                        <span className="font-medium">Código:</span> {ultimoResultado.codigo}
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium">Tipo:</span> {ultimoResultado.tipo.charAt(0).toUpperCase() + ultimoResultado.tipo.slice(1)}
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium">Mensagem:</span> {ultimoResultado.mensagem}
-                      </div>
-                    </AlertDescription>
-                  </div>
-                </div>
-              </Alert>
-            )}
-            
-            {/* Área da Câmera (simulada) */}
-            {isCameraActive && (
-              <div className="mt-4">
-                <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <Camera className="h-10 w-10 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Simulação de câmera ativa
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      Posicione o código de barras ou QR code no centro da tela
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Dicas de uso */}
-            <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-md p-4 text-sm text-blue-700 dark:text-blue-300">
-              <h4 className="font-medium mb-2 flex items-center">
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Dicas para leitura eficiente
-              </h4>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Mantenha o código alinhado com o scanner</li>
-                <li>Certifique-se de que o código esteja bem iluminado</li>
-                <li>Para códigos de pedidos, use o formato PED-XXXXX</li>
-                <li>Para códigos de malotes, use o formato ME-XXXXX</li>
-                <li>Para códigos de produtos, use o formato ETQ-XXXXX</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Histórico de Leituras */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
-              Histórico de Leituras
-            </h2>
-            <Button variant="outline" size="sm">
-              <History className="h-4 w-4 mr-2" />
-              Ver histórico completo
-            </Button>
-          </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
           
-          <div className="border rounded-md divide-y">
-            {historicoDeLeituras.map((leitura) => (
-              <div 
-                key={leitura.id} 
-                className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                <div className="flex items-center">
-                  <div className="mr-4">
-                    {leitura.tipo === "pedido" ? (
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <ListChecks className="h-5 w-5 text-blue-600" />
-                      </div>
-                    ) : leitura.tipo === "malote" ? (
-                      <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                        <Truck className="h-5 w-5 text-purple-600" />
-                      </div>
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                        <Package className="h-5 w-5 text-green-600" />
-                      </div>
-                    )}
+          <TabsContent value="manual" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Entrada Manual de Códigos</CardTitle>
+                <CardDescription>
+                  Digite o código para processamento manual quando o scanner não conseguir ler
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label 
+                      htmlFor="manual-code" 
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Código (QR ou Barras)
+                    </label>
+                    <Textarea
+                      id="manual-code"
+                      placeholder="Digite o código aqui (ex: COD-12345678 ou BAR-87654321)"
+                      className="min-h-32"
+                      value={manualCode}
+                      onChange={(e) => setManualCode(e.target.value)}
+                    />
                   </div>
-                  <div>
-                    <p className="font-medium">{leitura.codigo}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {leitura.mensagem} • {formatarData(leitura.data)}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  {leitura.resultado === "sucesso" ? (
-                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                      <CheckCircle2 className="mr-1 h-3 w-3" />
-                      Sucesso
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-                      <AlertTriangle className="mr-1 h-3 w-3" />
-                      Erro
-                    </Badge>
+                  
+                  <Button 
+                    className="w-full"
+                    disabled={!manualCode.trim()}
+                    onClick={processManualCode}
+                  >
+                    <FileCheck className="h-4 w-4 mr-2" />
+                    Processar Código
+                  </Button>
+                  
+                  {/* Resultado do processamento manual */}
+                  {lastScannedCode && (
+                    <Card className="mt-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center">
+                          {lastScannedCode.status === "valido" ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                          )}
+                          Resultado do Processamento
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Código:</span>
+                            <span className="font-medium">{lastScannedCode.codigo}</span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Tipo:</span>
+                            <span className="font-medium">
+                              {lastScannedCode.tipo === "qrcode" ? "QR Code" : "Código de Barras"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-muted-foreground">Status:</span>
+                            <Badge 
+                              variant="outline" 
+                              className={`w-fit ${
+                                lastScannedCode.status === "valido" 
+                                  ? "bg-green-50 text-green-700 hover:bg-green-50" 
+                                  : "bg-red-50 text-red-700 hover:bg-red-50"
+                              }`}
+                            >
+                              {lastScannedCode.status === "valido" ? "Válido" : "Inválido"}
+                            </Badge>
+                          </div>
+                          {lastScannedCode.pedido && (
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">Pedido:</span>
+                              <span className="font-medium">{lastScannedCode.pedido}</span>
+                            </div>
+                          )}
+                          {lastScannedCode.destino && (
+                            <div className="flex flex-col">
+                              <span className="text-sm text-muted-foreground">Destino:</span>
+                              <span className="font-medium">{lastScannedCode.destino}</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col pt-2">
+                            <span className="text-sm">{lastScannedCode.mensagem}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </OrganizationLayout>
   );
