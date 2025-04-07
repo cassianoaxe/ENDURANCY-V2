@@ -28,6 +28,8 @@ import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
 // Importar rotas de links de pagamento
 import paymentLinksRouter from './routes/payment-links';
+// Importar rotas de pagamento por email
+import { paymentEmailRouter } from './routes/payment-email';
 // Importar rotas de grupos de usuários, permissões e convites
 import { registerUserGroupRoutes } from './routes/user-groups';
 import { registerUserInvitationsRoutes } from './routes/user-invitations';
@@ -4833,6 +4835,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de links de pagamento
   app.use('/api/payment-links', paymentLinksRouter);
   
+  // Rotas de pagamento por email
+  app.use('/api/payment-email', paymentEmailRouter);
+  
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
   
@@ -5715,6 +5720,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register user groups and invitations routes
   registerUserGroupRoutes(app);
   registerUserInvitationsRoutes(app);
+  
+  // Registrar rotas de pagamento por email
+  // Não adicionar paymentEmailRouter aqui - já foi adicionado acima
   
   // A rota para solicitações de mudança de plano já está implementada acima
   // Removida duplicação da rota plan-change-requests
