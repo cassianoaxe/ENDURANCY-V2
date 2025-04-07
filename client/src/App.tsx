@@ -417,6 +417,10 @@ function AppContent() {
     if (currentPath === '/organization/gerenciar-produtos') {
       return <GerenciarProdutos />;
     }
+
+    if (currentPath === '/organization/vendas') {
+      return <Vendas />;
+    }
     
     // Rotas de integração da organização
     if (currentPath.startsWith('/organization/integrations/')) {
