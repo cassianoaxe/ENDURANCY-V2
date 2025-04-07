@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 import { 
   Dialog, 
   DialogContent, 
@@ -66,13 +67,29 @@ export default function OrganizationSettings() {
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
   
+  // Importação do contexto de tema
+  const { theme, setTheme } = useTheme();
+  
   // Estados para preferências
-  const [preferences, setPreferences] = useState({
-    theme: "system",
+  const [preferences, setPreferences] = useState<{
+    theme: 'light' | 'dark' | 'system';
+    timezone: string;
+    dateFormat: string;
+    language: string;
+  }>({
+    theme: theme as 'light' | 'dark' | 'system',
     timezone: "America/Sao_Paulo",
     dateFormat: "dd/MM/yyyy",
     language: "pt-BR"
   });
+  
+  // Atualizar preferências quando o tema global mudar
+  useEffect(() => {
+    setPreferences(prev => ({
+      ...prev,
+      theme: theme as 'light' | 'dark' | 'system'
+    }));
+  }, [theme]);
   
   // Estado para controlar salvamento
   const [isSaving, setIsSaving] = useState(false);
@@ -86,21 +103,8 @@ export default function OrganizationSettings() {
       // Aqui seria a chamada para a API para salvar as preferências
       // await apiRequest('/api/organizations/preferences', { method: 'POST', data: preferences });
       
-      // Aplicar o tema selecionado
-      document.documentElement.classList.remove('light', 'dark');
-      
-      if (preferences.theme === 'light') {
-        document.documentElement.classList.add('light');
-      } else if (preferences.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        // Se for "system", verificar preferência do sistema
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.add('light');
-        }
-      }
+      // Aplicar o tema selecionado usando nosso novo contexto ThemeContext
+      setTheme(preferences.theme as 'light' | 'dark' | 'system');
       
       // Simular um pequeno delay para feedback visual
       setTimeout(() => {
@@ -398,7 +402,7 @@ export default function OrganizationSettings() {
                     <Label htmlFor="theme" className="text-sm font-medium mb-2 block">Tema</Label>
                     <Select 
                       value={preferences.theme}
-                      onValueChange={(value) => setPreferences({...preferences, theme: value})}
+                      onValueChange={(value: 'light' | 'dark' | 'system') => setPreferences({...preferences, theme: value})}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione o tema" />
