@@ -73,16 +73,16 @@ export default function OrganizationDashboard() {
               Visão Geral
             </TabsTrigger>
             <TabsTrigger 
-              value="pacientes" 
+              value="novos-pacientes" 
               className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             >
-              Pacientes
+              Novos Pacientes
             </TabsTrigger>
             <TabsTrigger 
-              value="produtos" 
+              value="novos-pedidos" 
               className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-green-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             >
-              Produtos
+              Novos Pedidos
             </TabsTrigger>
             <TabsTrigger 
               value="financeiro" 
@@ -196,10 +196,10 @@ export default function OrganizationDashboard() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="pacientes" className="space-y-4">
+          <TabsContent value="novos-pacientes" className="space-y-4">
             <Card className="border rounded-lg shadow-sm bg-white">
               <CardHeader className="p-4">
-                <CardTitle>Lista de Pacientes</CardTitle>
+                <CardTitle>Novos Pacientes</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="border-t">
@@ -210,6 +210,7 @@ export default function OrganizationDashboard() {
                         <th className="text-left p-3 font-medium">ID</th>
                         <th className="text-left p-3 font-medium">Contato</th>
                         <th className="text-left p-3 font-medium">Status</th>
+                        <th className="text-left p-3 font-medium">Data de Cadastro</th>
                         <th className="text-right p-3 font-medium">Ações</th>
                       </tr>
                     </thead>
@@ -228,14 +229,11 @@ export default function OrganizationDashboard() {
                           <td className="p-3 text-gray-600">#{1000 + i}</td>
                           <td className="p-3 text-gray-600">(11) 9{i}876-543{i}</td>
                           <td className="p-3">
-                            <Badge className={
-                              i % 3 === 0 ? "bg-green-50 text-green-700" : 
-                              i % 3 === 1 ? "bg-amber-50 text-amber-700" :
-                              "bg-blue-50 text-blue-700"
-                            }>
-                              {i % 3 === 0 ? "Ativo" : i % 3 === 1 ? "Pendente" : "Novo"}
+                            <Badge className="bg-blue-50 text-blue-700">
+                              Novo
                             </Badge>
                           </td>
+                          <td className="p-3 text-gray-600">{new Date().getDate()-i}/{new Date().getMonth()+1}/2025</td>
                           <td className="p-3 text-right">
                             <Button variant="ghost" size="sm" className="h-8 text-gray-500 hover:text-gray-900">
                               Detalhes
@@ -250,30 +248,58 @@ export default function OrganizationDashboard() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="produtos" className="space-y-4">
+          <TabsContent value="novos-pedidos" className="space-y-4">
             <Card className="border rounded-lg shadow-sm bg-white">
               <CardHeader className="p-4">
-                <CardTitle>Catálogo de Produtos</CardTitle>
+                <CardTitle>Novos Pedidos</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                    <Card key={i} className="border overflow-hidden">
-                      <div className="h-40 bg-gray-100 flex items-center justify-center">
-                        <Package size={48} className="text-gray-400" />
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-medium">Produto {i}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Categoria {i % 3 + 1}</p>
-                        <div className="mt-2 flex justify-between items-center">
-                          <span className="font-bold">R$ {(i * 100) + 99},00</span>
-                          <Badge className={i % 2 === 0 ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}>
-                            {i % 2 === 0 ? "Em estoque" : "Baixo estoque"}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+              <CardContent className="p-0">
+                <div className="border-t">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50 text-xs text-gray-500">
+                        <th className="text-left p-3 font-medium">Nº Pedido</th>
+                        <th className="text-left p-3 font-medium">Cliente</th>
+                        <th className="text-left p-3 font-medium">Data</th>
+                        <th className="text-left p-3 font-medium">Produtos</th>
+                        <th className="text-left p-3 font-medium">Valor</th>
+                        <th className="text-left p-3 font-medium">Status</th>
+                        <th className="text-right p-3 font-medium">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <tr key={i} className="border-t border-gray-100">
+                          <td className="p-3 text-gray-600">#{2000 + i}</td>
+                          <td className="p-3">
+                            <div>
+                              <p className="font-medium">Cliente {i}</p>
+                              <p className="text-xs text-gray-500">cliente{i}@email.com</p>
+                            </div>
+                          </td>
+                          <td className="p-3 text-gray-600">
+                            {new Date().getDate()-i}/{new Date().getMonth()+1}/2025
+                          </td>
+                          <td className="p-3 text-gray-600">
+                            {i % 2 === 0 ? "3 produtos" : "2 produtos"}
+                          </td>
+                          <td className="p-3 font-medium">
+                            R$ {(i * 120) + 99},00
+                          </td>
+                          <td className="p-3">
+                            <Badge className="bg-blue-50 text-blue-700">
+                              Novo
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-right">
+                            <Button variant="ghost" size="sm" className="h-8 text-gray-500 hover:text-gray-900">
+                              Processar
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
