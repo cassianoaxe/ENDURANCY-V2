@@ -42,6 +42,7 @@ const registerSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
+  cpf: z.string().min(11, { message: 'CPF deve ter pelo menos 11 dígitos' }).max(14, { message: 'CPF inválido' }),
   terms: z.boolean().refine(val => val === true, {
     message: 'Você deve aceitar os termos e condições',
   }),
@@ -113,6 +114,7 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
       name: '',
       email: '',
       password: '',
+      cpf: '',
       terms: false,
     },
   });
@@ -170,6 +172,7 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         name: values.name,
         email: values.email,
         password: values.password,
+        cpf: values.cpf,
       };
       
       // Incluir ID da organização se existir
@@ -422,6 +425,22 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
                             <Input 
                               placeholder="••••••••" 
                               type="password" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="cpf"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CPF</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="000.000.000-00" 
                               {...field} 
                             />
                           </FormControl>
