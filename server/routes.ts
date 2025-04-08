@@ -797,7 +797,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // ROTA REMOVIDA - Duplicada com implementação na linha ~2254
+  // Rotas para gerenciamento de pacientes (associados)
+  
+  // Listar pacientes para a organização atual
+  app.get('/api/patients', authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se o usuário está autenticado e tem uma organização associada
+      if (!req.session.user?.organizationId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Usuário não está associado a uma organização" 
+        });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      // Buscar pacientes da organização
+      const patientsList = await db.select({
+        id: patients.id,
+        userId: patients.userId,
+        name: users.name,
+        email: users.email,
+        phone: patients.phone,
+        cpf: patients.cpf,
+        dateOfBirth: patients.dateOfBirth,
+        gender: patients.gender,
+        address: patients.address,
+        emergencyContact: patients.emergencyContact,
+        healthInsurance: patients.healthInsurance,
+        healthInsuranceNumber: patients.healthInsuranceNumber,
+        isActive: patients.isActive,
+        createdAt: patients.createdAt
+      })
+      .from(patients)
+      .leftJoin(users, eq(patients.userId, users.id))
+      .where(eq(patients.organizationId, organizationId));
+      
+      console.log(`Encontrados ${patientsList.length} pacientes para a organização ${organizationId}`);
+      
+      res.json(patientsList);
+    } catch (error: any) {
+      console.error("Erro ao listar pacientes:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Erro ao buscar lista de pacientes" 
+      });
+    }
+  });
+  
+  // Criar novo paciente
+  app.post('/api/patients', authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se o usuário está autenticado e tem uma organização associada
+      if (!req.session.user?.organizationId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Usuário não está associado a uma organização" 
+        });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      const { name, email, cpf, gender, dateOfBirth, phone, address, emergencyContact, healthInsurance, healthInsuranceNumber } = req.body;
+      
+      // Validar dados obrigatórios
+      if (!name || !cpf || !gender || !dateOfBirth) {
+        return res.status(400).json({
+          success: false,
+          message: "Campos obrigatórios: nome, CPF, gênero e data de nascimento"
+        });
+      }
+      
+      // Gerar senha padrão para o usuário (pode ser alterada depois)
+      const defaultPassword = "paciente123";
+      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+      
+      // Gerar nome de usuário único baseado no e-mail ou CPF
+      const usernameBase = email ? email.split('@')[0].toLowerCase() : cpf.replace(/\D/g, '');
+      const timestamp = Date.now().toString().slice(-4);
+      const username = `${usernameBase}_${timestamp}`;
+      
+      // Primeiro criar o usuário na tabela users
+      const [newUser] = await db.insert(users).values({
+        username,
+        name,
+        email: email || `${cpf}@placeholder.com`,
+        password: hashedPassword,
+        role: 'patient',
+        organizationId,
+        createdAt: new Date()
+      }).returning();
+      
+      if (!newUser) {
+        throw new Error("Falha ao criar registro de usuário");
+      }
+      
+      // Depois criar o registro de paciente
+      const [newPatient] = await db.insert(patients).values({
+        userId: newUser.id,
+        organizationId,
+        cpf,
+        dateOfBirth: new Date(dateOfBirth),
+        gender,
+        phone,
+        address,
+        emergencyContact,
+        healthInsurance,
+        healthInsuranceNumber,
+        isActive: true,
+        createdAt: new Date()
+      }).returning();
+      
+      res.status(201).json({
+        success: true,
+        message: "Paciente cadastrado com sucesso",
+        patient: {
+          ...newPatient,
+          name: newUser.name,
+          email: newUser.email
+        }
+      });
+    } catch (error: any) {
+      console.error("Erro ao criar paciente:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Erro ao cadastrar paciente" 
+      });
+    }
+  });
+  
+  // Excluir paciente
+  app.delete('/api/patients/:id', authenticate, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      
+      // Verificar se o usuário está autenticado e tem uma organização associada
+      if (!req.session.user?.organizationId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Usuário não está associado a uma organização" 
+        });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      // Buscar o paciente para garantir que pertence à organização
+      const patient = await db.query.patients.findFirst({
+        where: and(
+          eq(patients.id, parseInt(id)),
+          eq(patients.organizationId, organizationId)
+        )
+      });
+      
+      if (!patient) {
+        return res.status(404).json({
+          success: false,
+          message: "Paciente não encontrado"
+        });
+      }
+      
+      // Excluir o paciente
+      await db.delete(patients).where(eq(patients.id, parseInt(id)));
+      
+      // Opcionalmente excluir também o usuário correspondente
+      if (patient.userId) {
+        await db.delete(users).where(eq(users.id, patient.userId));
+      }
+      
+      res.json({
+        success: true,
+        message: "Paciente excluído com sucesso"
+      });
+    } catch (error: any) {
+      console.error("Erro ao excluir paciente:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Erro ao excluir paciente" 
+      });
+    }
+  });
+  
   /* 
   // Rota para obter informações básicas de uma organização (nome, etc.) - acesso público para portal de paciente
   app.get('/api/organizations/:id/info', async (req, res) => {
