@@ -12,6 +12,7 @@ const registerSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+  cpf: z.string().min(11, 'CPF deve ter pelo menos 11 dígitos').max(14, 'CPF inválido'),
   organizationId: z.string().optional()
 });
 
@@ -34,7 +35,7 @@ patientAuthRouter.post('/auth/patient/register', async (req: Request, res: Respo
   
   try {
     console.log('Recebida solicitação de registro de paciente:', req.body);
-    const { name, email, password, organizationId } = registerSchema.parse(req.body);
+    const { name, email, password, cpf, organizationId } = registerSchema.parse(req.body);
     
     // Verificar se o email já está em uso
     const existingUser = await db.select().from(users).where(eq(users.email, email));
@@ -123,7 +124,7 @@ patientAuthRouter.post('/auth/patient/register', async (req: Request, res: Respo
           ) VALUES (
             ${newUser.id}, 
             ${orgId || null}, 
-            ${'00000000000'}, 
+            ${cpf}, 
             ${'1990-01-01'}, 
             ${'Não informado'}, 
             ${true}, 
