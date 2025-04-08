@@ -797,6 +797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // ROTA REMOVIDA - Duplicada com implementação na linha ~2254
+  /* 
   // Rota para obter informações básicas de uma organização (nome, etc.) - acesso público para portal de paciente
   app.get('/api/organizations/:id/info', async (req, res) => {
     try {
@@ -842,6 +844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar informações da organização" });
     }
   });
+  */
   
   // Protected Routes - Organizations
   app.get("/api/organizations", authenticate, async (_req, res) => {
@@ -2246,6 +2249,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "Organização não encontrada" });
     } catch (error) {
       console.error("Erro na rota direta de organizações:", error);
+      return res.status(500).json({ message: "Erro interno" });
+    }
+  });
+  
+  // Rota para obter informações básicas da organização para o portal do paciente (sem autenticação)
+  app.get("/api/organizations/:id/info", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "ID inválido" });
+      }
+      
+      console.log(`Buscando informações básicas da organização com ID: ${id} para portal do paciente`);
+      
+      // Verificar se temos um mock em server/index.ts
+      if (global.mockOrganizations) {
+        // @ts-ignore
+        const mockOrg = global.mockOrganizations.find(o => o.id === id);
+        if (mockOrg) {
+          console.log("Retornando informações básicas da organização mockada:", mockOrg.name);
+          return res.json({ 
+            id: mockOrg.id, 
+            name: mockOrg.name, 
+            type: mockOrg.type 
+          });
+        }
+      }
+      
+      // Buscar do banco de dados
+      const organization = await db.query.organizations.findFirst({
+        where: eq(organizations.id, id),
+        columns: {
+          id: true,
+          name: true,
+          type: true,
+          status: true,
+          logo: true
+        }
+      });
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      if (organization.status !== 'active') {
+        return res.status(403).json({ message: "Esta organização não está ativa" });
+      }
+      
+      // Se a organização não tiver um logo, definir o caminho para o logo padrão
+      const logoPath = organization.logo 
+        ? `/uploads/logos/${organization.logo}` 
+        : '/uploads/logos/default-logo.svg';
+      
+      return res.json({
+        id: organization.id,
+        name: organization.name,
+        type: organization.type,
+        logo: logoPath
+      });
+    } catch (error) {
+      console.error("Erro ao buscar informações da organização:", error);
       return res.status(500).json({ message: "Erro interno" });
     }
   });

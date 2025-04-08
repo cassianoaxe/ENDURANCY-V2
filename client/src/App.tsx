@@ -144,7 +144,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -254,6 +254,18 @@ function AppContent() {
     if (patientOrgLoginMatch) {
       const orgId = patientOrgLoginMatch[1];
       return <PatientLogin organizationId={orgId} />;
+    }
+    
+    // Login de paciente com ID da organização como query parameter
+    if (currentPath.startsWith('/patient/login')) {
+      // Extrair orgId do query parameter
+      const url = new URL(window.location.href);
+      const orgId = url.searchParams.get('orgId');
+      if (orgId) {
+        console.log("Login de paciente com orgId via query parameter:", orgId);
+        return <PatientLogin organizationId={orgId} />;
+      }
+      return <PatientLogin />;
     }
     
     // Página de teste de pagamento (públicamente acessível para testes)
