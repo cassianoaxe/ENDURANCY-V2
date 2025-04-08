@@ -244,28 +244,26 @@ function AppContent() {
       return <Login />;
     }
     
-    // Login de paciente
-    if (currentPath === '/patient-login') {
+    // Login de paciente - tratar todas as variações de URL
+    if (currentPath === '/patient-login' || currentPath === '/patient/login') {
+      // Extrair organizationId do query parameter em ambos os casos
+      const url = new URL(window.location.href);
+      const orgId = url.searchParams.get('orgId') || url.searchParams.get('organizationId');
+      
+      if (orgId) {
+        console.log("Login de paciente com ID de organização via query parameter:", orgId);
+        return <PatientLogin organizationId={orgId} />;
+      }
+      
       return <PatientLogin />;
     }
     
-    // Login de paciente com ID da organização
+    // Login de paciente com ID da organização no path
     const patientOrgLoginMatch = currentPath.match(/^\/patient-login\/([^\/]+)$/);
     if (patientOrgLoginMatch) {
       const orgId = patientOrgLoginMatch[1];
+      console.log("Login de paciente com ID de organização no path:", orgId);
       return <PatientLogin organizationId={orgId} />;
-    }
-    
-    // Login de paciente com ID da organização como query parameter
-    if (currentPath.startsWith('/patient/login')) {
-      // Extrair orgId do query parameter
-      const url = new URL(window.location.href);
-      const orgId = url.searchParams.get('orgId');
-      if (orgId) {
-        console.log("Login de paciente com orgId via query parameter:", orgId);
-        return <PatientLogin organizationId={orgId} />;
-      }
-      return <PatientLogin />;
     }
     
     // Página de teste de pagamento (públicamente acessível para testes)
