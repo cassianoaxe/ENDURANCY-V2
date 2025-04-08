@@ -112,6 +112,27 @@ patientAuthRouter.post('/auth/patient/register', async (req: Request, res: Respo
       try {
         // Usar SQL direto para ter mais controle sobre a inserção
         // Usar SQL direto, mas com db.execute usando sintaxe parameterizada
+        // Buscar qualquer organização ativa caso não tenha sido fornecida
+        let organizationId = orgId;
+        if (!organizationId) {
+          // Buscar a primeira organização ativa como fallback
+          const defaultOrg = await db.query.organizations.findFirst({
+            where: eq(organizations.status, 'active'),
+            columns: {
+              id: true
+            }
+          });
+          
+          if (defaultOrg) {
+            organizationId = defaultOrg.id;
+            console.log(`Usando organização padrão ID ${organizationId} para o paciente.`);
+          } else {
+            console.error('Não foi possível encontrar uma organização ativa para associar ao paciente.');
+            // Em vez de falhar, vamos usar um ID de organização padrão (1) para evitar erro de constraint
+            organizationId = 1;
+          }
+        }
+        
         await db.execute(sql`
           INSERT INTO patients (
             user_id, 
@@ -123,7 +144,7 @@ patientAuthRouter.post('/auth/patient/register', async (req: Request, res: Respo
             created_at
           ) VALUES (
             ${newUser.id}, 
-            ${orgId || null}, 
+            ${organizationId}, 
             ${cpf}, 
             ${'1990-01-01'}, 
             ${'Não informado'}, 
