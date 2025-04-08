@@ -1053,9 +1053,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Gerar código único para a organização
       const orgCode = `ORG-${organization.id}-${Date.now().toString(36).toUpperCase()}`;
       
-      // Gerar link do portal do paciente
-      const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-      const patientPortalUrl = `${baseUrl}/patient/login?orgId=${organization.id}`;
+      // Gerar link do portal do paciente (usando URLs relativas)
+      // Verificar se estamos em ambiente de produção (Replit)
+      const isProduction = process.env.NODE_ENV === 'production' || (process.env.BASE_URL && process.env.BASE_URL.includes('replit.app'));
+      
+      // Usar formato adequado para cada ambiente, com URLs relativas
+      const patientPortalUrl = isProduction
+        ? `/patient-login?organizationId=${organization.id}`
+        : `/patient/login?orgId=${organization.id}`;
       
       // Atualizar organização com o código e link do portal
       await db.update(organizations)
@@ -1087,10 +1092,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         console.log(`Usuário administrador criado: ${adminUser.username}`);
         
-        // Construir os links de acesso
+        // Construir os links de acesso (usando URLs relativas)
+        // Para links enviados por e-mail, ainda precisamos do domínio completo
         const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-        const accessLink = `${baseUrl}/login`;
-        const passwordLink = `${baseUrl}/reset-password?code=${orgCode}`;
+        // Mas usamos caminhos relativos para maximizar compatibilidade
+        const accessLink = new URL('/login', baseUrl).toString();
+        const passwordLink = new URL(`/reset-password?code=${orgCode}`, baseUrl).toString();
         
         // Enviar e-mail com os dados de acesso
         await sendTemplateEmail(
@@ -1217,9 +1224,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const organization = existingOrg[0];
         
         if (status === 'approved') {
-          // E-mail de aprovação
+          // E-mail de aprovação (usando URL relativa)
           const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-          const loginUrl = `${baseUrl}/login?org=${orgCode}`;
+          // Construir URL completa para e-mail usando URL relativa
+          const loginUrl = new URL(`/login?org=${orgCode}`, baseUrl).toString();
           
           await sendTemplateEmail(
             organization.email,
@@ -1550,7 +1558,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           if (organization.email) {
             const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-            const loginUrl = `${baseUrl}/login?org=${organization.orgCode}`;
+            // Usar URL relativa para e-mail de confirmação de pagamento
+            const loginUrl = new URL(`/login?org=${organization.orgCode}`, baseUrl).toString();
             
             await sendTemplateEmail(
               organization.email,
@@ -2305,12 +2314,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `/uploads/logos/${organization.logo}` 
         : '/uploads/logos/default-logo.svg';
       
+      // Usar URLs relativas para evitar problemas com localhost em produção
+      let patientPortalUrl = organization.patientPortalUrl;
+      
+      // Verificar se estamos em ambiente de produção (Replit)
+      const isProduction = process.env.NODE_ENV === 'production' || (process.env.BASE_URL && process.env.BASE_URL.includes('replit.app'));
+      
+      // Se o patientPortalUrl não existir, estiver no formato antigo, ou contém localhost
+      if (!patientPortalUrl || 
+          patientPortalUrl.includes('/patient/login?orgId=') || 
+          patientPortalUrl.includes('localhost') ||
+          patientPortalUrl.includes('http://')) {
+        
+        // Usar formato adequado para cada ambiente, mas com URLs relativas
+        patientPortalUrl = isProduction
+          ? `/patient-login?organizationId=${organization.id}`
+          : `/patient/login?orgId=${organization.id}`;
+          
+        // Atualizar o valor no banco de dados
+        await db.update(organizations)
+          .set({ patientPortalUrl })
+          .where(eq(organizations.id, organization.id));
+          
+        console.log(`URL do portal do paciente atualizada para: ${patientPortalUrl}`);
+      }
+      
       return res.json({
         id: organization.id,
         name: organization.name,
         type: organization.type,
         logo: logoPath,
-        patientPortalUrl: organization.patientPortalUrl
+        patientPortalUrl: patientPortalUrl
       });
     } catch (error) {
       console.error("Erro ao buscar informações da organização:", error);
