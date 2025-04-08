@@ -797,6 +797,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para obter informações básicas de uma organização (nome, etc.) - acesso público para portal de paciente
+  app.get('/api/organizations/:id/info', async (req, res) => {
+    try {
+      const organizationId = req.params.id;
+      
+      // Consultar o banco de dados para obter informações da organização
+      const result = await db.query.organizations.findFirst({
+        where: eq(organizations.id, parseInt(organizationId)),
+        columns: {
+          id: true,
+          name: true,
+          status: true,
+          type: true,
+          email: true,
+          phone: true,
+          website: true,
+          city: true,
+          state: true
+        }
+      });
+      
+      if (!result) {
+        return res.status(404).json({ message: "Organização não encontrada" });
+      }
+      
+      // Buscar informações do plano da organização
+      let planInfo = null;
+      try {
+        planInfo = await getOrganizationPlanDetails(parseInt(organizationId));
+      } catch (planError) {
+        console.error('Erro ao buscar informações do plano:', planError);
+        // Não retornamos erro, apenas continuamos sem as informações do plano
+      }
+      
+      // Retornar informações combinadas
+      res.json({
+        ...result,
+        plan: planInfo
+      });
+    } catch (error) {
+      console.error('Erro ao buscar informações da organização:', error);
+      res.status(500).json({ message: "Erro ao buscar informações da organização" });
+    }
+  });
+  
   // Protected Routes - Organizations
   app.get("/api/organizations", authenticate, async (_req, res) => {
     try {
