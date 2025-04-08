@@ -3,6 +3,7 @@ import path from 'path';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeMockTickets, ensureOrganizationsExist, ensureAdminUserExists } from "./services/ticketsMockData";
+import { patientAuthRouter } from "./routes/patient-auth";
 
 const app = express();
 app.use(express.json());
@@ -544,6 +545,11 @@ app.use((req, res, next) => {
   // Registrar diretamente as rotas para mudanças de plano
   // Já estão incluídas via registerRoutes abaixo
   console.log("Rotas de mudança de plano registradas via registerRoutes:");
+  
+  // Registrar as rotas do portal do paciente
+  // Importante: Usando prefixo /api explicitamente para evitar conflito com o middleware do Vite
+  app.use('/api', patientAuthRouter);
+  console.log("Rotas de autenticação de pacientes registradas");
 
   const server = await registerRoutes(app);
 

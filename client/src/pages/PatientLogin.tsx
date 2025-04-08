@@ -198,8 +198,14 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
       }
 
       // Aceitar status 200 ou 201 como sucesso
-      if (response && response.data && response.data.success === true) {
-        console.log('Registro bem-sucedido, alterando para tab de login');
+      console.log('Verificando resposta do servidor:', response);
+      console.log('Tipo de response.data:', typeof response.data);
+      console.log('response.data completo:', response.data);
+      console.log('response.data.success existe?', response.data && 'success' in response.data);
+      console.log('response.data.success valor:', response.data && response.data.success);
+      
+      if (response && (response.status === 200 || response.status === 201)) {
+        console.log('Registro bem-sucedido pelo status HTTP, alterando para tab de login');
         toast({
           title: 'Registro realizado com sucesso',
           description: 'Você pode fazer login agora.',
