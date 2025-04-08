@@ -58,7 +58,12 @@ interface PatientLoginProps {
 const PatientLogin = ({ organizationId }: PatientLoginProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [organizationName, setOrganizationName] = useState<string | null>(null);
+  const [organization, setOrganization] = useState<{
+    id: number;
+    name: string;
+    type: string;
+    logo: string;
+  } | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
@@ -67,18 +72,29 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
     const fetchOrganizationInfo = async () => {
       if (organizationId) {
         try {
+          console.log('Buscando informações para organização ID:', organizationId);
           const response = await axios.get(`/api/organizations/${organizationId}/info`);
+          console.log('Resposta da API:', response.data);
+          
           if (response.data && response.data.name) {
-            setOrganizationName(response.data.name);
+            console.log('Organização encontrada:', response.data.name);
+            setOrganization(response.data);
           }
         } catch (error) {
           console.error('Erro ao buscar informações da organização:', error);
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar os dados da clínica',
+            variant: 'destructive',
+          });
         }
+      } else {
+        console.log('Nenhum ID de organização fornecido');
       }
     };
     
     fetchOrganizationInfo();
-  }, [organizationId]);
+  }, [organizationId, toast]);
   
   // Configuração do formulário de login
   const loginForm = useForm<LoginFormValues>({
@@ -187,11 +203,36 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Acesse seu tratamento e histórico médico
           </p>
-          {organizationName && (
-            <div className="mt-2 p-2 bg-green-50 dark:bg-green-900 rounded-md">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                {organizationName}
-              </p>
+          {organization && (
+            <div className="mt-4 flex flex-col items-center space-y-2">
+              {organization.logo && (
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-green-500 shadow-md">
+                  <img 
+                    src={organization.logo} 
+                    alt={`Logo ${organization.name}`} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Se a imagem não carregar, exibir as iniciais
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        const initialsDiv = document.createElement('div');
+                        initialsDiv.className = 'w-full h-full flex items-center justify-center bg-green-100 text-green-800 text-xl font-bold';
+                        initialsDiv.textContent = organization.name.split(' ').map(word => word[0]).join('');
+                        parent.appendChild(initialsDiv);
+                      }
+                    }}
+                  />
+                </div>
+              )}
+              <div className="p-2 rounded-md bg-green-50 dark:bg-green-900 w-full">
+                <p className="text-md font-medium text-green-800 dark:text-green-300">
+                  {organization.name}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  {organization.type}
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -199,10 +240,10 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl">
-              {organizationName ? `Portal do Paciente - ${organizationName}` : 'Portal do Paciente'}
+              {organization ? `Portal do Paciente - ${organization.name}` : 'Portal do Paciente'}
             </CardTitle>
             <CardDescription>
-              {organizationId ? 'Acesse informações específicas do seu tratamento nesta organização' : 'Acesse informações sobre seu tratamento e histórico médico'}
+              {organization ? `Acesse informações específicas do seu tratamento em ${organization.name}` : 'Acesse informações sobre seu tratamento e histórico médico'}
             </CardDescription>
           </CardHeader>
           <CardContent>
