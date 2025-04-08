@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { db } from '../db';
-import { users } from '@shared/schema';
+import { users, organizations } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 export const patientAuthRouter = Router();
@@ -11,13 +11,15 @@ export const patientAuthRouter = Router();
 const registerSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres')
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+  organizationId: z.string().optional()
 });
 
 // Esquema de validação para login de paciente
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(1, 'Senha é obrigatória')
+  password: z.string().min(1, 'Senha é obrigatória'),
+  organizationId: z.string().optional()
 });
 
 /**
@@ -25,7 +27,7 @@ const loginSchema = z.object({
  */
 patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: Response) => {
   try {
-    const { name, email, password } = registerSchema.parse(req.body);
+    const { name, email, password, organizationId } = registerSchema.parse(req.body);
     
     // Verificar se o email já está em uso
     const existingUser = await db.select().from(users).where(eq(users.email, email));
@@ -37,24 +39,63 @@ patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: R
       });
     }
     
+    // Verificar a organização (se fornecida)
+    let orgId: number | null = null;
+    
+    if (organizationId) {
+      try {
+        // Verificar se a organização existe
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, parseInt(organizationId)),
+          columns: {
+            id: true,
+            status: true
+          }
+        });
+        
+        if (!org) {
+          return res.status(400).json({
+            success: false,
+            message: 'Organização não encontrada.'
+          });
+        }
+        
+        if (org.status !== 'active') {
+          return res.status(400).json({
+            success: false,
+            message: 'Esta organização não está ativa.'
+          });
+        }
+        
+        orgId = org.id;
+      } catch (error) {
+        console.error('Erro ao verificar organização:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Erro ao verificar a organização.'
+        });
+      }
+    }
+    
     // Hash da senha
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Gerar um nome de usuário único baseado no email (parte antes do @)
+    // Gerar um nome de usuário único baseado no email (parte antes do @) e organização
     const usernameBase = email.split('@')[0].toLowerCase();
     const timestamp = Date.now().toString().slice(-4);
-    const username = `${usernameBase}_${timestamp}`;
+    const orgSuffix = orgId ? `-org${orgId}` : '';
+    const username = `${usernameBase}${orgSuffix}_${timestamp}`;
     
-    // Criar novo usuário
+    // Criar novo usuário vinculado à organização (se fornecida)
     const [newUser] = await db.insert(users).values({
       username,
       name,
       email,
       password: hashedPassword,
       role: 'patient',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      organizationId: orgId, // Vincular o paciente à organização
+      createdAt: new Date()
     }).returning();
     
     // Responder com sucesso (sem incluir a senha)
@@ -88,15 +129,27 @@ patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: R
  */
 patientAuthRouter.post('/api/auth/patient/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const { email, password, organizationId } = loginSchema.parse(req.body);
     
-    // Buscar o usuário pelo email e pelo papel de paciente
-    const [user] = await db.select().from(users).where(
-      and(
-        eq(users.email, email),
-        eq(users.role, 'patient')
-      )
+    // Criar condições de busca base (email e papel de paciente)
+    let conditions = and(
+      eq(users.email, email),
+      eq(users.role, 'patient')
     );
+    
+    // Adicionar condição de organização, se fornecida
+    if (organizationId) {
+      const orgId = parseInt(organizationId);
+      if (!isNaN(orgId)) {
+        conditions = and(
+          conditions,
+          eq(users.organizationId, orgId)
+        );
+      }
+    }
+    
+    // Buscar o usuário com as condições
+    const [user] = await db.select().from(users).where(conditions);
     
     // Verificar se o usuário existe
     if (!user) {

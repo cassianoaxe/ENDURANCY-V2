@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, FileText, Package, MessageSquare, ShoppingBag, FileEdit, CalendarClock, Phone, Home } from 'lucide-react';
+import { Calendar, Clock, FileText, Package, MessageSquare, ShoppingBag, FileEdit, CalendarClock, Phone, Home, Mail, Globe, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Prescription {
@@ -43,6 +43,18 @@ const PatientDashboard = () => {
   const [currentPrescription, setCurrentPrescription] = useState<Prescription | null>(null);
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [organizationInfo, setOrganizationInfo] = useState<{
+    name: string; 
+    id: number; 
+    status: string;
+    type?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    city?: string;
+    state?: string;
+    plan?: any;
+  } | null>(null);
   const [treatmentStatus, setTreatmentStatus] = useState({
     months: 0,
     activeMedications: 0,
@@ -50,16 +62,29 @@ const PatientDashboard = () => {
     pendingOrders: 0
   });
 
-  // Simulação de carregamento de dados
+  // Carregar dados do paciente e da organização vinculada
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Aqui, em um ambiente real, você faria chamadas à API para buscar os dados
-        // Por enquanto, vamos simular os dados baseados na imagem
-
         // Simular pequeno atraso para mostrar estado de carregamento
         await new Promise(resolve => setTimeout(resolve, 800));
 
+        // Carregar informações da organização se o paciente estiver vinculado a uma
+        if (user?.organizationId) {
+          try {
+            // Chamar a API para obter informações da organização
+            const response = await axios.get(`/api/organizations/${user.organizationId}/info`);
+            if (response.data) {
+              setOrganizationInfo(response.data);
+              console.log('Informações da organização carregadas:', response.data);
+            }
+          } catch (orgError) {
+            console.error('Erro ao carregar informações da organização:', orgError);
+          }
+        }
+
+        // Simular dados médicos e de tratamento
+        // Em um ambiente real, estes dados viriam de APIs específicas para o paciente autenticado
         setCurrentPrescription({
           id: 1,
           medicamento: 'CBD Oil 5%',
@@ -102,7 +127,7 @@ const PatientDashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -139,7 +164,7 @@ const PatientDashboard = () => {
             <div>
               <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Portal do Paciente</h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {user?.name || 'Maria Oliveira'} • MediCannabis Farma
+                {user?.name || 'Paciente'} • {organizationInfo?.name || 'Organização de Saúde'}
               </p>
             </div>
           </div>
@@ -156,6 +181,53 @@ const PatientDashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Card com informações da clínica/organização */}
+        {organizationInfo && (
+          <Card className="mb-8">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Sua Clínica</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-semibold">{organizationInfo.name}</h3>
+                  <p className="text-sm text-gray-500">{organizationInfo.type || 'Organização de Saúde'}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    {organizationInfo.email && (
+                      <p className="flex items-center">
+                        <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                        <span>{organizationInfo.email}</span>
+                      </p>
+                    )}
+                    {organizationInfo.phone && (
+                      <p className="flex items-center">
+                        <Phone className="h-4 w-4 mr-2 text-gray-500" />
+                        <span>{organizationInfo.phone}</span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {organizationInfo.website && (
+                      <p className="flex items-center">
+                        <Globe className="h-4 w-4 mr-2 text-gray-500" />
+                        <span>{organizationInfo.website}</span>
+                      </p>
+                    )}
+                    {organizationInfo.city && organizationInfo.state && (
+                      <p className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-500" />
+                        <span>{organizationInfo.city}, {organizationInfo.state}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {/* 3-column grid with cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Prescrição Atual */}

@@ -249,6 +249,13 @@ function AppContent() {
       return <PatientLogin />;
     }
     
+    // Login de paciente com ID da organização
+    const patientOrgLoginMatch = currentPath.match(/^\/patient-login\/([^\/]+)$/);
+    if (patientOrgLoginMatch) {
+      const orgId = patientOrgLoginMatch[1];
+      return <PatientLogin organizationId={orgId} />;
+    }
+    
     // Página de teste de pagamento (públicamente acessível para testes)
     if (currentPath === '/payment-test') {
       return <PaymentTest />;
