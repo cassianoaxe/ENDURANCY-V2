@@ -814,7 +814,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: true,
           website: true,
           city: true,
-          state: true
+          state: true,
+          patientPortalUrl: true
         }
       });
       
@@ -1049,9 +1050,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Gerar código único para a organização
       const orgCode = `ORG-${organization.id}-${Date.now().toString(36).toUpperCase()}`;
       
-      // Atualizar organização com o código
+      // Gerar link do portal do paciente
+      const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+      const patientPortalUrl = `${baseUrl}/patient/login?orgId=${organization.id}`;
+      
+      // Atualizar organização com o código e link do portal
       await db.update(organizations)
-        .set({ orgCode })
+        .set({ 
+          orgCode,
+          patientPortalUrl 
+        })
         .where(eq(organizations.id, organization.id));
       
       // Criar usuário administrador automaticamente
@@ -1092,7 +1100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: adminUser.username,
             accessLink: accessLink,
             passwordLink: passwordLink,
-            orgCode: orgCode
+            orgCode: orgCode,
+            patientPortalUrl: patientPortalUrl
           }
         );
         console.log(`E-mail de ativação enviado para ${organizationData.email}`);
