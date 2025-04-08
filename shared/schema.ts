@@ -74,6 +74,7 @@ export const organizations = pgTable("organizations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   orgCode: text("org_code").unique(),
+  patientPortalUrl: text("patient_portal_url"), // URL do portal do paciente
 });
 
 export const organizationDocuments = pgTable("organization_documents", {
@@ -298,6 +299,7 @@ export const insertOrganizationSchema = createInsertSchema(organizations)
     bankAccount: true,
     termsAccepted: true,
     logo: true,
+    patientPortalUrl: true,
   })
   .extend({
     // Custom validation to ensure passwords match
