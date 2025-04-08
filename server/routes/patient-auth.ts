@@ -2,8 +2,8 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import { db } from '../db';
-import { users, organizations } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { users, organizations, patients } from '@shared/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 export const patientAuthRouter = Router();
 
@@ -105,6 +105,38 @@ patientAuthRouter.post('/auth/patient/register', async (req: Request, res: Respo
       organizationId: orgId, // Vincular o paciente à organização
       createdAt: new Date()
     }).returning();
+    
+    // Também criar um registro na tabela de pacientes usando SQL puro
+    if (newUser && newUser.id) {
+      try {
+        // Usar SQL direto para ter mais controle sobre a inserção
+        // Usar SQL direto, mas com db.execute usando sintaxe parameterizada
+        await db.execute(sql`
+          INSERT INTO patients (
+            user_id, 
+            organization_id, 
+            cpf, 
+            date_of_birth, 
+            gender, 
+            is_active, 
+            created_at
+          ) VALUES (
+            ${newUser.id}, 
+            ${orgId || null}, 
+            ${'00000000000'}, 
+            ${'1990-01-01'}, 
+            ${'Não informado'}, 
+            ${true}, 
+            NOW()
+          )
+        `);
+        console.log(`Registro de paciente criado com ID de usuário ${newUser.id}`);
+      } catch (error) {
+        console.error('Erro ao criar registro na tabela patients:', error);
+        // Não falhar o registro só porque o registro de paciente falhou
+        // Apenas registrar o erro para investigação posterior
+      }
+    }
     
     // Responder com sucesso (sem incluir a senha)
     const { password: _, ...userWithoutPassword } = newUser;
