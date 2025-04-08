@@ -156,8 +156,16 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
 
   // Função para lidar com o registro
   const onRegisterSubmit = async (values: RegisterFormValues) => {
+    console.log('==========================================================');
+    console.log('[DEBUG] INÍCIO DO FLUXO DE REGISTRO - FRONTEND');
+    console.log('==========================================================');
+    
     setIsLoading(true);
     try {
+      // Verificar parâmetros
+      console.log('Valores do formulário:', values);
+      console.log('ID da Organização:', organizationId);
+      
       const requestData: any = {
         name: values.name,
         email: values.email,
@@ -167,15 +175,31 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
       // Incluir ID da organização se existir
       if (organizationId) {
         requestData.organizationId = organizationId;
+        console.log('Adicionando organizationId ao request:', organizationId);
+      } else {
+        console.log('Nenhum organizationId fornecido');
       }
       
-      console.log('Enviando solicitação de registro:', requestData);
+      console.log('Enviando solicitação de registro:', JSON.stringify(requestData));
       
-      const response = await axios.post('/api/auth/patient/register', requestData);
-      console.log('Resposta do servidor:', response.status, response.data);
+      // Executa a requisição com catch específico para qualquer erro de rede
+      let response;
+      try {
+        response = await axios.post('/api/auth/patient/register', requestData);
+        console.log('Resposta do servidor (raw):', response);
+        console.log('Resposta do servidor (status):', response.status);
+        console.log('Resposta do servidor (data):', JSON.stringify(response.data));
+      } catch (networkError: any) {
+        console.error('ERRO DE REDE:', networkError);
+        if (networkError.response) {
+          console.error('Resposta de erro:', networkError.response.status, networkError.response.data);
+        }
+        throw networkError; // Re-lançar para ser capturado pelo catch externo
+      }
 
       // Aceitar status 200 ou 201 como sucesso
-      if (response.data && response.data.success) {
+      if (response && response.data && response.data.success === true) {
+        console.log('Registro bem-sucedido, alterando para tab de login');
         toast({
           title: 'Registro realizado com sucesso',
           description: 'Você pode fazer login agora.',
@@ -185,16 +209,17 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         // Preencher automaticamente o email no formulário de login
         loginForm.setValue('email', values.email);
       } else {
-        console.error('Resposta sem success=true:', response.data);
+        console.error('Resposta não indicou sucesso:', response?.data);
         throw new Error('Resposta do servidor não indicou sucesso');
       }
     } catch (error: any) {
-      console.error('Erro ao registrar:', error);
+      console.error('ERRO CAPTURADO NO CATCH PRINCIPAL:', error);
       let errorMessage = 'Não foi possível criar sua conta. Por favor, tente novamente mais tarde.';
       
       // Tentar extrair mensagem de erro mais específica
       if (error.response && error.response.data && error.response.data.message) {
         errorMessage = error.response.data.message;
+        console.log('Mensagem de erro extraída da resposta:', errorMessage);
       }
       
       toast({
@@ -203,6 +228,7 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         variant: 'destructive',
       });
     } finally {
+      console.log('Finalizando fluxo de registro (finally block)');
       setIsLoading(false);
     }
   };
