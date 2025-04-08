@@ -27,12 +27,14 @@ const loginSchema = z.object({
  */
 patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: Response) => {
   try {
+    console.log('Recebida solicitação de registro de paciente:', req.body);
     const { name, email, password, organizationId } = registerSchema.parse(req.body);
     
     // Verificar se o email já está em uso
     const existingUser = await db.select().from(users).where(eq(users.email, email));
     
     if (existingUser.length > 0) {
+      console.log('Email já em uso:', email);
       return res.status(400).json({
         success: false,
         message: 'Este email já está em uso. Por favor, escolha outro email.'
@@ -101,7 +103,9 @@ patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: R
     // Responder com sucesso (sem incluir a senha)
     const { password: _, ...userWithoutPassword } = newUser;
     
-    return res.status(201).json({
+    console.log('Paciente registrado com sucesso:', userWithoutPassword);
+    
+    return res.status(200).json({
       success: true,
       message: 'Paciente registrado com sucesso',
       user: userWithoutPassword
