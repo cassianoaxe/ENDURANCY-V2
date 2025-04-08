@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -42,8 +42,8 @@ const registerSchema = z.object({
   name: z.string().min(3, { message: 'Nome deve ter pelo menos 3 caracteres' }),
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
-  terms: z.literal(true, {
-    invalid_type_error: 'Você deve aceitar os termos e condições',
+  terms: z.boolean().refine(val => val === true, {
+    message: 'Você deve aceitar os termos e condições',
   }),
 });
 
@@ -51,11 +51,34 @@ const registerSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-const PatientLogin = () => {
+interface PatientLoginProps {
+  organizationId?: string;
+}
+
+const PatientLogin = ({ organizationId }: PatientLoginProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [organizationName, setOrganizationName] = useState<string | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Buscar informações sobre a organização se o ID for fornecido
+  useEffect(() => {
+    const fetchOrganizationInfo = async () => {
+      if (organizationId) {
+        try {
+          const response = await axios.get(`/api/organizations/${organizationId}/info`);
+          if (response.data && response.data.name) {
+            setOrganizationName(response.data.name);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar informações da organização:', error);
+        }
+      }
+    };
+    
+    fetchOrganizationInfo();
+  }, [organizationId]);
   
   // Configuração do formulário de login
   const loginForm = useForm<LoginFormValues>({
@@ -82,10 +105,17 @@ const PatientLogin = () => {
   const onLoginSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/patient/login', {
+      const requestData: any = {
         email: values.email,
         password: values.password,
-      });
+      };
+      
+      // Incluir ID da organização se existir
+      if (organizationId) {
+        requestData.organizationId = organizationId;
+      }
+      
+      const response = await axios.post('/api/auth/patient/login', requestData);
 
       if (response.data.success) {
         toast({
@@ -112,11 +142,18 @@ const PatientLogin = () => {
   const onRegisterSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/patient/register', {
+      const requestData: any = {
         name: values.name,
         email: values.email,
         password: values.password,
-      });
+      };
+      
+      // Incluir ID da organização se existir
+      if (organizationId) {
+        requestData.organizationId = organizationId;
+      }
+      
+      const response = await axios.post('/api/auth/patient/register', requestData);
 
       if (response.data.success) {
         toast({
@@ -150,13 +187,22 @@ const PatientLogin = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Acesse seu tratamento e histórico médico
           </p>
+          {organizationName && (
+            <div className="mt-2 p-2 bg-green-50 dark:bg-green-900 rounded-md">
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                {organizationName}
+              </p>
+            </div>
+          )}
         </div>
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Portal do Paciente</CardTitle>
+            <CardTitle className="text-2xl">
+              {organizationName ? `Portal do Paciente - ${organizationName}` : 'Portal do Paciente'}
+            </CardTitle>
             <CardDescription>
-              Acesse informações sobre seu tratamento e histórico médico
+              {organizationId ? 'Acesse informações específicas do seu tratamento nesta organização' : 'Acesse informações sobre seu tratamento e histórico médico'}
             </CardDescription>
           </CardHeader>
           <CardContent>
