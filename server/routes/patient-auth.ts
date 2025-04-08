@@ -26,6 +26,12 @@ const loginSchema = z.object({
  * Rota para registro de pacientes
  */
 patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: Response) => {
+  console.log('--------------------------------');
+  console.log('[DEBUG] INÍCIO DO PROCESSAMENTO DE REGISTRO DE PACIENTE');
+  console.log('--------------------------------');
+  console.log('Request Body:', JSON.stringify(req.body));
+  console.log('Request Headers:', JSON.stringify(req.headers));
+  
   try {
     console.log('Recebida solicitação de registro de paciente:', req.body);
     const { name, email, password, organizationId } = registerSchema.parse(req.body);
@@ -120,6 +126,8 @@ patientAuthRouter.post('/api/auth/patient/register', async (req: Request, res: R
         errors: error.errors
       });
     }
+    
+    console.log('ERRO AO REGISTRAR PACIENTE:', error);
     
     return res.status(500).json({
       success: false,
