@@ -142,8 +142,8 @@ export async function getOrganizationPlanDetails(organizationId: number): Promis
       throw new Error(`Plano com ID ${organization.planId} não encontrado`);
     }
     
-    // Buscar todos os planos para verificar possíveis upgrades
-    const allPlans = await db.select().from(plans).where(eq(plans.isActive, true));
+    // Buscar todos os planos ativos para verificar possíveis upgrades
+    const allPlans = await db.select().from(plans);
     
     // Determinar planos disponíveis para upgrade/downgrade
     const availablePlans = allPlans.filter(p => p.id !== plan.id)
@@ -158,9 +158,24 @@ export async function getOrganizationPlanDetails(organizationId: number): Promis
       .sort((a, b) => a.tierLevel - b.tierLevel);
     
     // Formatar o histórico de plano se existir
-    const planHistory = organization.planHistory
-      ? JSON.parse(organization.planHistory as string)
-      : [];
+    let planHistory = [];
+    if (organization.planHistory) {
+      try {
+        // Tratar strings com triplas aspas (formato incorreto do banco)
+        let historyStr = organization.planHistory as string;
+        // Remover aspas extras que possam estar presentes
+        if (historyStr.startsWith('"""') && historyStr.endsWith('"""')) {
+          historyStr = historyStr.substring(3, historyStr.length - 3);
+        } else if (historyStr.startsWith('"') && historyStr.endsWith('"')) {
+          historyStr = historyStr.substring(1, historyStr.length - 1);
+        }
+        
+        planHistory = JSON.parse(historyStr);
+      } catch (parseError) {
+        console.error('Erro ao fazer parsing do histórico de plano:', parseError);
+        planHistory = [];
+      }
+    }
     
     return {
       organizationId,
@@ -176,7 +191,7 @@ export async function getOrganizationPlanDetails(organizationId: number): Promis
         startDate: organization.planStartDate,
         expiryDate: organization.planExpiryDate,
         isActive: organization.status === 'active',
-        features: plan.features ? JSON.parse(plan.features as string) : [],
+        features: plan.features ? (typeof plan.features === 'string' ? JSON.parse(plan.features) : plan.features) : [],
         availablePlans,
         planHistory
       }
