@@ -2273,7 +2273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ 
             id: mockOrg.id, 
             name: mockOrg.name, 
-            type: mockOrg.type 
+            type: mockOrg.type,
+            patientPortalUrl: mockOrg.patientPortalUrl
           });
         }
       }
@@ -2286,7 +2287,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: true,
           type: true,
           status: true,
-          logo: true
+          logo: true,
+          patientPortalUrl: true
         }
       });
       
@@ -2307,7 +2309,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: organization.id,
         name: organization.name,
         type: organization.type,
-        logo: logoPath
+        logo: logoPath,
+        patientPortalUrl: organization.patientPortalUrl
       });
     } catch (error) {
       console.error("Erro ao buscar informações da organização:", error);
