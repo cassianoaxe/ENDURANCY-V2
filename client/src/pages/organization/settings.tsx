@@ -23,6 +23,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Settings as SettingsIcon, 
   Globe, 
@@ -45,7 +46,8 @@ import {
   Shield,
   Users,
   Loader2,
-  Check
+  Check,
+  Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -65,6 +67,12 @@ export default function OrganizationSettings() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const organizationId = user?.organizationId;
+  
+  // Buscar informações da organização
+  const { data: organizationData, isLoading: isLoadingOrg } = useQuery({
+    queryKey: [`/api/organizations/${organizationId}/info`],
+    enabled: !!organizationId,
+  });
   
   // Estados para controle da interface
   const [activeTab, setActiveTab] = useState("information");
@@ -335,69 +343,115 @@ export default function OrganizationSettings() {
                   Para alterá-las, entre em contato com o suporte.
                 </p>
                 
-                <Alert className="bg-blue-50 border-blue-200">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertTitle className="text-blue-800">Verificação Pendente</AlertTitle>
-                  <AlertDescription className="text-blue-700">
-                    Alguns documentos da sua organização ainda precisam ser validados. Acesse a seção "Documentos" para enviá-los.
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Nome da Organização</h3>
-                    <p className="font-medium">Abraçe Esperança - HempMeds</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">CNPJ</h3>
-                    <p className="font-medium">12.345.678/0001-90</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                    <p className="font-medium">abraceesperanca@gmail.com</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Telefone</h3>
-                    <p className="font-medium">(11) 98765-4321</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Endereço</h3>
-                    <p className="font-medium">Av. Paulista, 1000 - Bela Vista</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Cidade/Estado</h3>
-                    <p className="font-medium">São Paulo, SP</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">CEP</h3>
-                    <p className="font-medium">01310-100</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Website</h3>
-                    <p className="font-medium">www.abraceesperanca.org.br</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Data de Registro</h3>
-                    <p className="font-medium">06/04/2025</p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                    <div>
-                      <Badge className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
-                        Ativo
-                      </Badge>
+                {isLoadingOrg ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-12 w-full" />
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    {organizationData?.status === 'pending' && (
+                      <Alert className="bg-blue-50 border-blue-200">
+                        <Info className="h-4 w-4 text-blue-600" />
+                        <AlertTitle className="text-blue-800">Verificação Pendente</AlertTitle>
+                        <AlertDescription className="text-blue-700">
+                          Alguns documentos da sua organização ainda precisam ser validados. Acesse a seção "Documentos" para enviá-los.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Nome da Organização</h3>
+                        <p className="font-medium">{organizationData?.name || "Carregando..."}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Tipo</h3>
+                        <p className="font-medium">{organizationData?.type || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                        <p className="font-medium">{organizationData?.email || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Telefone</h3>
+                        <p className="font-medium">{organizationData?.phone || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Cidade</h3>
+                        <p className="font-medium">{organizationData?.city || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Estado</h3>
+                        <p className="font-medium">{organizationData?.state || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Website</h3>
+                        <p className="font-medium">{organizationData?.website || "-"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                        <div>
+                          <Badge 
+                            className={`${
+                              organizationData?.status === 'active' 
+                                ? 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200'
+                                : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border-yellow-200'
+                            }`}
+                          >
+                            {organizationData?.status === 'active' ? 'Ativo' : 'Pendente'}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-gray-500">Plano Atual</h3>
+                        <p className="font-medium">{organizationData?.plan?.name || "Básico"}</p>
+                      </div>
+                    </div>
+                    
+                    {organizationData?.patientPortalUrl && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                        <h3 className="text-sm font-medium text-blue-800 mb-2">Link do Portal do Paciente</h3>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            readOnly
+                            value={organizationData.patientPortalUrl}
+                            className="font-mono text-sm bg-white"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(organizationData.patientPortalUrl);
+                              toast({
+                                title: "Link copiado!",
+                                description: "O link do portal do paciente foi copiado para a área de transferência."
+                              });
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-1" /> Copiar
+                          </Button>
+                        </div>
+                        <p className="text-xs text-blue-600 mt-2">
+                          Compartilhe este link com seus pacientes para que eles possam acessar o portal exclusivo da sua organização.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
                 
                 <div className="border-t pt-4 mt-4">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Logo da Organização</h3>
