@@ -169,9 +169,13 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         requestData.organizationId = organizationId;
       }
       
+      console.log('Enviando solicitação de registro:', requestData);
+      
       const response = await axios.post('/api/auth/patient/register', requestData);
+      console.log('Resposta do servidor:', response.status, response.data);
 
-      if (response.data.success) {
+      // Aceitar status 200 ou 201 como sucesso
+      if (response.data && response.data.success) {
         toast({
           title: 'Registro realizado com sucesso',
           description: 'Você pode fazer login agora.',
@@ -180,12 +184,22 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         setActiveTab('login');
         // Preencher automaticamente o email no formulário de login
         loginForm.setValue('email', values.email);
+      } else {
+        console.error('Resposta sem success=true:', response.data);
+        throw new Error('Resposta do servidor não indicou sucesso');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao registrar:', error);
+      let errorMessage = 'Não foi possível criar sua conta. Por favor, tente novamente mais tarde.';
+      
+      // Tentar extrair mensagem de erro mais específica
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      
       toast({
         title: 'Erro ao registrar',
-        description: 'Não foi possível criar sua conta. Por favor, tente novamente mais tarde.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
