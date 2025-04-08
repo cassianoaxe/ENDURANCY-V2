@@ -1,10 +1,14 @@
+
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-// Create dist directory if it doesn't exist
-if (!fs.existsSync('./dist')) {
-  fs.mkdirSync('./dist', { recursive: true });
+// Create dist directory structure if it doesn't exist
+const requiredDirs = ['./dist', './dist/public', './dist/public/assets'];
+for (const dir of requiredDirs) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
 // Step 1: Build client
