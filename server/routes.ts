@@ -220,8 +220,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't create session until something stored
+    resave: true, // Changed to true to ensure session updates
+    saveUninitialized: true, // Changed to true to create session right away
     name: 'connect.sid', // Nome padrão para maximizar compatibilidade
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
