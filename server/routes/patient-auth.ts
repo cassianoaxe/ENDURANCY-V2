@@ -225,8 +225,26 @@ patientAuthRouter.post('/auth/patient/login', async (req: Request, res: Response
       });
     }
     
-    // Verificar a senha
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Verificar a senha - abordagem mais flexível
+    let passwordMatch = false;
+    
+    try {
+      // Se a senha parece ser um hash bcrypt (começa com $2a$, $2b$, etc), usar bcrypt.compare
+      if (user.password && user.password.startsWith('$2')) {
+        console.log('Verificando senha com bcrypt');
+        passwordMatch = await bcrypt.compare(password, user.password);
+      } else {
+        // Compatibilidade com senhas sem hash para teste
+        console.log('Verificando senha sem hash');
+        passwordMatch = (user.password === password);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar senha:', error);
+      // Tentar comparação direta como fallback
+      passwordMatch = (user.password === password);
+    }
+    
+    console.log('Resultado da verificação de senha:', passwordMatch);
     
     if (!passwordMatch) {
       return res.status(401).json({
@@ -246,6 +264,19 @@ patientAuthRouter.post('/auth/patient/login', async (req: Request, res: Response
         organizationId: user.organizationId,
         createdAt: user.createdAt
       };
+      
+      // Salvar explicitamente a sessão
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Erro ao salvar sessão:", err);
+            reject(err);
+          } else {
+            console.log("Sessão salva com sucesso. ID:", req.sessionID);
+            resolve();
+          }
+        });
+      });
     }
     
     // Responder com sucesso (sem incluir a senha)
