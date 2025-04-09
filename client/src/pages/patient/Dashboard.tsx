@@ -36,7 +36,7 @@ interface Subscription {
 }
 
 const PatientDashboard = () => {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('visao-geral');
   const [isLoading, setIsLoading] = useState(true);
@@ -180,7 +180,7 @@ const PatientDashboard = () => {
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
-            <Button variant="outline" onClick={() => setLocation('/api/auth/logout')}>
+            <Button variant="outline" onClick={() => logout()}>
               Sair
             </Button>
           </div>
