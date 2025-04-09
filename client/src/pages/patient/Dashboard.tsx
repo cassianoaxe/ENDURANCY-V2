@@ -36,7 +36,7 @@ interface Subscription {
 }
 
 const PatientDashboard = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('visao-geral');
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +61,14 @@ const PatientDashboard = () => {
     nextAppointmentDays: 0,
     pendingOrders: 0
   });
+  
+  // Verificar se o usuário está logado
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      console.log("Usuário não autenticado. Redirecionando para o login...");
+      window.location.href = '/patient/login';
+    }
+  }, [authLoading, isAuthenticated]);
 
   // Carregar dados do paciente e da organização vinculada
   useEffect(() => {
