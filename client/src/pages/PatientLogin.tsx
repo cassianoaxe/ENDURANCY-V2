@@ -146,8 +146,9 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
         
         // Forçar atualização da página para garantir que o estado de autenticação seja reconhecido
         setTimeout(() => {
-          // Redirecionamento para o dashboard de pacientes
-          window.location.href = '/patient/dashboard';
+          // Redirecionamento para o dashboard de pacientes usando /login que já está funcionando
+          // Depois o sistema redirecionará para a página correta baseado no papel do usuário
+          window.location.href = '/login';
         }, 500);
       }
     } catch (error) {
@@ -242,8 +243,9 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
             
             // Forçar atualização da página para garantir que o estado de autenticação seja reconhecido
             setTimeout(() => {
-              // Redirecionamento para o dashboard de pacientes
-              window.location.href = '/patient/dashboard';
+              // Redirecionamento para o dashboard usando /login que já está funcionando
+              // Depois o sistema redirecionará para a página correta baseado no papel do usuário
+              window.location.href = '/login';
             }, 500);
           } else {
             // Se o login automático falhar, volta para a aba de login
