@@ -615,13 +615,26 @@ function AppContent() {
   
   // Handle patient-specific routes
   if (currentPath.startsWith('/patient/')) {
+    // Primeiro verificar se é a página de login do paciente (acessível sem autenticação)
+    if (currentPath === '/patient/login') {
+      // Já foi tratada acima nos blocos para usuários não autenticados
+      return <NotFound />;
+    }
+    
+    // Para a dashboard e outras páginas do portal do paciente
+    if (currentPath === '/patient/dashboard') {
+      // Permitir acesso mesmo não estando autenticado (o componente tratará a autenticação)
+      return <PatientDashboardPage />;
+    }
+    
+    // Para outras páginas do paciente, exigir autenticação e role correto
     if (userRole !== 'patient') {
       return (
         <Layout>
           <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
             <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
             <p className="text-gray-500 mb-4">
-              Você não tem permissão para acessar esta área.
+              Você não tem permissão para acessar esta área. Este portal é exclusivo para pacientes.
             </p>
             <button 
               onClick={() => {
@@ -635,10 +648,6 @@ function AppContent() {
           </div>
         </Layout>
       );
-    }
-    
-    if (currentPath === '/patient/dashboard') {
-      return <PatientDashboardPage />;
     }
     
     return <NotFound />;
