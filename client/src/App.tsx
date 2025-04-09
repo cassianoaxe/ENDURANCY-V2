@@ -245,13 +245,13 @@ function AppContent() {
     }
     
     // Login de paciente - tratar todas as variações de URL
-    if (currentPath === '/patient-login' || currentPath === '/patient/login') {
-      // Extrair organizationId do query parameter em ambos os casos
+    if (currentPath === '/patient-login') {
+      // Extrair organizationId do query parameter
       const url = new URL(window.location.href);
       const orgId = url.searchParams.get('orgId') || url.searchParams.get('organizationId');
       
       if (orgId) {
-        console.log("Login de paciente com ID de organização via query parameter:", orgId);
+        console.log("Login de paciente via /patient-login com ID de organização via query param:", orgId);
         return <PatientLogin organizationId={orgId} />;
       }
       
@@ -615,16 +615,26 @@ function AppContent() {
   
   // Handle patient-specific routes
   if (currentPath.startsWith('/patient/')) {
-    // Primeiro verificar se é a página de login do paciente (acessível sem autenticação)
-    if (currentPath === '/patient/login') {
-      // Já foi tratada acima nos blocos para usuários não autenticados
-      return <NotFound />;
-    }
-    
     // Para a dashboard e outras páginas do portal do paciente
     if (currentPath === '/patient/dashboard') {
-      // Permitir acesso mesmo não estando autenticado (o componente tratará a autenticação)
+      // Verificação de autenticação agora é feita no componente
+      // Isto permite o acesso mesmo vindo de qualquer rota de login
       return <PatientDashboardPage />;
+    }
+    
+    // Primeiro verificar se é a página de login do paciente (acessível sem autenticação)
+    if (currentPath === '/patient/login') {
+      // Extrair organizationId do query parameter 
+      const url = new URL(window.location.href);
+      const orgId = url.searchParams.get('orgId') || url.searchParams.get('organizationId');
+      
+      if (orgId) {
+        console.log("SPECIFIC HANDLER: Login de paciente com organizationId:", orgId);
+        return <PatientLogin organizationId={orgId} />;
+      }
+      
+      // Sem organizationId, apenas mostrar a página de login normal
+      return <PatientLogin />;
     }
     
     // Para outras páginas do paciente, exigir autenticação e role correto
