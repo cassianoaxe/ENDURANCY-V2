@@ -141,8 +141,14 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
           description: 'Você será redirecionado para o dashboard.',
           variant: 'default',
         });
-        // Redirecionamento para o dashboard de pacientes
-        setLocation('/patient/dashboard');
+        
+        console.log("Login bem-sucedido, redirecionando para dashboard...");
+        
+        // Forçar atualização da página para garantir que o estado de autenticação seja reconhecido
+        setTimeout(() => {
+          // Redirecionamento para o dashboard de pacientes
+          window.location.href = '/patient/dashboard';
+        }, 500);
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -208,15 +214,50 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
       console.log('response.data.success valor:', response.data && response.data.success);
       
       if (response && (response.status === 200 || response.status === 201)) {
-        console.log('Registro bem-sucedido pelo status HTTP, alterando para tab de login');
+        console.log('Registro bem-sucedido pelo status HTTP, tentando login automático');
         toast({
           title: 'Registro realizado com sucesso',
-          description: 'Você pode fazer login agora.',
+          description: 'Realizando login automático...',
           variant: 'default',
         });
-        setActiveTab('login');
-        // Preencher automaticamente o email no formulário de login
-        loginForm.setValue('email', values.email);
+        
+        // Realizar login automático com os dados do registro
+        try {
+          // Prepara os dados de login
+          const loginData = {
+            email: values.email,
+            password: values.password
+          };
+          
+          if (organizationId) {
+            // @ts-ignore
+            loginData.organizationId = organizationId;
+          }
+          
+          // Tenta fazer login automaticamente
+          const loginResponse = await axios.post('/api/auth/patient/login', loginData);
+          
+          if (loginResponse.data.success) {
+            console.log("Login automático bem-sucedido, redirecionando para dashboard...");
+            
+            // Forçar atualização da página para garantir que o estado de autenticação seja reconhecido
+            setTimeout(() => {
+              // Redirecionamento para o dashboard de pacientes
+              window.location.href = '/patient/dashboard';
+            }, 500);
+          } else {
+            // Se o login automático falhar, volta para a aba de login
+            console.log("Login automático falhou, exibindo aba de login");
+            setActiveTab('login');
+            loginForm.setValue('email', values.email);
+          }
+        } catch (loginError) {
+          console.error("Erro ao tentar realizar login automático:", loginError);
+          // Em caso de erro, exibe a aba de login normal
+          setActiveTab('login');
+          // Preencher automaticamente o email no formulário de login
+          loginForm.setValue('email', values.email);
+        }
       } else {
         console.error('Resposta não indicou sucesso:', response?.data);
         throw new Error('Resposta do servidor não indicou sucesso');
