@@ -16,15 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, ShoppingCart, ExternalLink, FileText, AlertCircle, Clock, Download } from 'lucide-react';
+import { Loader2, Search, ShoppingCart, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { jsPDF } from 'jspdf';
 
 interface Prescription {
   id: number;
   patientId: number;
-  patientName?: string;
   doctorId: number;
   doctorName: string;
   organizationId: number;
@@ -39,7 +37,6 @@ interface Prescription {
   duration: string;
   status: 'approved' | 'pending' | 'rejected';
   notes?: string;
-  rejectionReason?: string;
   createdAt: string;
   approvalDate?: string;
 }
@@ -48,7 +45,6 @@ export function PatientPrescriptionList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -109,120 +105,13 @@ export function PatientPrescriptionList() {
     }
   };
   
-  // Generate PDF of the prescription
-  const generatePrescriptionPDF = (prescription: Prescription) => {
-    try {
-      const doc = new jsPDF();
-      
-      // Set up the PDF with styling
-      doc.setFontSize(20);
-      doc.text('Prescrição Médica', 105, 20, { align: 'center' });
-      
-      // Add organization logo/header
-      doc.setFontSize(16);
-      doc.text(prescription.organizationName, 105, 30, { align: 'center' });
-      
-      // Add line separator
-      doc.setDrawColor(220, 220, 220);
-      doc.line(20, 35, 190, 35);
-      
-      // Patient information
-      doc.setFontSize(12);
-      doc.text('Informações do Paciente', 20, 45);
-      doc.setFontSize(10);
-      doc.text(`Nome: ${prescription.patientName || 'Não especificado'}`, 20, 55);
-      doc.text(`Prescrição #: ${prescription.id}`, 20, 60);
-      doc.text(`Data: ${format(new Date(prescription.createdAt), 'dd/MM/yyyy', { locale: ptBR })}`, 20, 65);
-      
-      // Doctor information
-      doc.setFontSize(12);
-      doc.text('Médico Responsável', 20, 80);
-      doc.setFontSize(10);
-      doc.text(`Dr(a). ${prescription.doctorName}`, 20, 90);
-      doc.text(`Clínica: ${prescription.organizationName}`, 20, 95);
-      
-      // Prescription details
-      doc.setFontSize(12);
-      doc.text('Detalhes da Prescrição', 20, 110);
-      doc.setFontSize(10);
-      doc.text(`Produto: ${prescription.productName}`, 20, 120);
-      doc.text(`Dosagem: ${prescription.dosage}`, 20, 125);
-      doc.text(`Duração: ${prescription.duration}`, 20, 130);
-      
-      // Instructions
-      doc.setFontSize(12);
-      doc.text('Instruções de Uso', 20, 145);
-      doc.setFontSize(10);
-      
-      // Handle wrapping text for longer instructions
-      const instructions = prescription.instructions;
-      const splitInstructions = doc.splitTextToSize(instructions, 170);
-      doc.text(splitInstructions, 20, 155);
-      
-      // Status information
-      doc.setFontSize(12);
-      let yPosition = 155 + (splitInstructions.length * 5);
-      doc.text('Status', 20, yPosition);
-      doc.setFontSize(10);
-      
-      // Show different information based on status
-      if (prescription.status === 'approved') {
-        doc.text(`Aprovada em: ${prescription.approvalDate ? 
-          format(new Date(prescription.approvalDate), 'dd/MM/yyyy', { locale: ptBR }) : 
-          'Data não registrada'}`, 20, yPosition + 10);
-      } else if (prescription.status === 'rejected') {
-        doc.text(`Rejeitada: ${prescription.rejectionReason || 'Sem motivo específico'}`, 20, yPosition + 10);
-      } else {
-        doc.text('Em análise pelo farmacêutico', 20, yPosition + 10);
-      }
-      
-      // Notes if available
-      if (prescription.notes) {
-        yPosition += 20;
-        doc.setFontSize(12);
-        doc.text('Observações', 20, yPosition);
-        doc.setFontSize(10);
-        const splitNotes = doc.splitTextToSize(prescription.notes, 170);
-        doc.text(splitNotes, 20, yPosition + 10);
-      }
-      
-      // Footer
-      doc.setFontSize(8);
-      doc.text('Este documento é uma prescrição médica oficial.', 105, 280, { align: 'center' });
-      
-      // Save with prescription ID and date
-      const fileName = `prescricao_${prescription.id}_${format(new Date(), 'ddMMyyyy')}.pdf`;
-      doc.save(fileName);
-      
-      toast({
-        title: 'PDF gerado com sucesso',
-        description: `O arquivo ${fileName} foi baixado`,
-        variant: 'default',
-      });
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast({
-        title: 'Erro ao gerar PDF',
-        description: 'Não foi possível gerar o arquivo PDF da prescrição',
-        variant: 'destructive',
-      });
-    }
-  };
-  
-  // Filter prescriptions by search term and status
-  const filteredPrescriptions = prescriptionsQuery.data
-    ? prescriptionsQuery.data.filter((prescription: Prescription) => {
-        // Text search filter
-        const matchesSearch = !searchTerm || 
-          prescription.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          prescription.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        // Status filter
-        const matchesStatus = statusFilter === 'all' || prescription.status === statusFilter;
-        
-        return matchesSearch && matchesStatus;
-      })
-    : [];
+  // Filter prescriptions by search term
+  const filteredPrescriptions = searchTerm && prescriptionsQuery.data
+    ? prescriptionsQuery.data.filter((prescription: Prescription) => 
+        prescription.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prescription.doctorName.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : prescriptionsQuery.data;
   
   // Handle opening the order dialog
   const handleOrderPrescription = (prescription: Prescription) => {
@@ -263,45 +152,6 @@ export function PatientPrescriptionList() {
               </div>
             </div>
           </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <Button 
-              variant={statusFilter === 'all' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setStatusFilter('all')}
-              className="flex items-center gap-1"
-            >
-              <FileText className="h-4 w-4" />
-              Todas
-            </Button>
-            <Button 
-              variant={statusFilter === 'pending' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setStatusFilter('pending')}
-              className="flex items-center gap-1 text-yellow-600"
-            >
-              <Clock className="h-4 w-4" />
-              Em análise
-            </Button>
-            <Button 
-              variant={statusFilter === 'approved' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setStatusFilter('approved')}
-              className="flex items-center gap-1 text-green-600"
-            >
-              <FileText className="h-4 w-4" />
-              Aprovadas
-            </Button>
-            <Button 
-              variant={statusFilter === 'rejected' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setStatusFilter('rejected')}
-              className="flex items-center gap-1 text-red-600"
-            >
-              <AlertCircle className="h-4 w-4" />
-              Rejeitadas
-            </Button>
-          </div>
         </div>
 
         {prescriptionsQuery.isLoading ? (
@@ -338,35 +188,25 @@ export function PatientPrescriptionList() {
                       {format(new Date(prescription.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setSelectedPrescription(prescription)}
+                      >
+                        Detalhes
+                      </Button>
+                      
+                      {prescription.status === 'approved' && (
                         <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setSelectedPrescription(prescription)}
-                        >
-                          Detalhes
-                        </Button>
-                        
-                        <Button 
-                          variant="outline" 
+                          variant="default" 
                           size="sm"
-                          onClick={() => generatePrescriptionPDF(prescription)}
+                          className="ml-2"
+                          onClick={() => handleOrderPrescription(prescription)}
                         >
-                          <Download className="h-4 w-4 mr-1" />
-                          PDF
+                          <ShoppingCart className="h-4 w-4 mr-1" />
+                          Adquirir
                         </Button>
-                        
-                        {prescription.status === 'approved' && (
-                          <Button 
-                            variant="default" 
-                            size="sm"
-                            onClick={() => handleOrderPrescription(prescription)}
-                          >
-                            <ShoppingCart className="h-4 w-4 mr-1" />
-                            Adquirir
-                          </Button>
-                        )}
-                      </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -450,14 +290,6 @@ export function PatientPrescriptionList() {
                     onClick={() => setSelectedPrescription(null)}
                   >
                     Fechar
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    onClick={() => generatePrescriptionPDF(selectedPrescription)}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Baixar PDF
                   </Button>
                   
                   {selectedPrescription.status === 'approved' && (
