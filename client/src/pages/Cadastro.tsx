@@ -335,6 +335,7 @@ export default function Cadastro() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>ID</TableHead>
                       <TableHead>Organização</TableHead>
                       <TableHead>Administrador</TableHead>
                       <TableHead>Plano</TableHead>
@@ -346,6 +347,9 @@ export default function Cadastro() {
                   <TableBody>
                     {sortedOrganizations.map((org) => (
                       <TableRow key={org.id}>
+                        <TableCell className="font-medium">
+                          {org.id}
+                        </TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <Building2 size={16} className="text-gray-400" />
