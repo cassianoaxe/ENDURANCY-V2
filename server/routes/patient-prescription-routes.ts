@@ -42,7 +42,7 @@ export async function registerPatientPrescriptionRoutes(app: Express) {
       
       const patientId = patientData[0].id;
       
-      // Buscar apenas prescrições aprovadas
+      // Buscar todas as prescrições do paciente (aprovadas, rejeitadas e pendentes)
       const prescriptions = await db
         .select({
           id: prescriptionsTable.id,
@@ -61,20 +61,17 @@ export async function registerPatientPrescriptionRoutes(app: Express) {
           instructions: prescriptionsTable.instructions,
           duration: prescriptionsTable.duration,
           status: prescriptionsTable.status,
+          notes: prescriptionsTable.notes,
           createdAt: prescriptionsTable.createdAt,
-          approvalDate: prescriptionsTable.approvalDate
+          approvalDate: prescriptionsTable.approvalDate,
+          rejectionReason: prescriptionsTable.rejectionReason
         })
         .from(prescriptionsTable)
         .innerJoin(patientsTable, eq(prescriptionsTable.patientId, patientsTable.id))
         .innerJoin(usersTable, eq(prescriptionsTable.doctorId, usersTable.id))
         .innerJoin(organizationsTable, eq(prescriptionsTable.organizationId, organizationsTable.id))
         .innerJoin(productsTable, eq(prescriptionsTable.productId, productsTable.id))
-        .where(
-          and(
-            eq(prescriptionsTable.patientId, patientId),
-            eq(prescriptionsTable.status, 'approved')
-          )
-        );
+        .where(eq(prescriptionsTable.patientId, patientId));
       
       res.json(prescriptions);
     } catch (error) {
@@ -97,7 +94,7 @@ export async function registerPatientPrescriptionRoutes(app: Express) {
       
       const patientId = patientData[0].id;
       
-      // Buscar apenas prescrições aprovadas
+      // Buscar detalhes da prescrição (independente do status)
       const prescription = await db
         .select({
           id: prescriptionsTable.id,
@@ -116,8 +113,10 @@ export async function registerPatientPrescriptionRoutes(app: Express) {
           instructions: prescriptionsTable.instructions,
           duration: prescriptionsTable.duration,
           status: prescriptionsTable.status,
+          notes: prescriptionsTable.notes,
           createdAt: prescriptionsTable.createdAt,
-          approvalDate: prescriptionsTable.approvalDate
+          approvalDate: prescriptionsTable.approvalDate,
+          rejectionReason: prescriptionsTable.rejectionReason
         })
         .from(prescriptionsTable)
         .innerJoin(patientsTable, eq(prescriptionsTable.patientId, patientsTable.id))
@@ -127,13 +126,12 @@ export async function registerPatientPrescriptionRoutes(app: Express) {
         .where(
           and(
             eq(prescriptionsTable.id, prescriptionId),
-            eq(prescriptionsTable.patientId, patientId),
-            eq(prescriptionsTable.status, 'approved')
+            eq(prescriptionsTable.patientId, patientId)
           )
         );
       
       if (prescription.length === 0) {
-        return res.status(404).json({ message: 'Prescrição não encontrada ou não aprovada' });
+        return res.status(404).json({ message: 'Prescrição não encontrada' });
       }
       
       res.json(prescription[0]);
