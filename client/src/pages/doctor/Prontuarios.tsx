@@ -7,7 +7,9 @@ import {
   Clock, 
   Calendar, 
   User,
-  ClipboardCheck
+  ClipboardCheck,
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { 
   Card, 
@@ -22,6 +24,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function DoctorProntuarios() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -283,10 +303,65 @@ export default function DoctorProntuarios() {
               <FileText className="h-4 w-4" />
               <span>Relatórios</span>
             </Button>
-            <Button size="sm" className="flex items-center gap-1">
-              <Plus className="h-4 w-4" />
-              <span>Novo Registro</span>
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" className="flex items-center gap-1">
+                  <Plus className="h-4 w-4" />
+                  <span>Novo Registro</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Adicionar novo registro</DialogTitle>
+                  <DialogDescription>
+                    Adicione uma nova anotação ao prontuário do paciente.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  console.log("Nova anotação adicionada");
+                  // Implementar a lógica para enviar os dados
+                }}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="recordType">Tipo de registro</Label>
+                      <Select defaultValue="consultation">
+                        <SelectTrigger id="recordType">
+                          <SelectValue placeholder="Selecione o tipo de registro" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="consultation">Consulta</SelectItem>
+                          <SelectItem value="exam">Exame</SelectItem>
+                          <SelectItem value="medication">Medicação</SelectItem>
+                          <SelectItem value="allergy">Alergia</SelectItem>
+                          <SelectItem value="note">Anotação geral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="title">Título/Motivo</Label>
+                      <Input id="title" placeholder="Ex: Consulta de rotina, Exame de sangue" />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="description">Descrição</Label>
+                      <Textarea 
+                        id="description" 
+                        placeholder="Descreva detalhes relevantes para o prontuário"
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline">
+                      Cancelar
+                    </Button>
+                    <Button type="submit">Salvar registro</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

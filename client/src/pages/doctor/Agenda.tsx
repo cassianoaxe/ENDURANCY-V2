@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
-import { Calendar, Clock, Users, FileText, Filter } from 'lucide-react';
+import { Calendar, Clock, Users, FileText, Filter, Plus, X, CalendarIcon, CheckCircle } from 'lucide-react';
 import { 
   Card, 
   CardContent, 
@@ -10,13 +10,44 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function DoctorAgenda() {
   const currentDate = new Date();
   const formattedDate = format(currentDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
   const [selectedDay, setSelectedDay] = useState('today');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(currentDate);
+  const [appointmentData, setAppointmentData] = useState({
+    patient: '',
+    time: '',
+    reason: '',
+    notes: '',
+    duration: '30',
+    status: 'scheduled'
+  });
   
   // Dados mockados para demonstração
   const appointments = [
@@ -75,10 +106,190 @@ export default function DoctorAgenda() {
               <Filter className="h-4 w-4" />
               <span>Filtrar</span>
             </Button>
-            <Button size="sm" className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>Nova Consulta</span>
-            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  <span>Nova Consulta</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Agendar Nova Consulta</DialogTitle>
+                  <DialogDescription>
+                    Preencha os detalhes para agendar um novo atendimento.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  // Aqui seria a lógica para salvar a consulta
+                  console.log("Nova consulta agendada:", appointmentData);
+                  setIsCreateDialogOpen(false);
+                }}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="patient">Paciente</Label>
+                      <Select 
+                        onValueChange={(value) => setAppointmentData({...appointmentData, patient: value})}
+                        value={appointmentData.patient}
+                      >
+                        <SelectTrigger id="patient">
+                          <SelectValue placeholder="Selecione o paciente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="joao-silva">João Silva</SelectItem>
+                          <SelectItem value="maria-souza">Maria Souza</SelectItem>
+                          <SelectItem value="carlos-ferreira">Carlos Ferreira</SelectItem>
+                          <SelectItem value="ana-beatriz">Ana Beatriz</SelectItem>
+                          <SelectItem value="roberto-mendes">Roberto Mendes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="date">Data</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !selectedDate && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Selecione uma data</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            {/* Um componente de calendário seria adicionado aqui */}
+                            <div className="p-3">
+                              <p className="text-sm text-center text-gray-500">Seletor de calendário</p>
+                              <div className="flex gap-1 mt-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex-1"
+                                  onClick={() => setSelectedDate(currentDate)}
+                                >
+                                  Hoje
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="flex-1"
+                                  onClick={() => setSelectedDate(addDays(currentDate, 1))}
+                                >
+                                  Amanhã
+                                </Button>
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="time">Horário</Label>
+                        <Select 
+                          onValueChange={(value) => setAppointmentData({...appointmentData, time: value})}
+                          value={appointmentData.time}
+                        >
+                          <SelectTrigger id="time">
+                            <SelectValue placeholder="Selecione o horário" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="08:00">08:00</SelectItem>
+                            <SelectItem value="08:30">08:30</SelectItem>
+                            <SelectItem value="09:00">09:00</SelectItem>
+                            <SelectItem value="09:30">09:30</SelectItem>
+                            <SelectItem value="10:00">10:00</SelectItem>
+                            <SelectItem value="10:30">10:30</SelectItem>
+                            <SelectItem value="11:00">11:00</SelectItem>
+                            <SelectItem value="11:30">11:30</SelectItem>
+                            <SelectItem value="14:00">14:00</SelectItem>
+                            <SelectItem value="14:30">14:30</SelectItem>
+                            <SelectItem value="15:00">15:00</SelectItem>
+                            <SelectItem value="15:30">15:30</SelectItem>
+                            <SelectItem value="16:00">16:00</SelectItem>
+                            <SelectItem value="16:30">16:30</SelectItem>
+                            <SelectItem value="17:00">17:00</SelectItem>
+                            <SelectItem value="17:30">17:30</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="duration">Duração</Label>
+                        <Select 
+                          defaultValue="30"
+                          onValueChange={(value) => setAppointmentData({...appointmentData, duration: value})}
+                          value={appointmentData.duration}
+                        >
+                          <SelectTrigger id="duration">
+                            <SelectValue placeholder="Duração" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="15">15 minutos</SelectItem>
+                            <SelectItem value="30">30 minutos</SelectItem>
+                            <SelectItem value="45">45 minutos</SelectItem>
+                            <SelectItem value="60">60 minutos</SelectItem>
+                            <SelectItem value="90">90 minutos</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select 
+                          defaultValue="scheduled"
+                          onValueChange={(value) => setAppointmentData({...appointmentData, status: value})}
+                          value={appointmentData.status}
+                        >
+                          <SelectTrigger id="status">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="scheduled">Agendada</SelectItem>
+                            <SelectItem value="confirmed">Confirmada</SelectItem>
+                            <SelectItem value="urgent">Urgente</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="reason">Motivo da Consulta</Label>
+                      <Input 
+                        id="reason" 
+                        placeholder="Ex: Consulta de rotina, Avaliação de exames"
+                        value={appointmentData.reason}
+                        onChange={(e) => setAppointmentData({...appointmentData, reason: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="notes">Observações</Label>
+                      <Textarea 
+                        id="notes" 
+                        placeholder="Informações adicionais sobre o paciente ou consulta"
+                        className="min-h-[80px]"
+                        value={appointmentData.notes}
+                        onChange={(e) => setAppointmentData({...appointmentData, notes: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">Agendar Consulta</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
