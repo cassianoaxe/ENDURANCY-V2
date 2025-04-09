@@ -414,6 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     .catch(err => console.error("Error initializing notifications:", err));
   
   // Auth Routes
+  // Autenticação de usuários
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password, userType, orgCode, email } = req.body;
