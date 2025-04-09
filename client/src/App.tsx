@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
+import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -603,11 +604,72 @@ function AppContent() {
     }
     
     if (currentPath === '/doctor/dashboard') {
-      return (
-        <Layout>
-          <DoctorDashboard />
-        </Layout>
-      );
+      return <DoctorLayout>
+        <DoctorDashboard />
+      </DoctorLayout>;
+    }
+    
+    // Rotas específicas do portal médico
+    if (currentPath.startsWith('/doctor/')) {
+      // Verificar o papel do usuário
+      if (userRole !== 'doctor') {
+        return (
+          <Layout>
+            <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+              <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+              <p className="text-gray-500 mb-4">
+                Você não tem permissão para acessar esta área. Este portal é exclusivo para médicos.
+              </p>
+              <button 
+                onClick={() => {
+                  window.history.pushState({}, '', '/');
+                  window.dispatchEvent(new Event('popstate'));
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+              >
+                Voltar para a página inicial
+              </button>
+            </div>
+          </Layout>
+        );
+      }
+      
+      // Rotas específicas para médicos
+      if (currentPath === '/doctor/agenda') {
+        const Agenda = React.lazy(() => import('./pages/doctor/Agenda'));
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <Agenda />
+          </Suspense>
+        );
+      }
+      
+      if (currentPath === '/doctor/pacientes') {
+        const Pacientes = React.lazy(() => import('./pages/doctor/Pacientes'));
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <Pacientes />
+          </Suspense>
+        );
+      }
+      
+      if (currentPath === '/doctor/prontuarios') {
+        const Prontuarios = React.lazy(() => import('./pages/doctor/Prontuarios'));
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <Prontuarios />
+          </Suspense>
+        );
+      }
+      
+      // Fallback para rotas não encontradas
+      return <NotFound />;
     }
     
     return <NotFound />;
