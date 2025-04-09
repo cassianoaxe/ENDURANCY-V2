@@ -5,6 +5,9 @@ import path from "path";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { db } from "./db";
+import { registerDoctorRoutes } from './routes/doctor-routes';
+import { registerPatientPrescriptionRoutes } from './routes/patient-prescription-routes';
+import { registerPharmacistRoutes } from './routes/pharmacist-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema,
@@ -5177,6 +5180,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
+  
+  // Register doctor, pharmacist, and patient prescription routes
+  const doctorRoutes = await registerDoctorRoutes(app);
+  const pharmacistRoutes = await registerPharmacistRoutes(app);
+  const patientPrescriptionRoutes = await registerPatientPrescriptionRoutes(app);
+  
+  console.log("Doctor routes registered:", doctorRoutes);
+  console.log("Pharmacist routes registered:", pharmacistRoutes);
+  console.log("Patient prescription routes registered:", patientPrescriptionRoutes);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
