@@ -668,6 +668,28 @@ function AppContent() {
         );
       }
       
+      if (currentPath === '/doctor/prescricoes') {
+        const Prescricoes = React.lazy(() => import('./pages/doctor/Prescricoes'));
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <Prescricoes />
+          </Suspense>
+        );
+      }
+      
+      if (currentPath === '/doctor/afiliacao') {
+        const Afiliacao = React.lazy(() => import('./pages/doctor/Afiliacao'));
+        return (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <Afiliacao />
+          </Suspense>
+        );
+      }
+      
       // Fallback para rotas não encontradas
       return <NotFound />;
     }
