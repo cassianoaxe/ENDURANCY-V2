@@ -8,7 +8,7 @@ import {
   CalendarDays, 
   ClipboardCheck, 
   Eye, 
-  PillIcon,, 
+  PillIcon, 
   ShoppingBag, 
   Users 
 } from "lucide-react";

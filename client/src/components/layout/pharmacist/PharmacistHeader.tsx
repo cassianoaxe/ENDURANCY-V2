@@ -55,7 +55,7 @@ export default function PharmacistHeader() {
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
                 <AvatarImage
-                  src={user?.profilePhoto || ""}
+                  src={""}
                   alt={user?.name || "Avatar"}
                 />
                 <AvatarFallback className="bg-green-100 text-green-800">

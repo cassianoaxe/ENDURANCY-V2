@@ -122,11 +122,13 @@ const ApprovedPrescriptions = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <Input
-            placeholder="Buscar prescrições aprovadas..."
-            className="w-80"
-            icon={<Search className="h-4 w-4 text-gray-500" />}
-          />
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Buscar prescrições aprovadas..."
+              className="pl-9 w-full"
+            />
+          </div>
           <Select defaultValue="this-week">
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Período" />
@@ -237,11 +239,13 @@ export default function PharmacistPrescricoes() {
               <CardContent>
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Buscar prescrições..."
-                      className="w-80"
-                      icon={<Search className="h-4 w-4 text-gray-500" />}
-                    />
+                    <div className="relative w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                      <Input
+                        placeholder="Buscar prescrições..."
+                        className="pl-9 w-full"
+                      />
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" className="gap-1">

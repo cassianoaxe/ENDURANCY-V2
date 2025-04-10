@@ -84,6 +84,10 @@ import DataImport from "@/pages/DataImport";
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
+
+// Import pharmacist pages
+import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
+import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
 import Expedicao from "@/pages/organization/Expedicao";
 import PreparacaoPedidos from "@/pages/organization/expedicao/pedidos";
 import Etiquetas from "@/pages/organization/expedicao/etiquetas";
