@@ -47,8 +47,8 @@ const doctorRegistrationSchema = z.object({
   email: z.string().email('Email inválido').min(1, 'Email é obrigatório'),
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
   confirmPassword: z.string().min(1, 'Confirmação de senha é obrigatória'),
-  doctorType: z.enum(['general', 'dentist', 'veterinarian'], {
-    required_error: 'Selecione o tipo de médico',
+  doctorType: z.enum(['general', 'dentist', 'veterinarian', 'pharmacist'], {
+    required_error: 'Selecione o tipo de profissional',
   }),
   specialization: z.string().min(1, 'Especialização é obrigatória'),
   crm: z.string().min(1, 'CRM/CRO/CRMV é obrigatório'),
@@ -65,7 +65,7 @@ const doctorRegistrationSchema = z.object({
 type DoctorRegistrationFormValues = z.infer<typeof doctorRegistrationSchema>;
 
 interface DoctorTypeInfo {
-  value: 'general' | 'dentist' | 'veterinarian';
+  value: 'general' | 'dentist' | 'veterinarian' | 'pharmacist';
   label: string;
   description: string;
   icon: LucideIcon;
@@ -93,6 +93,13 @@ const doctorTypes: DoctorTypeInfo[] = [
     description: 'Prescritor de cannabis medicinal (CRMV)',
     icon: Pill,
     registryName: 'CRMV'
+  },
+  {
+    value: 'pharmacist',
+    label: 'Farmacêutico',
+    description: 'Responsável técnico de farmácia (CRF)',
+    icon: Pill,
+    registryName: 'CRF'
   }
 ];
 
@@ -131,7 +138,7 @@ export default function DoctorRegistration() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDoctorType, setSelectedDoctorType] = useState<'general' | 'dentist' | 'veterinarian'>('general');
+  const [selectedDoctorType, setSelectedDoctorType] = useState<'general' | 'dentist' | 'veterinarian' | 'pharmacist'>('general');
   const [, navigate] = useLocation();
   
   // Pegar a organizationId da URL (path ou query param)
@@ -200,12 +207,14 @@ export default function DoctorRegistration() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Falha ao registrar médico");
+        throw new Error(errorData.message || (isPharmacist ? "Falha ao registrar farmacêutico" : "Falha ao registrar médico"));
       }
 
       toast({
         title: "Registro realizado com sucesso!",
-        description: "Seu cadastro foi enviado e está aguardando aprovação.",
+        description: isPharmacist 
+          ? "Seu cadastro de farmacêutico foi enviado e está aguardando aprovação."
+          : "Seu cadastro de prescritor foi enviado e está aguardando aprovação.",
       });
 
       // Redireciona para o login após um registro bem-sucedido
@@ -224,9 +233,13 @@ export default function DoctorRegistration() {
     }
   };
 
-  // Atualiza o tipo de registro conforme seleção do tipo de médico
+  // Atualiza o tipo de registro conforme seleção do tipo de profissional
   const selectedType = doctorTypes.find(type => type.value === selectedDoctorType);
   const registryName = selectedType ? selectedType.registryName : 'CRM';
+  
+  // Determina se o profissional é um prescritor ou um farmacêutico
+  const isPharmacist = selectedDoctorType === 'pharmacist';
+  const professionalType = isPharmacist ? 'Farmacêutico' : 'Prescritor';
 
   return (
     <div>
@@ -235,12 +248,16 @@ export default function DoctorRegistration() {
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-6 w-6 text-primary" />
-              <CardTitle className="text-2xl">Cadastro de Prescritor</CardTitle>
+              <CardTitle className="text-2xl">Cadastro de {professionalType}</CardTitle>
             </div>
             <CardDescription>
               {organizationName ? 
-                `Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal na organização "${organizationName}".` : 
-                'Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal.'}
+                isPharmacist 
+                  ? `Preencha o formulário abaixo para se cadastrar como farmacêutico responsável técnico na organização "${organizationName}".`
+                  : `Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal na organização "${organizationName}".` 
+                : isPharmacist
+                  ? 'Preencha o formulário abaixo para se cadastrar como farmacêutico responsável técnico.'
+                  : 'Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal.'}
             </CardDescription>
           </CardHeader>
           
@@ -328,7 +345,7 @@ export default function DoctorRegistration() {
                     name="doctorType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Tipo de Prescritor</FormLabel>
+                        <FormLabel>Tipo de Profissional</FormLabel>
                         <FormControl>
                           <div className="grid md:grid-cols-3 gap-3">
                             {doctorTypes.map((type) => {
@@ -368,7 +385,14 @@ export default function DoctorRegistration() {
                       <FormItem>
                         <FormLabel>Especialização</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: Neurologia, Psiquiatria, etc." {...field} />
+                          <Input 
+                            placeholder={
+                              isPharmacist 
+                                ? "Ex: Farmácia Clínica, Farmacoterapia, etc." 
+                                : "Ex: Neurologia, Psiquiatria, etc."
+                            } 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -433,7 +457,10 @@ export default function DoctorRegistration() {
                           />
                         </FormControl>
                         <FormDescription>
-                          As informações públicas serão exibidas no seu perfil para pacientes.
+                          {isPharmacist
+                            ? "As informações públicas serão exibidas no seu perfil da farmácia."
+                            : "As informações públicas serão exibidas no seu perfil para pacientes."
+                          }
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
