@@ -526,10 +526,13 @@ const PatientLogin = ({ organizationId }: PatientLoginProps) => {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-2">
             <p className="text-xs text-center w-full text-gray-500">
               Ao acessar, você concorda com nossos termos de serviço e política de privacidade.
             </p>
+            <div className="text-xs text-center text-gray-400 w-full">
+              <a href="/sitemap" className="hover:text-gray-600 hover:underline">Sitemap</a>
+            </div>
           </CardFooter>
         </Card>
       </div>
