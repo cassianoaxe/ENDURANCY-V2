@@ -8,6 +8,7 @@ import { db } from "./db";
 import { registerDoctorRoutes } from './routes/doctor-routes';
 import { registerPatientPrescriptionRoutes } from './routes/patient-prescription-routes';
 import { registerPharmacistRoutes } from './routes/pharmacist-routes';
+import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema,
