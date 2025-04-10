@@ -51,6 +51,8 @@ import PatientLogin from "@/pages/PatientLogin";
 // Importar página de cadastro de médicos
 import DoctorRegistration from "@/pages/DoctorRegistration";
 import PatientDashboardPage from "@/pages/patient/Dashboard";
+// Importar página de mapa do site
+import Sitemap from "@/pages/Sitemap";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
@@ -147,7 +149,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -931,6 +933,7 @@ function AppContent() {
       case '/plans/settings': Component = PlanSettings; break;
       case '/modules': Component = Modules; break;
       case '/modulos': Component = Modulos; break;
+      case '/sitemap': Component = Sitemap; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': 
