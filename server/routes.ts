@@ -276,17 +276,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Admin user created');
       }
 
-      // Check if pharmacist user exists
+      // Check if pharmacist user exists (temporarily using "doctor" role)
       const existingPharmacist = await db.select().from(users).where(eq(users.email, 'farmaceutico@endurancy.com'));
       if (existingPharmacist.length === 0) {
         await db.insert(users).values({
           username: 'farmaceutico',
           password: 'farmacia123', // In production, this should be hashed
-          role: 'pharmacist',
+          role: 'doctor', // Temporariamente usando "doctor" até atualizarmos o banco
           name: 'Farmacêutico Demo',
           email: 'farmaceutico@endurancy.com',
         });
-        console.log('Pharmacist user created');
+        console.log('Pharmacist user created (using doctor role)');
       }
     } catch (error) {
       console.error('Error initializing default users:', error);
