@@ -45,6 +45,8 @@ import { patientAuthRouter } from './routes/patient-auth';
 import planChangesRouter from './routes/plan-changes';
 // Importar rotas para gerenciamento de módulos
 import modulesRouter from './routes/modules';
+// Importar rotas do módulo de farmácia
+import { farmaciaRouter } from './routes/farmacia-routes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -80,7 +82,7 @@ const PostgresStore = pgSession(session);
 
 // Authentication middleware
 // Enhanced authentication middleware with session verification and detailed logging
-const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Para a rota /api/auth/me e outras rotas frequentes, não logamos todas as informações
     // para reduzir a sobrecarga no servidor e melhorar o desempenho
@@ -5194,6 +5196,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de pagamento por email
   app.use('/api/payment-email', paymentEmailRouter);
+  
+  // Rotas do módulo de farmácia
+  app.use('/api/organization', farmaciaRouter);
   
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
