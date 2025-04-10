@@ -647,6 +647,7 @@ function AppContent() {
       }
       
       if (currentPath === '/doctor/pacientes') {
+        console.log('Carregando página de pacientes do médico');
         const Pacientes = React.lazy(() => import('./pages/doctor/Pacientes'));
         return (
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
