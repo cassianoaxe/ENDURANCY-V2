@@ -52,10 +52,7 @@ export default function DoctorDashboard() {
     <DoctorLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Portal do Médico</h1>
-            <p className="text-gray-500 mt-1">Bem-vindo(a), Dr(a). {user?.name || 'Nome do Médico'}</p>
-          </div>
+          <p className="text-gray-500">Bem-vindo(a), Dr(a). {user?.name || 'Nome do Médico'}</p>
           <div className="flex items-center space-x-4">
             <Badge className="bg-blue-100 text-blue-800 py-1">Cardiologia</Badge>
           </div>
