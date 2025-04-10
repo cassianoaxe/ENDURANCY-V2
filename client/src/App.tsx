@@ -96,6 +96,8 @@ import PharmacistPacientes from "@/pages/pharmacist/Pacientes";
 import PharmacistPedidos from "@/pages/pharmacist/Pedidos";
 import PharmacistRelatorios from "@/pages/pharmacist/Relatorios";
 import PharmacistAjuda from "@/pages/pharmacist/Ajuda";
+import PharmacistPerfil from "@/pages/pharmacist/Perfil";
+import PharmacistConfiguracoes from "@/pages/pharmacist/Configuracoes";
 import Expedicao from "@/pages/organization/Expedicao";
 import PreparacaoPedidos from "@/pages/organization/expedicao/pedidos";
 import Etiquetas from "@/pages/organization/expedicao/etiquetas";
