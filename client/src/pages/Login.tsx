@@ -355,6 +355,9 @@ export default function Login() {
         
         <div className="text-xs text-center text-gray-500 pb-4">
           © 2024 Endurancy. Todos os direitos reservados.
+          <div className="mt-1">
+            <a href="/sitemap" className="text-xs text-gray-400 hover:text-gray-600 hover:underline">Sitemap</a>
+          </div>
         </div>
       </Card>
     </div>
