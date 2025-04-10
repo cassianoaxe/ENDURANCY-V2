@@ -735,32 +735,20 @@ function AppContent() {
       );
     }
     
-    // Página de perfil (pode ser implementada posteriormente)
+    // Página de perfil do farmacêutico
     if (currentPath === '/pharmacist/perfil') {
       return (
         <PharmacistLayout>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Meu Perfil</h1>
-            <p className="text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
-            <div className="mt-6 p-6 border rounded-lg bg-gray-50 text-center">
-              <p>Esta página está em desenvolvimento</p>
-            </div>
-          </div>
+          <PharmacistPerfil />
         </PharmacistLayout>
       );
     }
     
-    // Página de configurações (pode ser implementada posteriormente)
+    // Página de configurações do farmacêutico
     if (currentPath === '/pharmacist/configuracoes') {
       return (
         <PharmacistLayout>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Configurações</h1>
-            <p className="text-muted-foreground">Personalize as configurações do sistema</p>
-            <div className="mt-6 p-6 border rounded-lg bg-gray-50 text-center">
-              <p>Esta página está em desenvolvimento</p>
-            </div>
-          </div>
+          <PharmacistConfiguracoes />
         </PharmacistLayout>
       );
     }
