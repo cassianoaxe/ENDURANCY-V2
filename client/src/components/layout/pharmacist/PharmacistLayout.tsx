@@ -13,8 +13,9 @@ export default function PharmacistLayout({
   const [, navigate] = useLocation();
 
   // Verificação de autenticação e permissão
+  // Temporariamente aceitando usuários com role="doctor" para farmacêutico
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "pharmacist")) {
+    if (!isLoading && (!user || (user.role !== "pharmacist" && user.role !== "doctor"))) {
       console.log("Acesso não autorizado ao portal do farmacêutico. Redirecionando...");
       navigate("/login");
     }
@@ -33,7 +34,8 @@ export default function PharmacistLayout({
   }
 
   // Se não tem permissão, não renderiza nada (vai ser redirecionado pelo useEffect)
-  if (!user || user.role !== "pharmacist") {
+  // Temporariamente aceitando usuários com role="doctor" para farmacêutico
+  if (!user || (user.role !== "pharmacist" && user.role !== "doctor")) {
     return null;
   }
 
