@@ -502,6 +502,16 @@ export default function DoctorAfiliacao() {
               </Card>
             )}
           </TabsContent>
+          
+          {/* Mostrar loading state enquanto o botão é clicado */}
+          {joiningOrganization && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-md shadow-lg flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p>Processando sua solicitação...</p>
+              </div>
+            </div>
+          )}
         </Tabs>
       </div>
       
