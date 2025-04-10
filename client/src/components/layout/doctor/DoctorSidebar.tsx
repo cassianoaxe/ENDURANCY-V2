@@ -14,7 +14,8 @@ import {
   ClipboardList,
   UserSquare2,
   BookOpen,
-  Building
+  Building,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,8 @@ const menuItems: MenuItem[] = [
   { icon: FileText, label: "Relatórios", path: "/doctor/relatorios" },
   { icon: UserSquare2, label: "Meu Perfil", path: "/doctor/perfil" },
   { icon: BookOpen, label: "Biblioteca", path: "/doctor/biblioteca" },
-  { icon: Settings, label: "Configurações", path: "/doctor/configuracoes" }
+  { icon: Settings, label: "Configurações", path: "/doctor/configuracoes" },
+  { icon: HelpCircle, label: "Ajuda e Suporte", path: "/doctor/ajuda" }
 ];
 
 export default function DoctorSidebar() {
