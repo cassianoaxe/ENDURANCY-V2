@@ -10,6 +10,7 @@ import { registerPatientPrescriptionRoutes } from './routes/patient-prescription
 import { registerPharmacistRoutes } from './routes/pharmacist-routes';
 import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
 import * as fiscalRoutes from './routes/fiscal-routes';
+import { registerDocumentRoutes } from './routes/document-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5197,14 +5198,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
   
-  // Register doctor, pharmacist, and patient prescription routes
+  // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);
   const pharmacistRoutes = await registerPharmacistRoutes(app);
   const patientPrescriptionRoutes = await registerPatientPrescriptionRoutes(app);
+  const documentRoutes = await registerDocumentRoutes(app);
   
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
   console.log("Patient prescription routes registered:", patientPrescriptionRoutes);
+  console.log("Document routes registered:", documentRoutes);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
