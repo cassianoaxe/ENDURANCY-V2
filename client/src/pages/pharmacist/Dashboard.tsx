@@ -45,7 +45,7 @@ export default function PharmacistDashboard() {
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold tracking-tight">Bem-vindo(a), {user?.name?.split(' ')[0] || 'Farmacêutico'}!</h1>
             <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full font-medium">
-              Farmácia {user?.organizationId ? `(${user?.organizationId})` : ''}
+              Farmácia {organizationName ? organizationName : ''}
             </span>
           </div>
           <p className="text-gray-500">
