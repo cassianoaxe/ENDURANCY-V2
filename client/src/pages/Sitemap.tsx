@@ -281,6 +281,28 @@ const Sitemap = () => {
                   </AccordionContent>
                 </AccordionItem>
                 
+                <AccordionItem value="mod-fiscal">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      <span>Módulo Fiscal</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema completo para gestão de notas fiscais e cupons fiscais nas organizações.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Emissão de notas fiscais e cupons fiscais</li>
+                      <li>Integração com impressora Bematech</li>
+                      <li>Configuração fiscal por organização</li>
+                      <li>Emissão de documentos durante o checkout</li>
+                      <li>Histórico de documentos fiscais emitidos</li>
+                      <li>Relatórios fiscais e de vendas</li>
+                      <li>Conformidade com legislação fiscal brasileira</li>
+                      <li>Gestão de séries e numeração de documentos</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
                 <AccordionItem value="mod-patient-portal">
                   <AccordionTrigger className="text-green-700 hover:text-green-800">
                     <div className="flex items-center gap-2">
