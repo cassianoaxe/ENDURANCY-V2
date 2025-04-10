@@ -106,10 +106,7 @@ function MedicalPortalDashboard() {
     queryKey: ['/api/organization/modules/medical-portal/status'],
   });
 
-  // Buscar farmacêuticos RT
-  const { data: pharmacists, isLoading: isPharmacistsLoading } = useQuery({
-    queryKey: ['/api/organization/pharmacists'],
-  });
+  // Removida a consulta de farmacêuticos RT para o novo módulo de farmácia
 
   // Buscar métricas do portal médico
   const { data: metrics, isLoading: isMetricsLoading } = useQuery({
@@ -230,7 +227,7 @@ function MedicalPortalDashboard() {
     },
   });
 
-  if (isModuleStatusLoading || isPharmacistsLoading || isMetricsLoading || isPlansLoading || isSubscriptionsLoading) {
+  if (isModuleStatusLoading || isMetricsLoading || isPlansLoading || isSubscriptionsLoading) {
     return (
       <div className="flex justify-center items-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -696,62 +693,7 @@ function MedicalPortalDashboard() {
           </div>
         </TabsContent>
 
-        {/* Farmacêuticos RT */}
-        <TabsContent value="pharmacists" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Farmacêuticos Responsáveis Técnicos</CardTitle>
-              <CardDescription>
-                Gerencie os farmacêuticos que podem aprovar prescrições e documentos no sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pharmacists?.length ? (
-                <div className="space-y-4">
-                  {pharmacists.map((pharmacist: Pharmacist) => (
-                    <div key={pharmacist.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{pharmacist.name}</h3>
-                          <p className="text-sm text-muted-foreground">{pharmacist.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <Badge variant={pharmacist.isActive ? "default" : "secondary"}>
-                            {pharmacist.isActive ? "Ativo" : "Inativo"}
-                          </Badge>
-                          <p className="text-sm text-muted-foreground mt-1">CRF: {pharmacist.license}</p>
-                        </div>
-                        <Switch 
-                          checked={pharmacist.isActive}
-                          // Na implementação real, adicionar mutation para alternar status
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                  <h3 className="text-lg font-medium mb-1">Nenhum Farmacêutico RT Registrado</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    Adicione farmacêuticos responsáveis técnicos para gerenciar prescrições e aprovar documentos no sistema.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button onClick={() => navigate("/organization/medical-portal/pharmacists/add")}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Farmacêutico RT
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+
 
         {/* Configurações */}
         <TabsContent value="settings" className="space-y-6">

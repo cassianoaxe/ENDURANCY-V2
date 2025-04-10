@@ -193,7 +193,7 @@ export const moduleTypeEnum = pgEnum('module_type', [
   'onboarding', 'analytics', 'dashboard', 'associados', 'vendas', 'financeiro', 'complypay', // Módulos básicos
   'cultivo', 'producao', // Módulos de planos mais avançados
   'tarefas', 'crm', 'social', 'rh', 'juridico', 'transparencia', 'inteligencia_artificial', 
-  'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente', 'fiscal' // Add-ons
+  'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente', 'fiscal', 'farmacia' // Add-ons
 ]);
 
 // Tabela de módulos disponíveis no sistema
