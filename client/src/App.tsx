@@ -91,6 +91,11 @@ import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
 import PharmacistEstoque from "@/pages/pharmacist/Estoque";
 import PharmacistCaixa from "@/pages/pharmacist/Caixa";
 import PharmacistProdutos from "@/pages/pharmacist/Produtos";
+import PharmacistAgenda from "@/pages/pharmacist/Agenda";
+import PharmacistPacientes from "@/pages/pharmacist/Pacientes";
+import PharmacistPedidos from "@/pages/pharmacist/Pedidos";
+import PharmacistRelatorios from "@/pages/pharmacist/Relatorios";
+import PharmacistAjuda from "@/pages/pharmacist/Ajuda";
 import Expedicao from "@/pages/organization/Expedicao";
 import PreparacaoPedidos from "@/pages/organization/expedicao/pedidos";
 import Etiquetas from "@/pages/organization/expedicao/etiquetas";
@@ -679,6 +684,51 @@ function AppContent() {
       return (
         <PharmacistLayout>
           <PharmacistProdutos />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de agenda
+    if (currentPath === '/pharmacist/agenda') {
+      return (
+        <PharmacistLayout>
+          <PharmacistAgenda />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de pacientes
+    if (currentPath === '/pharmacist/pacientes') {
+      return (
+        <PharmacistLayout>
+          <PharmacistPacientes />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de pedidos
+    if (currentPath === '/pharmacist/pedidos') {
+      return (
+        <PharmacistLayout>
+          <PharmacistPedidos />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de relatórios
+    if (currentPath === '/pharmacist/relatorios') {
+      return (
+        <PharmacistLayout>
+          <PharmacistRelatorios />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de ajuda e suporte
+    if (currentPath === '/pharmacist/ajuda') {
+      return (
+        <PharmacistLayout>
+          <PharmacistAjuda />
         </PharmacistLayout>
       );
     }
