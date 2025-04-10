@@ -609,6 +609,74 @@ function AppContent() {
     return <NotFound />;
   }
   
+  // Handle pharmacist-specific routes
+  if (currentPath.startsWith('/pharmacist/')) {
+    if (userRole !== 'pharmacist') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar esta área. Este portal é exclusivo para farmacêuticos.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    // Dashboard do farmacêutico
+    if (currentPath === '/pharmacist/dashboard') {
+      return <PharmacistDashboard />;
+    }
+    
+    // Página de prescrições
+    if (currentPath === '/pharmacist/prescricoes') {
+      return <PharmacistPrescricoes />;
+    }
+    
+    // Página de perfil (pode ser implementada posteriormente)
+    if (currentPath === '/pharmacist/perfil') {
+      return (
+        <PharmacistLayout>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Meu Perfil</h1>
+            <p className="text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
+            <div className="mt-6 p-6 border rounded-lg bg-gray-50 text-center">
+              <p>Esta página está em desenvolvimento</p>
+            </div>
+          </div>
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de configurações (pode ser implementada posteriormente)
+    if (currentPath === '/pharmacist/configuracoes') {
+      return (
+        <PharmacistLayout>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Configurações</h1>
+            <p className="text-muted-foreground">Personalize as configurações do sistema</p>
+            <div className="mt-6 p-6 border rounded-lg bg-gray-50 text-center">
+              <p>Esta página está em desenvolvimento</p>
+            </div>
+          </div>
+        </PharmacistLayout>
+      );
+    }
+    
+    // NotFound para outras rotas de farmacêutico não reconhecidas
+    return <NotFound />;
+  }
+
   // Handle doctor-specific routes
   if (currentPath.startsWith('/doctor/')) {
     if (userRole !== 'doctor') {
