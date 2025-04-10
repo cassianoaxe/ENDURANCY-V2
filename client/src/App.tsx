@@ -90,6 +90,7 @@ import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
 import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
 import PharmacistEstoque from "@/pages/pharmacist/Estoque";
 import PharmacistCaixa from "@/pages/pharmacist/Caixa";
+import PharmacistProdutos from "@/pages/pharmacist/Produtos";
 import Expedicao from "@/pages/organization/Expedicao";
 import PreparacaoPedidos from "@/pages/organization/expedicao/pedidos";
 import Etiquetas from "@/pages/organization/expedicao/etiquetas";
@@ -655,6 +656,11 @@ function AppContent() {
     // Página de caixa (PDV)
     if (currentPath === '/pharmacist/caixa') {
       return <PharmacistCaixa />;
+    }
+    
+    // Página de produtos
+    if (currentPath === '/pharmacist/produtos') {
+      return <PharmacistProdutos />;
     }
     
     // Página de perfil (pode ser implementada posteriormente)
