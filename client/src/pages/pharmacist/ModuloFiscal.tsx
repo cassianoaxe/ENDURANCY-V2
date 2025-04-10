@@ -1,609 +1,608 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { z } from 'zod';
-import { toast } from '@/hooks/use-toast';
-import { useParams } from 'wouter';
-import { apiRequest } from '@lib/queryClient';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Printer, FileText, ReceiptText, Banknote, ShoppingBag } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
+import { useForm } from 'react-hook-form';
+import { apiRequest } from '../../lib/queryClient'; 
+import { queryClient } from '../../lib/queryClient';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Schema para emissão de documento fiscal
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
+import { Printer, Receipt, FileText, CreditCard, Settings } from 'lucide-react';
+import DocumentosFiscais from '@/components/fiscal/DocumentosFiscais';
+
+// Esquema de validação para configuração fiscal
+const fiscalConfigSchema = z.object({
+  organizationId: z.number(),
+  printerModel: z.string().min(2, 'O modelo da impressora é obrigatório'),
+  printerPort: z.string().min(1, 'A porta da impressora é obrigatória'),
+  defaultDocumentType: z.enum(['cupom_fiscal', 'nfce', 'nfe', 'nfse']),
+  emitterName: z.string().min(2, 'O nome do emitente é obrigatório'),
+  emitterDocument: z.string().min(4, 'O CNPJ/CPF do emitente é obrigatório'),
+  emitterAddress: z.string().optional(),
+  fiscalKey: z.string().optional(),
+  nextInvoiceNumber: z.number().min(1, 'O número inicial deve ser maior que zero'),
+  enableAutoprint: z.boolean().default(true),
+});
+
+// Esquema de validação para emissão de documento
 const documentEmissionSchema = z.object({
-  type: z.enum(['nfce', 'cupom_fiscal']),
+  type: z.enum(['cupom_fiscal', 'nfce', 'nfe', 'nfse']),
   customerName: z.string().optional(),
   customerDocument: z.string().optional(),
   paymentMethod: z.enum(['dinheiro', 'cartao_credito', 'cartao_debito', 'pix', 'outro']),
-  documentItems: z.array(z.object({
-    id: z.number(),
-    description: z.string(),
-    quantity: z.number().min(1),
-    unitPrice: z.number().min(0),
-    totalPrice: z.number().min(0),
-  })).min(1, "Pelo menos um item deve ser adicionado"),
-  totalAmount: z.number().min(0.01),
+  items: z.array(
+    z.object({
+      description: z.string().min(1, 'A descrição é obrigatória'),
+      quantity: z.number().min(1, 'A quantidade deve ser maior que zero'),
+      unitPrice: z.number().min(0.01, 'O preço unitário deve ser maior que zero'),
+      code: z.string().optional(),
+    })
+  ).min(1, 'Adicione pelo menos um item'),
 });
 
+type FiscalConfigFormValues = z.infer<typeof fiscalConfigSchema>;
 type DocumentEmissionValues = z.infer<typeof documentEmissionSchema>;
 
-const ModuloFiscal = () => {
-  const [activeTab, setActiveTab] = useState('emissao');
-  const [isEmissionDialogOpen, setIsEmissionDialogOpen] = useState(false);
-  const { organizationId } = useParams<{ organizationId: string }>();
-
-  // Obtém as configurações fiscais da organização
-  const { data: fiscalConfig, isLoading } = useQuery({
-    queryKey: ['/api/fiscal/config', organizationId],
+export default function ModuloFiscal() {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('configuracao');
+  const [testingPrinter, setTestingPrinter] = useState(false);
+  const [drawerOpening, setDrawerOpening] = useState(false);
+  
+  // Buscar configuração fiscal atual
+  const configQuery = useQuery({
+    queryKey: ['/api/fiscal/config'],
     queryFn: async () => {
+      // Usar o ID da organização logada
+      const userResponse = await apiRequest('/api/auth/me', 'GET');
+      if (!userResponse || !userResponse.organizationId) {
+        throw new Error('Usuário não está vinculado a uma organização');
+      }
+      
       try {
-        const response = await apiRequest(`/api/fiscal/config/${organizationId}`, {
-          method: 'GET',
-        });
-        return response;
-      } catch (error) {
-        console.error('Erro ao buscar configurações fiscais:', error);
-        return null;
+        const configResponse = await apiRequest(`/api/fiscal/config/${userResponse.organizationId}`, 'GET');
+        return configResponse;
+      } catch (error: any) {
+        // Se não encontrou configuração, retorna um objeto vazio
+        if (error.status === 404) {
+          return {
+            organizationId: userResponse.organizationId,
+            printerModel: '',
+            printerPort: 'COM1',
+            defaultDocumentType: 'cupom_fiscal',
+            emitterName: '',
+            emitterDocument: '',
+            emitterAddress: '',
+            fiscalKey: '',
+            nextInvoiceNumber: 1,
+            enableAutoprint: true,
+          };
+        }
+        throw error;
       }
     },
-    enabled: !!organizationId,
   });
-
-  // Obtém os documentos fiscais emitidos
-  const { data: fiscalDocuments, isLoading: isLoadingDocuments } = useQuery({
-    queryKey: ['/api/fiscal/documents', organizationId],
-    queryFn: async () => {
+  
+  // Salvar configuração fiscal
+  const saveConfigMutation = useMutation({
+    mutationFn: async (data: FiscalConfigFormValues) => {
+      const { organizationId } = data;
+      
       try {
-        const response = await apiRequest(`/api/fiscal/documents/${organizationId}`, {
-          method: 'GET',
-        });
-        return response || [];
-      } catch (error) {
-        console.error('Erro ao buscar documentos fiscais:', error);
-        return [];
+        // Verifica se já existe uma configuração
+        await apiRequest(`/api/fiscal/config/${organizationId}`, 'GET');
+        
+        // Se existir, atualiza
+        return apiRequest(`/api/fiscal/config/${organizationId}`, 'PUT', data);
+      } catch (error: any) {
+        // Se não existir (404), cria uma nova
+        if (error.status === 404) {
+          return apiRequest(`/api/fiscal/config/${organizationId}`, 'POST', data);
+        }
+        throw error;
       }
-    },
-    enabled: !!organizationId,
-  });
-
-  // Mock para simular dados de pedidos
-  const mockOrderData = {
-    id: 12345,
-    customerName: "Cliente da Farmácia",
-    items: [
-      { id: 1, description: "Medicamento A", quantity: 2, unitPrice: 45.90, totalPrice: 91.80 },
-      { id: 2, description: "Medicamento B", quantity: 1, unitPrice: 28.50, totalPrice: 28.50 },
-    ],
-    totalAmount: 120.30,
-  };
-
-  // Formulário de emissão de documento fiscal
-  const form = useForm<DocumentEmissionValues>({
-    resolver: zodResolver(documentEmissionSchema),
-    defaultValues: {
-      type: 'cupom_fiscal',
-      customerName: mockOrderData.customerName,
-      customerDocument: '',
-      paymentMethod: 'dinheiro',
-      documentItems: mockOrderData.items,
-      totalAmount: mockOrderData.totalAmount,
-    },
-  });
-
-  // Mutação para emitir documento fiscal
-  const emitDocumentMutation = useMutation({
-    mutationFn: async (data: DocumentEmissionValues) => {
-      return apiRequest(`/api/fiscal/documents`, {
-        method: 'POST',
-        data: {
-          ...data,
-          organizationId: parseInt(organizationId || '0'),
-          orderId: mockOrderData.id,
-        },
-      });
     },
     onSuccess: () => {
       toast({
-        title: 'Documento fiscal emitido',
-        description: `${form.getValues('type') === 'nfce' ? 'NFC-e' : 'Cupom Fiscal'} emitido com sucesso.`,
-        variant: 'default',
+        title: 'Configuração salva com sucesso',
+        description: 'As configurações fiscais foram atualizadas.',
       });
-      setIsEmissionDialogOpen(false);
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/fiscal/config'] });
     },
-    onError: (error) => {
-      console.error('Erro ao emitir documento fiscal:', error);
+    onError: (error: any) => {
       toast({
-        title: 'Erro ao emitir documento',
-        description: 'Ocorreu um erro ao emitir o documento fiscal. Tente novamente.',
+        title: 'Erro ao salvar configuração',
+        description: error.message || 'Ocorreu um erro ao tentar salvar as configurações fiscais.',
         variant: 'destructive',
       });
     },
   });
-
-  // Função para emitir documento fiscal
-  const onEmitDocument = (data: DocumentEmissionValues) => {
-    emitDocumentMutation.mutate(data);
+  
+  // Testar a impressora
+  const testPrinterMutation = useMutation({
+    mutationFn: async (data: { printerModel: string; printerPort: string }) => {
+      return apiRequest('/api/fiscal/printer/test', 'POST', data);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Teste de impressora concluído',
+        description: data.message || 'Impressora conectada com sucesso.',
+      });
+      setTestingPrinter(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao testar impressora',
+        description: error.message || 'Não foi possível conectar à impressora.',
+        variant: 'destructive',
+      });
+      setTestingPrinter(false);
+    },
+  });
+  
+  // Abrir gaveta de dinheiro
+  const openDrawerMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      return apiRequest(`/api/fiscal/cash-drawer/${organizationId}/open`, 'POST');
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Gaveta aberta',
+        description: data.message || 'A gaveta de dinheiro foi aberta com sucesso.',
+      });
+      setDrawerOpening(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao abrir gaveta',
+        description: error.message || 'Não foi possível abrir a gaveta de dinheiro.',
+        variant: 'destructive',
+      });
+      setDrawerOpening(false);
+    },
+  });
+  
+  // Imprimir relatório diário
+  const printReportMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      return apiRequest(`/api/fiscal/reports/${organizationId}/daily`, 'POST');
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Relatório impresso',
+        description: 'O relatório diário foi enviado para impressão.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro ao imprimir relatório',
+        description: error.message || 'Não foi possível imprimir o relatório diário.',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Formulário para configuração fiscal
+  const configForm = useForm<FiscalConfigFormValues>({
+    resolver: zodResolver(fiscalConfigSchema),
+    defaultValues: {
+      organizationId: 0,
+      printerModel: '',
+      printerPort: 'COM1',
+      defaultDocumentType: 'cupom_fiscal',
+      emitterName: '',
+      emitterDocument: '',
+      emitterAddress: '',
+      fiscalKey: '',
+      nextInvoiceNumber: 1,
+      enableAutoprint: true,
+    },
+  });
+  
+  // Configurar os valores do formulário quando os dados são carregados
+  React.useEffect(() => {
+    if (configQuery.data && !configQuery.isPending) {
+      configForm.reset(configQuery.data);
+    }
+  }, [configQuery.data, configQuery.isPending, configForm]);
+  
+  // Manipulador para salvar configurações
+  const onSaveConfig = (data: FiscalConfigFormValues) => {
+    saveConfigMutation.mutate(data);
   };
-
+  
+  // Manipulador para testar impressora
+  const onTestPrinter = () => {
+    const { printerModel, printerPort } = configForm.getValues();
+    
+    if (!printerModel || !printerPort) {
+      toast({
+        title: 'Campos incompletos',
+        description: 'Por favor, informe o modelo e a porta da impressora.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setTestingPrinter(true);
+    testPrinterMutation.mutate({ printerModel, printerPort });
+  };
+  
+  // Manipulador para abrir gaveta
+  const onOpenDrawer = () => {
+    const { organizationId } = configForm.getValues();
+    
+    if (!organizationId) {
+      toast({
+        title: 'Organização não identificada',
+        description: 'Não foi possível identificar a organização.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setDrawerOpening(true);
+    openDrawerMutation.mutate(organizationId);
+  };
+  
+  // Manipulador para imprimir relatório
+  const onPrintReport = () => {
+    const { organizationId } = configForm.getValues();
+    
+    if (!organizationId) {
+      toast({
+        title: 'Organização não identificada',
+        description: 'Não foi possível identificar a organização.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    printReportMutation.mutate(organizationId);
+  };
+  
+  // Renderização com base no estado da consulta
+  if (configQuery.isLoading) {
+    return (
+      <PharmacistLayout>
+        <div className="container mx-auto py-6">
+          <div className="text-center p-8">
+            <p>Carregando módulo fiscal...</p>
+          </div>
+        </div>
+      </PharmacistLayout>
+    );
+  }
+  
+  if (configQuery.isError) {
+    return (
+      <PharmacistLayout>
+        <div className="container mx-auto py-6">
+          <div className="text-center p-8 text-red-500">
+            <p>Erro ao carregar o módulo fiscal. Por favor, tente novamente.</p>
+          </div>
+        </div>
+      </PharmacistLayout>
+    );
+  }
+  
   return (
     <PharmacistLayout>
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Módulo Fiscal</h1>
-          <Button onClick={() => setIsEmissionDialogOpen(true)}>
-            <ReceiptText className="h-4 w-4 mr-2" /> Emitir Documento
-          </Button>
+      <div className="container mx-auto py-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Módulo Fiscal</h1>
+            <p className="text-muted-foreground">
+              Gerencie documentos fiscais, configure impressoras e emita relatórios
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={onOpenDrawer}
+              disabled={drawerOpening}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Abrir Gaveta
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={onPrintReport}
+              disabled={printReportMutation.isPending}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Relatório Diário
+            </Button>
+          </div>
         </div>
-
-        <div className="grid gap-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 mb-4">
-              <TabsTrigger value="emissao" className="flex items-center gap-2">
-                <ReceiptText className="h-4 w-4" /> Emissão
-              </TabsTrigger>
-              <TabsTrigger value="historico" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" /> Histórico
-              </TabsTrigger>
-              <TabsTrigger value="impressora" className="flex items-center gap-2">
-                <Printer className="h-4 w-4" /> Impressora
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Aba de Emissão */}
-            <TabsContent value="emissao">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Emissão de Documentos Fiscais</CardTitle>
-                  <CardDescription>
-                    Emita notas fiscais eletrônicas (NFC-e) e cupons fiscais para suas vendas.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <Alert className="mb-4">
-                    <AlertTitle className="flex items-center gap-2">
-                      <Printer className="h-5 w-5" />
-                      <span>Impressora configurada</span>
-                    </AlertTitle>
-                    <AlertDescription>
-                      {fiscalConfig?.printerModel 
-                        ? `Sua impressora está configurada como ${fiscalConfig.printerModel} na porta ${fiscalConfig.printerPort}.`
-                        : "Nenhuma impressora fiscal configurada. Entre em contato com o administrador."
-                      }
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-md">Cupom Fiscal</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Emita um cupom fiscal para vendas no balcão de forma rápida e simples.
-                        </p>
-                      </CardContent>
-                      <CardFooter>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="configuracao">
+              <Settings className="h-4 w-4 mr-2" />
+              Configuração
+            </TabsTrigger>
+            <TabsTrigger value="documentos">
+              <Receipt className="h-4 w-4 mr-2" />
+              Documentos Fiscais
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="configuracao">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuração Fiscal</CardTitle>
+                <CardDescription>
+                  Configure os parâmetros para emissão de documentos fiscais e integração com impressoras fiscais.
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <Form {...configForm}>
+                  <form className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-medium">Impressora Fiscal</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Configure a impressora fiscal para emissão de documentos
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={configForm.control}
+                          name="printerModel"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Modelo da Impressora</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o modelo" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Bematech MP-4200 TH">Bematech MP-4200 TH</SelectItem>
+                                  <SelectItem value="Bematech MP-2800 TH">Bematech MP-2800 TH</SelectItem>
+                                  <SelectItem value="Bematech MP-100S TH">Bematech MP-100S TH</SelectItem>
+                                  <SelectItem value="Epson TM-T20">Epson TM-T20</SelectItem>
+                                  <SelectItem value="Epson TM-T88">Epson TM-T88</SelectItem>
+                                  <SelectItem value="Daruma DR800">Daruma DR800</SelectItem>
+                                  <SelectItem value="Elgin i9">Elgin i9</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={configForm.control}
+                          name="printerPort"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Porta da Impressora</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione a porta" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="COM1">COM1</SelectItem>
+                                  <SelectItem value="COM2">COM2</SelectItem>
+                                  <SelectItem value="COM3">COM3</SelectItem>
+                                  <SelectItem value="COM4">COM4</SelectItem>
+                                  <SelectItem value="LPT1">LPT1</SelectItem>
+                                  <SelectItem value="USB">USB</SelectItem>
+                                  <SelectItem value="/dev/usb/lp0">/dev/usb/lp0 (Linux)</SelectItem>
+                                  <SelectItem value="TCPIP">TCP/IP</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="mt-4">
                         <Button 
-                          variant="outline" 
-                          className="w-full" 
-                          onClick={() => {
-                            form.setValue('type', 'cupom_fiscal');
-                            setIsEmissionDialogOpen(true);
-                          }}
+                          type="button" 
+                          variant="outline"
+                          onClick={onTestPrinter}
+                          disabled={testingPrinter}
                         >
-                          <ReceiptText className="h-4 w-4 mr-2" /> Emitir Cupom
+                          <Printer className="h-4 w-4 mr-2" />
+                          {testingPrinter ? 'Testando...' : 'Testar Impressora'}
                         </Button>
-                      </CardFooter>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-md">Nota Fiscal Eletrônica (NFC-e)</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Emita uma NFC-e completa para vendas que exigem identificação do cliente.
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => {
-                            form.setValue('type', 'nfce');
-                            setIsEmissionDialogOpen(true);
-                          }}
-                        >
-                          <FileText className="h-4 w-4 mr-2" /> Emitir NFC-e
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Últimas Vendas</h3>
-                    <div className="rounded-md border">
-                      <div className="relative w-full overflow-auto">
-                        <table className="w-full caption-bottom text-sm">
-                          <thead>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <th className="h-12 px-4 text-left align-middle font-medium">Pedido</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Cliente</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                              <th className="h-12 px-4 text-right align-middle font-medium">Documento</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <td className="p-4 align-middle">#{mockOrderData.id}</td>
-                              <td className="p-4 align-middle">{mockOrderData.customerName}</td>
-                              <td className="p-4 align-middle">R$ {mockOrderData.totalAmount.toFixed(2)}</td>
-                              <td className="p-4 align-middle">
-                                <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                  Finalizado
-                                </span>
-                              </td>
-                              <td className="p-4 align-middle text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="ghost" size="sm" onClick={() => setIsEmissionDialogOpen(true)}>
-                                    <ReceiptText className="h-4 w-4 mr-2" /> Emitir
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Aba de Histórico */}
-            <TabsContent value="historico">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Histórico de Documentos Fiscais</CardTitle>
-                  <CardDescription>
-                    Visualize e reimprima documentos fiscais emitidos.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex-1">
-                        <Label htmlFor="search-document">Buscar documento</Label>
-                        <Input id="search-document" placeholder="Número, cliente ou data..." />
-                      </div>
-                      <Button className="mt-7">Buscar</Button>
-                    </div>
-
-                    <div className="rounded-md border mt-4">
-                      <div className="relative w-full overflow-auto">
-                        <table className="w-full caption-bottom text-sm">
-                          <thead>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <th className="h-12 px-4 text-left align-middle font-medium">Número</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Tipo</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Cliente</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Data</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                              <th className="h-12 px-4 text-right align-middle font-medium">Ações</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {isLoadingDocuments ? (
-                              <tr>
-                                <td colSpan={7} className="p-4 text-center">Carregando documentos...</td>
-                              </tr>
-                            ) : (fiscalDocuments && fiscalDocuments.length > 0) ? (
-                              // Exibiria documentos reais aqui, mas usaremos um mock por enquanto
-                              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                                <td className="p-4 align-middle">000001</td>
-                                <td className="p-4 align-middle">Cupom Fiscal</td>
-                                <td className="p-4 align-middle">Cliente da Farmácia</td>
-                                <td className="p-4 align-middle">10/04/2025</td>
-                                <td className="p-4 align-middle">R$ 120,30</td>
-                                <td className="p-4 align-middle">
-                                  <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                    Emitido
-                                  </span>
-                                </td>
-                                <td className="p-4 align-middle text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <FileText className="h-4 w-4" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <Printer className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ) : (
-                              <tr>
-                                <td colSpan={7} className="p-4 text-center">Nenhum documento fiscal encontrado.</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Aba de Impressora */}
-            <TabsContent value="impressora">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configuração da Impressora</CardTitle>
-                  <CardDescription>
-                    Gerencie sua impressora fiscal e realize testes de impressão.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Alert className="mb-6">
-                    <AlertTitle className="flex items-center gap-2">
-                      <Printer className="h-5 w-5" />
-                      <span>Status da Impressora</span>
-                    </AlertTitle>
-                    <AlertDescription>
-                      {fiscalConfig?.printerModel 
-                        ? <span className="text-green-600">Impressora fiscal {fiscalConfig.printerModel} está configurada e pronta para uso.</span>
-                        : <span className="text-amber-600">Nenhuma impressora fiscal configurada. Entre em contato com o administrador.</span>
-                      }
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="grid gap-6">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1 space-y-4">
-                        <div>
-                          <h3 className="text-lg font-medium">Informações da Impressora</h3>
-                          <div className="mt-2 space-y-2 text-sm">
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="font-medium">Modelo:</div>
-                              <div className="capitalize">{fiscalConfig?.printerModel || 'Não configurado'}</div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="font-medium">Porta:</div>
-                              <div>{fiscalConfig?.printerPort || 'Não configurado'}</div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="font-medium">Tipo:</div>
-                              <div>Impressora Fiscal</div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="font-medium">Status:</div>
-                              <div className="text-green-600">Pronta</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-medium">Operações</h3>
-                          <div className="mt-2 grid grid-cols-2 gap-4">
-                            <Button variant="outline">
-                              <Printer className="h-4 w-4 mr-2" /> Testar Conexão
-                            </Button>
-                            <Button variant="outline">
-                              <ReceiptText className="h-4 w-4 mr-2" /> Imprimir Teste
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex-1">
-                        <img 
-                          src="/placeholder-printer.png" 
-                          alt="Impressora fiscal Bematech" 
-                          className="rounded-md border p-2 max-w-[200px] mx-auto"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_18d0fbdb2c3%20text%20%7B%20fill%3A%23999%3Bfont-weight%3Anormal%3Bfont-family%3A%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans-serif%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_18d0fbdb2c3%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23f8f9fa%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2273.234375%22%20y%3D%22104.65%22%3EImpressora%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E';
-                          }}
+                    
+                    <Separator />
+                    
+                    <div>
+                      <h3 className="text-lg font-medium">Dados do Emissor</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Informações que serão incluídas nos documentos fiscais
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={configForm.control}
+                          name="emitterName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nome do Emissor</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Nome da empresa" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={configForm.control}
+                          name="emitterDocument"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CNPJ/CPF</FormLabel>
+                              <FormControl>
+                                <Input placeholder="CNPJ ou CPF do emissor" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={configForm.control}
+                          name="emitterAddress"
+                          render={({ field }) => (
+                            <FormItem className="col-span-1 md:col-span-2">
+                              <FormLabel>Endereço</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Endereço completo" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
                     </div>
-
-                    <Separator className="my-4" />
-
+                    
+                    <Separator />
+                    
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Funções Adicionais</h3>
+                      <h3 className="text-lg font-medium">Configurações de Documentos</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Parâmetros para emissão de documentos fiscais
+                      </p>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button variant="outline" className="justify-start">
-                          <Banknote className="h-4 w-4 mr-2" /> Abrir Gaveta de Dinheiro
-                        </Button>
-                        <Button variant="outline" className="justify-start">
-                          <ShoppingBag className="h-4 w-4 mr-2" /> Relatório de Vendas do Dia
-                        </Button>
+                        <FormField
+                          control={configForm.control}
+                          name="defaultDocumentType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo de Documento Padrão</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="cupom_fiscal">Cupom Fiscal</SelectItem>
+                                  <SelectItem value="nfce">NFC-e (Nota Fiscal de Consumidor Eletrônica)</SelectItem>
+                                  <SelectItem value="nfe">NF-e (Nota Fiscal Eletrônica)</SelectItem>
+                                  <SelectItem value="nfse">NFS-e (Nota Fiscal de Serviço Eletrônica)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={configForm.control}
+                          name="nextInvoiceNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Próximo Número de Documento</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="1"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Número que será usado no próximo documento emitido
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={configForm.control}
+                          name="fiscalKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Chave de Acesso SEFAZ (Opcional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Chave de acesso para a SEFAZ" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Utilizada para comunicação com a SEFAZ em ambiente de produção
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    As configurações de impressora são gerenciadas pelo administrador do sistema.
-                  </p>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                  </form>
+                </Form>
+              </CardContent>
+              
+              <CardFooter className="flex justify-between">
+                <Button variant="outline" onClick={() => configForm.reset()}>Cancelar</Button>
+                <Button onClick={configForm.handleSubmit(onSaveConfig)} disabled={saveConfigMutation.isPending}>
+                  {saveConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="documentos">
+            {configQuery.data && configQuery.data.organizationId && (
+              <DocumentosFiscais organizationId={configQuery.data.organizationId} />
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Modal de Emissão de Documento Fiscal */}
-      <Dialog open={isEmissionDialogOpen} onOpenChange={setIsEmissionDialogOpen}>
-        <DialogContent className="max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>
-              {form.watch('type') === 'nfce' ? 'Emitir Nota Fiscal de Consumidor (NFC-e)' : 'Emitir Cupom Fiscal'}
-            </DialogTitle>
-            <DialogDescription>
-              Preencha os dados para emissão do documento fiscal para esta venda.
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onEmitDocument)} className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Documento</FormLabel>
-                        <FormControl>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="cupom_fiscal">Cupom Fiscal</SelectItem>
-                              <SelectItem value="nfce">NFC-e</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Forma de Pagamento</FormLabel>
-                        <FormControl>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                              <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                              <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                              <SelectItem value="pix">PIX</SelectItem>
-                              <SelectItem value="outro">Outro</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {form.watch('type') === 'nfce' && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="customerName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome do Cliente</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="customerDocument"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>CPF/CNPJ</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
-
-                <Separator className="my-4" />
-                
-                <div>
-                  <h3 className="font-medium mb-2">Itens do Documento</h3>
-                  <div className="rounded-md border">
-                    <div className="relative w-full overflow-auto">
-                      <table className="w-full caption-bottom text-sm">
-                        <thead>
-                          <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                            <th className="h-10 px-4 text-left align-middle font-medium">Descrição</th>
-                            <th className="h-10 px-4 text-right align-middle font-medium">Qtd</th>
-                            <th className="h-10 px-4 text-right align-middle font-medium">Valor Un.</th>
-                            <th className="h-10 px-4 text-right align-middle font-medium">Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {mockOrderData.items.map((item, index) => (
-                            <tr key={index} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <td className="p-3 align-middle">{item.description}</td>
-                              <td className="p-3 align-middle text-right">{item.quantity}</td>
-                              <td className="p-3 align-middle text-right">R$ {item.unitPrice.toFixed(2)}</td>
-                              <td className="p-3 align-middle text-right">R$ {item.totalPrice.toFixed(2)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr>
-                            <td colSpan={3} className="p-3 align-middle text-right font-medium">
-                              Total:
-                            </td>
-                            <td className="p-3 align-middle text-right font-medium">
-                              R$ {mockOrderData.totalAmount.toFixed(2)}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsEmissionDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={emitDocumentMutation.isPending}>
-                  {emitDocumentMutation.isPending ? 'Emitindo...' : 'Emitir e Imprimir'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </PharmacistLayout>
   );
-};
-
-export default ModuloFiscal;
+}
