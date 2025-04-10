@@ -112,7 +112,7 @@ export default function Cadastros() {
                 {mockCadastros.filter(c => c.type === 'cliente').length}
               </p>
               <p className="text-sm text-muted-foreground">
-                Clientes cadastrados
+                Médicos cadastrados
               </p>
             </CardContent>
           </Card>
@@ -170,8 +170,8 @@ export default function Cadastros() {
         <Tabs defaultValue="todos" onValueChange={setCurrentTab}>
           <TabsList className="mb-4">
             <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="associados">Associados</TabsTrigger>
-            <TabsTrigger value="clientes">Clientes</TabsTrigger>
+            <TabsTrigger value="associados">Pacientes</TabsTrigger>
+            <TabsTrigger value="clientes">Médicos</TabsTrigger>
             <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
           </TabsList>
 
@@ -212,7 +212,7 @@ export default function Cadastros() {
                                 ? "bg-blue-50 text-blue-700 border-blue-200" 
                                 : "bg-violet-50 text-violet-700 border-violet-200"
                             }>
-                              {cadastro.type === 'associado' ? 'Associado' : 'Cliente'}
+                              {cadastro.type === 'associado' ? 'Paciente' : 'Médico'}
                             </Badge>
                           </TableCell>
                           <TableCell>{formatDate(cadastro.createdAt)}</TableCell>
@@ -290,7 +290,7 @@ export default function Cadastros() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            Associado
+                            Paciente
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(cadastro.createdAt)}</TableCell>
@@ -353,7 +353,7 @@ export default function Cadastros() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-violet-50 text-violet-700 border-violet-200">
-                            Cliente
+                            Médico
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(cadastro.createdAt)}</TableCell>
@@ -420,7 +420,7 @@ export default function Cadastros() {
                               ? "bg-blue-50 text-blue-700 border-blue-200" 
                               : "bg-violet-50 text-violet-700 border-violet-200"
                           }>
-                            {cadastro.type === 'associado' ? 'Associado' : 'Cliente'}
+                            {cadastro.type === 'associado' ? 'Paciente' : 'Médico'}
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(cadastro.createdAt)}</TableCell>
