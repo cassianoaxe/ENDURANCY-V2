@@ -48,6 +48,8 @@ import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
+// Importar página de cadastro de médicos
+import DoctorRegistration from "@/pages/DoctorRegistration";
 import PatientDashboardPage from "@/pages/patient/Dashboard";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
