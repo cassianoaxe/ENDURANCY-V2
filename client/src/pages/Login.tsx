@@ -88,12 +88,25 @@ export default function Login() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
+      // Ajuste temporário: Se está tentando logar como farmacêutico, enviar role "doctor"
+      // Isso é necessário porque no banco de dados o usuário farmacêutico está com role "doctor"
+      let loginType = userType;
+      if (userType === 'pharmacist') {
+        loginType = 'doctor'; // Temporariamente usando "doctor" para farmacêutico
+      }
+      
       // Se é um login específico para organização, incluir o código no login
       if (isOrgLogin && orgCode) {
-        await login(data.username, data.password, userType, orgCode);
+        await login(data.username, data.password, loginType, orgCode);
       } else {
         // Login normal
-        await login(data.username, data.password, userType);
+        await login(data.username, data.password, loginType);
+      }
+      
+      // Se é farmacêutico, redirecionar para dashboard de farmacêutico após login bem-sucedido
+      if (userType === 'pharmacist') {
+        window.history.pushState({}, '', '/pharmacist/dashboard');
+        window.dispatchEvent(new Event('popstate'));
       }
       
       toast({
