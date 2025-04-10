@@ -770,6 +770,20 @@ function AppContent() {
         );
       }
       
+      // Página de ajuda e suporte
+      if (currentPath === '/doctor/ajuda') {
+        const Ajuda = React.lazy(() => import('./pages/doctor/Ajuda'));
+        return (
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Ajuda />
+            </Suspense>
+          </DoctorLayout>
+        );
+      }
+      
       // Fallback para rotas não encontradas
       return <NotFound />;
     }
