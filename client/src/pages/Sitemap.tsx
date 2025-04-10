@@ -12,7 +12,8 @@ import {
 import { 
   ExternalLink, LinkIcon, Grid, Users, Clipboard, Home, LineChart, 
   Settings, User, Building, FileText, ShieldCheck, Pill, Leaf, 
-  BookOpen, Database, Bell 
+  BookOpen, Database, Bell, HelpCircle, Clock,
+  Key, Stethoscope, LayoutGrid, Mail, MapPin
 } from 'lucide-react';
 
 // Componente para o título com ícone Leaf
@@ -482,6 +483,211 @@ const Sitemap = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <Card className="mb-8 shadow-lg border-green-100">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="text-green-800 flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-green-600" />
+              Índice Completo de Links
+            </CardTitle>
+            <CardDescription>Lista completa de todos os links do sistema para fácil acesso</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Seção de Login e Registro */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Login e Registro</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/login" className="text-green-600 hover:underline flex items-center gap-1">
+                      <User className="h-3.5 w-3.5" /> Login Principal
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/patient-login" className="text-green-600 hover:underline flex items-center gap-1">
+                      <User className="h-3.5 w-3.5" /> Login de Pacientes
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/forgot-password" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Key className="h-3.5 w-3.5" /> Recuperação de Senha
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/organization-registration" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Building className="h-3.5 w-3.5" /> Cadastro de Organização
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/cadastrodemedicos" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Stethoscope className="h-3.5 w-3.5" /> Cadastro de Médicos
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Seção de Admin */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área Administrativa</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/admin" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Home className="h-3.5 w-3.5" /> Dashboard Admin
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/organizations" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Building className="h-3.5 w-3.5" /> Organizações
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/doctors" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Stethoscope className="h-3.5 w-3.5" /> Médicos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/patients" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" /> Pacientes
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/plans" className="text-green-600 hover:underline flex items-center gap-1">
+                      <LayoutGrid className="h-3.5 w-3.5" /> Planos e Módulos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/reports" className="text-green-600 hover:underline flex items-center gap-1">
+                      <LineChart className="h-3.5 w-3.5" /> Relatórios
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/admin/settings" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Settings className="h-3.5 w-3.5" /> Configurações
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Seção de Médico */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área do Médico</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/doctor" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Home className="h-3.5 w-3.5" /> Dashboard Médico
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/doctor/pacientes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" /> Pacientes
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/doctor/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" /> Prescrições
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/doctor/configuracoes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Settings className="h-3.5 w-3.5" /> Configurações
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/doctor/afiliacoes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Building className="h-3.5 w-3.5" /> Minhas Organizações
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Seção de Paciente */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área do Paciente</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/patient" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Home className="h-3.5 w-3.5" /> Dashboard Paciente
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/patient/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" /> Minhas Prescrições
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/patient/historico" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> Histórico Médico
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/patient/perfil" className="text-green-600 hover:underline flex items-center gap-1">
+                      <User className="h-3.5 w-3.5" /> Meu Perfil
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Seção de Farmácia */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área da Farmácia</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/pharmacy" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Home className="h-3.5 w-3.5" /> Dashboard Farmácia
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/pharmacy/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" /> Aprovar Prescrições
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/pharmacy/products" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Pill className="h-3.5 w-3.5" /> Produtos
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/pharmacy/reports" className="text-green-600 hover:underline flex items-center gap-1">
+                      <LineChart className="h-3.5 w-3.5" /> Relatórios
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Outros Links */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Outros Links</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/sitemap" className="text-green-600 hover:underline flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" /> Sitemap
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/terms" className="text-green-600 hover:underline flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" /> Termos de Uso
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/privacy" className="text-green-600 hover:underline flex items-center gap-1">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Política de Privacidade
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/help" className="text-green-600 hover:underline flex items-center gap-1">
+                      <HelpCircle className="h-3.5 w-3.5" /> Ajuda e Suporte
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/contact" className="text-green-600 hover:underline flex items-center gap-1">
+                      <Mail className="h-3.5 w-3.5" /> Contato
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="mt-8 text-center text-gray-500 text-sm">
           © {new Date().getFullYear()} Endurancy • Plataforma de Gestão Médica
