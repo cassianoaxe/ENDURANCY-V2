@@ -63,12 +63,6 @@ export default function DoctorSidebar() {
 
   const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
-    // Atualize o caminho atual diretamente antes de navegar
-    setCurrentPath(path);
-    // Use window.history e dispare um evento de popstate para garantir que todas as atualizações aconteçam
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new Event('popstate'));
-    // Também use o hook de navegação do wouter
     navigate(path);
   };
 
