@@ -638,55 +638,65 @@ function AppContent() {
       if (currentPath === '/doctor/agenda') {
         const Agenda = React.lazy(() => import('./pages/doctor/Agenda'));
         return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Agenda />
-          </Suspense>
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Agenda />
+            </Suspense>
+          </DoctorLayout>
         );
       }
       
       if (currentPath === '/doctor/pacientes') {
         const Pacientes = React.lazy(() => import('./pages/doctor/Pacientes'));
         return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Pacientes />
-          </Suspense>
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Pacientes />
+            </Suspense>
+          </DoctorLayout>
         );
       }
       
       if (currentPath === '/doctor/prontuarios') {
         const Prontuarios = React.lazy(() => import('./pages/doctor/Prontuarios'));
         return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Prontuarios />
-          </Suspense>
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Prontuarios />
+            </Suspense>
+          </DoctorLayout>
         );
       }
       
       if (currentPath === '/doctor/prescricoes') {
         const Prescricoes = React.lazy(() => import('./pages/doctor/Prescricoes'));
         return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Prescricoes />
-          </Suspense>
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Prescricoes />
+            </Suspense>
+          </DoctorLayout>
         );
       }
       
       if (currentPath === '/doctor/afiliacao') {
         const Afiliacao = React.lazy(() => import('./pages/doctor/Afiliacao'));
         return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Afiliacao />
-          </Suspense>
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Afiliacao />
+            </Suspense>
+          </DoctorLayout>
         );
       }
       
