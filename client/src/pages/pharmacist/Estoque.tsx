@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -534,637 +533,567 @@ export default function PharmacistEstoque() {
   const getStockStatusData = () => {
     if (!products || products.length === 0) return [];
     
-    let lowStock = 0;
+    let normal = 0;
+    let low = 0;
     let outOfStock = 0;
-    let healthyStock = 0;
     
     products.forEach((product: Product) => {
       if (product.stockQuantity === 0) {
         outOfStock++;
       } else if (product.stockQuantity <= product.minStockLevel) {
-        lowStock++;
+        low++;
       } else {
-        healthyStock++;
+        normal++;
       }
     });
     
     return [
-      { name: 'Estoque normal', value: healthyStock, color: '#22c55e' },
-      { name: 'Estoque baixo', value: lowStock, color: '#f97316' },
+      { name: 'Normal', value: normal, color: '#22c55e' },
+      { name: 'Estoque baixo', value: low, color: '#f59e0b' },
       { name: 'Sem estoque', value: outOfStock, color: '#ef4444' }
     ];
   };
 
   return (
-    <PharmacistLayout>
-      <div className="flex flex-col gap-5">
-        {/* Header */}
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Estoque</h1>
-              <p className="text-gray-500">
-                Gestão de estoque e inventário • Farmácia {organizationName}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-              <Button variant="outline" className="flex items-center gap-2" onClick={() => setActiveTab('reports')}>
-                <BarChart4 className="h-4 w-4" />
-                Relatórios
-              </Button>
-            </div>
+    <div className="flex flex-col gap-5">
+      {/* Header */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Estoque</h1>
+            <p className="text-gray-500">
+              Gestão de estoque e inventário • Farmácia {organizationName}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => setActiveTab('reports')}>
+              <BarChart4 className="h-4 w-4" />
+              Relatórios
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Inventário Total</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {products ? products.reduce((sum: number, p: Product) => sum + p.stockQuantity, 0) : 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Unidades em estoque
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Produtos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {products ? products.length : 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Produtos cadastrados
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-orange-600">Estoque Baixo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {products ? products.filter((p: Product) => p.stockQuantity > 0 && p.stockQuantity <= p.minStockLevel).length : 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Produtos com estoque baixo
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-red-600">Esgotados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {products ? products.filter((p: Product) => p.stockQuantity === 0).length : 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Produtos esgotados
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Inventário Total</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {products ? products.reduce((sum: number, p: Product) => sum + p.stockQuantity, 0) : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Unidades em estoque
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Produtos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {products ? products.length : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Produtos cadastrados
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-orange-600">Estoque Baixo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {products ? products.filter((p: Product) => p.stockQuantity > 0 && p.stockQuantity <= p.minStockLevel).length : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Produtos com estoque baixo
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-600">Esgotados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {products ? products.filter((p: Product) => p.stockQuantity === 0).length : 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Produtos esgotados
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-background grid grid-cols-4 h-11">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="inventory">Inventário</TabsTrigger>
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
-          </TabsList>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full bg-background grid grid-cols-4 h-11">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="inventory">Inventário</TabsTrigger>
+          <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          <TabsTrigger value="reports">Relatórios</TabsTrigger>
+        </TabsList>
 
-          {/* Visão Geral */}
-          <TabsContent value="overview" className="space-y-5">
-            {/* Produtos com estoque baixo */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
-                  Produtos com Estoque Baixo
-                </CardTitle>
-                <CardDescription>
-                  Produtos que precisam ser reabastecidos em breve
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-40">
-                    <p>Carregando produtos...</p>
-                  </div>
-                ) : (
-                  <div className="border rounded-md">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Produto</TableHead>
-                          <TableHead>Categoria</TableHead>
-                          <TableHead className="text-right">Estoque</TableHead>
-                          <TableHead className="text-right">Mín. Requerido</TableHead>
-                          <TableHead className="text-right">Status</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products && products
-                          .filter((product: Product) => product.stockQuantity <= product.minStockLevel)
-                          .slice(0, 5)
-                          .map((product: Product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell>{product.category || '-'}</TableCell>
-                              <TableCell className="text-right">{product.stockQuantity}</TableCell>
-                              <TableCell className="text-right">{product.minStockLevel}</TableCell>
-                              <TableCell className="text-right">
-                                {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openRestockDialog(product)}
-                                >
-                                  <PackagePlus className="h-3 w-3 mr-1" /> Pedir
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        
-                        {(!products || products.filter((product: Product) => 
-                          product.stockQuantity <= product.minStockLevel).length === 0) && (
-                          <TableRow>
-                            <TableCell colSpan={6} className="text-center py-4">
-                              <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
-                              <p>Todos os produtos estão com estoque adequado</p>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-auto"
-                  onClick={() => {
-                    setStockFilter('low');
-                    setActiveTab('inventory');
-                  }}
-                >
-                  Ver todos os produtos com estoque baixo
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Pedidos recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Calendar className="h-5 w-5 text-blue-500 mr-2" />
-                  Pedidos de Reposição Recentes
-                </CardTitle>
-                <CardDescription>
-                  Últimos pedidos de produtos para reabastecimento
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+        {/* Visão Geral */}
+        <TabsContent value="overview" className="space-y-5">
+          {/* Produtos com estoque baixo */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
+                Produtos com Estoque Baixo
+              </CardTitle>
+              <CardDescription>
+                Produtos que precisam ser reabastecidos em breve
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-40">
+                  <p>Carregando produtos...</p>
+                </div>
+              ) : (
                 <div className="border rounded-md">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Produto</TableHead>
-                        <TableHead className="text-right">Quantidade</TableHead>
-                        <TableHead className="text-right">Data do Pedido</TableHead>
-                        <TableHead className="text-right">Entrega Prevista</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead className="text-right">Estoque</TableHead>
+                        <TableHead className="text-right">Mín. Requerido</TableHead>
                         <TableHead className="text-right">Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {restockOrders.slice(0, 5).map((order: any) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.product?.name}</TableCell>
-                          <TableCell className="text-right">{order.quantity}</TableCell>
-                          <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
-                          <TableCell className="text-right">
-                            {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {getRestockStatusBadge(order.status)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      
-                      {restockOrders.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4">
-                            <p className="text-gray-500">Nenhum pedido de reposição recente</p>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-auto"
-                  onClick={() => setActiveTab('orders')}
-                >
-                  Ver todos os pedidos
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Movimentações recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Activity className="h-5 w-5 text-purple-500 mr-2" />
-                  Movimentações Recentes
-                </CardTitle>
-                <CardDescription>
-                  Últimas entradas e saídas de produtos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead className="text-right">Quantidade</TableHead>
-                        <TableHead className="text-right">Data</TableHead>
-                        <TableHead>Observações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {stockMovements.slice(0, 5).map((movement: any) => (
-                        <TableRow key={movement.id}>
-                          <TableCell className="font-medium">{movement.product?.name}</TableCell>
-                          <TableCell>
-                            {getMovementTypeBadge(movement.type, movement.quantity)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
-                              {movement.quantity >= 0 ? `+${movement.quantity}` : movement.quantity}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">{formatDate(movement.date)}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{movement.notes || '-'}</TableCell>
-                        </TableRow>
-                      ))}
-                      
-                      {stockMovements.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4">
-                            <p className="text-gray-500">Nenhuma movimentação recente</p>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Inventário */}
-          <TabsContent value="inventory" className="space-y-5">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
-                  <CardTitle>Inventário</CardTitle>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative w-full sm:w-64">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar produtos..."
-                        className="pl-8"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-full sm:w-44">
-                        <div className="flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
-                          <SelectValue placeholder="Filtrar categoria" />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas as categorias</SelectItem>
-                        {getUniqueCategories().map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={stockFilter} onValueChange={setStockFilter}>
-                      <SelectTrigger className="w-full sm:w-44">
-                        <div className="flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
-                          <SelectValue placeholder="Filtrar por estoque" />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os produtos</SelectItem>
-                        <SelectItem value="low">Estoque baixo</SelectItem>
-                        <SelectItem value="out">Esgotados</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-60">
-                    <p>Carregando produtos...</p>
-                  </div>
-                ) : filterAndSortProducts().length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-60 text-center">
-                    <p className="text-gray-500">Nenhum produto encontrado</p>
-                    {(searchTerm || categoryFilter !== 'all' || stockFilter !== 'all') && (
-                      <Button 
-                        variant="link" 
-                        onClick={() => {
-                          setSearchTerm('');
-                          setCategoryFilter('all');
-                          setStockFilter('all');
-                        }}
-                        className="mt-2"
-                      >
-                        Limpar filtros
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="border rounded-md">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>
-                            <button 
-                              className="flex items-center" 
-                              onClick={() => handleSort('name')}
-                            >
-                              Produto
-                              {sortField === 'name' && (
-                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                              )}
-                            </button>
-                          </TableHead>
-                          <TableHead>
-                            <button 
-                              className="flex items-center" 
-                              onClick={() => handleSort('category')}
-                            >
-                              Categoria
-                              {sortField === 'category' && (
-                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                              )}
-                            </button>
-                          </TableHead>
-                          <TableHead className="text-right">
-                            <button 
-                              className="flex items-center ml-auto" 
-                              onClick={() => handleSort('stockQuantity')}
-                            >
-                              Estoque
-                              {sortField === 'stockQuantity' && (
-                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                              )}
-                            </button>
-                          </TableHead>
-                          <TableHead className="text-right">Mín. Requerido</TableHead>
-                          <TableHead className="text-right">Nível</TableHead>
-                          <TableHead className="text-right">Status</TableHead>
-                          <TableHead className="text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filterAndSortProducts().map((product: Product) => (
+                      {products && products
+                        .filter((product: Product) => product.stockQuantity <= product.minStockLevel)
+                        .slice(0, 5)
+                        .map((product: Product) => (
                           <TableRow key={product.id}>
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell>{product.category || '-'}</TableCell>
                             <TableCell className="text-right">{product.stockQuantity}</TableCell>
                             <TableCell className="text-right">{product.minStockLevel}</TableCell>
                             <TableCell className="text-right">
-                              <div className="w-24 ml-auto">
-                                <Progress 
-                                  value={Math.min(100, (product.stockQuantity / product.minStockLevel) * 100)}
-                                  className={`h-2 ${
-                                    product.stockQuantity === 0 
-                                      ? 'bg-red-100' 
-                                      : product.stockQuantity <= product.minStockLevel 
-                                        ? 'bg-orange-100' 
-                                        : 'bg-green-100'
-                                  }`}
-                                  indicatorClassName={
-                                    product.stockQuantity === 0 
-                                      ? 'bg-red-500' 
-                                      : product.stockQuantity <= product.minStockLevel 
-                                        ? 'bg-orange-500' 
-                                        : 'bg-green-500'
-                                  }
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
                               {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openRestockDialog(product)}
-                                >
-                                  <PackagePlus className="h-3 w-3 mr-1" /> Pedir
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openAdjustDialog(product)}
-                                >
-                                  <Plus className="h-3 w-3 mr-1" /> Ajustar
-                                </Button>
-                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openRestockDialog(product)}
+                              >
+                                <PackagePlus className="h-3 w-3 mr-1" /> Pedir
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Pedidos */}
-          <TabsContent value="orders" className="space-y-5">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Pedidos de Reposição</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>Fornecedor</TableHead>
-                        <TableHead className="text-right">Quantidade</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                        <TableHead className="text-right">Data do Pedido</TableHead>
-                        <TableHead className="text-right">Entrega Prevista</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {restockOrders.map((order: any) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.product?.name}</TableCell>
-                          <TableCell>{order.supplier || '-'}</TableCell>
-                          <TableCell className="text-right">{order.quantity}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(order.price * order.quantity)}</TableCell>
-                          <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
-                          <TableCell className="text-right">
-                            {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {getRestockStatusBadge(order.status)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
                       
-                      {restockOrders.length === 0 && (
+                      {(!products || products.filter((product: Product) => 
+                        product.stockQuantity <= product.minStockLevel).length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-4">
-                            <p className="text-gray-500">Nenhum pedido de reposição encontrado</p>
+                          <TableCell colSpan={6} className="text-center py-4">
+                            <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                            <p>Todos os produtos estão com estoque adequado</p>
                           </TableCell>
                         </TableRow>
                       )}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-auto"
+                onClick={() => {
+                  setStockFilter('low');
+                  setActiveTab('inventory');
+                }}
+              >
+                Ver todos os produtos com estoque baixo
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* Pedidos recentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Calendar className="h-5 w-5 text-blue-500 mr-2" />
+                Pedidos de Reposição Recentes
+              </CardTitle>
+              <CardDescription>
+                Últimos pedidos de produtos para reabastecimento
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-right">Quantidade</TableHead>
+                      <TableHead className="text-right">Data do Pedido</TableHead>
+                      <TableHead className="text-right">Entrega Prevista</TableHead>
+                      <TableHead className="text-right">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {restockOrders.slice(0, 5).map((order: any) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.product?.name}</TableCell>
+                        <TableCell className="text-right">{order.quantity}</TableCell>
+                        <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
+                        <TableCell className="text-right">
+                          {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {getRestockStatusBadge(order.status)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {restockOrders.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          <p className="text-gray-500">Nenhum pedido de reposição recente</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-auto"
+                onClick={() => setActiveTab('orders')}
+              >
+                Ver todos os pedidos
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* Movimentações recentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Activity className="h-5 w-5 text-purple-500 mr-2" />
+                Movimentações Recentes
+              </CardTitle>
+              <CardDescription>
+                Últimas entradas e saídas de produtos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead className="text-right">Quantidade</TableHead>
+                      <TableHead className="text-right">Data</TableHead>
+                      <TableHead>Observações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stockMovements.slice(0, 5).map((movement: any) => (
+                      <TableRow key={movement.id}>
+                        <TableCell className="font-medium">{movement.product?.name}</TableCell>
+                        <TableCell>
+                          {getMovementTypeBadge(movement.type, movement.quantity)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {movement.quantity >= 0 ? `+${movement.quantity}` : movement.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">{formatDate(movement.date)}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{movement.notes || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {stockMovements.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          <p className="text-gray-500">Nenhuma movimentação recente</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Inventário */}
+        <TabsContent value="inventory" className="space-y-5">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+                <CardTitle>Inventário</CardTitle>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar produtos..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-full sm:w-44">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <SelectValue placeholder="Filtrar categoria" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {getUniqueCategories().map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={stockFilter} onValueChange={setStockFilter}>
+                    <SelectTrigger className="w-full sm:w-44">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <SelectValue placeholder="Filtrar por estoque" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os produtos</SelectItem>
+                      <SelectItem value="low">Estoque baixo</SelectItem>
+                      <SelectItem value="out">Esgotados</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-60">
+                  <p>Carregando produtos...</p>
+                </div>
+              ) : filterAndSortProducts().length > 0 ? (
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                          <div className="flex items-center cursor-pointer" onClick={() => handleSort('name')}>
+                            Produto
+                            <ArrowUpDown className="ml-1 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center cursor-pointer" onClick={() => handleSort('category')}>
+                            Categoria
+                            <ArrowUpDown className="ml-1 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-right">
+                          <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSort('stockQuantity')}>
+                            Estoque
+                            <ArrowUpDown className="ml-1 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-right">Nível Mínimo</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterAndSortProducts().map((product: Product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{product.category || '-'}</TableCell>
+                          <TableCell className="text-right">{product.stockQuantity}</TableCell>
+                          <TableCell className="text-right">{product.minStockLevel}</TableCell>
+                          <TableCell className="text-right">
+                            {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
+                          </TableCell>
+                          <TableCell className="text-right space-x-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 px-2"
+                              onClick={() => openRestockDialog(product)}
+                            >
+                              <PackagePlus className="h-3 w-3 mr-1" /> Pedir
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="h-8 px-2"
+                              onClick={() => openAdjustDialog(product)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Ajustar
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-60 text-center">
+                  <p className="text-gray-500 mb-2">Nenhum produto encontrado com os filtros aplicados</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setCategoryFilter('all');
+                      setStockFilter('all');
+                    }}
+                  >
+                    Limpar filtros
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Pedidos */}
+        <TabsContent value="orders" className="space-y-5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Pedidos de Reposição</CardTitle>
+                <CardDescription>
+                  Gerenciamento de pedidos de produtos para reabastecimento
+                </CardDescription>
+              </div>
+              <Button className="flex items-center gap-2">
+                <PackagePlus className="h-4 w-4" />
+                Novo Pedido
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Produto</TableHead>
+                      <TableHead className="text-right">Quantidade</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Data do Pedido</TableHead>
+                      <TableHead className="text-right">Entrega Prevista</TableHead>
+                      <TableHead>Fornecedor</TableHead>
+                      <TableHead className="text-right">Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {restockOrders.map((order: any) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.product?.name}</TableCell>
+                        <TableCell className="text-right">{order.quantity}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(order.price * order.quantity)}</TableCell>
+                        <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
+                        <TableCell className="text-right">
+                          {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
+                        </TableCell>
+                        <TableCell>{order.supplier || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          {getRestockStatusBadge(order.status)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="h-8 px-2"
+                            disabled={order.status === 'received' || order.status === 'cancelled'}
+                          >
+                            {order.status === 'pending' ? 'Receber' : order.status === 'partial' ? 'Completar' : ''}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {restockOrders.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-6">
+                          <p className="text-gray-500">Nenhum pedido de reposição registrado</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Relatórios */}
+        <TabsContent value="reports" className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Card>
+              <CardHeader>
+                <CardTitle>Estoque por Categoria</CardTitle>
+                <CardDescription>
+                  Distribuição do estoque atual por categoria de produtos
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={getStockByCategoryData()}
+                      margin={{
+                        top: 20,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="value" fill="#3b82f6" name="Unidades em estoque" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle>Movimentações de Estoque</CardTitle>
+                <CardTitle>Status de Estoque</CardTitle>
                 <CardDescription>
-                  Histórico de entradas e saídas de produtos
+                  Visão geral da situação de estoque dos produtos
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead className="text-right">Quantidade</TableHead>
-                        <TableHead className="text-right">Data</TableHead>
-                        <TableHead>Observações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {stockMovements.map((movement: any) => (
-                        <TableRow key={movement.id}>
-                          <TableCell className="font-medium">{movement.product?.name}</TableCell>
-                          <TableCell>
-                            {getMovementTypeBadge(movement.type, movement.quantity)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
-                              {movement.quantity >= 0 ? `+${movement.quantity}` : movement.quantity}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">{formatDate(movement.date)}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">{movement.notes || '-'}</TableCell>
-                        </TableRow>
-                      ))}
-                      
-                      {stockMovements.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4">
-                            <p className="text-gray-500">Nenhuma movimentação encontrada</p>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Relatórios */}
-          <TabsContent value="reports" className="space-y-5">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Gráfico de estoque por categoria */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Estoque por Categoria</CardTitle>
-                  <CardDescription>
-                    Distribuição dos produtos em cada categoria
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={getStockByCategoryData()}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                      />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`${value} unidades`, 'Quantidade']} />
-                      <Legend />
-                      <Bar dataKey="value" name="Quantidade" fill="#4f46e5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              
-              {/* Gráfico de status de estoque */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status de Estoque</CardTitle>
-                  <CardDescription>
-                    Análise de produtos com estoque normal, baixo ou esgotado
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
+              <CardContent className="p-6">
+                <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -1172,198 +1101,203 @@ export default function PharmacistEstoque() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
+                        nameKey="name"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {getStockStatusData().map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} produtos`, 'Quantidade']} />
+                      <Tooltip />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              
-              {/* Produtos mais vendidos */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Produtos que Precisam de Reposição</CardTitle>
-                  <CardDescription>
-                    Lista de produtos que estão com estoque baixo ou esgotados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border rounded-md">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Produto</TableHead>
-                          <TableHead>Categoria</TableHead>
-                          <TableHead className="text-right">Estoque Atual</TableHead>
-                          <TableHead className="text-right">Mín. Requerido</TableHead>
-                          <TableHead className="text-right">Déficit</TableHead>
-                          <TableHead className="text-right">Última Reposição</TableHead>
-                          <TableHead className="text-right">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products && products
-                          .filter((product: Product) => product.stockQuantity <= product.minStockLevel)
-                          .sort((a: Product, b: Product) => {
-                            // Ordenar por déficit (diferença entre mínimo e atual)
-                            const deficitA = a.minStockLevel - a.stockQuantity;
-                            const deficitB = b.minStockLevel - b.stockQuantity;
-                            return deficitB - deficitA;
-                          })
-                          .map((product: Product) => (
-                            <TableRow key={product.id}>
-                              <TableCell className="font-medium">{product.name}</TableCell>
-                              <TableCell>{product.category || '-'}</TableCell>
-                              <TableCell className="text-right">{product.stockQuantity}</TableCell>
-                              <TableCell className="text-right">{product.minStockLevel}</TableCell>
-                              <TableCell className="text-right text-red-600">
-                                {product.minStockLevel - product.stockQuantity}
-                              </TableCell>
-                              <TableCell className="text-right">N/A</TableCell>
-                              <TableCell className="text-right">
-                                {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        
-                        {(!products || products.filter((product: Product) => 
-                          product.stockQuantity <= product.minStockLevel).length === 0) && (
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-4">
-                              <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
-                              <p>Todos os produtos estão com estoque adequado</p>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Produtos com Maior Rotatividade</CardTitle>
+                <CardDescription>
+                  Produtos que tiveram maior movimentação de estoque
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-8">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-md">
+                      <div className="text-2xl font-bold text-blue-600 mb-2">68%</div>
+                      <div className="text-sm text-center text-blue-800">Produtos com estoque adequado</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center p-4 bg-orange-50 rounded-md">
+                      <div className="text-2xl font-bold text-orange-600 mb-2">24%</div>
+                      <div className="text-sm text-center text-orange-800">Produtos com estoque baixo</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center p-4 bg-red-50 rounded-md">
+                      <div className="text-2xl font-bold text-red-600 mb-2">8%</div>
+                      <div className="text-sm text-center text-red-800">Produtos esgotados</div>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Top 5 Produtos</h3>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Paracetamol 500mg</span>
+                          <span className="text-sm text-gray-500">78% do estoque consumido</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '78%' }}></div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Dipirona 1g</span>
+                          <span className="text-sm text-gray-500">65% do estoque consumido</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '65%' }}></div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Amoxicilina 500mg</span>
+                          <span className="text-sm text-gray-500">52% do estoque consumido</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '52%' }}></div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Ibuprofeno 400mg</span>
+                          <span className="text-sm text-gray-500">45% do estoque consumido</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '45%' }}></div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium">Protetor Solar FPS 60</span>
+                          <span className="text-sm text-gray-500">38% do estoque consumido</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '38%' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Diálogo de Reposição de Estoque */}
       <Dialog open={isRestockDialogOpen} onOpenChange={setIsRestockDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Pedido de Reposição</DialogTitle>
+            <DialogTitle>Criar Pedido de Reposição</DialogTitle>
             <DialogDescription>
-              Preencha as informações para criar um pedido de reposição de estoque.
+              Adicione um novo pedido para reposição de estoque
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
+          <div className="grid gap-4 py-4">
             {selectedProduct && (
-              <div className="flex flex-col space-y-2">
-                <Label>Produto</Label>
-                <div className="p-3 rounded-md bg-gray-50">
-                  <div className="font-medium">{selectedProduct.name}</div>
-                  <div className="flex justify-between mt-1 text-sm">
-                    <span>Estoque Atual:</span>
-                    <span>{selectedProduct.stockQuantity} unid.</span>
-                  </div>
-                  <div className="flex justify-between mt-1 text-sm">
-                    <span>Estoque Mínimo:</span>
-                    <span>{selectedProduct.minStockLevel} unid.</span>
-                  </div>
-                </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="product-name" className="text-right">Produto</Label>
+                <Input
+                  id="product-name"
+                  value={selectedProduct.name}
+                  disabled
+                  className="col-span-3"
+                />
               </div>
             )}
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="1"
-                  value={restockItem.quantity}
-                  onChange={(e) => setRestockItem({
-                    ...restockItem, 
-                    quantity: parseInt(e.target.value) || 1
-                  })}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="price">Preço Unitário</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    className="pl-9"
-                    value={restockItem.price}
-                    onChange={(e) => setRestockItem({
-                      ...restockItem, 
-                      price: parseFloat(e.target.value) || 0
-                    })}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2 col-span-2">
-                <Label htmlFor="supplier">Fornecedor</Label>
-                <Input
-                  id="supplier"
-                  value={restockItem.supplier || ''}
-                  onChange={(e) => setRestockItem({...restockItem, supplier: e.target.value})}
-                  placeholder="Nome do fornecedor"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="purchaseDate">Data do Pedido</Label>
-                <Input
-                  id="purchaseDate"
-                  type="date"
-                  value={restockItem.purchaseDate}
-                  onChange={(e) => setRestockItem({...restockItem, purchaseDate: e.target.value})}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="expectedDeliveryDate">Entrega Prevista</Label>
-                <Input
-                  id="expectedDeliveryDate"
-                  type="date"
-                  value={restockItem.expectedDeliveryDate || ''}
-                  onChange={(e) => setRestockItem({...restockItem, expectedDeliveryDate: e.target.value})}
-                />
-              </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quantity" className="text-right">Quantidade</Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="1"
+                value={restockItem.quantity}
+                onChange={(e) => setRestockItem({...restockItem, quantity: parseInt(e.target.value) || 1})}
+                className="col-span-3"
+              />
             </div>
             
-            <div className="p-3 rounded-md bg-blue-50 text-blue-800 text-sm mt-4">
-              <div className="flex justify-between font-semibold">
-                <span>Valor Total do Pedido:</span>
-                <span>{formatCurrency(restockItem.quantity * restockItem.price)}</span>
-              </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">Preço Unit.</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={restockItem.price}
+                onChange={(e) => setRestockItem({...restockItem, price: parseFloat(e.target.value) || 0})}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="supplier" className="text-right">Fornecedor</Label>
+              <Input
+                id="supplier"
+                value={restockItem.supplier || ''}
+                onChange={(e) => setRestockItem({...restockItem, supplier: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="purchaseDate" className="text-right">Data do Pedido</Label>
+              <Input
+                id="purchaseDate"
+                type="date"
+                value={restockItem.purchaseDate}
+                onChange={(e) => setRestockItem({...restockItem, purchaseDate: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="expectedDeliveryDate" className="text-right">Entrega Prevista</Label>
+              <Input
+                id="expectedDeliveryDate"
+                type="date"
+                value={restockItem.expectedDeliveryDate || ''}
+                onChange={(e) => setRestockItem({...restockItem, expectedDeliveryDate: e.target.value})}
+                className="col-span-3"
+              />
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRestockDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsRestockDialogOpen(false)}
+            >
               Cancelar
             </Button>
             <Button 
               onClick={handleCreateRestock}
               disabled={createRestockMutation.isPending}
             >
-              {createRestockMutation.isPending ? "Criando pedido..." : "Criar Pedido"}
+              {createRestockMutation.isPending ? "Criando..." : "Criar Pedido"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1373,118 +1307,121 @@ export default function PharmacistEstoque() {
       <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Ajuste de Estoque</DialogTitle>
+            <DialogTitle>Ajustar Estoque</DialogTitle>
             <DialogDescription>
-              Use este formulário para ajustar manualmente o estoque do produto.
+              Adicione ou remova unidades do estoque
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4 space-y-4">
+          <div className="grid gap-4 py-4">
             {selectedProduct && (
-              <div className="flex flex-col space-y-2">
-                <Label>Produto</Label>
-                <div className="p-3 rounded-md bg-gray-50">
-                  <div className="font-medium">{selectedProduct.name}</div>
-                  <div className="flex justify-between mt-1 text-sm">
-                    <span>Estoque Atual:</span>
-                    <span>{selectedProduct.stockQuantity} unid.</span>
-                  </div>
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="product-name" className="text-right">Produto</Label>
+                  <Input
+                    id="product-name"
+                    value={selectedProduct.name}
+                    disabled
+                    className="col-span-3"
+                  />
                 </div>
-              </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="current-stock" className="text-right">Estoque Atual</Label>
+                  <Input
+                    id="current-stock"
+                    value={selectedProduct.stockQuantity}
+                    disabled
+                    className="col-span-3"
+                  />
+                </div>
+              </>
             )}
             
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade a Ajustar</Label>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setStockAdjustment({
-                    ...stockAdjustment,
-                    quantity: stockAdjustment.quantity - 1
-                  })}
-                >
-                  -
-                </Button>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={stockAdjustment.quantity}
-                  onChange={(e) => setStockAdjustment({
-                    ...stockAdjustment, 
-                    quantity: parseInt(e.target.value) || 0
-                  })}
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setStockAdjustment({
-                    ...stockAdjustment,
-                    quantity: stockAdjustment.quantity + 1
-                  })}
-                >
-                  +
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500">
-                Use números positivos para adicionar ao estoque e negativos para remover.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo de Ajuste</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="adjustment-type" className="text-right">Tipo</Label>
               <Select 
                 value={stockAdjustment.type} 
-                onValueChange={(value) => setStockAdjustment({
-                  ...stockAdjustment, 
-                  type: value
-                })}
+                onValueChange={(value) => setStockAdjustment({...stockAdjustment, type: value})}
               >
-                <SelectTrigger>
+                <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o tipo de ajuste" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="adjustment">Ajuste de inventário</SelectItem>
-                  <SelectItem value="loss">Perda/Avaria</SelectItem>
+                  <SelectItem value="adjustment">Ajuste manual</SelectItem>
+                  <SelectItem value="loss">Perda/Quebra</SelectItem>
                   <SelectItem value="return">Devolução</SelectItem>
-                  <SelectItem value="purchase">Compra</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="notes">Observações</Label>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quantity" className="text-right">Quantidade</Label>
+              <div className="col-span-3 flex items-center">
+                <Select 
+                  value={stockAdjustment.quantity >= 0 ? "add" : "remove"} 
+                  onValueChange={(value) => {
+                    const absQuantity = Math.abs(stockAdjustment.quantity);
+                    setStockAdjustment({
+                      ...stockAdjustment, 
+                      quantity: value === "add" ? absQuantity : -absQuantity
+                    });
+                  }}
+                >
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Ação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add">Adicionar</SelectItem>
+                    <SelectItem value="remove">Remover</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  value={Math.abs(stockAdjustment.quantity)}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value) || 0;
+                    const isNegative = stockAdjustment.quantity < 0;
+                    setStockAdjustment({
+                      ...stockAdjustment, 
+                      quantity: isNegative ? -newValue : newValue
+                    });
+                  }}
+                  className="ml-2 flex-1"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="notes" className="text-right">Observações</Label>
               <Input
                 id="notes"
                 value={stockAdjustment.notes}
                 onChange={(e) => setStockAdjustment({...stockAdjustment, notes: e.target.value})}
+                className="col-span-3"
                 placeholder="Motivo do ajuste"
               />
-            </div>
-            
-            <div className="p-3 rounded-md bg-blue-50 text-blue-800 text-sm mt-4">
-              <div className="flex justify-between font-semibold">
-                <span>Novo Estoque Após Ajuste:</span>
-                <span>
-                  {selectedProduct ? selectedProduct.stockQuantity + stockAdjustment.quantity : 0} unid.
-                </span>
-              </div>
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAdjustDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAdjustDialogOpen(false)}
+            >
               Cancelar
             </Button>
             <Button 
               onClick={handleAdjustStock}
-              disabled={adjustStockMutation.isPending || stockAdjustment.quantity === 0}
+              disabled={adjustStockMutation.isPending}
             >
               {adjustStockMutation.isPending ? "Ajustando..." : "Confirmar Ajuste"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </PharmacistLayout>
+    </div>
   );
 }
