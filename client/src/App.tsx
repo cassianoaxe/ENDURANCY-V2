@@ -294,6 +294,11 @@ function AppContent() {
       return <DoctorRegistration />;
     }
     
+    // Página de sitemap (público)
+    if (currentPath === '/sitemap') {
+      return <Sitemap />;
+    }
+    
     // Página esqueceu a senha (público)
     if (currentPath === '/forgot-password') {
       // Aqui você pode substituir isso pelo seu componente real de recuperação de senha
