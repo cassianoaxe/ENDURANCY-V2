@@ -67,6 +67,8 @@ interface Order {
   total: number;
   paymentMethod: 'cash' | 'credit' | 'debit' | 'pix';
   notes?: string;
+  deliveryType: 'pickup' | 'delivery';
+  source: 'online' | 'instore';
 }
 
 export default function PharmacistPedidos() {
@@ -76,6 +78,7 @@ export default function PharmacistPedidos() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   
   // Buscar dados da organização
   const { data: organizationData } = useQuery({
@@ -122,7 +125,9 @@ export default function PharmacistPedidos() {
       ],
       total: 81.30,
       paymentMethod: 'credit',
-      notes: 'Paciente solicitou entrega em casa'
+      notes: 'Paciente solicitou entrega em casa',
+      deliveryType: 'delivery',
+      source: 'instore'
     },
     {
       id: 2,
@@ -155,7 +160,9 @@ export default function PharmacistPedidos() {
         }
       ],
       total: 87.20,
-      paymentMethod: 'pix'
+      paymentMethod: 'pix',
+      deliveryType: 'pickup',
+      source: 'instore'
     },
     {
       id: 3,
@@ -183,7 +190,9 @@ export default function PharmacistPedidos() {
       ],
       total: 58.80,
       paymentMethod: 'cash',
-      notes: 'Paciente é diabético e precisa das agulhas com urgência'
+      notes: 'Paciente é diabético e precisa das agulhas com urgência',
+      deliveryType: 'pickup',
+      source: 'instore'
     },
     {
       id: 4,
@@ -210,7 +219,9 @@ export default function PharmacistPedidos() {
         }
       ],
       total: 100.90,
-      paymentMethod: 'debit'
+      paymentMethod: 'debit',
+      deliveryType: 'pickup',
+      source: 'instore'
     },
     {
       id: 5,
@@ -238,7 +249,130 @@ export default function PharmacistPedidos() {
       ],
       total: 78.40,
       paymentMethod: 'credit',
-      notes: 'Pedido cancelado a pedido da paciente'
+      notes: 'Pedido cancelado a pedido da paciente',
+      deliveryType: 'delivery',
+      source: 'instore'
+    },
+    // Novos pedidos online com opção de retirada na farmácia
+    {
+      id: 6,
+      orderNumber: 'PED-2025-006',
+      patient: {
+        id: 106,
+        name: 'Rafael Santos',
+        phone: '(11) 98888-7777'
+      },
+      date: '2025-04-10T09:15:00',
+      status: 'pending',
+      items: [
+        {
+          productId: 12,
+          productName: 'Omeprazol 20mg - 28 cápsulas',
+          quantity: 1,
+          price: 19.90
+        },
+        {
+          productId: 13,
+          productName: 'Loratadina 10mg - 12 comprimidos',
+          quantity: 2,
+          price: 17.50
+        }
+      ],
+      total: 54.90,
+      paymentMethod: 'credit',
+      notes: 'Pedido feito online para retirada na farmácia',
+      deliveryType: 'pickup',
+      source: 'online'
+    },
+    {
+      id: 7,
+      orderNumber: 'PED-2025-007',
+      patient: {
+        id: 107,
+        name: 'Juliana Martins',
+        phone: '(11) 97777-6666'
+      },
+      date: '2025-04-10T10:30:00',
+      status: 'pending',
+      items: [
+        {
+          productId: 14,
+          productName: 'Nimesulida 100mg - 12 comprimidos',
+          quantity: 1,
+          price: 12.90
+        },
+        {
+          productId: 15,
+          productName: 'Máscara facial hidratante - unidade',
+          quantity: 3,
+          price: 9.90
+        }
+      ],
+      total: 42.60,
+      paymentMethod: 'pix',
+      notes: 'Cliente solicitou retirada no período da tarde',
+      deliveryType: 'pickup',
+      source: 'online'
+    },
+    {
+      id: 8,
+      orderNumber: 'PED-2025-008',
+      patient: {
+        id: 108,
+        name: 'Marcos Almeida',
+        phone: '(11) 96666-5555'
+      },
+      date: '2025-04-10T11:45:00',
+      status: 'processing',
+      items: [
+        {
+          productId: 16,
+          productName: 'Atenolol 25mg - 30 comprimidos',
+          quantity: 2,
+          price: 14.50
+        },
+        {
+          productId: 17,
+          productName: 'Cloreto de magnésio PA - 150g',
+          quantity: 1,
+          price: 35.90
+        }
+      ],
+      total: 64.90,
+      paymentMethod: 'credit',
+      notes: 'Medicamentos de uso contínuo',
+      deliveryType: 'pickup',
+      source: 'online'
+    },
+    {
+      id: 9,
+      orderNumber: 'PED-2025-009',
+      patient: {
+        id: 109,
+        name: 'Renata Oliveira',
+        phone: '(11) 95555-4444'
+      },
+      date: '2025-04-09T16:20:00',
+      status: 'ready',
+      items: [
+        {
+          productId: 18,
+          productName: 'Suplemento vitamínico - 30 comprimidos',
+          quantity: 1,
+          price: 69.90
+        },
+        {
+          productId: 19,
+          productName: 'Protetor labial FPS 30',
+          quantity: 2,
+          price: 15.90
+        }
+      ],
+      total: 101.70,
+      paymentMethod: 'debit',
+      notes: 'Pedido já está separado para retirada',
+      deliveryType: 'pickup',
+      source: 'online'
     }
   ];
 
@@ -249,8 +383,19 @@ export default function PharmacistPedidos() {
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Filtragem com base na aba selecionada
+    const matchesTab = 
+      activeTab === 'all' || 
+      (activeTab === 'online-pickup' && order.source === 'online' && order.deliveryType === 'pickup');
+    
+    return matchesSearch && matchesStatus && matchesTab;
   });
+  
+  // Estatísticas de pedidos online para retirada
+  const onlinePickupOrders = mockOrders.filter(o => o.source === 'online' && o.deliveryType === 'pickup');
+  const pendingOnlinePickupOrders = onlinePickupOrders.filter(o => o.status === 'pending');
+  const processingOnlinePickupOrders = onlinePickupOrders.filter(o => o.status === 'processing');
+  const readyOnlinePickupOrders = onlinePickupOrders.filter(o => o.status === 'ready');
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -331,70 +476,137 @@ export default function PharmacistPedidos() {
           </Button>
         </div>
         
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {mockOrders.length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Pedidos registrados
-              </p>
-            </CardContent>
-          </Card>
+        {/* Tabs para diferentes tipos de pedidos */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-4">
+            <TabsTrigger value="all" className="relative">
+              Todos os Pedidos
+              <Badge className="ml-2 bg-green-600">{mockOrders.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="online-pickup" className="relative">
+              Retirada Online
+              <Badge className="ml-2 bg-orange-500">{onlinePickupOrders.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pedidos Pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {mockOrders.filter(o => o.status === 'pending').length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Aguardando processamento
-              </p>
-            </CardContent>
-          </Card>
+          <TabsContent value="all" className="mt-0">
+            {/* Stats Cards para Todos os Pedidos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {mockOrders.length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pedidos registrados
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Pedidos Pendentes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {mockOrders.filter(o => o.status === 'pending').length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aguardando processamento
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Em Preparação</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {mockOrders.filter(o => o.status === 'processing').length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Sendo separados
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Prontos para Retirada</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {mockOrders.filter(o => o.status === 'ready').length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aguardando o cliente
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
           
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Em Preparação</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {mockOrders.filter(o => o.status === 'processing').length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Sendo separados
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Prontos para Retirada</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {mockOrders.filter(o => o.status === 'ready').length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Aguardando o cliente
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="online-pickup" className="mt-0">
+            {/* Stats Cards para Pedidos Online de Retirada */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Pendentes para Retirada</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {pendingOnlinePickupOrders.length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aguardando preparação
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Em Preparação</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {processingOnlinePickupOrders.length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pedidos sendo separados
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Prontos para Retirada</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {readyOnlinePickupOrders.length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aguardando o cliente
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
         
         {/* Search and Filter */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
-              <CardTitle>Lista de Pedidos</CardTitle>
+              <CardTitle>
+                {activeTab === 'all' 
+                  ? 'Lista de Pedidos' 
+                  : 'Pedidos Online para Retirada na Farmácia'}
+              </CardTitle>
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -440,8 +652,15 @@ export default function PharmacistPedidos() {
                 <TableBody>
                   {filteredOrders.length > 0 ? (
                     filteredOrders.map(order => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                      <TableRow key={order.id} className={order.source === 'online' && order.deliveryType === 'pickup' ? 'bg-orange-50' : ''}>
+                        <TableCell className="font-medium">
+                          {order.orderNumber}
+                          {order.source === 'online' && (
+                            <Badge className="ml-2 bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100">
+                              Online
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <div className="font-medium">{order.patient.name}</div>
                           <div className="text-xs text-muted-foreground">{order.patient.phone}</div>
