@@ -199,10 +199,7 @@ export default function DoctorPrescricoes() {
     <DoctorLayout>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Prescrições</h1>
-            <p className="text-gray-500 text-sm">Gerencie prescrições médicas e produtos</p>
-          </div>
+          <p className="text-gray-500 text-sm">Gerencie prescrições médicas e produtos</p>
           
           <div className="flex items-center mt-4 sm:mt-0 gap-2">
             <Select 

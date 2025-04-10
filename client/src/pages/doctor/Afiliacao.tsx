@@ -142,10 +142,7 @@ export default function DoctorAfiliacao() {
     <DoctorLayout>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Afiliações</h1>
-            <p className="text-gray-500 text-sm">Gerencie suas conexões com farmácias e dispensários</p>
-          </div>
+          <p className="text-gray-500 text-sm">Gerencie suas conexões com farmácias e dispensários</p>
           <div className="flex space-x-2 mt-4 sm:mt-0">
             <Button variant="outline" onClick={() => setShowInviteDialog(true)} className="flex items-center gap-1">
               <LinkIcon className="h-4 w-4" />
