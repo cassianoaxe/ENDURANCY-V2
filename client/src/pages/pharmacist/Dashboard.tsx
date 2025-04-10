@@ -1,5 +1,4 @@
 import { useAuth } from "@/contexts/AuthContext";
-import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -38,8 +37,7 @@ export default function PharmacistDashboard() {
   }, [organizationData]);
 
   return (
-    <PharmacistLayout>
-      <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -233,6 +231,5 @@ export default function PharmacistDashboard() {
           </CardContent>
         </Card>
       </div>
-    </PharmacistLayout>
   );
 }
