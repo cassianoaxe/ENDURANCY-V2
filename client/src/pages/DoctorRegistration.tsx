@@ -137,12 +137,31 @@ export default function DoctorRegistration() {
   // Pegar a organizationId da URL (path ou query param)
   const urlParams = new URLSearchParams(window.location.search);
   const organizationId = urlParams.get('organizationId') || window.location.pathname.split('/').pop();
+  const [organizationName, setOrganizationName] = useState<string>('');
   
-  // Se não tiver organizationId, redirecionar para uma página de erro
+  // Buscar informações da organização
   useEffect(() => {
-    if (!organizationId || isNaN(Number(organizationId))) {
-      setError("ID da organização inválido. Verifique o link de convite.");
+    async function fetchOrganizationName() {
+      if (!organizationId || isNaN(Number(organizationId))) {
+        setError("ID da organização inválido. Verifique o link de convite.");
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/organizations/${organizationId}/name`);
+        if (!response.ok) {
+          throw new Error("Não foi possível encontrar a organização");
+        }
+        
+        const data = await response.json();
+        setOrganizationName(data.name);
+      } catch (err) {
+        console.error("Erro ao buscar nome da organização:", err);
+        setError("Organização não encontrada. Verifique o link de convite.");
+      }
     }
+    
+    fetchOrganizationName();
   }, [organizationId]);
 
   const form = useForm<DoctorRegistrationFormValues>({
@@ -219,7 +238,9 @@ export default function DoctorRegistration() {
               <CardTitle className="text-2xl">Cadastro de Prescritor</CardTitle>
             </div>
             <CardDescription>
-              Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal.
+              {organizationName ? 
+                `Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal na organização "${organizationName}".` : 
+                'Preencha o formulário abaixo para se cadastrar como prescritor de cannabis medicinal.'}
             </CardDescription>
           </CardHeader>
           
