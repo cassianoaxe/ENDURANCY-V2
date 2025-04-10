@@ -62,7 +62,7 @@ export default function DoctorLayout({ children }: DoctorLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <DoctorSidebar />
-      <div className="ml-[240px] min-h-screen pb-8">
+      <div className="ml-[240px] min-h-screen pb-8 transition-all duration-300">
         <DoctorHeader />
         <main className="container p-6">
           {children}
