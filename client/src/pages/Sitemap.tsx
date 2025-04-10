@@ -3,7 +3,17 @@ import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { ExternalLink, LinkIcon, Grid, Users, Clipboard, Home, LineChart, Settings, User, Building, FileText, ShieldCheck, Pill, Leaf } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { 
+  ExternalLink, LinkIcon, Grid, Users, Clipboard, Home, LineChart, 
+  Settings, User, Building, FileText, ShieldCheck, Pill, Leaf, 
+  BookOpen, Database, Bell 
+} from 'lucide-react';
 
 // Componente para o título com ícone Leaf
 const EndurancyTitle = () => (
@@ -57,6 +67,259 @@ const Sitemap = () => {
                 <li>Médicos podem ver suas organizações vinculadas na página de Afiliações</li>
                 <li>Use o navegador para localizar URLs específicas e IDs de organização correspondentes</li>
               </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-8 shadow-lg border-green-100">
+          <CardHeader className="bg-green-50">
+            <CardTitle className="text-green-800 flex items-center gap-2">
+              <Grid className="h-5 w-5 text-green-600" />
+              Módulos do Sistema
+            </CardTitle>
+            <CardDescription>Visão detalhada de todos os módulos e suas funcionalidades</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium mb-4 text-green-700">Planos e Estrutura de Módulos</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-green-50 text-left">
+                      <th className="p-3 border border-green-100 font-medium">Nível de Plano</th>
+                      <th className="p-3 border border-green-100 font-medium">Nome do Plano</th>
+                      <th className="p-3 border border-green-100 font-medium">Módulos Incluídos</th>
+                      <th className="p-3 border border-green-100 font-medium">Descrição</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="p-3 border border-green-100">1</td>
+                      <td className="p-3 border border-green-100">Freemium/Básico</td>
+                      <td className="p-3 border border-green-100">Básico</td>
+                      <td className="p-3 border border-green-100">Acesso limitado ao sistema com funcionalidades essenciais</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 border border-green-100">2</td>
+                      <td className="p-3 border border-green-100">Seed</td>
+                      <td className="p-3 border border-green-100">Básico, Gestão de Pacientes</td>
+                      <td className="p-3 border border-green-100">Funcionalidades básicas com gerenciamento de pacientes</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 border border-green-100">3</td>
+                      <td className="p-3 border border-green-100">Grow</td>
+                      <td className="p-3 border border-green-100">Básico, Gestão de Pacientes, Prescrições</td>
+                      <td className="p-3 border border-green-100">Plano intermediário com gestão de prescrições</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 border border-green-100">4</td>
+                      <td className="p-3 border border-green-100">Professional/Pro</td>
+                      <td className="p-3 border border-green-100">Todos os módulos</td>
+                      <td className="p-3 border border-green-100">Acesso completo a todas as funcionalidades do sistema</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 border border-green-100">5</td>
+                      <td className="p-3 border border-green-100">Enterprise</td>
+                      <td className="p-3 border border-green-100">Todos os módulos + Personalização</td>
+                      <td className="p-3 border border-green-100">Acesso completo com suporte personalizado e configurações específicas</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-medium mb-4 text-green-700">Descrição Detalhada dos Módulos</h3>
+              
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="mod-basic">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4" />
+                      <span>Módulo Básico</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Funcionalidades fundamentais do sistema disponíveis em todos os planos.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Login e autenticação de usuários</li>
+                      <li>Gerenciamento de perfil básico</li>
+                      <li>Dashboard com informações básicas</li>
+                      <li>Navegação pelo sistema</li>
+                      <li>Alteração de senha e configurações pessoais</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-patients">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>Módulo de Gestão de Pacientes</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema completo para gerenciamento de pacientes nas organizações médicas.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Cadastro e gerenciamento de pacientes</li>
+                      <li>Histórico médico completo</li>
+                      <li>Ficha do paciente com dados pessoais e médicos</li>
+                      <li>Categorização de pacientes</li>
+                      <li>Busca e filtragem de pacientes</li>
+                      <li>Atribuição de pacientes a médicos específicos</li>
+                      <li>Exportação de dados de pacientes</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-prescription">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span>Módulo de Prescrições</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema avançado para criação e gerenciamento de prescrições médicas.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Criação de prescrições para pacientes</li>
+                      <li>Fluxo de aprovação de prescrições (médico → farmacêutico)</li>
+                      <li>Especificação de dosagens e produtos</li>
+                      <li>Histórico completo de prescrições por paciente</li>
+                      <li>Assinatura digital de prescrições</li>
+                      <li>Impressão de prescrições em formato padronizado</li>
+                      <li>Renovação e cancelamento de prescrições</li>
+                      <li>Notificações sobre status de prescrições</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-products">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Pill className="h-4 w-4" />
+                      <span>Módulo de Produtos</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gerenciamento completo do catálogo de produtos médicos e farmacêuticos.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Cadastro e manutenção do catálogo de produtos</li>
+                      <li>Categorização por tipo (medicamentos, suplementos, etc.)</li>
+                      <li>Gestão de estoque e disponibilidade</li>
+                      <li>Informações detalhadas sobre cada produto</li>
+                      <li>Controle de preços e promoções</li>
+                      <li>Integração com prescrições médicas</li>
+                      <li>Relatórios de produtos mais prescritos</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-organizations">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      <span>Módulo de Organizações</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gestão de múltiplas organizações médicas e suas integrações.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Cadastro e gerenciamento de organizações</li>
+                      <li>Definição de tipos de organização (clínica, hospital, etc.)</li>
+                      <li>Configurações específicas por organização</li>
+                      <li>Gerenciamento de usuários da organização</li>
+                      <li>Controle de acesso e permissões</li>
+                      <li>Relatórios específicos por organização</li>
+                      <li>Personalização de interface e documentos</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-doctor">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Módulo de Médicos</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Funcionalidades específicas para profissionais médicos no sistema.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Cadastro de médicos com especialidade (clínico geral, dentista, veterinário)</li>
+                      <li>Filiação múltipla a organizações</li>
+                      <li>Gerenciamento de agenda e disponibilidade</li>
+                      <li>Dashboard específico para atividade médica</li>
+                      <li>Criação e gestão de prescrições</li>
+                      <li>Histórico de atendimentos e pacientes</li>
+                      <li>Documentação médica e prontuários</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-reports">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <LineChart className="h-4 w-4" />
+                      <span>Módulo de Relatórios</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema abrangente de relatórios e análises para tomada de decisão.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Relatórios de vendas mensais por módulo/plano</li>
+                      <li>Estatísticas de uso do sistema</li>
+                      <li>Métricas de desempenho médico</li>
+                      <li>Análise de prescrições e tendências</li>
+                      <li>Relatórios financeiros e faturamento</li>
+                      <li>Exportação em vários formatos (PDF, Excel, CSV)</li>
+                      <li>Relatórios personalizados e dashboards analíticos</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-patient-portal">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Portal do Paciente</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Interface específica para acesso de pacientes ao sistema.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Visualização de prescrições aprovadas</li>
+                      <li>Compra de produtos prescritos</li>
+                      <li>Histórico médico pessoal</li>
+                      <li>Agendamento de consultas</li>
+                      <li>Comunicação com a equipe médica</li>
+                      <li>Acesso a documentos e orientações</li>
+                      <li>Gerenciamento de perfil e preferências</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-admin">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" />
+                      <span>Módulo Administrativo</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Controle central de todo o sistema para administradores.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Gestão completa de usuários e permissões</li>
+                      <li>Configurações globais do sistema</li>
+                      <li>Gerenciamento de planos e módulos</li>
+                      <li>Monitoramento de atividades e logs</li>
+                      <li>Backup e restauração de dados</li>
+                      <li>Atualizações do sistema</li>
+                      <li>Suporte e resolução de problemas</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </CardContent>
         </Card>
