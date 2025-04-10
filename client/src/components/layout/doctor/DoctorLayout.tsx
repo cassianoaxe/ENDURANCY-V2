@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import DoctorSidebar from './DoctorSidebar';
 // import Header from '@/components/layout/Header';
@@ -11,7 +11,12 @@ interface DoctorLayoutProps {
 }
 
 export default function DoctorLayout({ children }: DoctorLayoutProps) {
+  console.log('DoctorLayout renderizando');
   const { isAuthenticated, isLoading, user } = useAuth();
+  
+  useEffect(() => {
+    console.log('DoctorLayout montado, authenticated:', isAuthenticated, 'role:', user?.role);
+  }, [isAuthenticated, user]);
 
   // Se estiver carregando, mostrar um indicador de carregamento
   if (isLoading) {
