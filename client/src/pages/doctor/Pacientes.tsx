@@ -185,22 +185,7 @@ export default function DoctorPacientes() {
 
   return (
     <DoctorLayout>
-      <div className="p-6">
-        {/* Header section with title and buttons */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Pacientes</h1>
-          
-          <div className="flex items-center gap-2">
-            <BellRing className="text-gray-400 h-6 w-6 mr-2" />
-            <div className="bg-purple-600 text-white h-10 w-10 rounded-full flex items-center justify-center">
-              JS
-            </div>
-            <div className="text-sm">
-              Dr. João Silva
-            </div>
-          </div>
-        </div>
-
+      <div>
         {/* Search and action buttons */}
         <div className="mb-6">
           <div className="relative mb-6">

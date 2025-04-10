@@ -97,10 +97,7 @@ export default function DoctorAgenda() {
     <DoctorLayout>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Agenda</h1>
-            <p className="text-gray-500 text-sm capitalize">{formattedDate}</p>
-          </div>
+          <p className="text-gray-500 text-sm capitalize">{formattedDate}</p>
           <div className="flex space-x-2 mt-4 sm:mt-0">
             <Button variant="outline" size="sm" className="flex items-center gap-1">
               <Filter className="h-4 w-4" />
