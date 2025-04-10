@@ -103,8 +103,8 @@ export const orders = pgTable("orders", {
   description: text("description"),
 });
 
-// Enum para os tipos de médicos permitidos pela ANVISA
-export const doctorTypeEnum = pgEnum('doctor_type', ['general', 'dentist', 'veterinarian']);
+// Enum para os tipos de profissionais de saúde permitidos pela ANVISA
+export const doctorTypeEnum = pgEnum('doctor_type', ['general', 'dentist', 'veterinarian', 'pharmacist']);
 
 export const doctors = pgTable("doctors", {
   id: serial("id").primaryKey(),
