@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Define a role enum para os diferentes tipos de usuário
-export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee']);
+export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist']);
 
 // Enum para o status de convites
 export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'expired']);
