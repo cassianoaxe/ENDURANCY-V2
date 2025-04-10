@@ -103,14 +103,20 @@ export const orders = pgTable("orders", {
   description: text("description"),
 });
 
+// Enum para os tipos de médicos permitidos pela ANVISA
+export const doctorTypeEnum = pgEnum('doctor_type', ['general', 'dentist', 'veterinarian']);
+
 export const doctors = pgTable("doctors", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   organizationId: integer("organization_id").notNull(),
+  doctorType: doctorTypeEnum("doctor_type").notNull().default("general"), // Tipo de médico (médico geral, dentista, veterinário)
   specialization: text("specialization").notNull(),
   crm: text("crm").notNull(),
+  crmState: text("crm_state").notNull(), // Estado onde o CRM foi emitido
   bio: text("bio"),
   available: boolean("available").default(true),
+  approved: boolean("approved").default(false), // Se o médico foi aprovado pelo admin da organização
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -320,10 +326,13 @@ export const insertOrganizationDocumentSchema = createInsertSchema(organizationD
 export const insertDoctorSchema = createInsertSchema(doctors).pick({
   userId: true,
   organizationId: true,
+  doctorType: true,
   specialization: true,
   crm: true,
+  crmState: true,
   bio: true,
   available: true,
+  approved: true,
 });
 
 export const insertPatientSchema = createInsertSchema(patients).pick({
