@@ -28,7 +28,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient';
+type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist';
 
 export default function Login() {
   const { login } = useAuth();
@@ -65,7 +65,8 @@ export default function Login() {
     admin: 'Comply',
     org_admin: 'Organização',
     doctor: 'Médico',
-    patient: 'Paciente'
+    patient: 'Paciente',
+    pharmacist: 'Farmacêutico'
   };
 
   const form = useForm<LoginFormData>({
@@ -127,6 +128,10 @@ export default function Login() {
         form.setValue('username', 'medico@endurancy.com');
         form.setValue('password', 'medico123');
         break;
+      case 'pharmacist':
+        form.setValue('username', 'farmaceutico@endurancy.com');
+        form.setValue('password', 'farmacia123');
+        break;
       case 'patient':
         form.setValue('username', 'paciente@email.com');
         form.setValue('password', 'paciente123');
@@ -177,7 +182,7 @@ export default function Login() {
         >
           {!isOrgLogin && (
             <div className="px-6">
-              <TabsList className="grid grid-cols-4 h-12 rounded-md bg-gray-100">
+              <TabsList className="grid grid-cols-5 h-12 rounded-md bg-gray-100">
                 <TabsTrigger 
                   value="admin" 
                   className={cn(
@@ -204,6 +209,15 @@ export default function Login() {
                   )}
                 >
                   Médico
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pharmacist" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Farmacêutico
                 </TabsTrigger>
                 <TabsTrigger 
                   value="patient" 
@@ -311,6 +325,12 @@ export default function Login() {
                         <>
                           <p className="text-xs text-blue-600 mt-1">Email: medico@endurancy.com</p>
                           <p className="text-xs text-blue-600">Senha: medico123</p>
+                        </>
+                      )}
+                      {role === 'pharmacist' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: farmaceutico@endurancy.com</p>
+                          <p className="text-xs text-blue-600">Senha: farmacia123</p>
                         </>
                       )}
                       {role === 'patient' && (
