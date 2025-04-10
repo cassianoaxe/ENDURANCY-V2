@@ -84,6 +84,7 @@ import DataImport from "@/pages/DataImport";
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
+import MedicalPortal from "@/pages/organization/medical-portal";
 
 // Import pharmacist pages
 import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
@@ -606,6 +607,11 @@ function AppContent() {
     
     if (currentPath === '/organization/rastreamento') {
       return <Rastreamento />;
+    }
+    
+    // Rota para o Portal Médico
+    if (currentPath === '/organization/medical-portal') {
+      return <MedicalPortal />;
     }
     
     // Rotas de integração da organização

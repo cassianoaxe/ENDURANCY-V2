@@ -418,7 +418,7 @@ function MedicalPortalDashboard() {
                     className="rounded-r-none"
                   />
                   <Button variant="outline" className="rounded-l-none border-l-0">
-                    <Link className="h-4 w-4 mr-2" />
+                    <LinkIcon className="h-4 w-4 mr-2" />
                     Copiar
                   </Button>
                 </div>
@@ -433,7 +433,7 @@ function MedicalPortalDashboard() {
                     className="rounded-r-none"
                   />
                   <Button variant="outline" className="rounded-l-none border-l-0">
-                    <Link className="h-4 w-4 mr-2" />
+                    <LinkIcon className="h-4 w-4 mr-2" />
                     Copiar
                   </Button>
                 </div>
@@ -448,7 +448,7 @@ function MedicalPortalDashboard() {
                     className="rounded-r-none"
                   />
                   <Button variant="outline" className="rounded-l-none border-l-0">
-                    <Link className="h-4 w-4 mr-2" />
+                    <LinkIcon className="h-4 w-4 mr-2" />
                     Copiar
                   </Button>
                 </div>
@@ -916,7 +916,7 @@ function MedicalPortalDashboard() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full">
-                  <Pills className="h-4 w-4 mr-2" />
+                  <Pill className="h-4 w-4 mr-2" />
                   Ver Relatório Detalhado
                 </Button>
               </CardFooter>
