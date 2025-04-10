@@ -3,6 +3,9 @@ import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   CalendarDays, 
@@ -15,13 +18,36 @@ import {
 
 export default function PharmacistDashboard() {
   const { user } = useAuth();
+  const [organizationName, setOrganizationName] = useState("");
+  
+  // Buscar dados da organização
+  const { data: organizationData } = useQuery({
+    queryKey: ['organization', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      const response = await axios.get(`/api/organizations/${user.organizationId}`);
+      return response.data;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  useEffect(() => {
+    if (organizationData) {
+      setOrganizationName(organizationData.name || "");
+    }
+  }, [organizationData]);
 
   return (
     <PharmacistLayout>
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bem-vindo(a), {user?.name?.split(' ')[0] || 'Farmacêutico'}!</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold tracking-tight">Bem-vindo(a), {user?.name?.split(' ')[0] || 'Farmacêutico'}!</h1>
+            <span className="bg-green-100 text-green-800 text-xs px-2.5 py-0.5 rounded-full font-medium">
+              Farmácia {user?.organizationId ? `(${user?.organizationId})` : ''}
+            </span>
+          </div>
           <p className="text-gray-500">
             Aqui está o seu resumo farmacêutico e as atividades pendentes.
           </p>

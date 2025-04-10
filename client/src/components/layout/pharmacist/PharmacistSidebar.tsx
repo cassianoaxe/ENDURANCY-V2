@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import {
   ChevronLeft,
   ChevronRight,
@@ -50,6 +52,24 @@ export default function PharmacistSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [, navigate] = useLocation();
   const { user } = useAuth();
+  const [organizationName, setOrganizationName] = useState("");
+
+  // Buscar dados da organização
+  const { data: organizationData } = useQuery({
+    queryKey: ['organization', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      const response = await axios.get(`/api/organizations/${user.organizationId}`);
+      return response.data;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  useEffect(() => {
+    if (organizationData) {
+      setOrganizationName(organizationData.name || "");
+    }
+  }, [organizationData]);
 
   useEffect(() => {
     // Update current path when location changes
@@ -74,15 +94,23 @@ export default function PharmacistSidebar() {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         {!collapsed && (
-          <div className="flex items-center">
-            <PillIcon className="h-6 w-6 text-green-600 mr-2" />
-            <span className="font-semibold text-lg">Farmácia</span>
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <PillIcon className="h-6 w-6 text-green-600 mr-2" />
+              <span className="font-semibold text-lg">Farmácia {organizationName ? organizationName : ''}</span>
+            </div>
+            <span className="text-xs text-gray-500 ml-8">Endurancy</span>
+          </div>
+        )}
+        {collapsed && (
+          <div className="flex items-center justify-center w-full">
+            <PillIcon className="h-6 w-6 text-green-600" />
           </div>
         )}
         <Button
           variant="ghost"
           size="icon"
-          className="ml-auto"
+          className={collapsed ? "ml-0" : "ml-auto"}
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
