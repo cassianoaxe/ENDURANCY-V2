@@ -700,6 +700,20 @@ function AppContent() {
         );
       }
       
+      // Página de consultas
+      if (currentPath === '/doctor/consultas') {
+        const Consultas = React.lazy(() => import('./pages/doctor/Consultas'));
+        return (
+          <DoctorLayout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <Consultas />
+            </Suspense>
+          </DoctorLayout>
+        );
+      }
+      
       // Fallback para rotas não encontradas
       return <NotFound />;
     }
