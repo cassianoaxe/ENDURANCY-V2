@@ -18,7 +18,8 @@ import {
   HelpCircle,
   ClipboardList,
   ShoppingBag,
-  Package
+  Package,
+  CircleDollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/pharmacist/dashboard" },
   { icon: Calendar, label: "Agenda", path: "/pharmacist/agenda" },
   { icon: ClipboardCheck, label: "Aprovar Prescrições", path: "/pharmacist/prescricoes" },
+  { icon: CircleDollarSign, label: "Caixa", path: "/pharmacist/caixa" },
   { icon: PillIcon, label: "Estoque", path: "/pharmacist/estoque" },
   { icon: Package, label: "Produtos", path: "/pharmacist/produtos" },
   { icon: ShoppingBag, label: "Pedidos", path: "/pharmacist/pedidos" },
