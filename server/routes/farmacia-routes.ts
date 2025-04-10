@@ -29,7 +29,12 @@ const checkFarmaciaModuleAccess = async (req: Request, res: Response, next: Func
     }
 
     // Verificar se o módulo de farmácia está ativado para esta organização
-    const moduleCheck = await db.select()
+    const moduleCheck = await db.select({
+      id: organizationModules.id,
+      active: organizationModules.active,
+      name: modules.name,
+      slug: modules.slug
+    })
       .from(organizationModules)
       .innerJoin(modules, eq(modules.id, organizationModules.moduleId))
       .where(
@@ -43,6 +48,11 @@ const checkFarmaciaModuleAccess = async (req: Request, res: Response, next: Func
     if (moduleCheck.length === 0) {
       return res.status(403).json({ message: 'Módulo de farmácia não está disponível para esta organização' });
     }
+    
+    // Verificar se o módulo está ativo
+    if (!moduleCheck[0].active) {
+      return res.status(403).json({ message: 'Módulo de farmácia está desativado para esta organização' });
+    }
 
     next();
   } catch (error) {
@@ -55,10 +65,6 @@ const checkFarmaciaModuleAccess = async (req: Request, res: Response, next: Func
 farmaciaRouter.get('/status', authenticate, checkFarmaciaModuleAccess, async (req, res) => {
   try {
     const { organizationId } = req.session.user || {};
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     const moduleData = await db.select({
       id: organizationModules.id,
@@ -107,10 +113,6 @@ farmaciaRouter.put('/toggle', authenticate, checkFarmaciaModuleAccess, async (re
     const { organizationId } = req.session.user || {};
     const { active } = req.body;
     
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
-    
     // Verificar se o valor de "active" foi fornecido
     if (active === undefined) {
       return res.status(400).json({ message: 'Status do módulo não especificado' });
@@ -153,10 +155,6 @@ farmaciaRouter.put('/settings', authenticate, checkFarmaciaModuleAccess, async (
   try {
     const { organizationId } = req.session.user || {};
     const settings = req.body;
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     // Verificar se as configurações foram fornecidas
     if (!settings) {
@@ -202,13 +200,9 @@ farmaciaRouter.put('/settings', authenticate, checkFarmaciaModuleAccess, async (
 });
 
 // Obter métricas do módulo de farmácia
-farmaciaRouter.get('/modules/farmacia/metrics', authenticate, checkFarmaciaModuleAccess, async (req, res) => {
+farmaciaRouter.get('/metrics', authenticate, checkFarmaciaModuleAccess, async (req, res) => {
   try {
     const { organizationId } = req.session.user || {};
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     // Contar farmacêuticos RT por status
     const pharmacistsByStatus = await db.select({
@@ -261,10 +255,6 @@ farmaciaRouter.get('/farmacistas', authenticate, checkFarmaciaModuleAccess, asyn
   try {
     const { organizationId } = req.session.user || {};
     
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
-    
     // Obter todos os farmacêuticos da organização
     const farmaceuticosList = await db.select()
       .from(pharmacists)
@@ -282,10 +272,6 @@ farmaciaRouter.get('/farmacistas', authenticate, checkFarmaciaModuleAccess, asyn
 farmaciaRouter.post('/farmacistas', authenticate, checkFarmaciaModuleAccess, async (req, res) => {
   try {
     const { organizationId } = req.session.user || {};
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     // Validar os dados usando o schema
     const validationSchema = insertPharmacistSchema.extend({
@@ -327,10 +313,6 @@ farmaciaRouter.get('/farmacistas/:id', authenticate, checkFarmaciaModuleAccess, 
     const { organizationId } = req.session.user || {};
     const farmaceuticoId = parseInt(req.params.id);
     
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
-    
     if (isNaN(farmaceuticoId)) {
       return res.status(400).json({ message: 'ID do farmacêutico inválido' });
     }
@@ -362,10 +344,6 @@ farmaciaRouter.put('/farmacistas/:id', authenticate, checkFarmaciaModuleAccess, 
   try {
     const { organizationId } = req.session.user || {};
     const farmaceuticoId = parseInt(req.params.id);
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     if (isNaN(farmaceuticoId)) {
       return res.status(400).json({ message: 'ID do farmacêutico inválido' });
@@ -421,10 +399,6 @@ farmaciaRouter.patch('/farmacistas/:id/status', authenticate, checkFarmaciaModul
     const farmaceuticoId = parseInt(req.params.id);
     const { status } = req.body;
     
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
-    
     if (isNaN(farmaceuticoId)) {
       return res.status(400).json({ message: 'ID do farmacêutico inválido' });
     }
@@ -466,10 +440,6 @@ farmaciaRouter.delete('/farmacistas/:id', authenticate, checkFarmaciaModuleAcces
   try {
     const { organizationId } = req.session.user || {};
     const farmaceuticoId = parseInt(req.params.id);
-    
-    if (!organizationId) {
-      return res.status(403).json({ message: 'Usuário não vinculado a uma organização' });
-    }
     
     if (isNaN(farmaceuticoId)) {
       return res.status(400).json({ message: 'ID do farmacêutico inválido' });
