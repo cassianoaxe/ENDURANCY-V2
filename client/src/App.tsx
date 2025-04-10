@@ -640,27 +640,47 @@ function AppContent() {
     
     // Dashboard do farmacêutico
     if (currentPath === '/pharmacist/dashboard') {
-      return <PharmacistDashboard />;
+      return (
+        <PharmacistLayout>
+          <PharmacistDashboard />
+        </PharmacistLayout>
+      );
     }
     
     // Página de prescrições
     if (currentPath === '/pharmacist/prescricoes') {
-      return <PharmacistPrescricoes />;
+      return (
+        <PharmacistLayout>
+          <PharmacistPrescricoes />
+        </PharmacistLayout>
+      );
     }
     
     // Página de estoque
     if (currentPath === '/pharmacist/estoque') {
-      return <PharmacistEstoque />;
+      return (
+        <PharmacistLayout>
+          <PharmacistEstoque />
+        </PharmacistLayout>
+      );
     }
     
     // Página de caixa (PDV)
     if (currentPath === '/pharmacist/caixa') {
-      return <PharmacistCaixa />;
+      return (
+        <PharmacistLayout>
+          <PharmacistCaixa />
+        </PharmacistLayout>
+      );
     }
     
     // Página de produtos
     if (currentPath === '/pharmacist/produtos') {
-      return <PharmacistProdutos />;
+      return (
+        <PharmacistLayout>
+          <PharmacistProdutos />
+        </PharmacistLayout>
+      );
     }
     
     // Página de perfil (pode ser implementada posteriormente)
