@@ -1,470 +1,689 @@
-import { useState } from "react";
-import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { 
-  AlertCircle, 
-  Check, 
-  CheckCircle, 
-  ChevronDown,
-  ClipboardCheck, 
-  FileText, 
-  PillIcon, 
   Search, 
-  X 
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+  Eye, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
+  Calendar,
+  User,
+  Pill,
+  FileText,
+  Filter
+} from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Dados de exemplo para mockup
-const mockPrescriptions = [
-  {
-    id: "PR-38271",
-    patientName: "Maria Oliveira",
-    patientId: "PT-29384",
-    doctorName: "Dr. Carlos Santos",
-    doctorId: "DR-10293",
-    date: "2025-04-09T14:30:00",
-    status: "pending",
-    items: [
-      { id: 1, name: "CBD Oil 5%", dosage: "10ml, 2x por dia", duration: "30 dias" },
-      { id: 2, name: "Calm CBD Tincture", dosage: "5 gotas, à noite", duration: "15 dias" }
-    ],
-    notes: "Paciente relatando dores crônicas e ansiedade",
-    priority: "medium"
-  },
-  {
-    id: "PR-38272",
-    patientName: "João Silva",
-    patientId: "PT-19384",
-    doctorName: "Dra. Ana Costa",
-    doctorId: "DR-20394",
-    date: "2025-04-09T10:15:00",
-    status: "pending",
-    items: [
-      { id: 1, name: "Pain Relief Balm", dosage: "Aplicar na área afetada 3x ao dia", duration: "15 dias" }
-    ],
-    notes: "Paciente com dor lombar intensa",
-    priority: "high"
-  },
-  {
-    id: "PR-38273",
-    patientName: "Antônio Pereira",
-    patientId: "PT-38294",
-    doctorName: "Dr. Fernando Mendes",
-    doctorId: "DR-39201",
-    date: "2025-04-08T16:45:00",
-    status: "pending",
-    items: [
-      { id: 1, name: "CBD Capsules", dosage: "1 cápsula, 1x ao dia", duration: "60 dias" },
-      { id: 2, name: "Sleep Formula", dosage: "1 cápsula, 30min antes de dormir", duration: "30 dias" }
-    ],
-    notes: "Paciente com insônia e dores nas articulações",
-    priority: "medium"
-  },
-  {
-    id: "PR-38274",
-    patientName: "Luisa Ferreira",
-    patientId: "PT-48293",
-    doctorName: "Dra. Patrícia Lima",
-    doctorId: "DR-48293",
-    date: "2025-04-08T09:30:00",
-    status: "pending",
-    items: [
-      { id: 1, name: "CBD Oil 10%", dosage: "5ml, 3x por dia", duration: "30 dias" }
-    ],
-    notes: "Paciente com epilepsia refratária",
-    priority: "high"
-  },
-  {
-    id: "PR-38275",
-    patientName: "Roberto Alves",
-    patientId: "PT-58293",
-    doctorName: "Dr. Marcelo Souza",
-    doctorId: "DR-58293",
-    date: "2025-04-07T11:20:00",
-    status: "pending",
-    items: [
-      { id: 1, name: "Anti-inflammatory Gel", dosage: "Aplicar na área afetada 2x ao dia", duration: "15 dias" },
-      { id: 2, name: "Muscle Relaxant Drops", dosage: "20 gotas, 2x ao dia", duration: "10 dias" }
-    ],
-    notes: "Paciente com lesão esportiva",
-    priority: "low"
-  }
-];
+interface Prescription {
+  id: number;
+  patientId: number;
+  patientName: string;
+  doctorId: number;
+  doctorName: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  instructions: string;
+  diagnosis: string;
+  observations?: string;
+  rejectionReason?: string;
+  items: PrescriptionItem[];
+}
 
-// Componente para prescrições já aprovadas
-const ApprovedPrescriptions = () => {
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
-          <div className="relative w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Buscar prescrições aprovadas..."
-              className="pl-9 w-full"
-            />
-          </div>
-          <Select defaultValue="this-week">
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="this-week">Esta semana</SelectItem>
-              <SelectItem value="this-month">Este mês</SelectItem>
-              <SelectItem value="last-month">Mês passado</SelectItem>
-              <SelectItem value="all">Todos</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <div className="rounded-md border">
-        <div className="bg-gray-50 p-3 text-sm font-medium flex items-center">
-          <span className="flex-1">Prescrição</span>
-          <span className="flex-1">Paciente</span>
-          <span className="flex-1">Médico</span>
-          <span className="flex-1">Data</span>
-          <span className="flex-1">Status</span>
-          <span className="w-24 text-right">Ações</span>
-        </div>
-        
-        <div className="divide-y">
-          {[...mockPrescriptions.slice(0, 2)].map(prescription => ({
-            ...prescription,
-            status: "approved",
-            approvedDate: "2025-04-10T09:15:00"
-          })).map(prescription => (
-            <div key={prescription.id} className="p-3 flex items-center text-sm">
-              <span className="flex-1 font-medium">{prescription.id}</span>
-              <span className="flex-1">{prescription.patientName}</span>
-              <span className="flex-1">{prescription.doctorName}</span>
-              <span className="flex-1">{new Date(prescription.date).toLocaleDateString('pt-BR')}</span>
-              <span className="flex-1">
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-200 px-2 py-0.5">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Aprovada
-                </Badge>
-              </span>
-              <span className="w-24 text-right">
-                <Button variant="ghost" size="sm">
-                  <FileText className="h-4 w-4" />
-                  <span className="sr-only">Ver detalhes</span>
-                </Button>
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+interface PrescriptionItem {
+  id: number;
+  prescriptionId: number;
+  productId: number;
+  productName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  quantity: number;
+}
 
 export default function PharmacistPrescricoes() {
-  const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
-  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [observations, setObservations] = useState('');
 
-  const handleApprove = () => {
-    // Lógica de aprovação seria implementada aqui
-    console.log("Aprovando prescrição:", selectedPrescription?.id);
-    setIsApprovalDialogOpen(false);
-    // Atualizar estado/recarregar dados...
+  // Buscar prescrições
+  const { data: prescriptions, isLoading } = useQuery({
+    queryKey: ['prescriptions', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return [];
+      const response = await axios.get(`/api/pharmacist/prescriptions`);
+      return response.data;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  // Mutação para aprovar prescrição
+  const approveMutation = useMutation({
+    mutationFn: async (data: { prescriptionId: number, observations: string }) => {
+      return axios.post(`/api/pharmacist/prescriptions/${data.prescriptionId}/approve`, {
+        observations: data.observations
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
+      setApproveDialogOpen(false);
+      setSelectedPrescription(null);
+      toast({
+        title: "Prescrição aprovada com sucesso",
+        description: "O paciente já pode visualizar e adquirir os medicamentos",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao aprovar prescrição:', error);
+      toast({
+        title: "Erro ao aprovar prescrição",
+        description: "Tente novamente ou contate o suporte",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+
+  // Mutação para rejeitar prescrição
+  const rejectMutation = useMutation({
+    mutationFn: async (data: { prescriptionId: number, rejectionReason: string }) => {
+      return axios.post(`/api/pharmacist/prescriptions/${data.prescriptionId}/reject`, {
+        rejectionReason: data.rejectionReason
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
+      setRejectDialogOpen(false);
+      setSelectedPrescription(null);
+      setRejectionReason('');
+      toast({
+        title: "Prescrição rejeitada",
+        description: "O médico será notificado sobre a rejeição",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao rejeitar prescrição:', error);
+      toast({
+        title: "Erro ao rejeitar prescrição",
+        description: "Tente novamente ou contate o suporte",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+
+  const handleViewPrescription = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setViewDialogOpen(true);
+    
+    // Preencher observações se já existirem
+    if (prescription.observations) {
+      setObservations(prescription.observations);
+    } else {
+      setObservations('');
+    }
   };
 
-  const handleReject = () => {
-    // Lógica de rejeição seria implementada aqui
-    console.log("Rejeitando prescrição:", selectedPrescription?.id, "Motivo:", rejectionReason);
-    setIsRejectionDialogOpen(false);
-    setRejectionReason("");
-    // Atualizar estado/recarregar dados...
+  const handleApproveDialog = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setApproveDialogOpen(true);
+    
+    // Preencher observações se já existirem
+    if (prescription.observations) {
+      setObservations(prescription.observations);
+    } else {
+      setObservations('');
+    }
+  };
+
+  const handleRejectDialog = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setRejectDialogOpen(true);
+    setRejectionReason('');
+  };
+
+  const handleApprovePrescription = () => {
+    if (!selectedPrescription) return;
+    
+    approveMutation.mutate({
+      prescriptionId: selectedPrescription.id,
+      observations: observations
+    });
+  };
+
+  const handleRejectPrescription = () => {
+    if (!selectedPrescription || !rejectionReason.trim()) {
+      toast({
+        title: "Motivo da rejeição necessário",
+        description: "Por favor, informe o motivo da rejeição",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    
+    rejectMutation.mutate({
+      prescriptionId: selectedPrescription.id,
+      rejectionReason: rejectionReason
+    });
+  };
+
+  const filterPrescriptions = () => {
+    if (!prescriptions) return [];
+    
+    return prescriptions.filter((prescription: Prescription) => {
+      // Filtro por status
+      if (statusFilter !== 'all' && prescription.status !== statusFilter) {
+        return false;
+      }
+      
+      // Filtro por texto de busca
+      if (searchTerm) {
+        const searchTermLower = searchTerm.toLowerCase();
+        return (
+          prescription.patientName.toLowerCase().includes(searchTermLower) ||
+          prescription.doctorName.toLowerCase().includes(searchTermLower) ||
+          prescription.id.toString().includes(searchTermLower)
+        );
+      }
+      
+      return true;
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendente</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Aprovada</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejeitada</Badge>;
+      default:
+        return <Badge variant="outline">Desconhecido</Badge>;
+    }
   };
 
   return (
     <PharmacistLayout>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-5">
+        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gestão de Prescrições</h1>
-          <p className="text-muted-foreground">
-            Visualize, aprove e gerencie prescrições médicas
+          <h1 className="text-2xl font-bold tracking-tight">Prescrições Médicas</h1>
+          <p className="text-gray-500">
+            Gerencie e aprove prescrições médicas
           </p>
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending" className="relative">
-              Pendentes
-              <Badge className="ml-2 bg-amber-100 text-amber-800 hover:bg-amber-100">
-                {mockPrescriptions.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="approved">Aprovadas</TabsTrigger>
-            <TabsTrigger value="rejected">Rejeitadas</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="pending" className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Prescrições Aguardando Aprovação</CardTitle>
-                <CardDescription>
-                  Revise e aprove prescrições emitidas por médicos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex gap-2">
-                    <div className="relative w-80">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <Input
-                        placeholder="Buscar prescrições..."
-                        className="pl-9 w-full"
-                      />
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+              <CardTitle>Prescrições</CardTitle>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por paciente ou médico..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4" />
+                      <SelectValue placeholder="Filtrar por status" />
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-1">
-                          Filtrar
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem>Prioridade Alta</DropdownMenuItem>
-                        <DropdownMenuItem>Prioridade Média</DropdownMenuItem>
-                        <DropdownMenuItem>Prioridade Baixa</DropdownMenuItem>
-                        <DropdownMenuItem>Todos</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os status</SelectItem>
+                    <SelectItem value="pending">Pendentes</SelectItem>
+                    <SelectItem value="approved">Aprovadas</SelectItem>
+                    <SelectItem value="rejected">Rejeitadas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="list" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="list">Lista</TabsTrigger>
+                <TabsTrigger value="grid">Grade</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="list">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <p>Carregando prescrições...</p>
                   </div>
-                  <div>
-                    <Select defaultValue="newest">
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Ordenar por" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="newest">Mais recentes</SelectItem>
-                        <SelectItem value="oldest">Mais antigas</SelectItem>
-                        <SelectItem value="priority">Prioridade</SelectItem>
-                      </SelectContent>
-                    </Select>
+                ) : filterPrescriptions().length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <FileText className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-gray-500">Nenhuma prescrição encontrada</p>
+                    {(searchTerm || statusFilter !== 'all') && (
+                      <Button 
+                        variant="link" 
+                        onClick={() => {
+                          setSearchTerm('');
+                          setStatusFilter('all');
+                        }}
+                        className="mt-2"
+                      >
+                        Limpar filtros
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Paciente</TableHead>
+                          <TableHead>Médico</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filterPrescriptions().map((prescription: Prescription) => (
+                          <TableRow key={prescription.id}>
+                            <TableCell className="font-medium">#{prescription.id}</TableCell>
+                            <TableCell>{prescription.patientName}</TableCell>
+                            <TableCell>Dr. {prescription.doctorName}</TableCell>
+                            <TableCell>{formatDate(prescription.createdAt)}</TableCell>
+                            <TableCell>{getStatusBadge(prescription.status)}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewPrescription(prescription)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" /> Visualizar
+                                </Button>
+                                
+                                {prescription.status === 'pending' && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700"
+                                      onClick={() => handleApproveDialog(prescription)}
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-red-500 border-red-300 hover:bg-red-50"
+                                      onClick={() => handleRejectDialog(prescription)}
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" /> Rejeitar
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="grid">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <p>Carregando prescrições...</p>
+                  </div>
+                ) : filterPrescriptions().length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <FileText className="h-12 w-12 text-gray-300 mb-3" />
+                    <p className="text-gray-500">Nenhuma prescrição encontrada</p>
+                    {(searchTerm || statusFilter !== 'all') && (
+                      <Button 
+                        variant="link" 
+                        onClick={() => {
+                          setSearchTerm('');
+                          setStatusFilter('all');
+                        }}
+                        className="mt-2"
+                      >
+                        Limpar filtros
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filterPrescriptions().map((prescription: Prescription) => (
+                      <Card key={prescription.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-base">Prescrição #{prescription.id}</CardTitle>
+                              <p className="text-sm text-gray-500">
+                                {formatDate(prescription.createdAt)}
+                              </p>
+                            </div>
+                            {getStatusBadge(prescription.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">
+                                <span className="font-medium">Paciente:</span> {prescription.patientName}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">
+                                <span className="font-medium">Médico:</span> Dr. {prescription.doctorName}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Pill className="h-4 w-4 text-gray-500" />
+                              <span className="text-sm">
+                                <span className="font-medium">Itens:</span> {prescription.items?.length || 0} medicamentos
+                              </span>
+                            </div>
+                            
+                            <div className="pt-2 flex flex-wrap gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto"
+                                onClick={() => handleViewPrescription(prescription)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" /> Visualizar
+                              </Button>
+                              
+                              {prescription.status === 'pending' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+                                    onClick={() => handleApproveDialog(prescription)}
+                                  >
+                                    <CheckCircle className="h-4 w-4 mr-1" /> Aprovar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full sm:w-auto text-red-500 border-red-300 hover:bg-red-50"
+                                    onClick={() => handleRejectDialog(prescription)}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" /> Rejeitar
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Diálogo de visualização da prescrição */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Prescrição #{selectedPrescription?.id}</DialogTitle>
+            <DialogDescription>
+              Prescrição médica completa com histórico e medicamentos
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPrescription && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <User className="h-4 w-4" /> Informações do Paciente
+                  </h3>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="font-medium">{selectedPrescription.patientName}</p>
+                    <p className="text-sm text-gray-500">ID: {selectedPrescription.patientId}</p>
                   </div>
                 </div>
                 
-                <div className="space-y-4">
-                  {mockPrescriptions.map(prescription => (
-                    <Card key={prescription.id} className="overflow-hidden">
-                      <div className={`h-1.5 w-full ${
-                        prescription.priority === 'high' ? 'bg-red-500' : 
-                        prescription.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'
-                      }`} />
-                      <div className="p-5">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="font-medium text-lg flex items-center gap-2">
-                              <ClipboardCheck className="h-5 w-5 text-gray-500" />
-                              {prescription.id}
-                              {prescription.priority === 'high' && (
-                                <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
-                                  <AlertCircle className="h-3 w-3 mr-1" />
-                                  Prioridade Alta
-                                </Badge>
-                              )}
-                            </h3>
-                            <p className="text-muted-foreground text-sm mt-1">
-                              Emitida em {new Date(prescription.date).toLocaleString('pt-BR')}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                              onClick={() => {
-                                setSelectedPrescription(prescription);
-                                setIsRejectionDialogOpen(true);
-                              }}
-                            >
-                              <X className="h-4 w-4 mr-1" />
-                              Rejeitar
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => {
-                                setSelectedPrescription(prescription);
-                                setIsApprovalDialogOpen(true);
-                              }}
-                            >
-                              <Check className="h-4 w-4 mr-1" />
-                              Aprovar
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-6">
-                          <div>
-                            <h4 className="text-sm font-medium mb-1">Paciente</h4>
-                            <p className="text-sm">{prescription.patientName}</p>
-                            <p className="text-xs text-gray-500">{prescription.patientId}</p>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium mb-1">Médico</h4>
-                            <p className="text-sm">{prescription.doctorName}</p>
-                            <p className="text-xs text-gray-500">{prescription.doctorId}</p>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium mb-1">Observações</h4>
-                            <p className="text-sm line-clamp-2">{prescription.notes}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4 bg-gray-50 rounded-md p-3">
-                          <h4 className="text-sm font-medium mb-2">Medicamentos Prescritos</h4>
-                          <ul className="space-y-2">
-                            {prescription.items.map(item => (
-                              <li key={item.id} className="flex items-start gap-2">
-                                <PillIcon className="h-4 w-4 text-gray-500 mt-0.5" />
-                                <div>
-                                  <p className="text-sm font-medium">{item.name}</p>
-                                  <p className="text-xs text-gray-500">
-                                    {item.dosage} • Duração: {item.duration}
-                                  </p>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+                <div className="space-y-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <User className="h-4 w-4" /> Médico Responsável
+                  </h3>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="font-medium">Dr. {selectedPrescription.doctorName}</p>
+                    <p className="text-sm text-gray-500">ID: {selectedPrescription.doctorId}</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="approved">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Prescrições Aprovadas</CardTitle>
-                <CardDescription>
-                  Prescrições que você já revisou e aprovou
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ApprovedPrescriptions />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="rejected">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Prescrições Rejeitadas</CardTitle>
-                <CardDescription>
-                  Prescrições que você rejeitou por alguma razão
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="p-8 text-center">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-600">Nenhuma prescrição rejeitada</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Quando você rejeitar prescrições, elas aparecerão aqui.
-                  </p>
+                
+                <div className="space-y-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Calendar className="h-4 w-4" /> Data da Prescrição
+                  </h3>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p>{formatDate(selectedPrescription.createdAt)}</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      {/* Diálogo de Aprovação */}
-      <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Aprovação</DialogTitle>
-            <DialogDescription>
-              Você está prestes a aprovar a prescrição {selectedPrescription?.id} emitida pelo 
-              {selectedPrescription?.doctorName}. Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="bg-green-50 p-3 rounded-md flex items-start gap-2 text-sm">
-            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-green-800 font-medium">Todos os medicamentos prescritos estão disponíveis</p>
-              <p className="text-green-700">Os {selectedPrescription?.items?.length || 0} itens estão em estoque e prontos para dispensação.</p>
+                
+                <div className="space-y-2">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" /> Status Atual
+                  </h3>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(selectedPrescription.status)}
+                      {selectedPrescription.status === 'rejected' && (
+                        <span className="text-sm text-red-500">
+                          (Motivo: {selectedPrescription.rejectionReason})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Diagnóstico</h3>
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <p>{selectedPrescription.diagnosis || "Nenhum diagnóstico informado"}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold">Instruções</h3>
+                <div className="bg-gray-50 p-3 rounded-md">
+                  <p>{selectedPrescription.instructions || "Nenhuma instrução específica"}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Pill className="h-4 w-4" /> Medicamentos
+                </h3>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Medicamento</TableHead>
+                        <TableHead>Dosagem</TableHead>
+                        <TableHead>Frequência</TableHead>
+                        <TableHead>Duração</TableHead>
+                        <TableHead>Quantidade</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedPrescription.items?.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.productName}</TableCell>
+                          <TableCell>{item.dosage}</TableCell>
+                          <TableCell>{item.frequency}</TableCell>
+                          <TableCell>{item.duration}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              
+              {selectedPrescription.observations && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Observações do Farmacêutico</h3>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p>{selectedPrescription.observations}</p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
+          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApprovalDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700" onClick={handleApprove}>
-              Confirmar Aprovação
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Diálogo de Rejeição */}
-      <Dialog open={isRejectionDialogOpen} onOpenChange={setIsRejectionDialogOpen}>
+
+      {/* Diálogo de aprovação */}
+      <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeitar Prescrição</DialogTitle>
+            <DialogTitle>Aprovar Prescrição #{selectedPrescription?.id}</DialogTitle>
             <DialogDescription>
-              Por favor, explique o motivo da rejeição da prescrição {selectedPrescription?.id}. 
-              Esta informação será enviada ao médico que a emitiu.
+              Ao aprovar esta prescrição, o paciente poderá visualizá-la e adquirir os medicamentos prescritos.
             </DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label htmlFor="rejection-reason" className="text-sm font-medium">
-                Motivo da Rejeição
-              </label>
+              <Label htmlFor="observations">Observações (opcional)</Label>
               <Textarea
-                id="rejection-reason"
-                placeholder="Ex: Dosagem incorreta, medicamento indisponível..."
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="min-h-[100px]"
+                id="observations"
+                placeholder="Adicione observações ou recomendações para o paciente"
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                rows={4}
               />
             </div>
           </div>
+          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRejectionDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
               Cancelar
             </Button>
             <Button 
-              className="bg-red-600 hover:bg-red-700" 
-              onClick={handleReject}
-              disabled={!rejectionReason.trim()}
+              onClick={handleApprovePrescription} 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={approveMutation.isPending}
             >
-              Rejeitar Prescrição
+              {approveMutation.isPending ? "Processando..." : "Confirmar Aprovação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de rejeição */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeitar Prescrição #{selectedPrescription?.id}</DialogTitle>
+            <DialogDescription>
+              Informe o motivo da rejeição desta prescrição. O médico será notificado.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejectionReason">Motivo da Rejeição <span className="text-red-500">*</span></Label>
+              <Textarea
+                id="rejectionReason"
+                placeholder="Ex: Medicamentos incompatíveis, dosagem incorreta, etc."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+              {rejectionReason.trim() === '' && (
+                <p className="text-sm text-red-500">O motivo da rejeição é obrigatório</p>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleRejectPrescription} 
+              variant="destructive"
+              disabled={rejectMutation.isPending || rejectionReason.trim() === ''}
+            >
+              {rejectMutation.isPending ? "Processando..." : "Confirmar Rejeição"}
             </Button>
           </DialogFooter>
         </DialogContent>
