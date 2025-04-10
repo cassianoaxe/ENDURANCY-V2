@@ -13,7 +13,8 @@ import {
   FileText,
   ClipboardList,
   UserSquare2,
-  BookOpen
+  BookOpen,
+  Building
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
