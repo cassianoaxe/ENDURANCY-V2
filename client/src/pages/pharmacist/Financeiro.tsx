@@ -48,8 +48,6 @@ interface PaymentMethod {
 interface MonthlyFinance {
   month: string;
   income: number;
-  expenses: number;
-  profit: number;
 }
 
 // Dados fictícios para demonstração
@@ -93,23 +91,21 @@ const mockPaymentMethods: PaymentMethod[] = [
 ];
 
 const mockMonthlyFinances: MonthlyFinance[] = [
-  { month: 'Jan', income: 32000, expenses: 25000, profit: 7000 },
-  { month: 'Fev', income: 34500, expenses: 26300, profit: 8200 },
-  { month: 'Mar', income: 37600, expenses: 28500, profit: 9100 },
-  { month: 'Abr', income: 42000, expenses: 31500, profit: 10500 },
-  { month: 'Mai', income: 40800, expenses: 31000, profit: 9800 },
-  { month: 'Jun', income: 43200, expenses: 33000, profit: 10200 },
-  { month: 'Jul', income: 47500, expenses: 36000, profit: 11500 },
-  { month: 'Ago', income: 49300, expenses: 37300, profit: 12000 },
-  { month: 'Set', income: 47000, expenses: 36000, profit: 11000 },
-  { month: 'Out', income: 52500, expenses: 40000, profit: 12500 },
-  { month: 'Nov', income: 54200, expenses: 41000, profit: 13200 },
-  { month: 'Dez', income: 62000, expenses: 47000, profit: 15000 },
+  { month: 'Jan', income: 32000 },
+  { month: 'Fev', income: 34500 },
+  { month: 'Mar', income: 37600 },
+  { month: 'Abr', income: 42000 },
+  { month: 'Mai', income: 40800 },
+  { month: 'Jun', income: 43200 },
+  { month: 'Jul', income: 47500 },
+  { month: 'Ago', income: 49300 },
+  { month: 'Set', income: 47000 },
+  { month: 'Out', income: 52500 },
+  { month: 'Nov', income: 54200 },
+  { month: 'Dez', income: 62000 },
 ];
 
 const totalIncomes = mockMonthlyFinances.reduce((sum, item) => sum + item.income, 0);
-const totalExpenses = mockMonthlyFinances.reduce((sum, item) => sum + item.expenses, 0);
-const totalProfit = mockMonthlyFinances.reduce((sum, item) => sum + item.profit, 0);
 
 export default function PharmacistFinanceiro() {
   const { user } = useAuth();
@@ -214,7 +210,7 @@ export default function PharmacistFinanceiro() {
         </div>
         
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Receitas Totais</CardTitle>
@@ -232,45 +228,30 @@ export default function PharmacistFinanceiro() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Despesas Totais</CardTitle>
+              <CardTitle className="text-sm font-medium">Valor Médio por Venda</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(totalExpenses)}
+                {formatCurrency(78.50)}
               </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+8.3%</span> vs. ano anterior
+                <span className="text-green-500">+5.2%</span> vs. mês anterior
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
+              <CardTitle className="text-sm font-medium">Total de Vendas</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {formatCurrency(totalProfit)}
+                1.847
               </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+15.8%</span> vs. ano anterior
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Margem de Lucro</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {((totalProfit / totalIncomes) * 100).toFixed(1)}%
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+2.5%</span> vs. ano anterior
+                <span className="text-green-500">+8.3%</span> vs. mês anterior
               </p>
             </CardContent>
           </Card>
@@ -279,7 +260,7 @@ export default function PharmacistFinanceiro() {
         {/* Main Content */}
         <Tabs defaultValue="visao-geral" onValueChange={setFinanceTab}>
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-            <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full md:w-auto">
+            <TabsList className="grid grid-cols-2 md:grid-cols-3 w-full md:w-auto">
               <TabsTrigger value="visao-geral" className="gap-2">
                 <LineChart className="h-4 w-4" />
                 Visão Geral
@@ -290,11 +271,7 @@ export default function PharmacistFinanceiro() {
               </TabsTrigger>
               <TabsTrigger value="receitas" className="gap-2">
                 <TrendingUp className="h-4 w-4" />
-                Receitas
-              </TabsTrigger>
-              <TabsTrigger value="despesas" className="gap-2">
-                <ChevronDown className="h-4 w-4" />
-                Despesas
+                Receitas por Produto
               </TabsTrigger>
             </TabsList>
           </div>
@@ -304,9 +281,9 @@ export default function PharmacistFinanceiro() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <Card className="col-span-1 lg:col-span-2">
                 <CardHeader>
-                  <CardTitle>Análise Financeira Mensal</CardTitle>
+                  <CardTitle>Receitas Mensais</CardTitle>
                   <CardDescription>
-                    Comparativo entre receitas, despesas e lucro
+                    Valor de vendas por mês
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -341,8 +318,6 @@ export default function PharmacistFinanceiro() {
                         />
                         <Legend />
                         <Bar dataKey="income" name="Receitas" fill="#00C49F" />
-                        <Bar dataKey="expenses" name="Despesas" fill="#FF8042" />
-                        <Bar dataKey="profit" name="Lucro" fill="#0088FE" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -384,34 +359,48 @@ export default function PharmacistFinanceiro() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Distribuição de Despesas</CardTitle>
+                  <CardTitle>Top Produtos Vendidos</CardTitle>
                   <CardDescription>
-                    Análise por categoria de despesa
+                    Produtos com maior volume de vendas
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={mockExpenseCategories}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="percentage"
-                        >
-                          {mockExpenseCategories.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => `${value}%`} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-right">Qtd. Vendida</TableHead>
+                        <TableHead className="text-right">Valor Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">Medicamento A</TableCell>
+                        <TableCell className="text-right">348</TableCell>
+                        <TableCell className="text-right">{formatCurrency(8700)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Medicamento B</TableCell>
+                        <TableCell className="text-right">235</TableCell>
+                        <TableCell className="text-right">{formatCurrency(7050)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Cosmético C</TableCell>
+                        <TableCell className="text-right">187</TableCell>
+                        <TableCell className="text-right">{formatCurrency(5610)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Vitamina D</TableCell>
+                        <TableCell className="text-right">162</TableCell>
+                        <TableCell className="text-right">{formatCurrency(4860)}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Higiene E</TableCell>
+                        <TableCell className="text-right">140</TableCell>
+                        <TableCell className="text-right">{formatCurrency(2800)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </div>
