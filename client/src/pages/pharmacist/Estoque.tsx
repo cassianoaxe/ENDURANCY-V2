@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -9,22 +9,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { 
   Search, 
-  PackageOpen, 
-  Edit, 
-  PlusCircle, 
-  Trash2, 
-  AlertTriangle,
-  ArrowUpDown,
-  Filter
+  PackagePlus, 
+  ArrowUpDown, 
+  Filter, 
+  AlertTriangle, 
+  Plus,
+  Calendar,
+  CheckCircle2,
+  BellRing,
+  Download,
+  BarChart4,
+  Activity
 } from 'lucide-react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -33,10 +29,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { 
   Select, 
   SelectContent, 
@@ -44,6 +46,21 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
 interface Product {
   id: number;
@@ -56,7 +73,32 @@ interface Product {
   expiryDate?: string;
   location?: string;
   supplier?: string;
+  barcode?: string;
   sku?: string;
+  status?: 'active' | 'inactive';
+}
+
+interface RestockItem {
+  id?: number;
+  productId: number;
+  product?: Product;
+  quantity: number;
+  price: number;
+  supplier?: string;
+  purchaseDate: string;
+  expectedDeliveryDate?: string;
+  status: 'pending' | 'received' | 'partial' | 'cancelled';
+  notes?: string;
+}
+
+interface StockMovement {
+  id: number;
+  productId: number;
+  product?: Product;
+  quantity: number;
+  type: 'sale' | 'purchase' | 'adjustment' | 'return' | 'loss';
+  date: string;
+  notes?: string;
 }
 
 export default function PharmacistEstoque() {
@@ -65,27 +107,29 @@ export default function PharmacistEstoque() {
   const queryClient = useQueryClient();
   const [organizationName, setOrganizationName] = useState("");
   const [searchTerm, setSearchTerm] = useState('');
-  const [stockFilter, setStockFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [stockFilter, setStockFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isRestockDialogOpen, setIsRestockDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAdjustStockDialogOpen, setIsAdjustStockDialogOpen] = useState(false);
-  const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
-  const [adjustmentReason, setAdjustmentReason] = useState('');
+  const [restockItem, setRestockItem] = useState<RestockItem>({
+    productId: 0,
+    quantity: 1,
+    price: 0,
+    purchaseDate: new Date().toISOString().split('T')[0],
+    status: 'pending'
+  });
+  const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
+  const [stockAdjustment, setStockAdjustment] = useState({
+    productId: 0,
+    quantity: 0,
+    type: 'adjustment',
+    notes: '',
+  });
+  const [activeTab, setActiveTab] = useState('overview');
   
-  // Campos de edição de produto
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editPrice, setEditPrice] = useState('');
-  const [editStock, setEditStock] = useState('');
-  const [editMinStock, setEditMinStock] = useState('');
-  const [editCategory, setEditCategory] = useState('');
-  const [editLocation, setEditLocation] = useState('');
-  const [editExpiryDate, setEditExpiryDate] = useState('');
-
-  // Buscar dados da organização
+  // Dados da organização
   const { data: organizationData } = useQuery({
     queryKey: ['organization', user?.organizationId],
     queryFn: async () => {
@@ -107,24 +151,154 @@ export default function PharmacistEstoque() {
     enabled: !!user?.organizationId
   });
 
-  // Mutação para atualizar produto
-  const updateProductMutation = useMutation({
-    mutationFn: async (data: Partial<Product> & { id: number }) => {
-      return axios.put(`/api/organizations/${user?.organizationId}/products/${data.id}`, data);
+  // Buscar pedidos de reposição (mock data por enquanto)
+  const { data: restockOrders = [] } = useQuery({
+    queryKey: ['restock-orders', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return [];
+      
+      // TODO: Implementar API real
+      // Simulação de dados de pedidos de reposição
+      const mockData = [
+        {
+          id: 1,
+          productId: 101,
+          product: { 
+            id: 101, 
+            name: "Paracetamol 500mg", 
+            price: 15.90, 
+            stockQuantity: 45, 
+            minStockLevel: 20 
+          },
+          quantity: 100,
+          price: 12.50,
+          supplier: "Fornecedor Farmacêutico",
+          purchaseDate: "2025-04-01",
+          expectedDeliveryDate: "2025-04-15",
+          status: "pending"
+        },
+        {
+          id: 2,
+          productId: 102,
+          product: { 
+            id: 102, 
+            name: "Dipirona 1g", 
+            price: 18.50, 
+            stockQuantity: 30, 
+            minStockLevel: 15 
+          },
+          quantity: 50,
+          price: 15.00,
+          supplier: "Distribuidora Médica",
+          purchaseDate: "2025-04-03",
+          expectedDeliveryDate: "2025-04-10",
+          status: "received"
+        },
+        {
+          id: 3,
+          productId: 103,
+          product: { 
+            id: 103, 
+            name: "Ibuprofeno 400mg", 
+            price: 22.90, 
+            stockQuantity: 25, 
+            minStockLevel: 10 
+          },
+          quantity: 40,
+          price: 18.50,
+          supplier: "Fornecedor Nacional",
+          purchaseDate: "2025-04-05",
+          expectedDeliveryDate: "2025-04-12",
+          status: "partial"
+        }
+      ];
+      
+      return mockData;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  // Buscar movimentações de estoque (mock data por enquanto)
+  const { data: stockMovements = [] } = useQuery({
+    queryKey: ['stock-movements', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return [];
+      
+      // TODO: Implementar API real
+      // Simulação de dados de movimentações de estoque
+      const mockData = [
+        {
+          id: 1,
+          productId: 101,
+          product: { id: 101, name: "Paracetamol 500mg" },
+          quantity: -2,
+          type: "sale",
+          date: "2025-04-10",
+          notes: "Venda #12345"
+        },
+        {
+          id: 2,
+          productId: 102,
+          product: { id: 102, name: "Dipirona 1g" },
+          quantity: 50,
+          type: "purchase",
+          date: "2025-04-09",
+          notes: "Compra #789"
+        },
+        {
+          id: 3,
+          productId: 103,
+          product: { id: 103, name: "Ibuprofeno 400mg" },
+          quantity: -5,
+          type: "adjustment",
+          date: "2025-04-08",
+          notes: "Ajuste de inventário"
+        },
+        {
+          id: 4,
+          productId: 101,
+          product: { id: 101, name: "Paracetamol 500mg" },
+          quantity: -1,
+          type: "loss",
+          date: "2025-04-07",
+          notes: "Produto danificado"
+        },
+        {
+          id: 5,
+          productId: 104,
+          product: { id: 104, name: "Amoxicilina 500mg" },
+          quantity: 1,
+          type: "return",
+          date: "2025-04-06",
+          notes: "Devolução cliente"
+        }
+      ];
+      
+      return mockData;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  // Mutação para criar pedido de reposição
+  const createRestockMutation = useMutation({
+    mutationFn: async (data: RestockItem) => {
+      // TODO: Implementar API real
+      console.log('Criando pedido de reposição:', data);
+      return { data };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsEditDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['restock-orders'] });
+      setIsRestockDialogOpen(false);
       toast({
-        title: "Produto atualizado com sucesso",
-        description: "As alterações foram salvas no sistema",
+        title: "Pedido de reposição criado",
+        description: "O pedido foi registrado com sucesso",
         duration: 3000,
       });
     },
     onError: (error) => {
-      console.error('Erro ao atualizar produto:', error);
+      console.error('Erro ao criar pedido de reposição:', error);
       toast({
-        title: "Erro ao atualizar produto",
+        title: "Erro ao criar pedido",
         description: "Tente novamente ou contate o suporte",
         variant: "destructive",
         duration: 5000,
@@ -134,21 +308,18 @@ export default function PharmacistEstoque() {
 
   // Mutação para ajustar estoque
   const adjustStockMutation = useMutation({
-    mutationFn: async (data: { productId: number, quantity: number, reason: string }) => {
-      return axios.post(`/api/pharmacist/products/${data.productId}/stock-adjustment`, {
-        quantity: data.quantity,
-        reason: data.reason
-      });
+    mutationFn: async (data: any) => {
+      // TODO: Implementar API real
+      console.log('Ajustando estoque:', data);
+      return { data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsAdjustStockDialogOpen(false);
-      setSelectedProduct(null);
-      setAdjustmentQuantity('');
-      setAdjustmentReason('');
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] });
+      setIsAdjustDialogOpen(false);
       toast({
-        title: "Estoque ajustado com sucesso",
-        description: "O ajuste foi registrado no sistema",
+        title: "Estoque ajustado",
+        description: "O ajuste foi registrado com sucesso",
         duration: 3000,
       });
     },
@@ -178,74 +349,44 @@ export default function PharmacistEstoque() {
     }
   };
 
-  const handleEditProduct = (product: Product) => {
+  const openRestockDialog = (product: Product) => {
     setSelectedProduct(product);
-    setEditName(product.name);
-    setEditDescription(product.description || '');
-    setEditPrice(product.price.toString());
-    setEditStock(product.stockQuantity.toString());
-    setEditMinStock(product.minStockLevel.toString());
-    setEditCategory(product.category || '');
-    setEditLocation(product.location || '');
-    setEditExpiryDate(product.expiryDate || '');
-    setIsEditDialogOpen(true);
-  };
-
-  const handleSaveProduct = () => {
-    if (!selectedProduct) return;
-    
-    const updatedProduct = {
-      id: selectedProduct.id,
-      name: editName,
-      description: editDescription,
-      price: parseFloat(editPrice),
-      stockQuantity: parseInt(editStock),
-      minStockLevel: parseInt(editMinStock),
-      category: editCategory,
-      location: editLocation,
-      expiryDate: editExpiryDate || undefined
-    };
-    
-    updateProductMutation.mutate(updatedProduct);
-  };
-
-  const handleAdjustStock = (product: Product) => {
-    setSelectedProduct(product);
-    setAdjustmentQuantity('');
-    setAdjustmentReason('');
-    setIsAdjustStockDialogOpen(true);
-  };
-
-  const handleSaveStockAdjustment = () => {
-    if (!selectedProduct) return;
-    
-    const quantity = parseInt(adjustmentQuantity);
-    
-    if (isNaN(quantity) || quantity === 0) {
-      toast({
-        title: "Quantidade inválida",
-        description: "Por favor, informe uma quantidade válida diferente de zero",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    if (adjustmentReason.trim() === '') {
-      toast({
-        title: "Razão necessária",
-        description: "Por favor, informe o motivo do ajuste de estoque",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    adjustStockMutation.mutate({
-      productId: selectedProduct.id,
-      quantity: quantity,
-      reason: adjustmentReason
+    setRestockItem({
+      productId: product.id,
+      quantity: Math.max(product.minStockLevel - product.stockQuantity, 10),
+      price: product.price * 0.7, // Preço sugerido (exemplo: 70% do preço de venda)
+      purchaseDate: new Date().toISOString().split('T')[0],
+      expectedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: 'pending',
+      supplier: product.supplier
     });
+    setIsRestockDialogOpen(true);
+  };
+
+  const openAdjustDialog = (product: Product) => {
+    setSelectedProduct(product);
+    setStockAdjustment({
+      productId: product.id,
+      quantity: 0,
+      type: 'adjustment',
+      notes: '',
+    });
+    setIsAdjustDialogOpen(true);
+  };
+
+  const handleCreateRestock = () => {
+    createRestockMutation.mutate(restockItem);
+  };
+
+  const handleAdjustStock = () => {
+    if (selectedProduct) {
+      adjustStockMutation.mutate({
+        productId: selectedProduct.id,
+        quantity: stockAdjustment.quantity,
+        type: stockAdjustment.type,
+        notes: stockAdjustment.notes
+      });
+    }
   };
 
   const filterAndSortProducts = () => {
@@ -261,28 +402,26 @@ export default function PharmacistEstoque() {
           product.name.toLowerCase().includes(searchTermLower) ||
           product.description?.toLowerCase().includes(searchTermLower) ||
           product.category?.toLowerCase().includes(searchTermLower) ||
-          product.sku?.toLowerCase().includes(searchTermLower)
+          product.sku?.toLowerCase().includes(searchTermLower) ||
+          product.barcode?.toLowerCase().includes(searchTermLower)
       );
-    }
-    
-    // Aplicar filtro de estoque
-    if (stockFilter !== 'all') {
-      filteredProducts = filteredProducts.filter((product: Product) => {
-        if (stockFilter === 'low') {
-          return product.stockQuantity <= product.minStockLevel;
-        } else if (stockFilter === 'outOfStock') {
-          return product.stockQuantity === 0;
-        } else if (stockFilter === 'inStock') {
-          return product.stockQuantity > 0;
-        }
-        return true;
-      });
     }
     
     // Aplicar filtro de categoria
     if (categoryFilter !== 'all') {
       filteredProducts = filteredProducts.filter(
         (product: Product) => product.category === categoryFilter
+      );
+    }
+    
+    // Aplicar filtro de estoque
+    if (stockFilter === 'low') {
+      filteredProducts = filteredProducts.filter(
+        (product: Product) => product.stockQuantity <= product.minStockLevel
+      );
+    } else if (stockFilter === 'out') {
+      filteredProducts = filteredProducts.filter(
+        (product: Product) => product.stockQuantity === 0
       );
     }
     
@@ -308,33 +447,6 @@ export default function PharmacistEstoque() {
     return filteredProducts;
   };
 
-  const getStockStatusBadge = (product: Product) => {
-    if (product.stockQuantity === 0) {
-      return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Sem Estoque</Badge>;
-    } else if (product.stockQuantity <= product.minStockLevel) {
-      return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Estoque Baixo</Badge>;
-    } else {
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Em Estoque</Badge>;
-    }
-  };
-
-  const getStockPercentage = (product: Product) => {
-    if (product.minStockLevel === 0) return 100;
-    const targetLevel = product.minStockLevel * 3; // Considerando que 3x o mínimo é um nível "bom" de estoque
-    const percentage = (product.stockQuantity / targetLevel) * 100;
-    return Math.min(Math.max(percentage, 0), 100); // Limitar entre 0 e 100
-  };
-
-  const getStockProgressColor = (product: Product) => {
-    if (product.stockQuantity === 0) {
-      return "bg-red-500";
-    } else if (product.stockQuantity <= product.minStockLevel) {
-      return "bg-yellow-500";
-    } else {
-      return "bg-green-500";
-    }
-  };
-
   const getUniqueCategories = () => {
     if (!products) return [];
     
@@ -355,10 +467,92 @@ export default function PharmacistEstoque() {
     }).format(value);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR').format(date);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const getStockStatusBadge = (quantity: number, minLevel: number) => {
+    if (quantity === 0) {
+      return <Badge variant="destructive">Sem estoque</Badge>;
+    } else if (quantity <= minLevel) {
+      return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Estoque baixo</Badge>;
+    } else {
+      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Em estoque</Badge>;
+    }
+  };
+
+  const getRestockStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Pendente</Badge>;
+      case 'received':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Recebido</Badge>;
+      case 'partial':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Parcial</Badge>;
+      case 'cancelled':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Cancelado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const getMovementTypeBadge = (type: string, quantity: number) => {
+    switch (type) {
+      case 'sale':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Venda</Badge>;
+      case 'purchase':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Compra</Badge>;
+      case 'adjustment':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Ajuste</Badge>;
+      case 'return':
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Devolução</Badge>;
+      case 'loss':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Perda</Badge>;
+      default:
+        return <Badge variant="outline">{type}</Badge>;
+    }
+  };
+
+  // Dados para o gráfico de barras - estoque por categoria
+  const getStockByCategoryData = () => {
+    if (!products || products.length === 0) return [];
+    
+    const categories: Record<string, number> = {};
+    
+    products.forEach((product: Product) => {
+      const category = product.category || 'Sem categoria';
+      if (!categories[category]) {
+        categories[category] = 0;
+      }
+      categories[category] += product.stockQuantity;
+    });
+    
+    return Object.entries(categories).map(([name, value]) => ({ name, value }));
+  };
+
+  // Dados para o gráfico de pizza - status de estoque
+  const getStockStatusData = () => {
+    if (!products || products.length === 0) return [];
+    
+    let lowStock = 0;
+    let outOfStock = 0;
+    let healthyStock = 0;
+    
+    products.forEach((product: Product) => {
+      if (product.stockQuantity === 0) {
+        outOfStock++;
+      } else if (product.stockQuantity <= product.minStockLevel) {
+        lowStock++;
+      } else {
+        healthyStock++;
+      }
+    });
+    
+    return [
+      { name: 'Estoque normal', value: healthyStock, color: '#22c55e' },
+      { name: 'Estoque baixo', value: lowStock, color: '#f97316' },
+      { name: 'Sem estoque', value: outOfStock, color: '#ef4444' }
+    ];
   };
 
   return (
@@ -368,53 +562,71 @@ export default function PharmacistEstoque() {
         <div>
           <div className="flex items-center justify-between mb-1">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Gerenciamento de Estoque</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Estoque</h1>
               <p className="text-gray-500">
-                Controle de produtos e estoque • Farmácia {organizationName}
+                Gestão de estoque e inventário • Farmácia {organizationName}
               </p>
             </div>
-            <Button className="flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Novo Produto
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Exportar
+              </Button>
+              <Button variant="outline" className="flex items-center gap-2" onClick={() => setActiveTab('reports')}>
+                <BarChart4 className="h-4 w-4" />
+                Relatórios
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Estatísticas de Estoque */}
+        {/* Estatísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total de Produtos</CardTitle>
+              <CardTitle className="text-sm font-medium">Inventário Total</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {products ? products.reduce((sum: number, p: Product) => sum + p.stockQuantity, 0) : 0}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Unidades em estoque
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Produtos</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {products ? products.length : 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                Produtos cadastrados no sistema
+                Produtos cadastrados
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Produtos com Estoque Baixo</CardTitle>
+              <CardTitle className="text-sm font-medium text-orange-600">Estoque Baixo</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {products ? products.filter((p: Product) => 
-                  p.stockQuantity > 0 && p.stockQuantity <= p.minStockLevel
-                ).length : 0}
+              <div className="text-2xl font-bold text-orange-600">
+                {products ? products.filter((p: Product) => p.stockQuantity > 0 && p.stockQuantity <= p.minStockLevel).length : 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                Produtos abaixo do nível mínimo
+                Produtos com estoque baixo
               </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Produtos Sem Estoque</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-600">Esgotados</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
@@ -425,414 +637,850 @@ export default function PharmacistEstoque() {
               </p>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Valor do Estoque</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {products ? formatCurrency(
-                  products.reduce((sum: number, p: Product) => 
-                    sum + (p.price * p.stockQuantity), 0)
-                ) : 'R$ 0,00'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Valor total em estoque
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Tabela de Produtos */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
-              <CardTitle>Produtos em Estoque</CardTitle>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar produtos..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <Select value={stockFilter} onValueChange={setStockFilter}>
-                  <SelectTrigger className="w-full sm:w-44">
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <SelectValue placeholder="Filtrar por estoque" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="inStock">Em estoque</SelectItem>
-                    <SelectItem value="low">Estoque baixo</SelectItem>
-                    <SelectItem value="outOfStock">Sem estoque</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select 
-                  value={categoryFilter} 
-                  onValueChange={setCategoryFilter}
-                  disabled={getUniqueCategories().length === 0}
-                >
-                  <SelectTrigger className="w-full sm:w-44">
-                    <div className="flex items-center gap-2">
-                      <PackageOpen className="h-4 w-4" />
-                      <SelectValue placeholder="Filtrar por categoria" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    {getUniqueCategories().map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center h-60">
-                <p>Carregando produtos...</p>
-              </div>
-            ) : filterAndSortProducts().length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-60 text-center">
-                <PackageOpen className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-gray-500">Nenhum produto encontrado</p>
-                {(searchTerm || stockFilter !== 'all' || categoryFilter !== 'all') && (
-                  <Button 
-                    variant="link" 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setStockFilter('all');
-                      setCategoryFilter('all');
-                    }}
-                    className="mt-2"
-                  >
-                    Limpar filtros
-                  </Button>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full bg-background grid grid-cols-4 h-11">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="inventory">Inventário</TabsTrigger>
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="reports">Relatórios</TabsTrigger>
+          </TabsList>
+
+          {/* Visão Geral */}
+          <TabsContent value="overview" className="space-y-5">
+            {/* Produtos com estoque baixo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <AlertTriangle className="h-5 w-5 text-orange-500 mr-2" />
+                  Produtos com Estoque Baixo
+                </CardTitle>
+                <CardDescription>
+                  Produtos que precisam ser reabastecidos em breve
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-40">
+                    <p>Carregando produtos...</p>
+                  </div>
+                ) : (
+                  <div className="border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produto</TableHead>
+                          <TableHead>Categoria</TableHead>
+                          <TableHead className="text-right">Estoque</TableHead>
+                          <TableHead className="text-right">Mín. Requerido</TableHead>
+                          <TableHead className="text-right">Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products && products
+                          .filter((product: Product) => product.stockQuantity <= product.minStockLevel)
+                          .slice(0, 5)
+                          .map((product: Product) => (
+                            <TableRow key={product.id}>
+                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell>{product.category || '-'}</TableCell>
+                              <TableCell className="text-right">{product.stockQuantity}</TableCell>
+                              <TableCell className="text-right">{product.minStockLevel}</TableCell>
+                              <TableCell className="text-right">
+                                {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openRestockDialog(product)}
+                                >
+                                  <PackagePlus className="h-3 w-3 mr-1" /> Pedir
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        
+                        {(!products || products.filter((product: Product) => 
+                          product.stockQuantity <= product.minStockLevel).length === 0) && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-4">
+                              <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                              <p>Todos os produtos estão com estoque adequado</p>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
-              </div>
-            ) : (
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[50px]">ID</TableHead>
-                      <TableHead>
-                        <button 
-                          className="flex items-center" 
-                          onClick={() => handleSort('name')}
-                        >
-                          Produto
-                          {sortField === 'name' && (
-                            <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                      </TableHead>
-                      <TableHead>
-                        <button 
-                          className="flex items-center" 
-                          onClick={() => handleSort('category')}
-                        >
-                          Categoria
-                          {sortField === 'category' && (
-                            <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <button 
-                          className="flex items-center ml-auto" 
-                          onClick={() => handleSort('price')}
-                        >
-                          Preço
-                          {sortField === 'price' && (
-                            <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                      </TableHead>
-                      <TableHead>
-                        <button 
-                          className="flex items-center" 
-                          onClick={() => handleSort('stockQuantity')}
-                        >
-                          Estoque
-                          {sortField === 'stockQuantity' && (
-                            <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                      </TableHead>
-                      <TableHead>
-                        <button 
-                          className="flex items-center" 
-                          onClick={() => handleSort('status')}
-                        >
-                          Status
-                          {sortField === 'status' && (
-                            <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filterAndSortProducts().map((product: Product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.id}</TableCell>
-                        <TableCell>
-                          <div className="max-w-[200px]">
-                            <div className="font-medium truncate" title={product.name}>
-                              {product.name}
-                            </div>
-                            <div className="text-xs text-gray-500 truncate" title={product.description}>
-                              {product.description || 'Sem descrição'}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{product.category || '-'}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(product.price)}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm">{product.stockQuantity}</span>
-                              <span className="text-xs text-gray-500">Min: {product.minStockLevel}</span>
-                            </div>
-                            <Progress 
-                              value={getStockPercentage(product)} 
-                              className={`h-2 ${getStockProgressColor(product)}`}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStockStatusBadge(product)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAdjustStock(product)}
-                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            >
-                              <PackageOpen className="h-3 w-3 mr-1" /> Ajustar
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <Edit className="h-3 w-3 mr-1" /> Editar
-                            </Button>
-                          </div>
-                        </TableCell>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-auto"
+                  onClick={() => {
+                    setStockFilter('low');
+                    setActiveTab('inventory');
+                  }}
+                >
+                  Ver todos os produtos com estoque baixo
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Pedidos recentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <Calendar className="h-5 w-5 text-blue-500 mr-2" />
+                  Pedidos de Reposição Recentes
+                </CardTitle>
+                <CardDescription>
+                  Últimos pedidos de produtos para reabastecimento
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-right">Quantidade</TableHead>
+                        <TableHead className="text-right">Data do Pedido</TableHead>
+                        <TableHead className="text-right">Entrega Prevista</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {restockOrders.slice(0, 5).map((order: any) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.product?.name}</TableCell>
+                          <TableCell className="text-right">{order.quantity}</TableCell>
+                          <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
+                          <TableCell className="text-right">
+                            {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {getRestockStatusBadge(order.status)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {restockOrders.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4">
+                            <p className="text-gray-500">Nenhum pedido de reposição recente</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-auto"
+                  onClick={() => setActiveTab('orders')}
+                >
+                  Ver todos os pedidos
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Movimentações recentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center">
+                  <Activity className="h-5 w-5 text-purple-500 mr-2" />
+                  Movimentações Recentes
+                </CardTitle>
+                <CardDescription>
+                  Últimas entradas e saídas de produtos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead className="text-right">Quantidade</TableHead>
+                        <TableHead className="text-right">Data</TableHead>
+                        <TableHead>Observações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stockMovements.slice(0, 5).map((movement: any) => (
+                        <TableRow key={movement.id}>
+                          <TableCell className="font-medium">{movement.product?.name}</TableCell>
+                          <TableCell>
+                            {getMovementTypeBadge(movement.type, movement.quantity)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              {movement.quantity >= 0 ? `+${movement.quantity}` : movement.quantity}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">{formatDate(movement.date)}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{movement.notes || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {stockMovements.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4">
+                            <p className="text-gray-500">Nenhuma movimentação recente</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Inventário */}
+          <TabsContent value="inventory" className="space-y-5">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+                  <CardTitle>Inventário</CardTitle>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar produtos..."
+                        className="pl-8"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-full sm:w-44">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <SelectValue placeholder="Filtrar categoria" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as categorias</SelectItem>
+                        {getUniqueCategories().map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={stockFilter} onValueChange={setStockFilter}>
+                      <SelectTrigger className="w-full sm:w-44">
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          <SelectValue placeholder="Filtrar por estoque" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os produtos</SelectItem>
+                        <SelectItem value="low">Estoque baixo</SelectItem>
+                        <SelectItem value="out">Esgotados</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-60">
+                    <p>Carregando produtos...</p>
+                  </div>
+                ) : filterAndSortProducts().length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-60 text-center">
+                    <p className="text-gray-500">Nenhum produto encontrado</p>
+                    {(searchTerm || categoryFilter !== 'all' || stockFilter !== 'all') && (
+                      <Button 
+                        variant="link" 
+                        onClick={() => {
+                          setSearchTerm('');
+                          setCategoryFilter('all');
+                          setStockFilter('all');
+                        }}
+                        className="mt-2"
+                      >
+                        Limpar filtros
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>
+                            <button 
+                              className="flex items-center" 
+                              onClick={() => handleSort('name')}
+                            >
+                              Produto
+                              {sortField === 'name' && (
+                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                              )}
+                            </button>
+                          </TableHead>
+                          <TableHead>
+                            <button 
+                              className="flex items-center" 
+                              onClick={() => handleSort('category')}
+                            >
+                              Categoria
+                              {sortField === 'category' && (
+                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                              )}
+                            </button>
+                          </TableHead>
+                          <TableHead className="text-right">
+                            <button 
+                              className="flex items-center ml-auto" 
+                              onClick={() => handleSort('stockQuantity')}
+                            >
+                              Estoque
+                              {sortField === 'stockQuantity' && (
+                                <ArrowUpDown className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''}`} />
+                              )}
+                            </button>
+                          </TableHead>
+                          <TableHead className="text-right">Mín. Requerido</TableHead>
+                          <TableHead className="text-right">Nível</TableHead>
+                          <TableHead className="text-right">Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filterAndSortProducts().map((product: Product) => (
+                          <TableRow key={product.id}>
+                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell>{product.category || '-'}</TableCell>
+                            <TableCell className="text-right">{product.stockQuantity}</TableCell>
+                            <TableCell className="text-right">{product.minStockLevel}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="w-24 ml-auto">
+                                <Progress 
+                                  value={Math.min(100, (product.stockQuantity / product.minStockLevel) * 100)}
+                                  className={`h-2 ${
+                                    product.stockQuantity === 0 
+                                      ? 'bg-red-100' 
+                                      : product.stockQuantity <= product.minStockLevel 
+                                        ? 'bg-orange-100' 
+                                        : 'bg-green-100'
+                                  }`}
+                                  indicatorClassName={
+                                    product.stockQuantity === 0 
+                                      ? 'bg-red-500' 
+                                      : product.stockQuantity <= product.minStockLevel 
+                                        ? 'bg-orange-500' 
+                                        : 'bg-green-500'
+                                  }
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openRestockDialog(product)}
+                                >
+                                  <PackagePlus className="h-3 w-3 mr-1" /> Pedir
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => openAdjustDialog(product)}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" /> Ajustar
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pedidos */}
+          <TabsContent value="orders" className="space-y-5">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Pedidos de Reposição</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead>Fornecedor</TableHead>
+                        <TableHead className="text-right">Quantidade</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
+                        <TableHead className="text-right">Data do Pedido</TableHead>
+                        <TableHead className="text-right">Entrega Prevista</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {restockOrders.map((order: any) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.product?.name}</TableCell>
+                          <TableCell>{order.supplier || '-'}</TableCell>
+                          <TableCell className="text-right">{order.quantity}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(order.price * order.quantity)}</TableCell>
+                          <TableCell className="text-right">{formatDate(order.purchaseDate)}</TableCell>
+                          <TableCell className="text-right">
+                            {order.expectedDeliveryDate ? formatDate(order.expectedDeliveryDate) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {getRestockStatusBadge(order.status)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {restockOrders.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-4">
+                            <p className="text-gray-500">Nenhum pedido de reposição encontrado</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Movimentações de Estoque</CardTitle>
+                <CardDescription>
+                  Histórico de entradas e saídas de produtos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead className="text-right">Quantidade</TableHead>
+                        <TableHead className="text-right">Data</TableHead>
+                        <TableHead>Observações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stockMovements.map((movement: any) => (
+                        <TableRow key={movement.id}>
+                          <TableCell className="font-medium">{movement.product?.name}</TableCell>
+                          <TableCell>
+                            {getMovementTypeBadge(movement.type, movement.quantity)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className={movement.quantity >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              {movement.quantity >= 0 ? `+${movement.quantity}` : movement.quantity}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">{formatDate(movement.date)}</TableCell>
+                          <TableCell className="max-w-[200px] truncate">{movement.notes || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {stockMovements.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4">
+                            <p className="text-gray-500">Nenhuma movimentação encontrada</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Relatórios */}
+          <TabsContent value="reports" className="space-y-5">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Gráfico de estoque por categoria */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Estoque por Categoria</CardTitle>
+                  <CardDescription>
+                    Distribuição dos produtos em cada categoria
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={getStockByCategoryData()}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis />
+                      <Tooltip formatter={(value) => [`${value} unidades`, 'Quantidade']} />
+                      <Legend />
+                      <Bar dataKey="value" name="Quantidade" fill="#4f46e5" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+              
+              {/* Gráfico de status de estoque */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Status de Estoque</CardTitle>
+                  <CardDescription>
+                    Análise de produtos com estoque normal, baixo ou esgotado
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={getStockStatusData()}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {getStockStatusData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value} produtos`, 'Quantidade']} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+              
+              {/* Produtos mais vendidos */}
+              <Card className="lg:col-span-2">
+                <CardHeader>
+                  <CardTitle>Produtos que Precisam de Reposição</CardTitle>
+                  <CardDescription>
+                    Lista de produtos que estão com estoque baixo ou esgotados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-md">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Produto</TableHead>
+                          <TableHead>Categoria</TableHead>
+                          <TableHead className="text-right">Estoque Atual</TableHead>
+                          <TableHead className="text-right">Mín. Requerido</TableHead>
+                          <TableHead className="text-right">Déficit</TableHead>
+                          <TableHead className="text-right">Última Reposição</TableHead>
+                          <TableHead className="text-right">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products && products
+                          .filter((product: Product) => product.stockQuantity <= product.minStockLevel)
+                          .sort((a: Product, b: Product) => {
+                            // Ordenar por déficit (diferença entre mínimo e atual)
+                            const deficitA = a.minStockLevel - a.stockQuantity;
+                            const deficitB = b.minStockLevel - b.stockQuantity;
+                            return deficitB - deficitA;
+                          })
+                          .map((product: Product) => (
+                            <TableRow key={product.id}>
+                              <TableCell className="font-medium">{product.name}</TableCell>
+                              <TableCell>{product.category || '-'}</TableCell>
+                              <TableCell className="text-right">{product.stockQuantity}</TableCell>
+                              <TableCell className="text-right">{product.minStockLevel}</TableCell>
+                              <TableCell className="text-right text-red-600">
+                                {product.minStockLevel - product.stockQuantity}
+                              </TableCell>
+                              <TableCell className="text-right">N/A</TableCell>
+                              <TableCell className="text-right">
+                                {getStockStatusBadge(product.stockQuantity, product.minStockLevel)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        
+                        {(!products || products.filter((product: Product) => 
+                          product.stockQuantity <= product.minStockLevel).length === 0) && (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-4">
+                              <CheckCircle2 className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                              <p>Todos os produtos estão com estoque adequado</p>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Diálogo de edição de produto */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      {/* Diálogo de Reposição de Estoque */}
+      <Dialog open={isRestockDialogOpen} onOpenChange={setIsRestockDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Editar Produto</DialogTitle>
+            <DialogTitle>Pedido de Reposição</DialogTitle>
             <DialogDescription>
-              Atualize as informações do produto. Clique em salvar quando terminar.
+              Preencha as informações para criar um pedido de reposição de estoque.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Produto</Label>
-                <Input
-                  id="name"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
+          <div className="py-4 space-y-4">
+            {selectedProduct && (
+              <div className="flex flex-col space-y-2">
+                <Label>Produto</Label>
+                <div className="p-3 rounded-md bg-gray-50">
+                  <div className="font-medium">{selectedProduct.name}</div>
+                  <div className="flex justify-between mt-1 text-sm">
+                    <span>Estoque Atual:</span>
+                    <span>{selectedProduct.stockQuantity} unid.</span>
+                  </div>
+                  <div className="flex justify-between mt-1 text-sm">
+                    <span>Estoque Mínimo:</span>
+                    <span>{selectedProduct.minStockLevel} unid.</span>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Preço (R$)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={editPrice}
-                  onChange={(e) => setEditPrice(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="stock">Quantidade em Estoque</Label>
+                <Label htmlFor="quantity">Quantidade</Label>
                 <Input
-                  id="stock"
+                  id="quantity"
                   type="number"
-                  min="0"
-                  value={editStock}
-                  onChange={(e) => setEditStock(e.target.value)}
+                  min="1"
+                  value={restockItem.quantity}
+                  onChange={(e) => setRestockItem({
+                    ...restockItem, 
+                    quantity: parseInt(e.target.value) || 1
+                  })}
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="minStock">Estoque Mínimo</Label>
+                <Label htmlFor="price">Preço Unitário</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
+                  <Input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="pl-9"
+                    value={restockItem.price}
+                    onChange={(e) => setRestockItem({
+                      ...restockItem, 
+                      price: parseFloat(e.target.value) || 0
+                    })}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="supplier">Fornecedor</Label>
                 <Input
-                  id="minStock"
-                  type="number"
-                  min="0"
-                  value={editMinStock}
-                  onChange={(e) => setEditMinStock(e.target.value)}
+                  id="supplier"
+                  value={restockItem.supplier || ''}
+                  onChange={(e) => setRestockItem({...restockItem, supplier: e.target.value})}
+                  placeholder="Nome do fornecedor"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="purchaseDate">Data do Pedido</Label>
+                <Input
+                  id="purchaseDate"
+                  type="date"
+                  value={restockItem.purchaseDate}
+                  onChange={(e) => setRestockItem({...restockItem, purchaseDate: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="expectedDeliveryDate">Entrega Prevista</Label>
+                <Input
+                  id="expectedDeliveryDate"
+                  type="date"
+                  value={restockItem.expectedDeliveryDate || ''}
+                  onChange={(e) => setRestockItem({...restockItem, expectedDeliveryDate: e.target.value})}
                 />
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoria</Label>
-                <Input
-                  id="category"
-                  value={editCategory}
-                  onChange={(e) => setEditCategory(e.target.value)}
-                />
+            <div className="p-3 rounded-md bg-blue-50 text-blue-800 text-sm mt-4">
+              <div className="flex justify-between font-semibold">
+                <span>Valor Total do Pedido:</span>
+                <span>{formatCurrency(restockItem.quantity * restockItem.price)}</span>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Localização</Label>
-                <Input
-                  id="location"
-                  value={editLocation}
-                  onChange={(e) => setEditLocation(e.target.value)}
-                  placeholder="Ex: Prateleira A3"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="expiryDate">Data de Validade</Label>
-              <Input
-                id="expiryDate"
-                type="date"
-                value={editExpiryDate}
-                onChange={(e) => setEditExpiryDate(e.target.value)}
-              />
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsRestockDialogOpen(false)}>
               Cancelar
             </Button>
             <Button 
-              onClick={handleSaveProduct}
-              disabled={updateProductMutation.isPending}
+              onClick={handleCreateRestock}
+              disabled={createRestockMutation.isPending}
             >
-              {updateProductMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+              {createRestockMutation.isPending ? "Criando pedido..." : "Criar Pedido"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Diálogo de ajuste de estoque */}
-      <Dialog open={isAdjustStockDialogOpen} onOpenChange={setIsAdjustStockDialogOpen}>
+      
+      {/* Diálogo de Ajuste de Estoque */}
+      <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Ajustar Estoque</DialogTitle>
+            <DialogTitle>Ajuste de Estoque</DialogTitle>
             <DialogDescription>
-              Adicione ou remova unidades do estoque. Use números positivos para adicionar e negativos para remover.
+              Use este formulário para ajustar manualmente o estoque do produto.
             </DialogDescription>
           </DialogHeader>
           
-          {selectedProduct && (
-            <div className="space-y-4 py-4">
-              <div className="p-3 bg-gray-50 rounded-md">
-                <h4 className="font-medium">{selectedProduct.name}</h4>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-sm">Estoque atual:</span>
-                  <span className="font-medium">{selectedProduct.stockQuantity} unidades</span>
+          <div className="py-4 space-y-4">
+            {selectedProduct && (
+              <div className="flex flex-col space-y-2">
+                <Label>Produto</Label>
+                <div className="p-3 rounded-md bg-gray-50">
+                  <div className="font-medium">{selectedProduct.name}</div>
+                  <div className="flex justify-between mt-1 text-sm">
+                    <span>Estoque Atual:</span>
+                    <span>{selectedProduct.stockQuantity} unid.</span>
+                  </div>
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="adjustmentQuantity">Quantidade a Ajustar</Label>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Quantidade a Ajustar</Label>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setStockAdjustment({
+                    ...stockAdjustment,
+                    quantity: stockAdjustment.quantity - 1
+                  })}
+                >
+                  -
+                </Button>
                 <Input
-                  id="adjustmentQuantity"
+                  id="quantity"
                   type="number"
-                  placeholder="Ex: 10 para adicionar, -5 para remover"
-                  value={adjustmentQuantity}
-                  onChange={(e) => setAdjustmentQuantity(e.target.value)}
+                  value={stockAdjustment.quantity}
+                  onChange={(e) => setStockAdjustment({
+                    ...stockAdjustment, 
+                    quantity: parseInt(e.target.value) || 0
+                  })}
                 />
-                <p className="text-xs text-gray-500">
-                  <AlertTriangle className="h-3 w-3 inline mr-1" />
-                  Use valores positivos para adicionar ao estoque e negativos para remover
-                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setStockAdjustment({
+                    ...stockAdjustment,
+                    quantity: stockAdjustment.quantity + 1
+                  })}
+                >
+                  +
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="adjustmentReason">Motivo do Ajuste</Label>
-                <Textarea
-                  id="adjustmentReason"
-                  placeholder="Ex: Recebimento de mercadoria, correção de inventário, descarte por vencimento..."
-                  value={adjustmentReason}
-                  onChange={(e) => setAdjustmentReason(e.target.value)}
-                  rows={3}
-                />
-              </div>
-              
-              {adjustmentQuantity && !isNaN(parseInt(adjustmentQuantity)) && (
-                <div className="p-3 rounded-md bg-blue-50">
-                  <p className="text-blue-800 font-medium">Resumo do Ajuste:</p>
-                  <div className="flex justify-between items-center mt-1 text-sm">
-                    <span>Estoque atual:</span>
-                    <span>{selectedProduct.stockQuantity} unidades</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-1 text-sm">
-                    <span>Ajuste:</span>
-                    <span>{parseInt(adjustmentQuantity) > 0 ? '+' : ''}{adjustmentQuantity} unidades</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-1 text-sm font-medium">
-                    <span>Novo estoque:</span>
-                    <span>{selectedProduct.stockQuantity + parseInt(adjustmentQuantity)} unidades</span>
-                  </div>
-                </div>
-              )}
+              <p className="text-xs text-gray-500">
+                Use números positivos para adicionar ao estoque e negativos para remover.
+              </p>
             </div>
-          )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="type">Tipo de Ajuste</Label>
+              <Select 
+                value={stockAdjustment.type} 
+                onValueChange={(value) => setStockAdjustment({
+                  ...stockAdjustment, 
+                  type: value
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de ajuste" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="adjustment">Ajuste de inventário</SelectItem>
+                  <SelectItem value="loss">Perda/Avaria</SelectItem>
+                  <SelectItem value="return">Devolução</SelectItem>
+                  <SelectItem value="purchase">Compra</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <Input
+                id="notes"
+                value={stockAdjustment.notes}
+                onChange={(e) => setStockAdjustment({...stockAdjustment, notes: e.target.value})}
+                placeholder="Motivo do ajuste"
+              />
+            </div>
+            
+            <div className="p-3 rounded-md bg-blue-50 text-blue-800 text-sm mt-4">
+              <div className="flex justify-between font-semibold">
+                <span>Novo Estoque Após Ajuste:</span>
+                <span>
+                  {selectedProduct ? selectedProduct.stockQuantity + stockAdjustment.quantity : 0} unid.
+                </span>
+              </div>
+            </div>
+          </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAdjustStockDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAdjustDialogOpen(false)}>
               Cancelar
             </Button>
             <Button 
-              onClick={handleSaveStockAdjustment}
-              disabled={
-                adjustStockMutation.isPending || 
-                !adjustmentQuantity || 
-                isNaN(parseInt(adjustmentQuantity)) ||
-                parseInt(adjustmentQuantity) === 0 ||
-                !adjustmentReason.trim()
-              }
+              onClick={handleAdjustStock}
+              disabled={adjustStockMutation.isPending || stockAdjustment.quantity === 0}
             >
-              {adjustStockMutation.isPending ? "Processando..." : "Confirmar Ajuste"}
+              {adjustStockMutation.isPending ? "Ajustando..." : "Confirmar Ajuste"}
             </Button>
           </DialogFooter>
         </DialogContent>
