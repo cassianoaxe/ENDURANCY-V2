@@ -9,6 +9,7 @@ import { registerDoctorRoutes } from './routes/doctor-routes';
 import { registerPatientPrescriptionRoutes } from './routes/patient-prescription-routes';
 import { registerPharmacistRoutes } from './routes/pharmacist-routes';
 import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
+import * as fiscalRoutes from './routes/fiscal-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -6376,6 +6377,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // ========= Rotas do Módulo Fiscal =========
+  // Configurações fiscais
+  app.get('/api/fiscal/config/:organizationId', authenticate, fiscalRoutes.getFiscalConfig);
+  app.post('/api/fiscal/config/:organizationId', authenticate, fiscalRoutes.createFiscalConfig);
+  app.put('/api/fiscal/config/:organizationId', authenticate, fiscalRoutes.updateFiscalConfig);
+  
+  // Documentos fiscais
+  app.get('/api/fiscal/documents/:organizationId', authenticate, fiscalRoutes.getDocuments);
+  app.get('/api/fiscal/documents/detail/:id', authenticate, fiscalRoutes.getDocumentById);
+  app.post('/api/fiscal/documents', authenticate, fiscalRoutes.createDocument);
+  app.put('/api/fiscal/documents/:id/cancel', authenticate, fiscalRoutes.cancelDocument);
+  
+  // Impressoras e operações
+  app.post('/api/fiscal/printer/test', authenticate, fiscalRoutes.testPrinter);
+  app.post('/api/fiscal/cash-drawer/:organizationId/open', authenticate, fiscalRoutes.openCashDrawer);
+  app.post('/api/fiscal/reports/:organizationId/daily', authenticate, fiscalRoutes.printDailyReport);
   
   return server;
 }
