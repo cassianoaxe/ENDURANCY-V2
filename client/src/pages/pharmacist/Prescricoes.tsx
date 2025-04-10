@@ -72,6 +72,186 @@ interface PrescriptionItem {
   quantity: number;
 }
 
+// Interface para médicos com aprovação automática
+interface DoctorWithAutoApprove {
+  id: number;
+  name: string;
+  specialization: string;
+  crm: string;
+  hasAutoApproval: boolean;
+}
+
+// Componente para gerenciar médicos com aprovação automática
+function DoctorAutoApproveManager() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
+  
+  // Buscar médicos associados a esta organização
+  const { data: doctors, isLoading: isLoadingDoctors } = useQuery({
+    queryKey: ['doctors', 'auto-approve', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return [];
+      const response = await axios.get(`/api/pharmacist/doctors/auto-approve`);
+      return response.data;
+    },
+    enabled: !!user?.organizationId
+  });
+
+  // Mutação para atualizar status de aprovação automática
+  const toggleAutoApproveMutation = useMutation({
+    mutationFn: async (data: { doctorId: number, hasAutoApproval: boolean }) => {
+      return axios.post(`/api/pharmacist/doctors/${data.doctorId}/auto-approve`, {
+        hasAutoApproval: data.hasAutoApproval
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['doctors', 'auto-approve'] });
+      toast({
+        title: "Configuração atualizada",
+        description: "As permissões do médico foram atualizadas com sucesso",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar permissões:', error);
+      toast({
+        title: "Erro ao atualizar permissões",
+        description: "Tente novamente ou contate o suporte",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+
+  const handleToggleAutoApprove = (doctor: DoctorWithAutoApprove) => {
+    toggleAutoApproveMutation.mutate({
+      doctorId: doctor.id,
+      hasAutoApproval: !doctor.hasAutoApproval
+    });
+  };
+
+  const filteredDoctors = () => {
+    if (!doctors) return [];
+    
+    if (!doctorSearchTerm) return doctors;
+    
+    const searchTermLower = doctorSearchTerm.toLowerCase();
+    return doctors.filter((doctor: DoctorWithAutoApprove) => 
+      doctor.name.toLowerCase().includes(searchTermLower) ||
+      doctor.crm.toLowerCase().includes(searchTermLower) ||
+      doctor.specialization.toLowerCase().includes(searchTermLower)
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div>
+          <h3 className="text-lg font-medium">Aprovação Automática de Prescrições</h3>
+          <p className="text-sm text-gray-500">
+            Determine quais médicos terão suas prescrições aprovadas automaticamente
+          </p>
+        </div>
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar médicos..."
+            className="pl-8"
+            value={doctorSearchTerm}
+            onChange={(e) => setDoctorSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {isLoadingDoctors ? (
+        <div className="flex items-center justify-center py-10">
+          <p>Carregando médicos...</p>
+        </div>
+      ) : filteredDoctors().length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <User className="h-6 w-6 text-gray-400" />
+          </div>
+          <p className="text-gray-500">Nenhum médico encontrado</p>
+          {doctorSearchTerm && (
+            <Button 
+              variant="link" 
+              onClick={() => setDoctorSearchTerm('')}
+              className="mt-2"
+            >
+              Limpar filtro
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome do Médico</TableHead>
+                <TableHead>CRM</TableHead>
+                <TableHead>Especialidade</TableHead>
+                <TableHead>Aprovação Automática</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDoctors().map((doctor: DoctorWithAutoApprove) => (
+                <TableRow key={doctor.id}>
+                  <TableCell className="font-medium">{doctor.name}</TableCell>
+                  <TableCell>{doctor.crm}</TableCell>
+                  <TableCell>{doctor.specialization}</TableCell>
+                  <TableCell>
+                    {doctor.hasAutoApproval ? (
+                      <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                        Ativada
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100">
+                        Desativada
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant={doctor.hasAutoApproval ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleToggleAutoApprove(doctor)}
+                      disabled={toggleAutoApproveMutation.isPending}
+                      className={doctor.hasAutoApproval ? "bg-red-600 hover:bg-red-700" : "text-green-600 hover:text-green-700"}
+                    >
+                      {doctor.hasAutoApproval ? (
+                        <>
+                          <XCircle className="h-4 w-4 mr-1" /> Desativar
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-1" /> Ativar
+                        </>
+                      )}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+      
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <h4 className="text-sm font-medium text-blue-800 mb-2">Como funciona a aprovação automática</h4>
+        <p className="text-sm text-blue-700">
+          Quando ativada, todas as prescrições criadas por este médico serão automaticamente aprovadas
+          assim que inseridas no sistema, sem necessidade de revisão manual. Use esta função apenas para
+          médicos de confiança.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function PharmacistPrescricoes() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -303,6 +483,7 @@ export default function PharmacistPrescricoes() {
               <TabsList>
                 <TabsTrigger value="list">Lista</TabsTrigger>
                 <TabsTrigger value="grid">Grade</TabsTrigger>
+                <TabsTrigger value="auto-approve">Aprovação Automática</TabsTrigger>
               </TabsList>
               
               <TabsContent value="list">
@@ -481,6 +662,10 @@ export default function PharmacistPrescricoes() {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+              
+              <TabsContent value="auto-approve">
+                <DoctorAutoApproveManager />
               </TabsContent>
             </Tabs>
           </CardContent>
