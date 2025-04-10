@@ -8,6 +8,12 @@ export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'pa
 // Enum para o status de convites
 export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'expired']);
 
+// Enum para o status de documentos
+export const documentStatusEnum = pgEnum('document_status', ['pending', 'approved', 'rejected']);
+
+// Enum para categorias de documentos
+export const documentCategoryEnum = pgEnum('document_category', ['identity', 'medical', 'prescription', 'insurance', 'other']);
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -134,6 +140,24 @@ export const patients = pgTable("patients", {
   healthInsuranceNumber: text("health_insurance_number"),
   isActive: boolean("is_active").default(true), // Se o registro está ativo (conta para limite do plano)
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela para documentos de pacientes (prescrições, receitas, laudos, etc.)
+export const patientDocuments = pgTable("patient_documents", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  category: documentCategoryEnum("category").notNull(),
+  status: documentStatusEnum("status").notNull().default("pending"),
+  uploadDate: timestamp("upload_date").defaultNow().notNull(),
+  reviewedById: integer("reviewed_by_id"), // ID do farmacêutico que revisou o documento
+  reviewDate: timestamp("review_date"),
+  reviewNotes: text("review_notes"),
 });
 
 // Tabela para plantas de cannabis
@@ -349,6 +373,18 @@ export const insertPatientSchema = createInsertSchema(patients).pick({
   isActive: true,
 });
 
+export const insertPatientDocumentSchema = createInsertSchema(patientDocuments).pick({
+  patientId: true,
+  organizationId: true,
+  fileName: true,
+  originalName: true,
+  filePath: true,
+  fileType: true,
+  fileSize: true,
+  category: true,
+  status: true,
+});
+
 export const insertPlantSchema = createInsertSchema(plants).pick({
   organizationId: true,
   strain: true,
@@ -389,6 +425,8 @@ export type Plant = typeof plants.$inferSelect;
 export type InsertPlant = z.infer<typeof insertPlantSchema>;
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type PatientDocument = typeof patientDocuments.$inferSelect;
+export type InsertPatientDocument = z.infer<typeof insertPatientDocumentSchema>;
 
 export const insertModuleSchema = createInsertSchema(modules).pick({
   name: true,
