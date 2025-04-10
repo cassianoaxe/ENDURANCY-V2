@@ -11,7 +11,7 @@ import {
   Scale, LineChart, MessageCircle, Building, TestTube,
   Clipboard, FileClock, Share2, Send, Network, 
   Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
-  PackageOpen, BadgePercent, Printer, QrCode, Box
+  PackageOpen, BadgePercent, Printer, QrCode, Box, Pill
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -294,6 +294,12 @@ export default function OrganizationSidebar() {
       path: "/organization/medical-portal",
       active: currentPath === "/organization/medical-portal",
       icon: <HeartPulse size={18} />
+    },
+    {
+      title: "MÓDULO FARMÁCIA",
+      path: "/organization/farmacia",
+      active: currentPath === "/organization/farmacia",
+      icon: <Pill size={18} />
     }
   ];
 
