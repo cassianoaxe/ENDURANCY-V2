@@ -19,7 +19,7 @@ export default function Cadastros() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentTab, setCurrentTab] = useState("todos");
 
-  // Buscar pacientes/associados (mock inicial)
+  // Buscar pacientes (mock inicial)
   const { data: cadastros, isLoading } = useQuery({
     queryKey: ['/api/patients', user?.organizationId],
     enabled: !!user?.organizationId,
@@ -64,7 +64,7 @@ export default function Cadastros() {
       <div className="container p-6">
         <h1 className="text-2xl font-bold mb-4">Cadastros</h1>
         <p className="text-gray-500 dark:text-gray-400 mb-8">
-          Gerencie seus clientes e associados em um só lugar. Visualize informações, documentos e histórico.
+          Gerencie seus pacientes e médicos em um só lugar. Visualize informações, documentos e histórico.
         </p>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -78,7 +78,7 @@ export default function Cadastros() {
             <CardContent>
               <p className="text-3xl font-bold">{mockCadastros.length}</p>
               <p className="text-sm text-muted-foreground">
-                Clientes e associados
+                Pacientes e médicos
               </p>
             </CardContent>
           </Card>
@@ -87,7 +87,7 @@ export default function Cadastros() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                Associados
+                Pacientes
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -95,7 +95,7 @@ export default function Cadastros() {
                 {mockCadastros.filter(c => c.type === 'associado').length}
               </p>
               <p className="text-sm text-muted-foreground">
-                Associados cadastrados
+                Pacientes cadastrados
               </p>
             </CardContent>
           </Card>
@@ -104,7 +104,7 @@ export default function Cadastros() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5 text-violet-500" />
-                Clientes
+                Médicos
               </CardTitle>
             </CardHeader>
             <CardContent>
