@@ -13,7 +13,9 @@ import {
   ExternalLink, LinkIcon, Grid, Users, Clipboard, Home, LineChart, 
   Settings, User, Building, FileText, ShieldCheck, Pill, Leaf, 
   BookOpen, Database, Bell, HelpCircle, Clock,
-  Key, Stethoscope, LayoutGrid, Mail, MapPin
+  Key, Stethoscope, LayoutGrid, Mail, MapPin, ClipboardList,
+  UserPlus, Globe, Scale, Eye, Brain, ShoppingCart, Package,
+  Building2, MessageSquare, Microscope, Box, CreditCard
 } from 'lucide-react';
 
 // Componente para o título com ícone Leaf
@@ -317,6 +319,269 @@ const Sitemap = () => {
                       <li>Backup e restauração de dados</li>
                       <li>Atualizações do sistema</li>
                       <li>Suporte e resolução de problemas</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <h3 className="text-lg font-medium mt-6 mb-3 text-green-700 border-b border-green-100 pb-2">Módulos Add-on</h3>
+                <p className="text-sm text-gray-600 mb-3">Módulos adicionais que podem ser contratados individualmente para expandir a funcionalidade do sistema.</p>
+                
+                <AccordionItem value="mod-tarefas">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      <span>Módulo de Tarefas</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema de gerenciamento de tarefas e produtividade para equipes médicas.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Criação e atribuição de tarefas</li>
+                      <li>Acompanhamento de progresso</li>
+                      <li>Lembretes e notificações</li>
+                      <li>Listas de verificação para procedimentos</li>
+                      <li>Organização por projeto ou departamento</li>
+                      <li>Integração com calendário</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-crm">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>Módulo CRM</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gestão de relacionamento com pacientes e clientes.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Histórico completo de interações</li>
+                      <li>Segmentação de clientes</li>
+                      <li>Campanhas de comunicação</li>
+                      <li>Acompanhamento de leads e oportunidades</li>
+                      <li>Análise de satisfação</li>
+                      <li>Integração com canais de comunicação</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-social">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>Módulo Social</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gerenciamento de redes sociais e comunidade online.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Integração com plataformas sociais</li>
+                      <li>Publicação e agendamento de conteúdo</li>
+                      <li>Monitoramento de menções e interações</li>
+                      <li>Análise de engajamento</li>
+                      <li>Gestão de comunidade de pacientes</li>
+                      <li>Campanhas de conscientização</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-rh">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      <span>Módulo RH</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gerenciamento completo de recursos humanos para organizações de saúde.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Gestão de colaboradores e escalas</li>
+                      <li>Controle de férias e licenças</li>
+                      <li>Avaliações de desempenho</li>
+                      <li>Treinamentos e certificações</li>
+                      <li>Folha de pagamento</li>
+                      <li>Recrutamento e seleção</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-juridico">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Scale className="h-4 w-4" />
+                      <span>Módulo Jurídico</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Suporte para questões legais e regulatórias específicas para o setor de saúde.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Gestão de contratos e termos</li>
+                      <li>Conformidade regulatória (ANVISA, LGPD)</li>
+                      <li>Gerenciamento de processos jurídicos</li>
+                      <li>Documentação legal e regulatória</li>
+                      <li>Avisos e atualizações legais</li>
+                      <li>Gestão de propriedade intelectual</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-transparencia">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      <span>Módulo Transparência</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Ferramentas para implementação de políticas de transparência e governança.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Relatórios públicos de atividades</li>
+                      <li>Portal de transparência para stakeholders</li>
+                      <li>Rastreabilidade de processos</li>
+                      <li>Divulgação de informações regulatórias</li>
+                      <li>Gestão de auditorias e conformidade</li>
+                      <li>Indicadores de governança corporativa</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-ia">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      <span>Módulo de Inteligência Artificial</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Recursos avançados de IA para auxiliar na tomada de decisões médicas e administrativas.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Assistente virtual para profissionais</li>
+                      <li>Análise preditiva de dados de pacientes</li>
+                      <li>Sugestões personalizadas de tratamento</li>
+                      <li>Otimização de processos clínicos</li>
+                      <li>Reconhecimento e análise de imagens médicas</li>
+                      <li>Detecção precoce de condições médicas</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-compras">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>Módulo de Compras</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema completo para gerenciamento de compras e aquisições.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Gestão de fornecedores</li>
+                      <li>Requisições e ordens de compra</li>
+                      <li>Cotações e análise de propostas</li>
+                      <li>Aprovações e fluxo de trabalho</li>
+                      <li>Recebimento e controle de qualidade</li>
+                      <li>Relatórios de performance de compras</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-dispensario">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      <span>Módulo de Dispensário</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Gerenciamento do dispensário de medicamentos e produtos medicinais.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Controle de dispensação de medicamentos</li>
+                      <li>Rastreabilidade de produtos dispensados</li>
+                      <li>Integração com prescrições médicas</li>
+                      <li>Controle de estoque específico</li>
+                      <li>Alertas de interações medicamentosas</li>
+                      <li>Gestão de lotes e validades</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-patrimonio">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      <span>Módulo de Patrimônio</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Controle de ativos e patrimônio da organização de saúde.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Cadastro e classificação de ativos</li>
+                      <li>Controle de depreciação</li>
+                      <li>Manutenções preventivas e corretivas</li>
+                      <li>Gestão da vida útil dos equipamentos</li>
+                      <li>Inventário e movimentação</li>
+                      <li>Controle de garantias e seguros</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-comunicacao">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Módulo de Comunicação</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Sistema integrado de comunicação entre profissionais, pacientes e organizações.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Chat interno para equipes</li>
+                      <li>Mensagens seguras com pacientes</li>
+                      <li>Notificações e alertas</li>
+                      <li>Videoconferências para telemedicina</li>
+                      <li>Compartilhamento seguro de documentos</li>
+                      <li>Integração com e-mail e SMS</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-pesquisa">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <Microscope className="h-4 w-4" />
+                      <span>Módulo de Pesquisa Científica</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Ferramentas para condução e gestão de pesquisas clínicas e científicas.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Gestão de projetos de pesquisa</li>
+                      <li>Coleta e análise de dados</li>
+                      <li>Ferramentas estatísticas</li>
+                      <li>Conformidade com requisitos éticos</li>
+                      <li>Gestão de publicações e propriedade intelectual</li>
+                      <li>Colaboração com instituições de pesquisa</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="mod-educacao-paciente">
+                  <AccordionTrigger className="text-green-700 hover:text-green-800">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      <span>Módulo de Educação do Paciente</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm space-y-2 px-4">
+                    <p>Plataforma educacional para informar e capacitar pacientes sobre tratamentos e condições.</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Biblioteca de conteúdo educativo</li>
+                      <li>Cursos e tutoriais interativos</li>
+                      <li>Vídeos e infográficos explicativos</li>
+                      <li>Material personalizado por condição</li>
+                      <li>Feedback e avaliação de compreensão</li>
+                      <li>Grupos de apoio e fóruns de discussão</li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>
