@@ -5,6 +5,9 @@ import { z } from "zod";
 // Define a role enum para os diferentes tipos de usuário
 export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist']);
 
+// Enum para o status de licença de farmacêutico
+export const pharmacistStatusEnum = pgEnum('pharmacist_status', ['active', 'inactive', 'suspended', 'pending']);
+
 // Enum para o status de convites
 export const invitationStatusEnum = pgEnum('invitation_status', ['pending', 'accepted', 'expired']);
 
@@ -158,6 +161,29 @@ export const patientDocuments = pgTable("patient_documents", {
   reviewedById: integer("reviewed_by_id"), // ID do farmacêutico que revisou o documento
   reviewDate: timestamp("review_date"),
   reviewNotes: text("review_notes"),
+});
+
+// Tabela para farmacêuticos responsáveis técnicos (RT)
+export const pharmacists = pgTable("pharmacists", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  crf: text("crf").notNull(), // Número do Conselho Regional de Farmácia
+  crfState: text("crf_state").notNull(), // Estado do CRF
+  cpf: text("cpf").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  status: pharmacistStatusEnum("status").notNull().default("pending"),
+  licenseNumber: text("license_number"), // Número da licença de RT
+  licenseExpiryDate: timestamp("license_expiry_date"),
+  specializations: text("specializations").array(),
+  isResponsibleTechnician: boolean("is_responsible_technician").default(false), // Se é o RT principal
+  certificationUrl: text("certification_url"), // URL do certificado/documento
+  appointmentDate: timestamp("appointment_date"), // Data de nomeação como RT
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Tabela para plantas de cannabis
@@ -385,6 +411,26 @@ export const insertPatientDocumentSchema = createInsertSchema(patientDocuments).
   status: true,
 });
 
+// Schema para criação de farmacêutico
+export const insertPharmacistSchema = createInsertSchema(pharmacists).pick({
+  userId: true,
+  organizationId: true,
+  name: true,
+  crf: true,
+  crfState: true,
+  cpf: true,
+  email: true,
+  phone: true,
+  status: true,
+  licenseNumber: true,
+  licenseExpiryDate: true,
+  specializations: true,
+  isResponsibleTechnician: true,
+  certificationUrl: true,
+  appointmentDate: true,
+  notes: true,
+});
+
 export const insertPlantSchema = createInsertSchema(plants).pick({
   organizationId: true,
   strain: true,
@@ -427,6 +473,8 @@ export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 export type PatientDocument = typeof patientDocuments.$inferSelect;
 export type InsertPatientDocument = z.infer<typeof insertPatientDocumentSchema>;
+export type Pharmacist = typeof pharmacists.$inferSelect;
+export type InsertPharmacist = z.infer<typeof insertPharmacistSchema>;
 
 export const insertModuleSchema = createInsertSchema(modules).pick({
   name: true,
