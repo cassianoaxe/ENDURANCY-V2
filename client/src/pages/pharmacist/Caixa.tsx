@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -336,7 +335,7 @@ export default function PharmacistCaixa() {
   };
 
   return (
-    <PharmacistLayout>
+    <div>
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -681,140 +680,122 @@ export default function PharmacistCaixa() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Receipt className="h-5 w-5" /> Comprovante
+              <Receipt className="h-5 w-5" /> Comprovante de Venda
             </DialogTitle>
-            <DialogDescription>
-              Confirme os detalhes da venda para finalizar.
-            </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="text-center mb-4">
-                <h3 className="font-bold text-lg">Farmácia {organizationName}</h3>
-                <p className="text-sm text-gray-500">Comprovante de Venda</p>
-                <p className="text-xs text-gray-500">
-                  {new Date().toLocaleDateString('pt-BR')} - {new Date().toLocaleTimeString('pt-BR')}
+          {paymentInfo && (
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h3 className="font-semibold text-center">Farmácia {organizationName}</h3>
+                <p className="text-center text-sm text-gray-500">
+                  {new Date().toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: '2-digit', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </p>
               </div>
               
-              <div className="border-t border-b py-2 my-3">
-                <p className="text-sm">Cliente: {customer || 'Cliente não identificado'}</p>
-                <p className="text-sm">Atendente: {user?.name || 'Farmacêutico'}</p>
-              </div>
-              
-              <div className="my-3">
-                <h4 className="font-medium mb-2">Itens</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="text-right">Qtd</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {cart.map((item) => (
-                      <TableRow key={item.product.id}>
-                        <TableCell className="py-1">
-                          <div className="text-sm truncate max-w-[160px]">
-                            {item.product.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right py-1">{item.quantity}</TableCell>
-                        <TableCell className="text-right py-1">{formatCurrency(item.product.price)}</TableCell>
-                        <TableCell className="text-right py-1 font-medium">{formatCurrency(item.product.price * item.quantity)}</TableCell>
+              <div>
+                <p className="text-sm mb-2">
+                  <span className="font-medium">Cliente:</span> {customer || 'Cliente não identificado'}
+                </p>
+                
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-right">Qtd</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {cart.map((item) => (
+                        <TableRow key={item.product.id}>
+                          <TableCell className="font-medium">{item.product.name}</TableCell>
+                          <TableCell className="text-right">{item.quantity}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(item.product.price * item.quantity)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
               
-              <div className="mt-4 border-t pt-3">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal:</span>
-                  <span>{formatCurrency(calculateTotal())}</span>
-                </div>
-                <div className="flex justify-between font-bold mt-2">
-                  <span>Total:</span>
-                  <span>{formatCurrency(calculateTotal())}</span>
+              <div className="space-y-1 pt-2 border-t">
+                <div className="flex justify-between">
+                  <span className="font-medium">Total:</span>
+                  <span className="font-bold">{formatCurrency(calculateTotal())}</span>
                 </div>
                 
-                <div className="mt-3 pt-3 border-t">
-                  <div className="flex justify-between text-sm">
-                    <span>Forma de pagamento:</span>
-                    <span>
-                      {paymentInfo?.method === 'cash' && 'Dinheiro'}
-                      {paymentInfo?.method === 'credit' && 'Cartão de Crédito'}
-                      {paymentInfo?.method === 'debit' && 'Cartão de Débito'}
-                      {paymentInfo?.method === 'pix' && 'PIX'}
-                    </span>
-                  </div>
-                  
-                  {paymentInfo?.method === 'cash' && (
-                    <>
-                      <div className="flex justify-between text-sm mt-1">
-                        <span>Valor recebido:</span>
-                        <span>{formatCurrency(paymentInfo.amountPaid)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm mt-1">
-                        <span>Troco:</span>
-                        <span>{formatCurrency(paymentInfo.change)}</span>
-                      </div>
-                    </>
-                  )}
+                <div className="flex justify-between text-sm">
+                  <span>Forma de pagamento:</span>
+                  <span>
+                    {paymentMethod === 'cash' && 'Dinheiro'}
+                    {paymentMethod === 'credit' && 'Cartão de Crédito'}
+                    {paymentMethod === 'debit' && 'Cartão de Débito'}
+                    {paymentMethod === 'pix' && 'PIX'}
+                  </span>
                 </div>
+                
+                {paymentMethod === 'cash' && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span>Valor pago:</span>
+                      <span>{formatCurrency(paymentInfo.amountPaid)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span>Troco:</span>
+                      <span>{formatCurrency(paymentInfo.change)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="text-center text-sm text-gray-500 border-t pt-4">
+                <p>Obrigado pela preferência!</p>
+                <p>Este documento não possui valor fiscal</p>
               </div>
             </div>
-          </div>
+          )}
           
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsReceiptDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button 
-              onClick={processSale}
-              disabled={createSaleMutation.isPending}
-            >
+            <Button onClick={processSale} disabled={createSaleMutation.isPending}>
               {createSaleMutation.isPending ? "Processando..." : "Finalizar Venda"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      {/* Diálogo para Abrir Caixa */}
+      {/* Diálogo de Abertura de Caixa */}
       <Dialog open={isRegisterDialogOpen} onOpenChange={setIsRegisterDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Abrir Caixa</DialogTitle>
+            <DialogTitle>Abertura de Caixa</DialogTitle>
             <DialogDescription>
-              Informe o valor inicial do caixa para começar a registrar vendas.
+              Informe o valor inicial disponível no caixa.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="initial-amount">Valor Inicial do Caixa (R$)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
-                  <Input
-                    id="initial-amount"
-                    placeholder="0,00"
-                    className="pl-9"
-                    value={initialAmount}
-                    onChange={(e) => setInitialAmount(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="p-3 rounded-md bg-blue-50 text-blue-800">
-                <p className="text-sm">
-                  <strong>Importante:</strong> O valor inicial deve representar o dinheiro 
-                  físico disponível na gaveta do caixa no início do expediente.
-                </p>
-              </div>
+            <Label htmlFor="initialAmount">Valor Inicial</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2.5 text-gray-500">R$</span>
+              <Input
+                id="initialAmount"
+                placeholder="0,00"
+                className="pl-9"
+                value={initialAmount}
+                onChange={(e) => setInitialAmount(e.target.value)}
+              />
             </div>
           </div>
           
@@ -828,6 +809,6 @@ export default function PharmacistCaixa() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </PharmacistLayout>
+    </div>
   );
 }
