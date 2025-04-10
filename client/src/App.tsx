@@ -147,7 +147,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard'];
+    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -277,6 +277,19 @@ function AppContent() {
     // Organization registration page (público)
     if (currentPath === '/organization-registration') {
       return <OrganizationRegistration />;
+    }
+    
+    // Cadastro de médicos (com ID da organização)
+    const doctorRegMatch = currentPath.match(/^\/cadastrodemedicos\/([^\/]+)$/);
+    if (doctorRegMatch) {
+      const orgId = doctorRegMatch[1];
+      console.log("Cadastro de médico para organização com ID:", orgId);
+      return <DoctorRegistration />;
+    }
+    
+    // Cadastro de médicos (com query parameter)
+    if (currentPath === '/cadastrodemedicos') {
+      return <DoctorRegistration />;
     }
     
     // Página esqueceu a senha (público)
