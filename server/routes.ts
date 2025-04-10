@@ -11,7 +11,7 @@ import { registerPharmacistRoutes } from './routes/pharmacist-routes';
 import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
-  planModules, insertPlanModuleSchema,
+  planModules, insertPlanModuleSchema, patients,
   // Imports para o módulo financeiro
   financialTransactions, financialCategories, employees, payroll, vacations, financialReports,
   insertFinancialTransactionSchema, insertFinancialCategorySchema, insertEmployeeSchema,
