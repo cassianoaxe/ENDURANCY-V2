@@ -689,8 +689,16 @@ const Sitemap = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} Endurancy • Plataforma de Gestão Médica
+        <div className="mt-8 text-center text-gray-500 text-sm space-y-1">
+          <p>
+            Última atualização: {new Date().toLocaleDateString('pt-BR')}
+          </p>
+          <p>
+            © {new Date().getFullYear()} Endurancy • Plataforma de Gestão Médica
+          </p>
+          <p className="text-xs mt-1">
+            Este sitemap e a documentação são atualizados regularmente a cada alteração na plataforma
+          </p>
         </div>
       </div>
     </div>
