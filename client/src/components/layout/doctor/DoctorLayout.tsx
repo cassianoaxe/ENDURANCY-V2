@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import DoctorSidebar from './DoctorSidebar';
-import Header from '@/components/layout/Header';
+// import Header from '@/components/layout/Header';
 import { Toaster } from '@/components/ui/toaster';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -63,8 +63,7 @@ export default function DoctorLayout({ children }: DoctorLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       <DoctorSidebar />
       <div className="ml-[240px] min-h-screen pb-8">
-        <Header />
-        <main className="container mt-16 pt-6">
+        <main>
           {children}
         </main>
       </div>
