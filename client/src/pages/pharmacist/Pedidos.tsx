@@ -427,6 +427,60 @@ export default function PharmacistPedidos() {
     setSelectedOrder(order);
     setIsOrderDialogOpen(true);
   };
+  
+  // Função para avançar o status de um pedido
+  const advanceOrderStatus = (order: Order) => {
+    // Em uma aplicação real, isso enviaria uma requisição para a API
+    // Aqui estamos simulando a mudança de status
+    const orderIndex = mockOrders.findIndex(o => o.id === order.id);
+    
+    if (orderIndex === -1) return;
+    
+    const updatedOrder = { ...mockOrders[orderIndex] };
+    
+    if (updatedOrder.status === 'pending') {
+      updatedOrder.status = 'processing' as const;
+    } else if (updatedOrder.status === 'processing') {
+      updatedOrder.status = 'ready' as const;
+    } else if (updatedOrder.status === 'ready') {
+      updatedOrder.status = 'completed' as const;
+    }
+    
+    // Atualiza a ordem na lista
+    mockOrders[orderIndex] = updatedOrder;
+    
+    // Se o pedido selecionado nos detalhes for o mesmo, atualiza ele também
+    if (selectedOrder && selectedOrder.id === order.id) {
+      setSelectedOrder(updatedOrder);
+    }
+    
+    // Força a atualização da interface
+    setStatusFilter(statusFilter);
+  };
+  
+  // Função para cancelar um pedido
+  const cancelOrder = (order: Order) => {
+    // Em uma aplicação real, isso enviaria uma requisição para a API
+    const orderIndex = mockOrders.findIndex(o => o.id === order.id);
+    
+    if (orderIndex === -1) return;
+    
+    const updatedOrder = { ...mockOrders[orderIndex], status: 'cancelled' as const };
+    
+    // Atualiza a ordem na lista
+    mockOrders[orderIndex] = updatedOrder;
+    
+    // Se o pedido selecionado nos detalhes for o mesmo, atualiza ele também
+    if (selectedOrder && selectedOrder.id === order.id) {
+      setSelectedOrder(updatedOrder);
+    }
+    
+    // Fecha o diálogo se estiver aberto
+    setIsOrderDialogOpen(false);
+    
+    // Força a atualização da interface
+    setStatusFilter(statusFilter);
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -677,13 +731,17 @@ export default function PharmacistPedidos() {
                           >
                             <Eye className="h-4 w-4 mr-1" /> Detalhes
                           </Button>
-                          {(order.status === 'pending' || order.status === 'processing') && (
+                          {(order.status === 'pending' || order.status === 'processing' || order.status === 'ready') && (
                             <Button 
                               variant="outline" 
                               size="sm" 
                               className="text-green-600 hover:text-green-700"
+                              onClick={() => advanceOrderStatus(order)}
                             >
-                              <CheckCircle className="h-4 w-4 mr-1" /> Avançar
+                              <CheckCircle className="h-4 w-4 mr-1" /> 
+                              {order.status === 'pending' && 'Preparar'}
+                              {order.status === 'processing' && 'Finalizar'}
+                              {order.status === 'ready' && 'Entregar'}
                             </Button>
                           )}
                         </TableCell>
@@ -822,26 +880,31 @@ export default function PharmacistPedidos() {
                   Fechar
                 </Button>
                 
-                {selectedOrder.status === 'pending' && (
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Iniciar Preparação
-                  </Button>
-                )}
-                
-                {selectedOrder.status === 'processing' && (
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    Marcar como Pronto
-                  </Button>
-                )}
-                
-                {selectedOrder.status === 'ready' && (
-                  <Button className="bg-purple-600 hover:bg-purple-700">
-                    Finalizar Entrega
+                {(selectedOrder.status === 'pending' || selectedOrder.status === 'processing' || selectedOrder.status === 'ready') && (
+                  <Button 
+                    className={
+                      selectedOrder.status === 'pending' ? "bg-blue-600 hover:bg-blue-700" :
+                      selectedOrder.status === 'processing' ? "bg-green-600 hover:bg-green-700" :
+                      "bg-purple-600 hover:bg-purple-700"
+                    }
+                    onClick={() => {
+                      advanceOrderStatus(selectedOrder);
+                      if (selectedOrder.status === 'ready') {
+                        setIsOrderDialogOpen(false);
+                      }
+                    }}
+                  >
+                    {selectedOrder.status === 'pending' && 'Iniciar Preparação'}
+                    {selectedOrder.status === 'processing' && 'Marcar como Pronto'}
+                    {selectedOrder.status === 'ready' && 'Finalizar Entrega'}
                   </Button>
                 )}
                 
                 {(selectedOrder.status === 'pending' || selectedOrder.status === 'processing') && (
-                  <Button variant="destructive">
+                  <Button 
+                    variant="destructive"
+                    onClick={() => cancelOrder(selectedOrder)}
+                  >
                     Cancelar Pedido
                   </Button>
                 )}
