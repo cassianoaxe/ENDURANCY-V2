@@ -351,9 +351,9 @@ function MedicalPortalDashboard() {
                 <div className="flex items-center">
                   <Users className="h-8 w-8 text-blue-500 mr-3" />
                   <div>
-                    <p className="font-semibold">{pharmacists?.length || 0} Registrados</p>
+                    <p className="font-semibold">{metrics?.doctors?.total || 0} Registrados</p>
                     <p className="text-muted-foreground text-sm">
-                      {pharmacists?.filter(p => p.isActive)?.length || 0} ativos
+                      {metrics?.doctors?.active || 0} ativos
                     </p>
                   </div>
                 </div>
