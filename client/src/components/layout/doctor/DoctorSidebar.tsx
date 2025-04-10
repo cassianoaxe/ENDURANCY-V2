@@ -34,6 +34,7 @@ const menuItems: MenuItem[] = [
   { icon: Users, label: "Pacientes", path: "/doctor/pacientes" },
   { icon: ClipboardList, label: "Prontuários", path: "/doctor/prontuarios" },
   { icon: ClipboardCheck, label: "Prescrições", path: "/doctor/prescricoes" },
+  { icon: Building, label: "Afiliações", path: "/doctor/afiliacao" },
   { icon: Stethoscope, label: "Consultas", path: "/doctor/consultas" },
   { icon: FileText, label: "Relatórios", path: "/doctor/relatorios" },
   { icon: UserSquare2, label: "Meu Perfil", path: "/doctor/perfil" },
