@@ -1,551 +1,363 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useForm } from 'react-hook-form';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { useParams } from 'wouter';
-import { apiRequest } from '@lib/queryClient';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Printer, FileText, Settings, Send, Database } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useForm } from 'react-hook-form';
+import { apiRequest } from '../../lib/queryClient';
+import { queryClient } from '../../lib/queryClient';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Schema para formulário de configuração fiscal
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/layout/Layout';
+import { Settings, Receipt, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+
+// Esquema de validação para configuração fiscal
 const fiscalConfigSchema = z.object({
-  legalName: z.string().min(1, 'Razão social é obrigatória'),
-  tradeName: z.string().optional(),
-  cnpj: z.string().min(14, 'CNPJ inválido'),
-  stateRegistration: z.string().optional(),
-  municipalRegistration: z.string().optional(),
-  address: z.string().min(1, 'Endereço é obrigatório'),
-  number: z.string().min(1, 'Número é obrigatório'),
-  complement: z.string().optional(),
-  district: z.string().min(1, 'Bairro é obrigatório'),
-  city: z.string().min(1, 'Cidade é obrigatória'),
-  state: z.string().min(2, 'Estado é obrigatório'),
-  zipCode: z.string().min(8, 'CEP inválido'),
-  fiscalRegime: z.string().min(1, 'Regime fiscal é obrigatório'),
-  cnae: z.string().min(1, 'CNAE é obrigatório'),
-  defaultSeries: z.string().default('1'),
-  nextInvoiceNumber: z.number().int().min(1).default(1),
-  printerModel: z.string().optional(),
-  printerPort: z.string().optional(),
-  isTestEnvironment: z.boolean().default(true),
+  organizationId: z.number(),
+  printerModel: z.string().min(2, 'O modelo da impressora é obrigatório'),
+  printerPort: z.string().min(1, 'A porta da impressora é obrigatória'),
+  defaultDocumentType: z.enum(['cupom_fiscal', 'nfce', 'nfe', 'nfse']),
+  emitterName: z.string().min(2, 'O nome do emitente é obrigatório'),
+  emitterDocument: z.string().min(4, 'O CNPJ/CPF do emitente é obrigatório'),
+  emitterAddress: z.string().optional(),
+  fiscalKey: z.string().optional(),
+  nextInvoiceNumber: z.number().min(1, 'O número inicial deve ser maior que zero'),
+  enableAutoprint: z.boolean().default(true),
 });
 
 type FiscalConfigFormValues = z.infer<typeof fiscalConfigSchema>;
 
-const ModuloFiscal = () => {
-  const [activeTab, setActiveTab] = useState('configuracoes');
-  const { organizationId } = useParams<{ organizationId: string }>();
-  const queryClient = useQueryClient();
-
-  // Obtém as configurações fiscais da organização
-  const { data: fiscalConfig, isLoading } = useQuery({
-    queryKey: ['/api/fiscal/config', organizationId],
+export default function AdminModuloFiscal() {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('config');
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<number | null>(null);
+  
+  // Buscar organizações
+  const organizationsQuery = useQuery({
+    queryKey: ['/api/organizations'],
+    queryFn: () => apiRequest('/api/organizations', 'GET'),
+  });
+  
+  // Buscar configuração fiscal de uma organização específica
+  const configQuery = useQuery({
+    queryKey: ['/api/fiscal/config', selectedOrganizationId],
     queryFn: async () => {
+      if (!selectedOrganizationId) {
+        throw new Error('Nenhuma organização selecionada');
+      }
+      
       try {
-        const response = await apiRequest(`/api/fiscal/config/${organizationId}`, {
-          method: 'GET',
-        });
-        return response;
-      } catch (error) {
-        console.error('Erro ao buscar configurações fiscais:', error);
-        return null;
+        const configResponse = await apiRequest(`/api/fiscal/config/${selectedOrganizationId}`, 'GET');
+        return configResponse;
+      } catch (error: any) {
+        // Se não encontrou configuração, retorna um objeto vazio
+        if (error.status === 404) {
+          return {
+            organizationId: selectedOrganizationId,
+            printerModel: '',
+            printerPort: 'COM1',
+            defaultDocumentType: 'cupom_fiscal',
+            emitterName: '',
+            emitterDocument: '',
+            emitterAddress: '',
+            fiscalKey: '',
+            nextInvoiceNumber: 1,
+            enableAutoprint: true,
+          };
+        }
+        throw error;
       }
     },
-    enabled: !!organizationId,
+    enabled: !!selectedOrganizationId,
   });
-
-  // Formulário de configurações fiscais
-  const form = useForm<FiscalConfigFormValues>({
-    resolver: zodResolver(fiscalConfigSchema),
-    defaultValues: {
-      legalName: fiscalConfig?.legalName || '',
-      tradeName: fiscalConfig?.tradeName || '',
-      cnpj: fiscalConfig?.cnpj || '',
-      stateRegistration: fiscalConfig?.stateRegistration || '',
-      municipalRegistration: fiscalConfig?.municipalRegistration || '',
-      address: fiscalConfig?.address || '',
-      number: fiscalConfig?.number || '',
-      complement: fiscalConfig?.complement || '',
-      district: fiscalConfig?.district || '',
-      city: fiscalConfig?.city || '',
-      state: fiscalConfig?.state || '',
-      zipCode: fiscalConfig?.zipCode || '',
-      fiscalRegime: fiscalConfig?.fiscalRegime || 'simples_nacional',
-      cnae: fiscalConfig?.cnae || '',
-      defaultSeries: fiscalConfig?.defaultSeries || '1',
-      nextInvoiceNumber: fiscalConfig?.nextInvoiceNumber || 1,
-      printerModel: fiscalConfig?.printerModel || 'bematech',
-      printerPort: fiscalConfig?.printerPort || 'COM1',
-      isTestEnvironment: fiscalConfig?.isTestEnvironment !== false,
+  
+  // Buscar documentos fiscais de uma organização específica
+  const documentsQuery = useQuery({
+    queryKey: ['/api/fiscal/documents', selectedOrganizationId],
+    queryFn: async () => {
+      if (!selectedOrganizationId) {
+        throw new Error('Nenhuma organização selecionada');
+      }
+      
+      return apiRequest(`/api/fiscal/documents/${selectedOrganizationId}`, 'GET');
     },
+    enabled: !!selectedOrganizationId && activeTab === 'documents',
   });
-
-  // Efeito para atualizar o formulário quando os dados são carregados
-  React.useEffect(() => {
-    if (fiscalConfig) {
-      form.reset({
-        legalName: fiscalConfig.legalName || '',
-        tradeName: fiscalConfig.tradeName || '',
-        cnpj: fiscalConfig.cnpj || '',
-        stateRegistration: fiscalConfig.stateRegistration || '',
-        municipalRegistration: fiscalConfig.municipalRegistration || '',
-        address: fiscalConfig.address || '',
-        number: fiscalConfig.number || '',
-        complement: fiscalConfig.complement || '',
-        district: fiscalConfig.district || '',
-        city: fiscalConfig.city || '',
-        state: fiscalConfig.state || '',
-        zipCode: fiscalConfig.zipCode || '',
-        fiscalRegime: fiscalConfig.fiscalRegime || 'simples_nacional',
-        cnae: fiscalConfig.cnae || '',
-        defaultSeries: fiscalConfig.defaultSeries || '1',
-        nextInvoiceNumber: fiscalConfig.nextInvoiceNumber || 1,
-        printerModel: fiscalConfig.printerModel || 'bematech',
-        printerPort: fiscalConfig.printerPort || 'COM1',
-        isTestEnvironment: fiscalConfig.isTestEnvironment !== false,
-      });
-    }
-  }, [fiscalConfig, form]);
-
-  // Mutação para salvar configurações fiscais
-  const saveFiscalConfigMutation = useMutation({
+  
+  // Salvar configuração fiscal
+  const saveConfigMutation = useMutation({
     mutationFn: async (data: FiscalConfigFormValues) => {
-      return apiRequest(`/api/fiscal/config/${organizationId}`, {
-        method: fiscalConfig ? 'PUT' : 'POST',
-        data: {
-          ...data,
-          organizationId: parseInt(organizationId || '0'),
-        },
-      });
+      const { organizationId } = data;
+      
+      try {
+        // Verifica se já existe uma configuração
+        await apiRequest(`/api/fiscal/config/${organizationId}`, 'GET');
+        
+        // Se existir, atualiza
+        return apiRequest(`/api/fiscal/config/${organizationId}`, 'PUT', data);
+      } catch (error: any) {
+        // Se não existir (404), cria uma nova
+        if (error.status === 404) {
+          return apiRequest(`/api/fiscal/config/${organizationId}`, 'POST', data);
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
-        title: 'Configurações fiscais salvas',
-        description: 'As configurações fiscais foram salvas com sucesso.',
-        variant: 'default',
+        title: 'Configuração salva com sucesso',
+        description: 'As configurações fiscais foram atualizadas.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/fiscal/config', organizationId] });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/fiscal/config', selectedOrganizationId] });
     },
-    onError: (error) => {
-      console.error('Erro ao salvar configurações fiscais:', error);
+    onError: (error: any) => {
       toast({
-        title: 'Erro ao salvar configurações',
-        description: 'Ocorreu um erro ao salvar as configurações fiscais. Tente novamente.',
+        title: 'Erro ao salvar configuração',
+        description: error.message || 'Ocorreu um erro ao tentar salvar as configurações fiscais.',
         variant: 'destructive',
       });
     },
   });
-
-  // Função para enviar o formulário
-  const onSubmit = (data: FiscalConfigFormValues) => {
-    saveFiscalConfigMutation.mutate(data);
+  
+  // Formulário para configuração fiscal
+  const configForm = useForm<FiscalConfigFormValues>({
+    resolver: zodResolver(fiscalConfigSchema),
+    defaultValues: {
+      organizationId: 0,
+      printerModel: '',
+      printerPort: 'COM1',
+      defaultDocumentType: 'cupom_fiscal',
+      emitterName: '',
+      emitterDocument: '',
+      emitterAddress: '',
+      fiscalKey: '',
+      nextInvoiceNumber: 1,
+      enableAutoprint: true,
+    },
+  });
+  
+  // Configurar os valores do formulário quando os dados são carregados
+  React.useEffect(() => {
+    if (configQuery.data && !configQuery.isPending) {
+      configForm.reset(configQuery.data);
+    }
+  }, [configQuery.data, configQuery.isPending, configForm]);
+  
+  // Manipulador para selecionar organização
+  const handleSelectOrganization = (organizationId: number) => {
+    setSelectedOrganizationId(organizationId);
   };
-
+  
+  // Manipulador para salvar configurações
+  const onSaveConfig = (data: FiscalConfigFormValues) => {
+    saveConfigMutation.mutate(data);
+  };
+  
+  // Função auxiliar para formatar o tipo do documento
+  const formatDocumentType = (type: string) => {
+    switch (type) {
+      case 'cupom_fiscal': return 'Cupom Fiscal';
+      case 'nfce': return 'NFC-e';
+      case 'nfe': return 'NF-e';
+      case 'nfse': return 'NFS-e';
+      default: return type;
+    }
+  };
+  
+  // Função auxiliar para formatar uma data
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+    } catch (error) {
+      return dateString;
+    }
+  };
+  
   return (
-    <DashboardLayout>
-      <div className="flex flex-col space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Módulo Fiscal</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Ambiente:</span>
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="environment-mode" 
-                checked={!form.watch('isTestEnvironment')}
-                onCheckedChange={(checked) => form.setValue('isTestEnvironment', !checked)}
-              />
-              <Label htmlFor="environment-mode" className={form.watch('isTestEnvironment') ? 'text-amber-500' : 'text-green-500'}>
-                {form.watch('isTestEnvironment') ? 'Teste' : 'Produção'}
-              </Label>
-            </div>
+    <Layout>
+      <div className="container mx-auto py-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Módulo Fiscal</h1>
+            <p className="text-muted-foreground">
+              Gerenciamento centralizado de configurações fiscais e documentos para todas as organizações
+            </p>
+          </div>
+          
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-[240px] justify-between">
+                  {selectedOrganizationId ? (
+                    organizationsQuery.data?.find(
+                      (org: any) => org.id === selectedOrganizationId
+                    )?.name || 'Selecione uma organização'
+                  ) : (
+                    'Selecione uma organização'
+                  )}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[240px] max-h-[400px] overflow-y-auto">
+                <DropdownMenuLabel>Organizações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {organizationsQuery.isLoading ? (
+                  <DropdownMenuItem disabled>Carregando...</DropdownMenuItem>
+                ) : organizationsQuery.isError ? (
+                  <DropdownMenuItem disabled>Erro ao carregar</DropdownMenuItem>
+                ) : organizationsQuery.data?.length ? (
+                  organizationsQuery.data.map((org: any) => (
+                    <DropdownMenuItem
+                      key={org.id}
+                      onClick={() => handleSelectOrganization(org.id)}
+                    >
+                      {org.name}
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>Nenhuma organização encontrada</DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-
-        <div className="grid gap-6">
+        
+        {!selectedOrganizationId ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Selecione uma organização</CardTitle>
+              <CardDescription>
+                Selecione uma organização para visualizar e gerenciar suas configurações fiscais.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="configuracoes" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" /> Configurações
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="config">
+                <Settings className="h-4 w-4 mr-2" />
+                Configuração Fiscal
               </TabsTrigger>
-              <TabsTrigger value="impressoras" className="flex items-center gap-2">
-                <Printer className="h-4 w-4" /> Impressoras
-              </TabsTrigger>
-              <TabsTrigger value="documentos" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" /> Documentos
-              </TabsTrigger>
-              <TabsTrigger value="integracoes" className="flex items-center gap-2">
-                <Database className="h-4 w-4" /> Integrações
+              <TabsTrigger value="documents">
+                <Receipt className="h-4 w-4 mr-2" />
+                Documentos Fiscais
               </TabsTrigger>
             </TabsList>
-
-            {/* Aba de Configurações */}
-            <TabsContent value="configuracoes">
+            
+            <TabsContent value="config">
               <Card>
                 <CardHeader>
-                  <CardTitle>Configurações Fiscais</CardTitle>
+                  <CardTitle>Configuração Fiscal</CardTitle>
                   <CardDescription>
-                    Configure os dados fiscais da sua organização para emissão de notas fiscais e documentos.
+                    Configure os parâmetros para emissão de documentos fiscais e integração com impressoras para a organização selecionada.
                   </CardDescription>
                 </CardHeader>
+                
                 <CardContent>
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Dados da Empresa</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="legalName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Razão Social</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Razão Social" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="tradeName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Nome Fantasia</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Nome Fantasia" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="cnpj"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>CNPJ</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="CNPJ" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="stateRegistration"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Inscrição Estadual</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Inscrição Estadual" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="municipalRegistration"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Inscrição Municipal</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Inscrição Municipal" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <Separator className="my-4" />
-                        <h3 className="text-lg font-medium">Endereço</h3>
-
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="col-span-2">
+                  {configQuery.isLoading ? (
+                    <div className="text-center py-4">Carregando configurações...</div>
+                  ) : configQuery.isError ? (
+                    <div className="text-center py-4 text-red-500">
+                      Erro ao carregar configurações.
+                    </div>
+                  ) : (
+                    <Form {...configForm}>
+                      <form className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium">Impressora Fiscal</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Configure a impressora fiscal para emissão de documentos
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
-                              control={form.control}
-                              name="address"
+                              control={configForm.control}
+                              name="printerModel"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Endereço</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Logradouro" {...field} />
-                                  </FormControl>
+                                  <FormLabel>Modelo da Impressora</FormLabel>
+                                  <Select 
+                                    onValueChange={field.onChange} 
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o modelo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="Bematech MP-4200 TH">Bematech MP-4200 TH</SelectItem>
+                                      <SelectItem value="Bematech MP-2800 TH">Bematech MP-2800 TH</SelectItem>
+                                      <SelectItem value="Bematech MP-100S TH">Bematech MP-100S TH</SelectItem>
+                                      <SelectItem value="Epson TM-T20">Epson TM-T20</SelectItem>
+                                      <SelectItem value="Epson TM-T88">Epson TM-T88</SelectItem>
+                                      <SelectItem value="Daruma DR800">Daruma DR800</SelectItem>
+                                      <SelectItem value="Elgin i9">Elgin i9</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name="number"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Número</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Número" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="complement"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Complemento</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Complemento" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="district"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Bairro</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Bairro" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="zipCode"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>CEP</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="CEP" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="col-span-2">
+                            
                             <FormField
-                              control={form.control}
-                              name="city"
+                              control={configForm.control}
+                              name="printerPort"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Cidade</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="Cidade" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name="state"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Estado</FormLabel>
-                                <FormControl>
+                                  <FormLabel>Porta da Impressora</FormLabel>
                                   <Select 
                                     onValueChange={field.onChange} 
                                     defaultValue={field.value}
                                   >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="AC">Acre</SelectItem>
-                                      <SelectItem value="AL">Alagoas</SelectItem>
-                                      <SelectItem value="AP">Amapá</SelectItem>
-                                      <SelectItem value="AM">Amazonas</SelectItem>
-                                      <SelectItem value="BA">Bahia</SelectItem>
-                                      <SelectItem value="CE">Ceará</SelectItem>
-                                      <SelectItem value="DF">Distrito Federal</SelectItem>
-                                      <SelectItem value="ES">Espírito Santo</SelectItem>
-                                      <SelectItem value="GO">Goiás</SelectItem>
-                                      <SelectItem value="MA">Maranhão</SelectItem>
-                                      <SelectItem value="MT">Mato Grosso</SelectItem>
-                                      <SelectItem value="MS">Mato Grosso do Sul</SelectItem>
-                                      <SelectItem value="MG">Minas Gerais</SelectItem>
-                                      <SelectItem value="PA">Pará</SelectItem>
-                                      <SelectItem value="PB">Paraíba</SelectItem>
-                                      <SelectItem value="PR">Paraná</SelectItem>
-                                      <SelectItem value="PE">Pernambuco</SelectItem>
-                                      <SelectItem value="PI">Piauí</SelectItem>
-                                      <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                                      <SelectItem value="RN">Rio Grande do Norte</SelectItem>
-                                      <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                                      <SelectItem value="RO">Rondônia</SelectItem>
-                                      <SelectItem value="RR">Roraima</SelectItem>
-                                      <SelectItem value="SC">Santa Catarina</SelectItem>
-                                      <SelectItem value="SP">São Paulo</SelectItem>
-                                      <SelectItem value="SE">Sergipe</SelectItem>
-                                      <SelectItem value="TO">Tocantins</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <Separator className="my-4" />
-                        <h3 className="text-lg font-medium">Informações Fiscais</h3>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="fiscalRegime"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Regime Fiscal</FormLabel>
-                                <FormControl>
-                                  <Select 
-                                    onValueChange={field.onChange} 
-                                    defaultValue={field.value}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione o regime fiscal" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="simples_nacional">Simples Nacional</SelectItem>
-                                      <SelectItem value="lucro_presumido">Lucro Presumido</SelectItem>
-                                      <SelectItem value="lucro_real">Lucro Real</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="cnae"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>CNAE Principal</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="CNAE" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="defaultSeries"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Série Padrão</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Série" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="nextInvoiceNumber"
-                            render={({ field: { onChange, ...field } }) => (
-                              <FormItem>
-                                <FormLabel>Próximo Número de NF</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number" 
-                                    placeholder="Próximo número" 
-                                    min={1}
-                                    onChange={(e) => onChange(parseInt(e.target.value))}
-                                    {...field} 
-                                    value={field.value?.toString() || '1'}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <div></div>
-                        </div>
-
-                        <Separator className="my-4" />
-                        <h3 className="text-lg font-medium">Integração com Impressora</h3>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="printerModel"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Modelo da Impressora</FormLabel>
-                                <FormControl>
-                                  <Select 
-                                    onValueChange={field.onChange} 
-                                    defaultValue={field.value}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione o modelo" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="bematech">Bematech</SelectItem>
-                                      <SelectItem value="epson">Epson</SelectItem>
-                                      <SelectItem value="daruma">Daruma</SelectItem>
-                                      <SelectItem value="elgin">Elgin</SelectItem>
-                                      <SelectItem value="sweda">Sweda</SelectItem>
-                                      <SelectItem value="tanca">Tanca</SelectItem>
-                                      <SelectItem value="outro">Outro</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="printerPort"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Porta da Impressora</FormLabel>
-                                <FormControl>
-                                  <Select 
-                                    onValueChange={field.onChange} 
-                                    defaultValue={field.value}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Selecione a porta" />
-                                    </SelectTrigger>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione a porta" />
+                                      </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                       <SelectItem value="COM1">COM1</SelectItem>
                                       <SelectItem value="COM2">COM2</SelectItem>
@@ -553,273 +365,258 @@ const ModuloFiscal = () => {
                                       <SelectItem value="COM4">COM4</SelectItem>
                                       <SelectItem value="LPT1">LPT1</SelectItem>
                                       <SelectItem value="USB">USB</SelectItem>
-                                      <SelectItem value="TCP/IP">TCP/IP</SelectItem>
+                                      <SelectItem value="/dev/usb/lp0">/dev/usb/lp0 (Linux)</SelectItem>
+                                      <SelectItem value="TCPIP">TCP/IP</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
-                      </div>
-
-                      <Button 
-                        type="submit" 
-                        className="w-full" 
-                        disabled={saveFiscalConfigMutation.isPending}
-                      >
-                        {saveFiscalConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
-                      </Button>
-                    </form>
-                  </Form>
+                        
+                        <Separator />
+                        
+                        <div>
+                          <h3 className="text-lg font-medium">Dados do Emissor</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Informações que serão incluídas nos documentos fiscais
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={configForm.control}
+                              name="emitterName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nome do Emissor</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Nome da empresa" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={configForm.control}
+                              name="emitterDocument"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>CNPJ/CPF</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="CNPJ ou CPF do emissor" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={configForm.control}
+                              name="emitterAddress"
+                              render={({ field }) => (
+                                <FormItem className="col-span-1 md:col-span-2">
+                                  <FormLabel>Endereço</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Endereço completo" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div>
+                          <h3 className="text-lg font-medium">Configurações de Documentos</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Parâmetros para emissão de documentos fiscais
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={configForm.control}
+                              name="defaultDocumentType"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Tipo de Documento Padrão</FormLabel>
+                                  <Select 
+                                    onValueChange={field.onChange} 
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Selecione o tipo" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="cupom_fiscal">Cupom Fiscal</SelectItem>
+                                      <SelectItem value="nfce">NFC-e (Nota Fiscal de Consumidor Eletrônica)</SelectItem>
+                                      <SelectItem value="nfe">NF-e (Nota Fiscal Eletrônica)</SelectItem>
+                                      <SelectItem value="nfse">NFS-e (Nota Fiscal de Serviço Eletrônica)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={configForm.control}
+                              name="nextInvoiceNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Próximo Número de Documento</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="number" 
+                                      min="1"
+                                      {...field}
+                                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Número que será usado no próximo documento emitido
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={configForm.control}
+                              name="fiscalKey"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Chave de Acesso SEFAZ (Opcional)</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Chave de acesso para a SEFAZ" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Utilizada para comunicação com a SEFAZ em ambiente de produção
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </form>
+                    </Form>
+                  )}
                 </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Aba de Impressoras */}
-            <TabsContent value="impressoras">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gerenciamento de Impressoras</CardTitle>
-                  <CardDescription>
-                    Cadastre e gerencie suas impressoras fiscais e não fiscais.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Alert className="mb-4">
-                    <div className="flex items-center gap-2">
-                      <Printer className="h-5 w-5" />
-                      <AlertTitle>Impressora padrão configurada</AlertTitle>
-                    </div>
-                    <AlertDescription>
-                      Sua impressora principal está configurada como {form.watch('printerModel')} na porta {form.watch('printerPort')}.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div className="grid gap-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Impressoras Cadastradas</h3>
-                      <Button variant="outline" size="sm">
-                        <Printer className="h-4 w-4 mr-2" /> Adicionar Impressora
-                      </Button>
-                    </div>
-
-                    <div className="rounded-md border">
-                      <div className="relative w-full overflow-auto">
-                        <table className="w-full caption-bottom text-sm">
-                          <thead>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <th className="h-12 px-4 text-left align-middle font-medium">Nome</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Modelo</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Porta</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                              <th className="h-12 px-4 text-right align-middle font-medium">Ações</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <td className="p-4 align-middle">Impressora Principal</td>
-                              <td className="p-4 align-middle capitalize">{form.watch('printerModel') || 'Bematech'}</td>
-                              <td className="p-4 align-middle">{form.watch('printerPort') || 'COM1'}</td>
-                              <td className="p-4 align-middle">
-                                <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                  Ativa
-                                </span>
-                              </td>
-                              <td className="p-4 align-middle text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Printer className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Settings className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
+                
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline">Testar Impressora</Button>
-                  <Button variant="outline">Imprimir Página de Teste</Button>
+                  <Button variant="outline" onClick={() => configForm.reset()}>Cancelar</Button>
+                  <Button onClick={configForm.handleSubmit(onSaveConfig)} disabled={saveConfigMutation.isPending || configQuery.isLoading}>
+                    {saveConfigMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}
+                  </Button>
                 </CardFooter>
               </Card>
             </TabsContent>
-
-            {/* Aba de Documentos */}
-            <TabsContent value="documentos">
+            
+            <TabsContent value="documents">
               <Card>
                 <CardHeader>
                   <CardTitle>Documentos Fiscais</CardTitle>
                   <CardDescription>
-                    Gerencie e visualize seus documentos fiscais emitidos.
+                    Histórico de documentos fiscais emitidos pela organização selecionada
                   </CardDescription>
                 </CardHeader>
+                
                 <CardContent>
-                  <div className="grid gap-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Histórico de Documentos</h3>
-                      <Button variant="outline" size="sm">
-                        <FileText className="h-4 w-4 mr-2" /> Emitir Documento
-                      </Button>
+                  {documentsQuery.isLoading ? (
+                    <div className="text-center py-4">Carregando documentos...</div>
+                  ) : documentsQuery.isError ? (
+                    <div className="text-center py-4 text-red-500">
+                      Erro ao carregar documentos.
                     </div>
-
-                    <div className="rounded-md border">
-                      <div className="relative w-full overflow-auto">
-                        <table className="w-full caption-bottom text-sm">
-                          <thead>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <th className="h-12 px-4 text-left align-middle font-medium">Número</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Tipo</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Cliente</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Data</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Valor</th>
-                              <th className="h-12 px-4 text-left align-middle font-medium">Status</th>
-                              <th className="h-12 px-4 text-right align-middle font-medium">Ações</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                              <td className="p-4 align-middle">000001</td>
-                              <td className="p-4 align-middle">Cupom Fiscal</td>
-                              <td className="p-4 align-middle">Cliente 1</td>
-                              <td className="p-4 align-middle">10/04/2025</td>
-                              <td className="p-4 align-middle">R$ 150,00</td>
-                              <td className="p-4 align-middle">
-                                <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                  Emitida
+                  ) : documentsQuery.data?.length === 0 ? (
+                    <div className="text-center py-4">
+                      Nenhum documento fiscal emitido por esta organização.
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="text-sm text-muted-foreground">
+                        Total de documentos: {documentsQuery.data?.length}
+                      </div>
+                      
+                      <Accordion type="single" collapsible className="w-full">
+                        {documentsQuery.data?.map((doc: any) => (
+                          <AccordionItem value={`doc-${doc.id}`} key={doc.id}>
+                            <AccordionTrigger className="grid grid-cols-5 gap-4 text-left">
+                              <div className="col-span-1">{doc.documentNumber}</div>
+                              <div className="col-span-1">{formatDocumentType(doc.type)}</div>
+                              <div className="col-span-1">R$ {Number(doc.totalAmount).toFixed(2)}</div>
+                              <div className="col-span-1">{formatDate(doc.issuedAt)}</div>
+                              <div className="col-span-1">
+                                <span className={`px-2 py-1 rounded-md text-xs ${
+                                  doc.status === 'emitida' ? 'bg-green-100 text-green-800' : 
+                                  doc.status === 'cancelada' ? 'bg-red-100 text-red-800' : 
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {doc.status === 'emitida' ? 'Emitida' : 
+                                   doc.status === 'cancelada' ? 'Cancelada' : 
+                                   doc.status === 'pendente' ? 'Pendente' : doc.status}
                                 </span>
-                              </td>
-                              <td className="p-4 align-middle text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <Printer className="h-4 w-4" />
-                                  </Button>
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                                <div>
+                                  <h4 className="font-medium">Cliente</h4>
+                                  <p>{doc.customerName || 'Consumidor Final'}</p>
                                 </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                                
+                                <div>
+                                  <h4 className="font-medium">CPF/CNPJ</h4>
+                                  <p>{doc.customerDocument || 'Não informado'}</p>
+                                </div>
+                                
+                                {doc.status === 'cancelada' && (
+                                  <div className="col-span-1 md:col-span-2">
+                                    <h4 className="font-medium">Motivo do Cancelamento</h4>
+                                    <p>{doc.cancelReason}</p>
+                                    <p className="text-sm text-gray-500">
+                                      Cancelado em: {formatDate(doc.canceledAt)}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <h4 className="font-medium mt-4 mb-2">Informações do Documento</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <p className="text-sm text-gray-500">Chave de Acesso</p>
+                                  <p className="font-mono text-xs break-all">{doc.accessKey}</p>
+                                </div>
+                                
+                                <div>
+                                  <p className="text-sm text-gray-500">Protocolo</p>
+                                  <p className="font-mono text-xs">{doc.authorizationProtocol}</p>
+                                </div>
+                                
+                                <div>
+                                  <p className="text-sm text-gray-500">Forma de Pagamento</p>
+                                  <p>{doc.paymentMethod || 'Não informado'}</p>
+                                </div>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Aba de Integrações */}
-            <TabsContent value="integracoes">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Integrações</CardTitle>
-                  <CardDescription>
-                    Configure integrações com serviços de emissão de notas fiscais e outros sistemas.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Alert className="mb-6">
-                    <AlertTitle>Ambiente de {form.watch('isTestEnvironment') ? 'Testes' : 'Produção'}</AlertTitle>
-                    <AlertDescription>
-                      Você está operando no ambiente de {form.watch('isTestEnvironment') ? 'testes' : 'produção'}. 
-                      {form.watch('isTestEnvironment') 
-                        ? ' Documentos emitidos não terão validade fiscal.' 
-                        : ' Documentos emitidos terão validade fiscal.'}
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="grid gap-6">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Certificado Digital</h3>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                          <Label>Certificado A1</Label>
-                          <div className="flex mt-2">
-                            <Input type="file" disabled />
-                            <Button variant="outline" className="ml-2" disabled>Upload</Button>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Upload do certificado digital A1 (formato .pfx)
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <Label>Senha do Certificado</Label>
-                          <Input type="password" placeholder="Senha do certificado" disabled />
-                        </div>
-                        
-                        <div>
-                          <Label>Validade</Label>
-                          <Input type="text" placeholder="DD/MM/AAAA" disabled />
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <Button variant="outline" disabled>
-                          <Send className="h-4 w-4 mr-2" /> Configurar Certificado
-                        </Button>
-                      </div>
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-medium">Provedores de Serviços</h3>
-                      
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">API de Emissão de NF-e/NFC-e</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Integração com serviço de emissão de notas fiscais
-                            </p>
-                          </div>
-                          <Switch disabled />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">Integração com SAT</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Conectar com equipamento SAT para emissão de Cupom Fiscal
-                            </p>
-                          </div>
-                          <Switch disabled />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">Integração com Secretaria da Fazenda</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Envio automático de arquivos SPED
-                            </p>
-                          </div>
-                          <Switch disabled />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <p className="text-sm text-muted-foreground">
-                    As integrações fiscais estarão disponíveis em breve. Entre em contato com o suporte para mais informações.
-                  </p>
-                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
+        )}
       </div>
-    </DashboardLayout>
+    </Layout>
   );
-};
-
-export default ModuloFiscal;
+}

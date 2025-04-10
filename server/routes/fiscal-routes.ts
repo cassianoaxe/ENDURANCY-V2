@@ -12,74 +12,7 @@ import {
 } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
-
-// Simulação do serviço de impressão Bematech
-class BematechPrinterService {
-  static printCupomFiscal(data: any) {
-    console.log('Imprimindo cupom fiscal na impressora Bematech:', data);
-    return {
-      success: true,
-      printerResponse: {
-        status: 'success',
-        code: 0,
-        message: 'Cupom fiscal impresso com sucesso',
-        serialNumber: 'BMP-123456',
-        documentNumber: data.documentNumber
-      }
-    };
-  }
-
-  static printNFCe(data: any) {
-    console.log('Imprimindo NFC-e na impressora Bematech:', data);
-    return {
-      success: true,
-      printerResponse: {
-        status: 'success',
-        code: 0,
-        message: 'NFC-e impressa com sucesso',
-        serialNumber: 'BMP-123456',
-        documentNumber: data.documentNumber
-      }
-    };
-  }
-
-  static testConnection(port: string) {
-    console.log(`Testando conexão com impressora Bematech na porta ${port}`);
-    return {
-      success: true,
-      printerResponse: {
-        status: 'success',
-        code: 0,
-        message: 'Conexão com a impressora realizada com sucesso',
-        serialNumber: 'BMP-123456'
-      }
-    };
-  }
-
-  static openCashDrawer(port: string) {
-    console.log(`Abrindo gaveta de dinheiro na porta ${port}`);
-    return {
-      success: true,
-      printerResponse: {
-        status: 'success',
-        code: 0,
-        message: 'Gaveta de dinheiro aberta com sucesso'
-      }
-    };
-  }
-
-  static printDailyReport(data: any) {
-    console.log('Imprimindo relatório diário:', data);
-    return {
-      success: true,
-      printerResponse: {
-        status: 'success',
-        code: 0,
-        message: 'Relatório impresso com sucesso'
-      }
-    };
-  }
-}
+import printerService from '../services/fiscalPrinter';
 
 // Gerenciador de configurações fiscais
 export async function getFiscalConfig(req: Request, res: Response) {
@@ -250,25 +183,36 @@ export async function createDocument(req: Request, res: Response) {
       where: eq(fiscalConfigs.organizationId, data.organizationId)
     });
 
-    // Simulação de impressão de documento fiscal
+    // Impressão de documento fiscal usando o serviço da impressora
     let printResult = null;
     if (config && config.printerModel) {
+      // Preparar os itens para impressão
+      const fiscalItems = req.body.items.map((item: any) => ({
+        code: item.code || item.id.toString(),
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+        unitOfMeasure: item.unitOfMeasure || 'UN',
+        taxRate: item.taxAmount ? (item.taxAmount / item.totalPrice) * 100 : 0
+      }));
+      
+      // Criar o objeto de recibo fiscal
+      const receipt = {
+        documentNumber: documentData.documentNumber,
+        items: fiscalItems,
+        customerName: documentData.customerName,
+        customerDocument: documentData.customerDocument,
+        paymentMethod: documentData.paymentMethod,
+        totalAmount: documentData.totalAmount,
+        issuedAt: documentData.issuedAt
+      };
+      
+      // Escolher o método de impressão adequado
       if (data.type === 'nfce') {
-        printResult = BematechPrinterService.printNFCe({
-          documentNumber: documentData.documentNumber,
-          items: req.body.items,
-          customerName: documentData.customerName,
-          totalAmount: documentData.totalAmount,
-          issuedAt: documentData.issuedAt
-        });
+        printResult = printerService.printNFCe(receipt);
       } else {
-        printResult = BematechPrinterService.printCupomFiscal({
-          documentNumber: documentData.documentNumber,
-          items: req.body.items,
-          customerName: documentData.customerName,
-          totalAmount: documentData.totalAmount,
-          issuedAt: documentData.issuedAt
-        });
+        printResult = printerService.printFiscalReceipt(receipt);
       }
     }
     
@@ -346,14 +290,27 @@ export async function testPrinter(req: Request, res: Response) {
       return res.status(400).json({ message: 'Modelo e porta da impressora são obrigatórios' });
     }
 
-    // Simulação de teste de conexão com a impressora
+    // Teste de conexão com a impressora usando o serviço
+    // Por enquanto, nosso serviço só suporta Bematech
     let testResult = null;
     if (printerModel.toLowerCase().includes('bematech')) {
-      testResult = BematechPrinterService.testConnection(printerPort);
+      // Primeiro conecta
+      testResult = printerService.connect();
+      
+      // Depois verifica o status
+      if (testResult.success) {
+        testResult = printerService.checkStatus();
+      }
+      
+      // Imprime uma página de teste se conectado com sucesso
+      if (testResult.success) {
+        testResult = printerService.printTestPage();
+      }
     } else {
       // Implementar para outros modelos quando necessário
       testResult = { 
         success: false, 
+        code: 99,
         message: 'Modelo de impressora não suportado' 
       };
     }
@@ -378,14 +335,23 @@ export async function openCashDrawer(req: Request, res: Response) {
       return res.status(400).json({ message: 'Impressora não configurada' });
     }
 
-    // Simulação de abertura da gaveta
+    // Abertura da gaveta usando o serviço da impressora
     let result = null;
     if (config.printerModel.toLowerCase().includes('bematech')) {
-      result = BematechPrinterService.openCashDrawer(config.printerPort);
+      // Primeiro conecta com a impressora
+      const connectResult = printerService.connect();
+      
+      // Se conectou com sucesso, tenta abrir a gaveta
+      if (connectResult.success) {
+        result = printerService.openCashDrawer();
+      } else {
+        result = connectResult;
+      }
     } else {
       // Implementar para outros modelos quando necessário
       result = { 
         success: false, 
+        code: 99,
         message: 'Modelo de impressora não suportado' 
       };
     }
@@ -425,19 +391,27 @@ export async function printDailyReport(req: Request, res: Response) {
     const total = documents.reduce((acc, doc) => acc + Number(doc.totalAmount), 0);
     const count = documents.length;
 
-    // Simulação de impressão do relatório
+    // Impressão do relatório usando o serviço da impressora
     let result = null;
     if (config.printerModel.toLowerCase().includes('bematech')) {
-      result = BematechPrinterService.printDailyReport({
-        date: new Date(),
-        totalAmount: total,
-        documentCount: count,
-        documents
-      });
+      // Primeiro conecta com a impressora
+      const connectResult = printerService.connect();
+      
+      // Se conectou com sucesso, imprime o relatório diário
+      if (connectResult.success) {
+        result = printerService.printDailySalesReport(
+          new Date(),  // Data atual
+          total,       // Valor total das vendas
+          count        // Quantidade de vendas
+        );
+      } else {
+        result = connectResult;
+      }
     } else {
       // Implementar para outros modelos quando necessário
       result = { 
         success: false, 
+        code: 99,
         message: 'Modelo de impressora não suportado' 
       };
     }
