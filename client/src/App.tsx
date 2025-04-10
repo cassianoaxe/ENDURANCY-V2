@@ -611,7 +611,9 @@ function AppContent() {
   
   // Handle pharmacist-specific routes
   if (currentPath.startsWith('/pharmacist/')) {
-    if (userRole !== 'pharmacist') {
+    // Temporariamente permitindo acesso com role "doctor" para simular farmacêutico
+    // No futuro, adicionar o role "pharmacist" ao enum role_type no banco de dados
+    if (userRole !== 'pharmacist' && userRole !== 'doctor') {
       return (
         <Layout>
           <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
