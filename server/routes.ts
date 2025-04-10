@@ -260,9 +260,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
   
-  // Initialize user table with an admin user if it doesn't exist
-  const initializeAdmin = async () => {
+  // Initialize user table with admin and other default users if they don't exist
+  const initializeDefaultUsers = async () => {
     try {
+      // Check if admin user exists
       const existingAdmin = await db.select().from(users).where(eq(users.username, 'admin'));
       if (existingAdmin.length === 0) {
         await db.insert(users).values({
@@ -274,13 +275,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log('Admin user created');
       }
+
+      // Check if pharmacist user exists
+      const existingPharmacist = await db.select().from(users).where(eq(users.email, 'farmaceutico@endurancy.com'));
+      if (existingPharmacist.length === 0) {
+        await db.insert(users).values({
+          username: 'farmaceutico',
+          password: 'farmacia123', // In production, this should be hashed
+          role: 'pharmacist',
+          name: 'Farmacêutico Demo',
+          email: 'farmaceutico@endurancy.com',
+        });
+        console.log('Pharmacist user created');
+      }
     } catch (error) {
-      console.error('Error initializing admin user:', error);
+      console.error('Error initializing default users:', error);
     }
   };
   
-  // Initialize admin user
-  initializeAdmin();
+  // Initialize default users
+  initializeDefaultUsers();
   
   // Initialize sample plans
   import('./services/stripe').then(({ initializePlans }) => {
