@@ -169,7 +169,7 @@ export const moduleTypeEnum = pgEnum('module_type', [
   'onboarding', 'analytics', 'dashboard', 'associados', 'vendas', 'financeiro', 'complypay', // Módulos básicos
   'cultivo', 'producao', // Módulos de planos mais avançados
   'tarefas', 'crm', 'social', 'rh', 'juridico', 'transparencia', 'inteligencia_artificial', 
-  'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente' // Add-ons
+  'compras', 'dispensario', 'patrimonio', 'comunicacao', 'pesquisa_cientifica', 'educacao_paciente', 'fiscal' // Add-ons
 ]);
 
 // Tabela de módulos disponíveis no sistema
@@ -446,6 +446,10 @@ export const transactionStatusEnum = pgEnum('transaction_status', ['pendente', '
 export const employeeStatusEnum = pgEnum('employee_status', ['ativo', 'férias', 'licença', 'desligado']);
 export const departmentEnum = pgEnum('department_type', ['desenvolvimento', 'design', 'marketing', 'vendas', 'suporte', 'administrativo', 'rh', 'financeiro', 'diretoria']);
 export const vacationStatusEnum = pgEnum('vacation_status', ['pendente', 'aprovada', 'negada', 'cancelada', 'em_andamento', 'concluída']);
+
+// Enums para o módulo fiscal
+export const invoiceTypeEnum = pgEnum('invoice_type', ['nfe', 'nfce', 'cupom_fiscal', 'nfse']);
+export const invoiceStatusEnum = pgEnum('invoice_status', ['rascunho', 'emitida', 'cancelada', 'rejeitada', 'inutilizada']);
 
 // Transações financeiras (contas a pagar e receber)
 export const financialTransactions = pgTable("financial_transactions", {
@@ -818,6 +822,185 @@ export const insertNotificationSchema = createInsertSchema(notifications).pick({
 // Tipos para o sistema de notificações
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Tabelas para o módulo fiscal
+export const fiscalConfigs = pgTable("fiscal_configs", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  legalName: text("legal_name").notNull(),
+  tradeName: text("trade_name"),
+  cnpj: text("cnpj").notNull(),
+  stateRegistration: text("state_registration"),
+  municipalRegistration: text("municipal_registration"),
+  address: text("address").notNull(),
+  number: text("number").notNull(),
+  complement: text("complement"),
+  district: text("district").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
+  certificateFile: text("certificate_file"), // Caminho para o certificado digital
+  certificatePassword: text("certificate_password"), // Senha do certificado (armazenada de forma segura)
+  certificateExpiration: timestamp("certificate_expiration"),
+  fiscalRegime: text("fiscal_regime").notNull(), // Simples Nacional, Lucro Presumido, etc.
+  cnae: text("cnae").notNull(), // Código CNAE principal
+  defaultSeries: text("default_series").default("1"), // Série padrão para documentos fiscais
+  nextInvoiceNumber: integer("next_invoice_number").default(1), // Próximo número de documento
+  printerModel: text("printer_model"), // Modelo da impressora fiscal (Bematech, etc.)
+  printerPort: text("printer_port"), // Porta da impressora fiscal (COM1, USB, etc.)
+  isTestEnvironment: boolean("is_test_environment").default(true), // Ambiente de testes ou produção
+  apiToken: text("api_token"), // Token para API de emissão de NF (se aplicável)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const fiscalDocuments = pgTable("fiscal_documents", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  orderId: integer("order_id"), // Pedido relacionado (pode ser nulo para documentos manuais)
+  documentNumber: text("document_number").notNull(), // Número do documento fiscal
+  series: text("series").notNull().default("1"), // Série do documento
+  type: invoiceTypeEnum("type").notNull(), // NFe, NFCe, Cupom, NFSe
+  status: invoiceStatusEnum("status").notNull().default("rascunho"),
+  customerName: text("customer_name").notNull(),
+  customerDocument: text("customer_document"), // CPF ou CNPJ
+  customerEmail: text("customer_email"),
+  issuedAt: timestamp("issued_at"),
+  canceledAt: timestamp("canceled_at"),
+  cancelReason: text("cancel_reason"),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  totalTax: decimal("total_tax", { precision: 10, scale: 2 }).default("0"),
+  xmlContent: text("xml_content"), // Conteúdo XML do documento emitido
+  pdfUrl: text("pdf_url"), // URL para o PDF do documento
+  accessKey: text("access_key"), // Chave de acesso do documento (NFe/NFCe)
+  authorizationProtocol: text("authorization_protocol"), // Protocolo de autorização
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const fiscalDocumentItems = pgTable("fiscal_document_items", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").notNull(),
+  productId: integer("product_id").notNull(),
+  code: text("code").notNull(), // Código ou SKU do produto
+  description: text("description").notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
+  unitOfMeasure: text("unit_of_measure").notNull().default("UN"),
+  ncm: text("ncm"), // Código NCM para produtos
+  cfop: text("cfop"), // Código CFOP
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
+  icmsRate: decimal("icms_rate", { precision: 5, scale: 2 }),
+  pisRate: decimal("pis_rate", { precision: 5, scale: 2 }),
+  cofinsRate: decimal("cofins_rate", { precision: 5, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const fiscalPrinters = pgTable("fiscal_printers", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  model: text("model").notNull(), // Bematech, Epson, etc.
+  serialNumber: text("serial_number"),
+  port: text("port").notNull(), // COM1, USB, TCP/IP, etc.
+  ipAddress: text("ip_address"), // Para impressoras em rede
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  lastMaintenance: timestamp("last_maintenance"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schemas para inserção de documentos fiscais
+export const insertFiscalConfigSchema = createInsertSchema(fiscalConfigs).pick({
+  organizationId: true,
+  legalName: true,
+  tradeName: true,
+  cnpj: true,
+  stateRegistration: true,
+  municipalRegistration: true,
+  address: true,
+  number: true,
+  complement: true,
+  district: true,
+  city: true,
+  state: true,
+  zipCode: true,
+  certificateFile: true,
+  certificatePassword: true,
+  certificateExpiration: true,
+  fiscalRegime: true,
+  cnae: true,
+  defaultSeries: true,
+  nextInvoiceNumber: true,
+  printerModel: true,
+  printerPort: true,
+  isTestEnvironment: true,
+  apiToken: true,
+});
+
+export const insertFiscalDocumentSchema = createInsertSchema(fiscalDocuments).pick({
+  organizationId: true,
+  orderId: true,
+  documentNumber: true,
+  series: true,
+  type: true,
+  status: true,
+  customerName: true,
+  customerDocument: true,
+  customerEmail: true,
+  issuedAt: true,
+  canceledAt: true,
+  cancelReason: true,
+  totalAmount: true,
+  totalTax: true,
+  xmlContent: true,
+  pdfUrl: true,
+  accessKey: true,
+  authorizationProtocol: true,
+});
+
+export const insertFiscalDocumentItemSchema = createInsertSchema(fiscalDocumentItems).pick({
+  documentId: true,
+  productId: true,
+  code: true,
+  description: true,
+  quantity: true,
+  unitPrice: true,
+  totalPrice: true,
+  unitOfMeasure: true,
+  ncm: true,
+  cfop: true,
+  taxAmount: true,
+  icmsRate: true,
+  pisRate: true,
+  cofinsRate: true,
+});
+
+export const insertFiscalPrinterSchema = createInsertSchema(fiscalPrinters).pick({
+  organizationId: true,
+  name: true,
+  model: true,
+  serialNumber: true,
+  port: true,
+  ipAddress: true,
+  isDefault: true,
+  isActive: true,
+  lastMaintenance: true,
+  notes: true,
+});
+
+// Tipos para o módulo fiscal
+export type FiscalConfig = typeof fiscalConfigs.$inferSelect;
+export type InsertFiscalConfig = z.infer<typeof insertFiscalConfigSchema>;
+export type FiscalDocument = typeof fiscalDocuments.$inferSelect;
+export type InsertFiscalDocument = z.infer<typeof insertFiscalDocumentSchema>;
+export type FiscalDocumentItem = typeof fiscalDocumentItems.$inferSelect;
+export type InsertFiscalDocumentItem = z.infer<typeof insertFiscalDocumentItemSchema>;
+export type FiscalPrinter = typeof fiscalPrinters.$inferSelect;
+export type InsertFiscalPrinter = z.infer<typeof insertFiscalPrinterSchema>;
 
 // Enum para definir o status do produto
 export const productStatusEnum = pgEnum('product_status', ['ativo', 'inativo', 'em_falta', 'descontinuado']);
