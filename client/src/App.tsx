@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
+import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -178,6 +179,9 @@ function AppContent() {
         } else if (userRole === 'patient') {
           window.history.pushState({}, '', '/patient/dashboard');
           setCurrentPath('/patient/dashboard');
+        } else if (userRole === 'pharmacist') {
+          window.history.pushState({}, '', '/pharmacist/dashboard');
+          setCurrentPath('/pharmacist/dashboard');
         } else {
           window.history.pushState({}, '', '/login');
           setCurrentPath('/login');
