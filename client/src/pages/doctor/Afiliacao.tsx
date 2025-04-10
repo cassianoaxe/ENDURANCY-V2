@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
 import { 
   Building, 
@@ -10,6 +10,7 @@ import {
   StarOff,
   ExternalLink,
   MoreHorizontal,
+  Loader2
 } from 'lucide-react';
 import { 
   Card, 
@@ -40,68 +41,86 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-// Dados mockados de afiliação para demonstração
-const doctorAffiliations = [
-  {
-    id: 1,
-    organizationId: 1,
-    organizationName: "Green Leaf Farmácia",
-    status: "active",
-    isDefault: true,
-    joinedDate: "10/03/2025",
-    patientsCount: 42,
-    prescriptionsCount: 128,
-    logo: "🍃", // Emoji como placeholder para logo
-    website: "https://greenleaf.example.com",
-    address: "Av. Paulista, 1000, São Paulo, SP"
-  },
-  {
-    id: 2,
-    organizationId: 2,
-    organizationName: "MediCanna Dispensário",
-    status: "active",
-    isDefault: false,
-    joinedDate: "15/04/2025",
-    patientsCount: 18,
-    prescriptionsCount: 54,
-    logo: "🌿", // Emoji como placeholder para logo
-    website: "https://medicanna.example.com",
-    address: "Rua Augusta, 500, São Paulo, SP"
-  },
-  {
-    id: 3,
-    organizationId: 3,
-    organizationName: "Saúde Cannabis Center",
-    status: "pending",
-    isDefault: false,
-    joinedDate: "01/05/2025",
-    patientsCount: 0,
-    prescriptionsCount: 0,
-    logo: "🌱", // Emoji como placeholder para logo
-    website: "https://saudecannabis.example.com",
-    address: "Av. Brigadeiro Faria Lima, 2000, São Paulo, SP"
-  }
-];
+// Definindo o tipo para as afiliações
+interface DoctorAffiliation {
+  id: number;
+  doctorId: number;
+  organizationId: number;
+  organizationName: string;
+  status: string;
+  isDefault: boolean;
+  createdAt: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
+  website?: string;
+  patientsCount?: number;
+  prescriptionsCount?: number;
+}
 
-// Lista de convites pendentes
-const pendingInvitations = [
-  {
-    id: 101,
-    organizationName: "CannaVida Farmácia",
-    invitedBy: "Dr. Rafael Mendes",
-    inviteDate: "28/04/2025",
-    logo: "🌱"
-  }
-];
+// Definindo o tipo para os convites
+interface Invitation {
+  id: number;
+  organizationName: string;
+  invitedBy: string;
+  inviteDate: string;
+  logo?: string;
+}
 
 export default function DoctorAfiliacao() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [activeTab, setActiveTab] = useState('active');
+  const [affiliations, setAffiliations] = useState<DoctorAffiliation[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [joiningOrganization, setJoiningOrganization] = useState(false);
   
-  const filteredAffiliations = doctorAffiliations.filter(affiliation => {
+  // Carregar as afiliações do médico
+  useEffect(() => {
+    const fetchAffiliations = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/doctor/organizations');
+        if (!response.ok) {
+          throw new Error('Falha ao carregar afiliações');
+        }
+        const data = await response.json();
+        setAffiliations(data);
+      } catch (error) {
+        console.error('Erro ao carregar afiliações:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar suas afiliações. Tente novamente mais tarde.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    // Por enquanto, estamos deixando os convites como dados mockados
+    // Em um sistema real, isso seria carregado de uma API
+    setInvitations([{
+      id: 101,
+      organizationName: "CannaVida Farmácia",
+      invitedBy: "Dr. Rafael Mendes",
+      inviteDate: "28/04/2025",
+      logo: "🌱"
+    }]);
+    
+    fetchAffiliations();
+  }, [toast]);
+  
+  const filteredAffiliations = affiliations.filter((affiliation: DoctorAffiliation) => {
     if (activeTab === 'active') {
       return affiliation.status === 'active';
     } else if (activeTab === 'pending') {
@@ -110,32 +129,163 @@ export default function DoctorAfiliacao() {
     return true;
   });
   
-  const handleSetDefault = (affiliationId: number) => {
-    console.log("Tornando a afiliação padrão:", affiliationId);
-    // Aqui você implementaria a lógica para tornar esta a afiliação padrão
+  const handleSetDefault = async (affiliationId: number) => {
+    try {
+      const response = await fetch(`/api/doctor/organizations/${affiliationId}/set-default`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao definir como padrão');
+      }
+      
+      // Atualiza a UI: marca a afiliação escolhida como padrão e remove flag das outras
+      setAffiliations(prevAffiliations => 
+        prevAffiliations.map(affiliation => ({
+          ...affiliation,
+          isDefault: affiliation.id === affiliationId
+        }))
+      );
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Organização definida como padrão com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao definir organização padrão:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível definir a organização como padrão. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
   
-  const handleLeaveOrganization = (affiliationId: number) => {
-    console.log("Deixando a organização:", affiliationId);
-    // Aqui você implementaria a lógica para deixar a organização
+  const handleLeaveOrganization = async (affiliationId: number) => {
+    if (!confirm('Tem certeza que deseja deixar esta organização? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/doctor/organizations/${affiliationId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        // Se o erro for devido a prescrições existentes
+        if (response.status === 400) {
+          const data = await response.json();
+          throw new Error(data.message || 'Não é possível deixar a organização');
+        }
+        throw new Error('Falha ao deixar a organização');
+      }
+      
+      // Remove a afiliação da lista
+      setAffiliations(prevAffiliations => 
+        prevAffiliations.filter(affiliation => affiliation.id !== affiliationId)
+      );
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Você deixou a organização com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Erro ao deixar organização:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível deixar a organização. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
   
   const handleAcceptInvitation = (invitationId: number) => {
-    console.log("Aceitando convite:", invitationId);
-    // Aqui você implementaria a lógica para aceitar o convite
+    // Simulação - em um sistema real, isso seria uma chamada de API
+    toast({
+      title: 'Convite aceito',
+      description: 'Funcionalidade ainda em implementação',
+    });
+    
+    // Remove o convite da lista
+    setInvitations(prevInvitations => 
+      prevInvitations.filter(invitation => invitation.id !== invitationId)
+    );
   };
   
   const handleRejectInvitation = (invitationId: number) => {
-    console.log("Rejeitando convite:", invitationId);
-    // Aqui você implementaria a lógica para rejeitar o convite
+    // Simulação - em um sistema real, isso seria uma chamada de API
+    toast({
+      title: 'Convite recusado',
+      description: 'Funcionalidade ainda em implementação',
+    });
+    
+    // Remove o convite da lista
+    setInvitations(prevInvitations => 
+      prevInvitations.filter(invitation => invitation.id !== invitationId)
+    );
   };
   
-  const handleJoinUsingCode = (e: React.FormEvent) => {
+  const handleJoinUsingCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Tentando aderir usando o código:", inviteCode);
-    // Aqui você implementaria a lógica para aderir usando o código
-    setShowInviteDialog(false);
-    setInviteCode('');
+    
+    if (!inviteCode.trim()) {
+      toast({
+        title: 'Código vazio',
+        description: 'Por favor, insira um código de convite válido',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      setJoiningOrganization(true);
+      
+      const response = await fetch('/api/doctor/organizations/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inviteCode }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Falha ao aderir à organização');
+      }
+      
+      const data = await response.json();
+      
+      // Atualizar a lista para incluir a nova afiliação
+      const response2 = await fetch('/api/doctor/organizations');
+      if (response2.ok) {
+        const affiliationsData = await response2.json();
+        setAffiliations(affiliationsData);
+      }
+      
+      // Fechar o dialog e limpar o código
+      setShowInviteDialog(false);
+      setInviteCode('');
+      
+      // Mudar para a aba pendentes se a afiliação estiver pendente
+      setActiveTab('pending');
+      
+      toast({
+        title: 'Solicitação enviada',
+        description: data.message || 'Sua solicitação de afiliação foi enviada com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Erro ao usar código de convite:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível processar o código de convite. Verifique se o código está correto.',
+        variant: 'destructive',
+      });
+    } finally {
+      setJoiningOrganization(false);
+    }
   };
 
   return (
@@ -161,15 +311,19 @@ export default function DoctorAfiliacao() {
           </div>
           
           <TabsContent value="active" className="space-y-4">
-            {filteredAffiliations.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredAffiliations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAffiliations.map((affiliation) => (
+                {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
                   <Card key={affiliation.id} className={`${affiliation.isDefault ? 'border-primary border-2' : ''}`}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {affiliation.logo}
+                            {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
                           </div>
                           <div>
                             <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
@@ -191,10 +345,12 @@ export default function DoctorAfiliacao() {
                                 <span>Tornar padrão</span>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem onClick={() => window.open(affiliation.website, '_blank')}>
-                              <ExternalLink className="mr-2 h-4 w-4" />
-                              <span>Visitar site</span>
-                            </DropdownMenuItem>
+                            {affiliation.website && (
+                              <DropdownMenuItem onClick={() => window.open(affiliation.website, '_blank')}>
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                <span>Visitar site</span>
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem 
                               onClick={() => handleLeaveOrganization(affiliation.id)} 
                               className="text-red-600 focus:text-red-600"
@@ -205,22 +361,25 @@ export default function DoctorAfiliacao() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <CardDescription className="text-xs mt-2">{affiliation.address}</CardDescription>
+                      <CardDescription className="text-xs mt-2">
+                        {affiliation.address || ''}
+                        {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div className="bg-gray-50 p-2 rounded-md">
                           <p className="text-gray-500 text-xs">Pacientes</p>
-                          <p className="font-medium">{affiliation.patientsCount}</p>
+                          <p className="font-medium">{affiliation.patientsCount || '0'}</p>
                         </div>
                         <div className="bg-gray-50 p-2 rounded-md">
                           <p className="text-gray-500 text-xs">Prescrições</p>
-                          <p className="font-medium">{affiliation.prescriptionsCount}</p>
+                          <p className="font-medium">{affiliation.prescriptionsCount || '0'}</p>
                         </div>
                       </div>
                     </CardContent>
                     <CardFooter className="text-xs text-gray-500 pt-0">
-                      Afiliado desde {affiliation.joinedDate}
+                      Afiliado desde {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}
                     </CardFooter>
                   </Card>
                 ))}
@@ -237,15 +396,19 @@ export default function DoctorAfiliacao() {
           </TabsContent>
           
           <TabsContent value="pending" className="space-y-4">
-            {filteredAffiliations.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredAffiliations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAffiliations.map((affiliation) => (
+                {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
                   <Card key={affiliation.id}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {affiliation.logo}
+                            {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
                           </div>
                           <div>
                             <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
@@ -253,13 +416,16 @@ export default function DoctorAfiliacao() {
                           </div>
                         </div>
                       </div>
-                      <CardDescription className="text-xs mt-2">{affiliation.address}</CardDescription>
+                      <CardDescription className="text-xs mt-2">
+                        {affiliation.address || ''}
+                        {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm">Sua solicitação está em análise pela administração da organização.</p>
                     </CardContent>
                     <CardFooter className="text-xs text-gray-500 pt-0">
-                      Solicitado em {affiliation.joinedDate}
+                      Solicitado em {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}
                     </CardFooter>
                   </Card>
                 ))}
@@ -275,15 +441,19 @@ export default function DoctorAfiliacao() {
           </TabsContent>
           
           <TabsContent value="invites" className="space-y-4">
-            {pendingInvitations.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : invitations.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingInvitations.map((invitation) => (
+                {invitations.map((invitation: Invitation) => (
                   <Card key={invitation.id}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {invitation.logo}
+                            {invitation.logo || invitation.organizationName?.[0]?.toUpperCase() || "🏥"}
                           </div>
                           <div>
                             <CardTitle className="text-base">{invitation.organizationName}</CardTitle>
