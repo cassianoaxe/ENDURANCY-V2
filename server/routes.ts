@@ -5198,7 +5198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/payment-email', paymentEmailRouter);
   
   // Rotas do módulo de farmácia
-  app.use('/api/organization', farmaciaRouter);
+  app.use('/api/organization/farmacia', farmaciaRouter);
   
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
