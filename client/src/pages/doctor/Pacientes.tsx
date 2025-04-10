@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
 import { 
   Search, 
@@ -11,7 +11,8 @@ import {
   Download,
   ArrowUpDown,
   BellRing,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react';
 import { 
   Card
@@ -34,93 +35,215 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
-// Dados de exemplo para a lista de pacientes
-const patients = [
-  {
-    id: 1,
-    name: 'Maria Oliveira',
-    age: 39,
-    gender: 'Feminino',
-    email: 'maria.oliveira@email.com',
-    phone: '(11) 98765-4321',
-    lastVisit: '29/02/2024',
-    nextVisit: '31/03/2024',
-    conditions: ['Ansiedade', 'Insônia'],
-    active: true,
-    initials: 'MO'
-  },
-  {
-    id: 2,
-    name: 'João Santos',
-    age: 51,
-    gender: 'Masculino',
-    email: 'joao.santos@email.com',
-    phone: '(11) 91234-5678',
-    lastVisit: '09/02/2024',
-    nextVisit: '09/05/2024',
-    conditions: ['Dor Crônica', 'Artrite'],
-    active: true,
-    initials: 'JS'
-  },
-  {
-    id: 3,
-    name: 'Ana Pereira',
-    age: 34,
-    gender: 'Feminino',
-    email: 'ana.pereira@email.com',
-    phone: '(11) 98888-7777',
-    lastVisit: '19/01/2024',
-    nextVisit: '19/04/2024',
-    conditions: ['Epilepsia', 'Ansiedade'],
-    active: true,
-    initials: 'AP'
-  },
-  {
-    id: 4,
-    name: 'Carlos Mendes',
-    age: 58,
-    gender: 'Masculino',
-    email: 'carlos.mendes@email.com',
-    phone: '(11) 97777-6666',
-    lastVisit: '14/12/2023',
-    nextVisit: '14/03/2024',
-    conditions: ['Parkinson', 'Hipertensão'],
-    active: true,
-    initials: 'CM'
-  },
-  {
-    id: 5,
-    name: 'Paulo Silva',
-    age: 36,
-    gender: 'Masculino',
-    email: 'paulo.silva@email.com',
-    phone: '(11) 95555-4444',
-    lastVisit: '04/11/2023',
-    nextVisit: 'Não agendada',
-    conditions: ['TDAH', 'Insônia'],
-    active: false,
-    initials: 'PS'
-  },
-];
+// Tipo para os dados do paciente vindo da API
+interface PatientFromApi {
+  id: number;
+  name: string;
+  email: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string | null;
+  cpf: string;
+  address: string | null;
+  organizationId: number;
+  createdAt: string;
+}
+
+// Tipo para o paciente processado para exibição
+interface ProcessedPatient {
+  id: number;
+  name: string;
+  age: number;
+  gender: string;
+  email: string;
+  phone: string;
+  lastVisit: string;
+  nextVisit: string;
+  conditions: string[];
+  active: boolean;
+  initials: string;
+}
+
+// Função para calcular a idade a partir da data de nascimento
+function calculateAge(dateOfBirth: string): number {
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+// Função para obter as iniciais do nome
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+}
 
 export default function DoctorPacientes() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPatients, setFilteredPatients] = useState(patients);
+  const [activeOrgId, setActiveOrgId] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  // Definir tipos para as organizações
+  interface DoctorOrganization {
+    id: number;
+    doctorId: number;
+    organizationId: number;
+    organizationName: string;
+    status: string;
+    isDefault: boolean;
+    createdAt: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+    state?: string;
+    website?: string;
+  }
+
+  // Buscar as organizações do médico para obter a organização ativa
+  const { 
+    data: doctorOrganizations = [], 
+    isLoading: orgLoading 
+  } = useQuery({
+    queryKey: ['/api/doctor/organizations'] as const,
+  }) as { data: DoctorOrganization[], isLoading: boolean };
+
+  // Efeito para processar os dados de organizações quando disponíveis
+  useEffect(() => {
+    if (doctorOrganizations.length > 0) {
+      // Encontrar a organização padrão ou usar a primeira ativa
+      const defaultOrg = doctorOrganizations.find((org: DoctorOrganization) => org.isDefault) || 
+                          doctorOrganizations.find((org: DoctorOrganization) => org.status === 'active');
+      if (defaultOrg) {
+        setActiveOrgId(defaultOrg.organizationId);
+      }
+    }
+  }, [doctorOrganizations]);
+
+  // Efeito para mensagem de erro se não houver organizações
+  useEffect(() => {
+    if (doctorOrganizations.length === 0 && !orgLoading) {
+      toast({
+        title: "Sem organizações associadas",
+        description: "Você não possui organizações associadas à sua conta.",
+        variant: "destructive"
+      });
+    }
+  }, [doctorOrganizations, orgLoading, toast]);
+
+  // Buscar pacientes da organização ativa
+  const { 
+    data: patientsData = [], 
+    isLoading: patientsLoading,
+    error: patientsError
+  } = useQuery({
+    queryKey: ['/api/doctor/organizations', activeOrgId, 'patients'] as const,
+    enabled: activeOrgId !== null,
+  }) as { data: PatientFromApi[], isLoading: boolean, error: Error | null };
+
+  // Efeito para mostrar erro se a busca de pacientes falhar
+  useEffect(() => {
+    if (patientsError) {
+      toast({
+        title: "Erro ao carregar pacientes",
+        description: "Não foi possível obter a lista de pacientes.",
+        variant: "destructive"
+      });
+    }
+  }, [patientsError, toast]);
+
+  // Processar os dados dos pacientes
+  const processedPatients: ProcessedPatient[] = React.useMemo(() => {
+    if (!patientsData || !Array.isArray(patientsData) || patientsData.length === 0) {
+      return [];
+    }
+    
+    return patientsData.map((patient: PatientFromApi) => {
+      try {
+        // Calcular a idade
+        const age = calculateAge(patient.dateOfBirth);
+        
+        // Obter iniciais do nome
+        const initials = getInitials(patient.name);
+        
+        // Por enquanto, usar valores simulados para alguns campos que não temos na API
+        return {
+          id: patient.id,
+          name: patient.name,
+          age,
+          gender: patient.gender,
+          email: patient.email,
+          phone: patient.phone || "Não informado",
+          lastVisit: "Não disponível", // Quando tivermos o histórico de consultas, atualizar
+          nextVisit: "Não agendada", // Quando tivermos agendamento, atualizar
+          conditions: [], // Quando tivermos condições médicas, atualizar
+          active: true, // Por padrão, considerar ativo
+          initials
+        };
+      } catch (error) {
+        console.error("Erro ao processar dados do paciente:", error, patient);
+        // Retornar um paciente com dados mínimos para evitar quebrar a interface
+        return {
+          id: patient.id || 0,
+          name: patient.name || "Nome indisponível",
+          age: 0,
+          gender: patient.gender || "Não informado",
+          email: patient.email || "Email indisponível",
+          phone: "Não informado",
+          lastVisit: "Não disponível",
+          nextVisit: "Não agendada",
+          conditions: [],
+          active: true,
+          initials: "??"
+        };
+      }
+    });
+  }, [patientsData]);
+
+  // Estado filtrado
+  const [filteredPatients, setFilteredPatients] = useState<ProcessedPatient[]>(processedPatients);
+
+  // Atualizar os pacientes filtrados quando os dados brutos mudarem
+  useEffect(() => {
+    if (processedPatients.length > 0) {
+      if (searchQuery.trim() === '') {
+        setFilteredPatients(processedPatients);
+      } else {
+        filterPatients(searchQuery);
+      }
+    }
+  }, [processedPatients]);
   
   // Função para filtrar pacientes
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    
+    filterPatients(query);
+  };
+  
+  // Função auxiliar para filtrar pacientes
+  const filterPatients = (query: string) => {
     if (query.trim() === '') {
-      setFilteredPatients(patients);
+      setFilteredPatients(processedPatients);
     } else {
-      const filtered = patients.filter(
+      const filtered = processedPatients.filter(
         patient => 
           patient.name.toLowerCase().includes(query) || 
           patient.email.toLowerCase().includes(query) ||
-          patient.conditions.some(condition => condition.toLowerCase().includes(query)) ||
+          (patient.conditions && patient.conditions.some(condition => 
+            condition.toLowerCase().includes(query)
+          )) ||
           patient.gender.toLowerCase().includes(query)
       );
       setFilteredPatients(filtered);
@@ -225,80 +348,112 @@ export default function DoctorPacientes() {
             ))}
           </div>
           
-          {/* Patient rows */}
-          {filteredPatients.map(patient => (
-            <div key={patient.id} className="grid grid-cols-6 border-b border-gray-100 py-4 px-6 items-center hover:bg-gray-50">
-              {/* Patient info */}
-              <div className="flex items-center gap-3">
-                <PatientInitials initials={patient.initials} active={patient.active} />
-                <div>
-                  <div className="font-medium">{patient.name}</div>
-                  <div className="text-gray-500 text-sm">{patient.age} anos • {patient.gender}</div>
-                  {!patient.active && (
-                    <Badge variant="outline" className="mt-1 bg-amber-50 text-amber-700 border-amber-200">
-                      Inativo
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              {/* Contact info */}
-              <div>
-                <EmailDisplay email={patient.email} />
-                <PhoneDisplay phone={patient.phone} />
-              </div>
-              
-              {/* Last appointment */}
-              <div>
-                <DateDisplay 
-                  date={patient.lastVisit} 
-                  icon={<Calendar className="h-4 w-4 mr-1 text-gray-400" />} 
-                />
-              </div>
-              
-              {/* Next appointment */}
-              <div>
-                {patient.nextVisit === 'Não agendada' ? (
-                  <span className="text-gray-400 text-sm">Não agendada</span>
-                ) : (
-                  <DateDisplay 
-                    date={patient.nextVisit} 
-                    icon={<Clock className="h-4 w-4 mr-1 text-gray-400" />} 
-                  />
-                )}
-              </div>
-              
-              {/* Conditions */}
-              <div>
-                <ConditionBadges conditions={patient.conditions} />
-              </div>
-              
-              {/* Actions */}
-              <div className="flex justify-end gap-1">
-                <Button variant="ghost" size="icon">
-                  <Eye className="h-5 w-5 text-gray-500" />
-                </Button>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-5 w-5 text-gray-500" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Ver prontuário</DropdownMenuItem>
-                    <DropdownMenuItem>Agendar consulta</DropdownMenuItem>
-                    <DropdownMenuItem>Editar dados</DropdownMenuItem>
-                    <DropdownMenuItem>Enviar mensagem</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          {/* Estado de carregamento */}
+          {(orgLoading || patientsLoading) && (
+            <div className="py-16 flex flex-col items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-3" />
+              <p className="text-gray-500">Carregando pacientes...</p>
             </div>
-          ))}
+          )}
+
+          {/* Nenhuma organização */}
+          {!orgLoading && !activeOrgId && (
+            <div className="py-16 flex flex-col items-center justify-center">
+              <p className="text-gray-500 mb-2">Você não possui organizações ativas.</p>
+              <p className="text-gray-500">Associe-se a uma organização para visualizar pacientes.</p>
+            </div>
+          )}
           
-          {filteredPatients.length === 0 && (
+          {/* Nenhum paciente na organização */}
+          {!orgLoading && !patientsLoading && activeOrgId && processedPatients.length === 0 && (
+            <div className="py-16 flex flex-col items-center justify-center">
+              <p className="text-gray-500">Nenhum paciente cadastrado nesta organização.</p>
+            </div>
+          )}
+          
+          {/* Lista de pacientes */}
+          {!orgLoading && !patientsLoading && filteredPatients.length > 0 && (
+            <>
+              {filteredPatients.map(patient => (
+                <div key={patient.id} className="grid grid-cols-6 border-b border-gray-100 py-4 px-6 items-center hover:bg-gray-50">
+                  {/* Patient info */}
+                  <div className="flex items-center gap-3">
+                    <PatientInitials initials={patient.initials} active={patient.active} />
+                    <div>
+                      <div className="font-medium">{patient.name}</div>
+                      <div className="text-gray-500 text-sm">{patient.age} anos • {patient.gender}</div>
+                      {!patient.active && (
+                        <Badge variant="outline" className="mt-1 bg-amber-50 text-amber-700 border-amber-200">
+                          Inativo
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Contact info */}
+                  <div>
+                    <EmailDisplay email={patient.email} />
+                    <PhoneDisplay phone={patient.phone} />
+                  </div>
+                  
+                  {/* Last appointment */}
+                  <div>
+                    <DateDisplay 
+                      date={patient.lastVisit} 
+                      icon={<Calendar className="h-4 w-4 mr-1 text-gray-400" />} 
+                    />
+                  </div>
+                  
+                  {/* Next appointment */}
+                  <div>
+                    {patient.nextVisit === 'Não agendada' ? (
+                      <span className="text-gray-400 text-sm">Não agendada</span>
+                    ) : (
+                      <DateDisplay 
+                        date={patient.nextVisit} 
+                        icon={<Clock className="h-4 w-4 mr-1 text-gray-400" />} 
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Conditions */}
+                  <div>
+                    {patient.conditions.length > 0 ? (
+                      <ConditionBadges conditions={patient.conditions} />
+                    ) : (
+                      <span className="text-gray-400 text-sm">Nenhuma condição registrada</span>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-5 w-5 text-gray-500" />
+                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Ver prontuário</DropdownMenuItem>
+                        <DropdownMenuItem>Nova prescrição</DropdownMenuItem>
+                        <DropdownMenuItem>Agendar consulta</DropdownMenuItem>
+                        <DropdownMenuItem>Editar dados</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          
+          {/* Busca sem resultados */}
+          {!orgLoading && !patientsLoading && processedPatients.length > 0 && filteredPatients.length === 0 && (
             <div className="py-8 text-center">
-              <p className="text-gray-500">Nenhum paciente encontrado.</p>
+              <p className="text-gray-500">Nenhum paciente encontrado para a busca "{searchQuery}".</p>
             </div>
           )}
         </Card>
