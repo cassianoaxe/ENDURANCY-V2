@@ -63,7 +63,10 @@ export default function DoctorSidebar() {
 
   const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
-    navigate(path);
+    console.log("Navegando para:", path);
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.dispatchEvent(new Event('popstate'));
   };
 
   const renderMenuItem = (item: MenuItem) => {
