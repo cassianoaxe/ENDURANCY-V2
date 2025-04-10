@@ -289,16 +289,44 @@ const Sitemap = () => {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="text-sm space-y-2 px-4">
-                    <p>Sistema completo para gestão de notas fiscais e cupons fiscais nas organizações.</p>
+                    <p>Sistema avançado para gestão completa de documentos fiscais, integrado com hardware específico para farmácias e clínicas.</p>
+                    
+                    <h4 className="font-medium mt-3 mb-1">Funcionalidades Principais:</h4>
                     <ul className="list-disc list-inside space-y-1 ml-2">
                       <li>Emissão de notas fiscais e cupons fiscais</li>
-                      <li>Integração com impressora Bematech</li>
-                      <li>Configuração fiscal por organização</li>
-                      <li>Emissão de documentos durante o checkout</li>
-                      <li>Histórico de documentos fiscais emitidos</li>
-                      <li>Relatórios fiscais e de vendas</li>
-                      <li>Conformidade com legislação fiscal brasileira</li>
-                      <li>Gestão de séries e numeração de documentos</li>
+                      <li>Integração nativa com impressoras fiscais Bematech, Epson, Daruma e Elgin</li>
+                      <li>Configuração fiscal personalizada por organização</li>
+                      <li>Emissão de documentos durante o checkout (integrado ao fluxo de vendas)</li>
+                      <li>Abertura automatizada de gaveta de dinheiro</li>
+                      <li>Histórico detalhado de documentos fiscais emitidos</li>
+                      <li>Relatórios fiscais e de vendas em tempo real</li>
+                      <li>Conformidade total com legislação fiscal brasileira (NFC-e, NF-e, Cupom Fiscal)</li>
+                      <li>Gestão avançada de séries e numeração sequencial de documentos</li>
+                    </ul>
+                    
+                    <h4 className="font-medium mt-3 mb-1">Interfaces Disponíveis:</h4>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li><strong>Interface do Admin</strong> - Configuração centralizada para todas as organizações</li>
+                      <li><strong>Interface do Farmacêutico</strong> - Gerenciamento fiscal específico da farmácia</li>
+                      <li><strong>Componente de Checkout</strong> - Opções fiscais integradas ao processo de venda</li>
+                    </ul>
+                    
+                    <h4 className="font-medium mt-3 mb-1">Tipos de Documentos Suportados:</h4>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li><strong>Cupom Fiscal</strong> - Documento simplificado para vendas ao consumidor final</li>
+                      <li><strong>NFC-e</strong> - Nota Fiscal de Consumidor Eletrônica</li>
+                      <li><strong>NF-e</strong> - Nota Fiscal Eletrônica para operações entre empresas</li>
+                      <li><strong>NFS-e</strong> - Nota Fiscal de Serviços Eletrônica para prestação de serviços</li>
+                    </ul>
+                    
+                    <h4 className="font-medium mt-3 mb-1">Funcionalidades da Impressora Fiscal:</h4>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Abertura de gaveta de dinheiro automatizada</li>
+                      <li>Impressão de relatórios fiscais (X, Z, Gerencial)</li>
+                      <li>Leitura de Memória Fiscal (LMF)</li>
+                      <li>Cancelamento de documentos</li>
+                      <li>Suporte a múltiplos tipos de impostos (ICMS, PIS, COFINS, etc.)</li>
+                      <li>Gestão de alíquotas de impostos</li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>
