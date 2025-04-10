@@ -95,6 +95,7 @@ import PharmacistAgenda from "@/pages/pharmacist/Agenda";
 import PharmacistPacientes from "@/pages/pharmacist/Pacientes";
 import PharmacistPedidos from "@/pages/pharmacist/Pedidos";
 import PharmacistRelatorios from "@/pages/pharmacist/Relatorios";
+import PharmacistFinanceiro from "@/pages/pharmacist/Financeiro";
 import PharmacistAjuda from "@/pages/pharmacist/Ajuda";
 import PharmacistPerfil from "@/pages/pharmacist/Perfil";
 import PharmacistConfiguracoes from "@/pages/pharmacist/Configuracoes";
@@ -677,6 +678,15 @@ function AppContent() {
       return (
         <PharmacistLayout>
           <PharmacistCaixa />
+        </PharmacistLayout>
+      );
+    }
+    
+    // Página de financeiro
+    if (currentPath === '/pharmacist/financeiro') {
+      return (
+        <PharmacistLayout>
+          <PharmacistFinanceiro />
         </PharmacistLayout>
       );
     }
