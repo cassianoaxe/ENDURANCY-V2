@@ -457,7 +457,7 @@ export default function Biblioteca() {
                       </div>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm" onClick={() => toggleSaved('guia', guia.id)}>
-                          <BookmarkedIcon className="h-4 w-4 text-primary" />
+                          <BookmarkCheck className="h-4 w-4 text-primary" />
                         </Button>
                         <Button variant="outline" size="sm">
                           <Download className="h-4 w-4" />
@@ -488,7 +488,7 @@ export default function Biblioteca() {
                       </div>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm" onClick={() => toggleSaved('video', video.id)}>
-                          <BookmarkedIcon className="h-4 w-4 text-primary" />
+                          <BookmarkCheck className="h-4 w-4 text-primary" />
                         </Button>
                         <Button variant="outline" size="sm">
                           <ChevronRight className="h-4 w-4" />
