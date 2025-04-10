@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import PharmacistLayout from '@/components/layout/pharmacist/PharmacistLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -258,7 +257,7 @@ export default function PharmacistPrescricoes() {
   };
 
   return (
-    <PharmacistLayout>
+    <div>
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div>
@@ -590,53 +589,33 @@ export default function PharmacistPrescricoes() {
                   </Table>
                 </div>
               </div>
-              
-              {selectedPrescription.observations && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Observações do Farmacêutico</h3>
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <p>{selectedPrescription.observations}</p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de aprovação */}
+      {/* Diálogo de aprovação da prescrição */}
       <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Aprovar Prescrição #{selectedPrescription?.id}</DialogTitle>
+            <DialogTitle>Aprovar Prescrição</DialogTitle>
             <DialogDescription>
-              Ao aprovar esta prescrição, o paciente poderá visualizá-la e adquirir os medicamentos prescritos.
+              Adicione observações adicionais para o paciente (opcional)
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="observations">Observações (opcional)</Label>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="observations">Observações</Label>
               <Textarea
                 id="observations"
-                placeholder="Adicione observações ou recomendações para o paciente"
+                placeholder="Adicione instruções adicionais ao paciente..."
                 value={observations}
                 onChange={(e) => setObservations(e.target.value)}
-                rows={4}
+                rows={5}
               />
             </div>
           </div>
-          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApproveDialogOpen(false)}>
-              Cancelar
-            </Button>
             <Button 
               onClick={handleApprovePrescription} 
               className="bg-green-600 hover:bg-green-700"
@@ -648,36 +627,33 @@ export default function PharmacistPrescricoes() {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de rejeição */}
+      {/* Diálogo de rejeição da prescrição */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeitar Prescrição #{selectedPrescription?.id}</DialogTitle>
+            <DialogTitle>Rejeitar Prescrição</DialogTitle>
             <DialogDescription>
-              Informe o motivo da rejeição desta prescrição. O médico será notificado.
+              Informe o motivo da rejeição para o médico
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="rejectionReason">Motivo da Rejeição <span className="text-red-500">*</span></Label>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="rejectReason" className="text-red-500">Motivo da Rejeição *</Label>
               <Textarea
-                id="rejectionReason"
-                placeholder="Ex: Medicamentos incompatíveis, dosagem incorreta, etc."
+                id="rejectReason"
+                placeholder="Explique o motivo pelo qual esta prescrição está sendo rejeitada..."
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
+                rows={5}
+                className={rejectionReason.trim() === '' ? 'border-red-300' : ''}
+                required
               />
               {rejectionReason.trim() === '' && (
                 <p className="text-sm text-red-500">O motivo da rejeição é obrigatório</p>
               )}
             </div>
           </div>
-          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              Cancelar
-            </Button>
             <Button 
               onClick={handleRejectPrescription} 
               variant="destructive"
@@ -688,6 +664,6 @@ export default function PharmacistPrescricoes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </PharmacistLayout>
+    </div>
   );
 }

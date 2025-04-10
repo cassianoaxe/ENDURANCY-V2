@@ -84,7 +84,9 @@ export default function PharmacistSidebar() {
   }, []);
 
   const handleClick = (path: string) => {
-    navigate(path);
+    // Usar window.history.pushState para garantir que o evento popstate seja acionado
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new Event('popstate'));
     setCurrentPath(path);
   };
 
