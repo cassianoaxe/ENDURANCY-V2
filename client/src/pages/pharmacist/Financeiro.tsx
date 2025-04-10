@@ -27,11 +27,7 @@ interface Transaction {
   status: "completado" | "pendente" | "cancelado";
 }
 
-interface ExpenseCategory {
-  name: string;
-  value: number;
-  percentage: number;
-}
+
 
 interface IncomeCategory {
   name: string;
@@ -66,13 +62,7 @@ const mockTransactions: Transaction[] = [
   { id: 10, date: '2025-04-06', description: 'Pagamento fornecedor - Lab. Teuto', type: 'saida', amount: 1850.00, category: 'Estoque', paymentMethod: 'Pix', status: 'completado' },
 ];
 
-const mockExpenseCategories: ExpenseCategory[] = [
-  { name: 'Estoque', value: 15000, percentage: 55 },
-  { name: 'Folha de Pagamento', value: 7000, percentage: 25 },
-  { name: 'Custos Fixos', value: 4000, percentage: 15 },
-  { name: 'Marketing', value: 800, percentage: 3 },
-  { name: 'Outros', value: 500, percentage: 2 },
-];
+
 
 const mockIncomeCategories: IncomeCategory[] = [
   { name: 'Medicamentos', value: 25000, percentage: 65 },
@@ -750,7 +740,7 @@ export default function PharmacistFinanceiro() {
                           ]}
                         />
                         <Legend />
-                        <Area type="monotone" dataKey="expenses" name="Despesas" fill="#FF8042" stroke="#FF8042" />
+
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -759,82 +749,44 @@ export default function PharmacistFinanceiro() {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Categorias de Despesas</CardTitle>
+                  <CardTitle>Tendências de Venda</CardTitle>
                   <CardDescription>
-                    Distribuição por categoria de despesas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Categoria</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                        <TableHead className="text-right">Porcentagem</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockExpenseCategories.map((category, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{category.name}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(category.value)}</TableCell>
-                          <TableCell className="text-right">{category.percentage}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                    <TableFooter>
-                      <TableRow>
-                        <TableCell className="font-medium">Total</TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(mockExpenseCategories.reduce((sum, item) => sum + item.value, 0))}
-                        </TableCell>
-                        <TableCell className="text-right">100%</TableCell>
-                      </TableRow>
-                    </TableFooter>
-                  </Table>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alertas de Despesas</CardTitle>
-                  <CardDescription>
-                    Categorias com gastos acima do orçamento
+                    Comparativo com período anterior
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-red-100 rounded-full">
-                          <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <div className="p-2 bg-green-100 rounded-full">
+                          <TrendingUp className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-red-900">Estoque e Produtos</h4>
-                          <p className="text-sm text-red-700 mt-1">
-                            Gastos estão 15% acima do orçamento para esta categoria.
+                          <h4 className="font-medium text-green-900">Medicamentos</h4>
+                          <p className="text-sm text-green-700 mt-1">
+                            Aumento de 18% em vendas comparado ao mês anterior.
                           </p>
                           <div className="mt-2 flex items-center justify-between">
-                            <span className="text-xs text-red-700">Orçado: {formatCurrency(13000)}</span>
-                            <span className="text-xs text-red-700">Atual: {formatCurrency(15000)}</span>
+                            <span className="text-xs text-green-700">Mês anterior: {formatCurrency(18500)}</span>
+                            <span className="text-xs text-green-700">Atual: {formatCurrency(21830)}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex items-start gap-3">
-                        <div className="p-2 bg-amber-100 rounded-full">
-                          <AlertTriangle className="h-5 w-5 text-amber-600" />
+                        <div className="p-2 bg-blue-100 rounded-full">
+                          <TrendingUp className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-amber-900">Marketing</h4>
-                          <p className="text-sm text-amber-700 mt-1">
-                            Gastos estão 5% acima do orçamento para esta categoria.
+                          <h4 className="font-medium text-blue-900">Cosméticos</h4>
+                          <p className="text-sm text-blue-700 mt-1">
+                            Aumento de 12% em vendas comparado ao mês anterior.
                           </p>
                           <div className="mt-2 flex items-center justify-between">
-                            <span className="text-xs text-amber-700">Orçado: {formatCurrency(760)}</span>
-                            <span className="text-xs text-amber-700">Atual: {formatCurrency(800)}</span>
+                            <span className="text-xs text-blue-700">Mês anterior: {formatCurrency(8400)}</span>
+                            <span className="text-xs text-blue-700">Atual: {formatCurrency(9408)}</span>
                           </div>
                         </div>
                       </div>
