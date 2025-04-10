@@ -648,14 +648,28 @@ function AppContent() {
       
       if (currentPath === '/doctor/pacientes') {
         console.log('Carregando página de pacientes do médico');
-        const Pacientes = React.lazy(() => import('./pages/doctor/Pacientes'));
-        return (
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <Pacientes />
-          </Suspense>
-        );
+        try {
+          // Vamos tentar carregar a versão simplificada primeiro para diagnóstico
+          const PacientesSimples = React.lazy(() => import('./pages/doctor/PacientesSimples'));
+          return (
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Carregando página de pacientes...</span>
+            </div>}>
+              <DoctorLayout>
+                <PacientesSimples />
+              </DoctorLayout>
+            </Suspense>
+          );
+        } catch (error) {
+          console.error('Erro ao carregar PacientesSimples:', error);
+          return (
+            <div className="p-6">
+              <h1 className="text-2xl font-bold text-red-500">Erro ao carregar página</h1>
+              <p>Não foi possível carregar a página de pacientes.</p>
+            </div>
+          );
+        }
       }
       
       if (currentPath === '/doctor/prontuarios') {
