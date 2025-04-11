@@ -14,9 +14,10 @@ import {
   PackageOpen, BadgePercent, Printer, QrCode, Box, Pill,
   Factory, ShieldCheck, Microscope, FileSearch, Beaker, Droplet,
   PackageCheck, Tag, PackagePlus, Scissors, ScrollText, Library, Check, Ban,
-  BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
-  UserPlus, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
-  HandCoins, Bell, Calendar, Radio, Headphones, Phone, X
+  BarChart3, BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
+  UserPlus, UserCog, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
+  HandCoins, Bell, Calendar, Radio, Headphones, Phone, X, CalendarCheck, 
+  Stethoscope
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -364,7 +365,63 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos do portal médico
+  // Módulos para gerenciamento de médicos (para uso dos colaboradores)
+  const doctorManagementModules = [
+    {
+      title: "Gerenciamento Médico",
+      path: "/organization/doctor-management",
+      active: currentPath === "/organization/doctor-management" || 
+              currentPath.startsWith("/organization/doctor-management/"),
+      icon: <Stethoscope size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard",
+          path: "/organization/doctor-management",
+          active: currentPath === "/organization/doctor-management" && !currentPath.includes("/organization/doctor-management/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Médicos",
+          path: "/organization/doctor-management/doctors",
+          active: currentPath === "/organization/doctor-management/doctors",
+          icon: <UserCog size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/doctor-management/prescriptions",
+          active: currentPath === "/organization/doctor-management/prescriptions",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Agendamentos",
+          path: "/organization/doctor-management/appointments",
+          active: currentPath === "/organization/doctor-management/appointments",
+          icon: <CalendarCheck size={16} />
+        },
+        {
+          title: "Documentos",
+          path: "/organization/doctor-management/documents",
+          active: currentPath === "/organization/doctor-management/documents",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Educação Médica",
+          path: "/organization/doctor-management/education",
+          active: currentPath === "/organization/doctor-management/education",
+          icon: <GraduationCap size={16} />
+        },
+        {
+          title: "Estatísticas",
+          path: "/organization/doctor-management/statistics",
+          active: currentPath === "/organization/doctor-management/statistics",
+          icon: <BarChart3 size={16} />
+        }
+      ]
+    }
+  ];
+  
+  // Módulos do portal médico (para acesso dos médicos)
   const medicalModules = [
     {
       title: "Portal Médico",
@@ -533,6 +590,30 @@ export default function OrganizationSidebar() {
             />
           ))}
         </div>
+        
+        {/* Gerenciamento de Médicos (se aplicável) */}
+        {(user?.role === "admin" || user?.role === "org_admin") && (
+          <div className="mb-4">
+            {collapsed ? null : (
+              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Gerenciamento Médico
+              </h3>
+            )}
+            
+            {doctorManagementModules.map((item, index) => (
+              <SidebarMenuItem
+                key={`doctor-management-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
+          </div>
+        )}
         
         {/* Portal Médico (se aplicável) */}
         {(user?.role === "doctor" || user?.role === "admin" || user?.role === "org_admin") && (
