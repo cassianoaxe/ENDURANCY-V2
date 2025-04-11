@@ -11,7 +11,9 @@ import {
   Scale, LineChart, MessageCircle, Building, TestTube,
   Clipboard, FileClock, Share2, Send, Network, 
   Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
-  PackageOpen, BadgePercent, Printer, QrCode, Box, Pill
+  PackageOpen, BadgePercent, Printer, QrCode, Box, Pill,
+  Factory, ShieldCheck, Microscope, FileSearch, Beaker, Droplet,
+  PackageCheck, Tag, PackagePlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -300,6 +302,75 @@ export default function OrganizationSidebar() {
       path: "/organization/farmacia",
       active: currentPath === "/organization/farmacia",
       icon: <Pill size={18} />
+    },
+    {
+      title: "PRODUÇÃO INDUSTRIAL",
+      path: "/organization/producao-industrial",
+      active: currentPath === "/organization/producao-industrial" || currentPath.startsWith("/organization/producao-industrial/"),
+      icon: <Factory size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Produção",
+          path: "/organization/producao-industrial",
+          active: currentPath === "/organization/producao-industrial" && !currentPath.includes("/organization/producao-industrial/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Garantia da Qualidade",
+          path: "/organization/producao-industrial/garantia-qualidade",
+          active: currentPath === "/organization/producao-industrial/garantia-qualidade",
+          icon: <ShieldCheck size={16} />
+        },
+        {
+          title: "Controle de Qualidade",
+          path: "/organization/producao-industrial/controle-qualidade",
+          active: currentPath === "/organization/producao-industrial/controle-qualidade",
+          icon: <Microscope size={16} />
+        },
+        {
+          title: "Distribuição",
+          path: "/organization/producao-industrial/distribuicao",
+          active: currentPath === "/organization/producao-industrial/distribuicao",
+          icon: <Network size={16} />
+        },
+        {
+          title: "Audit Trail",
+          path: "/organization/producao-industrial/audit-trail",
+          active: currentPath === "/organization/producao-industrial/audit-trail",
+          icon: <FileSearch size={16} />
+        },
+        {
+          title: "Extração",
+          path: "/organization/producao-industrial/extracao",
+          active: currentPath === "/organization/producao-industrial/extracao",
+          icon: <Beaker size={16} />
+        },
+        {
+          title: "Diluição",
+          path: "/organization/producao-industrial/diluicao",
+          active: currentPath === "/organization/producao-industrial/diluicao",
+          icon: <Droplet size={16} />
+        },
+        {
+          title: "Envase",
+          path: "/organization/producao-industrial/envase",
+          active: currentPath === "/organization/producao-industrial/envase",
+          icon: <PackageCheck size={16} />
+        },
+        {
+          title: "Rotulação",
+          path: "/organization/producao-industrial/rotulacao",
+          active: currentPath === "/organization/producao-industrial/rotulacao",
+          icon: <Tag size={16} />
+        },
+        {
+          title: "Estoque para Distribuição",
+          path: "/organization/producao-industrial/estoque-distribuicao",
+          active: currentPath === "/organization/producao-industrial/estoque-distribuicao",
+          icon: <PackagePlus size={16} />
+        }
+      ]
     }
   ];
 
