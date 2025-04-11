@@ -54,6 +54,8 @@ import DoctorRegistration from "@/pages/DoctorRegistration";
 import PatientDashboardPage from "@/pages/patient/Dashboard";
 // Importar página de mapa do site
 import Sitemap from "@/pages/Sitemap";
+// Importar landing page
+import LandingPage from "@/pages/LandingPage";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
@@ -167,7 +169,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -204,8 +206,8 @@ function AppContent() {
           setCurrentPath('/login');
         }
       } else {
-        window.history.pushState({}, '', '/login');
-        setCurrentPath('/login');
+        // Usuário não autenticado na rota raiz, mostrar landing page
+        // Não redirecionamos, apenas deixamos a landing page ser renderizada no caso abaixo
       }
     }
   }, [currentPath, isAuthenticated, userRole]);
@@ -258,6 +260,11 @@ function AppContent() {
 
   // If not authenticated, handle login pages and public pages
   if (!isAuthenticated) {
+    // Página inicial / landing page
+    if (currentPath === '/') {
+      return <LandingPage />;
+    }
+    
     // Check if this is an organization-specific login URL (e.g., /login/ORG-123-ABC)
     const orgLoginMatch = currentPath.match(/^\/login\/([^\/]+)$/);
     if (orgLoginMatch) {
