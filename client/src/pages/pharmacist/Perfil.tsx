@@ -301,8 +301,12 @@ export default function PharmacistPerfil() {
         {/* Tabs de edição */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-0">
+            <CardTitle>Informações do Usuário</CardTitle>
+          </CardHeader>
+          
+          <CardContent className="pt-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="info" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   Informações
@@ -312,11 +316,8 @@ export default function PharmacistPerfil() {
                   Senha
                 </TabsTrigger>
               </TabsList>
-            </Tabs>
-          </CardHeader>
-          
-          <CardContent className="pt-6">
-            <TabsContent value="info" className="mt-0">
+              
+              <TabsContent value="info" className="mt-0">
               <form onSubmit={handleProfileUpdate}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
@@ -488,6 +489,7 @@ export default function PharmacistPerfil() {
                 </div>
               </form>
             </TabsContent>
+          </Tabs>
           </CardContent>
         </Card>
       </div>
