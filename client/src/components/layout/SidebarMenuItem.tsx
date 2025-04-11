@@ -36,7 +36,7 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
   return (
     <div 
       className={cn(
-        "relative",
+        "relative sidebar-menu-item",
         item.active && "bg-green-50 dark:bg-green-900/30"
       )}
     >
@@ -51,6 +51,14 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
             )}
             onClick={(e) => {
               console.log('Clicando em item:', item.title, 'isSubmenu:', !!item.isSubmenu);
+              
+              // Guarda a posição de rolagem atual
+              const currentScroll = document.querySelector('.custom-scrollbar')?.scrollTop || 0;
+              localStorage.setItem('sidebarScrollPos', currentScroll.toString());
+              
+              // Marca este elemento para manter em foco após a navegação
+              e.currentTarget.setAttribute('data-last-clicked', 'true');
+              
               if (item.isSubmenu) {
                 toggleSubmenu(item.title, e);
               } else {
@@ -114,8 +122,16 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
                     console.log('Clicando em subitem:', subItem.title);
                     // Antes de navegar, garantimos que o localStorage é atualizado
                     localStorage.setItem('expandedSubmenu', item.title);
+                    
+                    // Guarda a posição de rolagem atual
+                    const currentScroll = document.querySelector('.custom-scrollbar')?.scrollTop || 0;
+                    localStorage.setItem('sidebarScrollPos', currentScroll.toString());
+                    
                     // Navega para o caminho mantendo o submenu aberto
                     navigateTo(subItem.path);
+                    
+                    // Marca este elemento para manter em foco
+                    e.currentTarget.setAttribute('data-last-clicked', 'true');
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -146,6 +162,14 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
           )}
           onClick={(e) => {
             console.log('Clicando em item (collapsed):', item.title);
+            
+            // Guarda a posição de rolagem atual
+            const currentScroll = document.querySelector('.custom-scrollbar')?.scrollTop || 0;
+            localStorage.setItem('sidebarScrollPos', currentScroll.toString());
+            
+            // Marca este elemento para manter em foco após a navegação
+            e.currentTarget.setAttribute('data-last-clicked', 'true');
+            
             if (item.isSubmenu) {
               toggleSubmenu(item.title, e);
             } else {

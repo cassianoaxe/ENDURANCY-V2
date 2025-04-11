@@ -28,6 +28,7 @@ export default function OrganizationSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [scrollPosition, setScrollPosition] = useState(0);
   
   // Listen for path changes
   useEffect(() => {
@@ -40,6 +41,33 @@ export default function OrganizationSidebar() {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
+  }, []);
+  
+  // Gerenciar posição de rolagem e expandedMenu
+  useEffect(() => {
+    // Verifica se existe uma configuração de menu expandido no localStorage
+    const savedExpandedMenu = localStorage.getItem('expandedSubmenu');
+    if (savedExpandedMenu) {
+      setExpandedMenu(savedExpandedMenu);
+    }
+    
+    // Restaura a posição de rolagem da sidebar, se houver
+    const scrollContainer = document.querySelector('.custom-scrollbar');
+    const savedScrollPos = localStorage.getItem('sidebarScrollPos');
+    
+    if (scrollContainer && savedScrollPos) {
+      setTimeout(() => {
+        scrollContainer.scrollTop = parseInt(savedScrollPos, 10);
+        
+        // Procura pelo elemento que foi clicado por último e garante que ele esteja visível
+        const lastClickedItem = document.querySelector('[data-last-clicked="true"]');
+        if (lastClickedItem) {
+          lastClickedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Remove o atributo após a utilização
+          lastClickedItem.removeAttribute('data-last-clicked');
+        }
+      }, 100); // Pequeno delay para garantir que os elementos foram renderizados
+    }
   }, []);
   
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
@@ -475,7 +503,15 @@ export default function OrganizationSidebar() {
       </div>
       
       <div className="flex-1 overflow-hidden py-2">
-        <div className="h-full overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
+        <div 
+          className="h-full overflow-y-auto custom-scrollbar" 
+          style={{ maxHeight: "calc(100vh - 200px)", scrollBehavior: "smooth" }}
+          onScroll={(e) => {
+            // Salva a posição atual de rolagem
+            const scrollPos = e.currentTarget.scrollTop;
+            setScrollPosition(scrollPos);
+            localStorage.setItem('sidebarScrollPos', scrollPos.toString());
+          }}>
         {/* Seção de módulos gratuitos */}
         <div className="mb-4">
           {collapsed ? null : (
