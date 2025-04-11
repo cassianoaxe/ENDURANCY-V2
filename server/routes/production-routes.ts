@@ -1,4 +1,4 @@
-import { Express, Request as ExpressRequest, Response } from 'express';
+import { Express, Request as ExpressRequest, Response, Router } from 'express';
 import { db } from '../db';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { authenticate } from '../routes';
@@ -38,8 +38,56 @@ async function verifyProductionModuleAccess(organizationId: number) {
 }
 
 export async function registerProductionRoutes(app: Express) {
+  const productionRouter = Router();
+  
+  // Endpoint de teste para verificar a disponibilidade das tabelas do módulo de produção
+  productionRouter.get('/status', async (_req: Request, res: Response) => {
+    try {
+      // Verificar se as tabelas do módulo de produção estão acessíveis
+      const tables = [
+        'cultivationBatchesTable', 
+        'extractionProcessesTable',
+        'qualityTestsTable',
+        'rawMaterialBatchesTable',
+        'batchTraceabilityTable',
+        'finishedProductBatchesTable'
+      ];
+      
+      const tablesStatus = {};
+      
+      for (const tableName of tables) {
+        try {
+          // Verificar se a tabela está definida no schema combinado
+          const tableExists = db.query[tableName] !== undefined;
+          tablesStatus[tableName] = {
+            exists: tableExists,
+            status: tableExists ? 'disponível' : 'não disponível'
+          };
+        } catch (tableError) {
+          tablesStatus[tableName] = {
+            exists: false,
+            status: 'erro ao verificar',
+            error: tableError.message
+          };
+        }
+      }
+      
+      return res.status(200).json({
+        status: 'Verificação de módulo de produção concluída',
+        tablesStatus,
+        combinedSchemaStatus: 'ativo'
+      });
+    } catch (error) {
+      console.error('Erro ao verificar status do módulo de produção:', error);
+      return res.status(500).json({ 
+        message: 'Erro ao verificar status do módulo de produção',
+        error: error.message
+      });
+    }
+  });
+  
   // Endpoint para listar lotes de cultivo
-  app.get('/api/production/cultivation-batches', authenticate, async (req: Request, res: Response) => {
+  productionRouter.get('/cultivation-batches', authenticate, async (req: Request, res: Response) => {
     try {
       const organizationId = req.user?.organizationId;
 
@@ -66,7 +114,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para buscar um lote de cultivo específico
-  app.get('/api/production/cultivation-batches/:id', authenticate, async (req: Request, res: Response) => {
+  productionRouter.get('/cultivation-batches/:id', authenticate, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const organizationId = req.user?.organizationId;
@@ -100,7 +148,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para criar um novo lote de cultivo
-  app.post('/api/production/cultivation-batches', authenticate, async (req: Request, res: Response) => {
+  productionRouter.post('/cultivation-batches', authenticate, async (req: Request, res: Response) => {
     try {
       const organizationId = req.user?.organizationId;
 
@@ -130,7 +178,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para atualizar um lote de cultivo
-  app.put('/api/production/cultivation-batches/:id', authenticate, async (req: Request, res: Response) => {
+  productionRouter.put('/cultivation-batches/:id', authenticate, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const organizationId = req.user?.organizationId;
@@ -176,7 +224,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para buscar a rastreabilidade completa (seed to counter)
-  app.get('/api/production/traceability/:batchId', authenticate, async (req: Request, res: Response) => {
+  productionRouter.get('/traceability/:batchId', authenticate, async (req: Request, res: Response) => {
     try {
       const { batchId } = req.params;
       const organizationId = req.user?.organizationId;
@@ -263,7 +311,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para associar um lote de cultivo a um processo de extração
-  app.post('/api/production/link-cultivation/:cultivationBatchId/extraction/:extractionProcessId', authenticate, async (req: Request, res: Response) => {
+  productionRouter.post('/link-cultivation/:cultivationBatchId/extraction/:extractionProcessId', authenticate, async (req: Request, res: Response) => {
     try {
       const { cultivationBatchId, extractionProcessId } = req.params;
       const organizationId = req.user?.organizationId;
@@ -322,7 +370,7 @@ export async function registerProductionRoutes(app: Express) {
   });
 
   // Endpoint para buscar testes de qualidade relacionados a um lote de cultivo
-  app.get('/api/production/cultivation-batches/:id/quality-tests', authenticate, async (req: Request, res: Response) => {
+  productionRouter.get('/cultivation-batches/:id/quality-tests', authenticate, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const organizationId = req.user?.organizationId;
@@ -365,5 +413,6 @@ export async function registerProductionRoutes(app: Express) {
     }
   });
 
-  return app;
+  // Return the router instead of the app
+  return productionRouter;
 }
