@@ -84,6 +84,12 @@ export default function OrganizationSidebar() {
     }
   };
   
+  // Função para forçar a abertura do submenu sem fechá-lo
+  const openSubmenu = (menuTitle: string) => {
+    console.log("Forçando abertura de submenu:", menuTitle);
+    setExpandedMenu(menuTitle);
+  };
+  
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)
   const freeModules = [
     {
@@ -731,7 +737,10 @@ export default function OrganizationSidebar() {
                           )}
                           onClick={() => {
                             console.log('Clicando em subitem:', subItem.title);
+                            // Mantém o submenu aberto ao navegar
                             navigateTo(subItem.path);
+                            // Força o menu a permanecer aberto após a navegação
+                            setTimeout(() => openSubmenu(item.title), 100);
                           }}
                         >
                           <div className="flex items-center gap-2">
