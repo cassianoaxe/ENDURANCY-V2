@@ -596,29 +596,7 @@ export default function OrganizationSidebar() {
           ))}
         </div>
         
-        {/* Gerenciamento de Médicos (se aplicável) */}
-        {(user?.role === "admin" || user?.role === "org_admin") && (
-          <div className="mb-4">
-            {collapsed ? null : (
-              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Gerenciamento Médico
-              </h3>
-            )}
-            
-            {doctorManagementModules.map((item, index) => (
-              <SidebarMenuItem
-                key={`doctor-management-${index}`}
-                item={item}
-                expandedMenu={expandedMenu}
-                toggleSubmenu={toggleSubmenu}
-                closeSubmenu={closeSubmenu}
-                navigateTo={navigateTo}
-                openSubmenu={openSubmenu}
-                collapsed={collapsed}
-              />
-            ))}
-          </div>
-        )}
+        {/* Gerenciamento Médico foi movido para módulos Enterprise */}
         
         {/* Portal Médico (apenas para médicos) */}
         {(user?.role === "doctor") && (
