@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { Organization } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SidebarMenuItem } from "./SidebarMenuItem";
 
 export default function OrganizationSidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -453,7 +454,7 @@ export default function OrganizationSidebar() {
       title: "Pesquisa Científica",
       path: "/organization/research",
       active: currentPath === "/organization/research" || currentPath.startsWith("/organization/research/"),
-      icon: <TestTube size={18} />,
+      icon: <Microscope size={18} />,
       isSubmenu: true,
       subItems: [
         {
@@ -463,16 +464,16 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Projetos",
-          path: "/organization/research/projetos",
-          active: currentPath === "/organization/research/projetos",
-          icon: <Clipboard size={16} />
+          title: "Experimentos",
+          path: "/organization/research/experimentos",
+          active: currentPath === "/organization/research/experimentos",
+          icon: <TestTube size={16} />
         },
         {
           title: "Resultados",
           path: "/organization/research/resultados",
           active: currentPath === "/organization/research/resultados",
-          icon: <BarChart4 size={16} />
+          icon: <LineChart size={16} />
         },
         {
           title: "Publicações",
@@ -483,9 +484,10 @@ export default function OrganizationSidebar() {
       ]
     },
     {
-      title: "Produção Industrial",
+      title: "Grupo Produção Industrial",
       path: "/organization/producao-industrial",
-      active: currentPath === "/organization/producao-industrial" || currentPath.startsWith("/organization/producao-industrial/"),
+      active: currentPath === "/organization/producao-industrial" || 
+              currentPath.startsWith("/organization/producao-industrial"),
       icon: <Factory size={18} />,
       isSubmenu: true,
       subItems: [
@@ -546,315 +548,317 @@ export default function OrganizationSidebar() {
       ]
     }
   ];
+  
+  // Menus do portal médico
+  const medicalModules = [
+    {
+      title: "Portal Médico",
+      path: "/organization/medical-portal",
+      active: currentPath === "/organization/medical-portal" || 
+              currentPath.startsWith("/organization/medical-portal"),
+      icon: <HeartPulse size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Médico",
+          path: "/organization/medical-portal",
+          active: currentPath === "/organization/medical-portal" && !currentPath.includes("/organization/medical-portal/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Pacientes",
+          path: "/organization/medical-portal/pacientes",
+          active: currentPath === "/organization/medical-portal/pacientes",
+          icon: <Users size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/medical-portal/prescriptions",
+          active: currentPath === "/organization/medical-portal/prescriptions",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Documentos",
+          path: "/organization/medical-portal/documents",
+          active: currentPath === "/organization/medical-portal/documents",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Agenda",
+          path: "/organization/medical-portal/agenda",
+          active: currentPath === "/organization/medical-portal/agenda",
+          icon: <CalendarDays size={16} />
+        },
+        {
+          title: "Finanças",
+          path: "/organization/medical-portal/financas",
+          active: currentPath === "/organization/medical-portal/financas",
+          icon: <DollarSign size={16} />
+        }
+      ]
+    }
+  ];
+  
+  // Menus da farmácia
+  const pharmacyModules = [
+    {
+      title: "Farmácia",
+      path: "/organization/farmacia",
+      active: currentPath === "/organization/farmacia" || 
+              currentPath.startsWith("/organization/farmacia"),
+      icon: <Pill size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Farmácia",
+          path: "/organization/farmacia",
+          active: currentPath === "/organization/farmacia" && !currentPath.includes("/organization/farmacia/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/farmacia/prescriptions",
+          active: currentPath === "/organization/farmacia/prescriptions",
+          icon: <ScrollText size={16} />
+        },
+        {
+          title: "Estoque",
+          path: "/organization/farmacia/estoque",
+          active: currentPath === "/organization/farmacia/estoque",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Vendas",
+          path: "/organization/farmacia/vendas",
+          active: currentPath === "/organization/farmacia/vendas",
+          icon: <ShoppingCart size={16} />
+        },
+        {
+          title: "Relatórios",
+          path: "/organization/farmacia/relatorios",
+          active: currentPath === "/organization/farmacia/relatorios",
+          icon: <BarChart4 size={16} />
+        },
+        {
+          title: "Farmacêuticos",
+          path: "/organization/farmacia/farmaceuticos",
+          active: currentPath === "/organization/farmacia/farmaceuticos",
+          icon: <Users size={16} />
+        }
+      ]
+    }
+  ];
+  
+  // Todos os módulos
+  const allModules = [
+    ...freeModules,
+    ...medicalModules,
+    ...pharmacyModules,
+    ...premiumModules, 
+    configModule
+  ];
+  
+  // Get avatar initials from organization name or user name
+  const getAvatarInitials = () => {
+    if (organization?.name) {
+      return organization.name.substring(0, 2).toUpperCase();
+    } else if (user?.name) {
+      return user.name.substring(0, 2).toUpperCase();
+    }
+    return "OR";
+  };
 
   return (
-    <aside className={cn(
-      "bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen transition-all duration-300",
-      collapsed ? "w-[78px]" : "w-[280px]"
-    )}>
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4 h-16 border-b border-gray-200 dark:border-gray-800">
+    <div 
+      className={cn(
+        "flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-xl">Endurancy</span>
+          <div className="flex items-center space-x-2 overflow-hidden">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={organization?.logoUrl || "/logo-placeholder.png"} />
+              <AvatarFallback>{getAvatarInitials()}</AvatarFallback>
+            </Avatar>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium truncate dark:text-white">
+                {isOrgLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  organization?.name || "Organização"
+                )}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user?.role === "admin" ? "Administrador" : 
+                 user?.role === "org_admin" ? "Admin da Organização" : 
+                 user?.role === "doctor" ? "Médico" : 
+                 user?.role === "patient" ? "Paciente" : 
+                 user?.role === "manager" ? "Gerente" : 
+                 user?.role === "pharmacist" ? "Farmacêutico" : 
+                 "Funcionário"}
+              </p>
+            </div>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
+        <button
           onClick={() => setCollapsed(!collapsed)}
-          className="rounded-full"
+          className="rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
         >
-          <Menu size={20} />
-        </Button>
+          {collapsed ? <ChevronLeft size={16} /> : <Menu size={16} />}
+        </button>
       </div>
-
-      {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto py-2">
-        <nav className="space-y-1">
-          {/* Módulos Básicos */}
-          {!collapsed && (
-            <div className="px-4 py-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Módulos Incluídos</p>
-            </div>
+      
+      <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
+        {/* Seção de módulos gratuitos */}
+        <div className="mb-4">
+          {collapsed ? null : (
+            <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Módulos Base
+            </h3>
           )}
           
           {freeModules.map((item, index) => (
-            <div key={`free-${index}`} className={cn(
-              "relative",
-              item.active && "bg-green-50 dark:bg-green-900/30"
-            )}>
-              {!collapsed ? (
-                <>
-                  <div 
-                    className={cn(
-                      "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                      item.active 
-                        ? "text-green-600 dark:text-green-400 font-medium" 
-                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    )}
-                    onClick={(e) => {
-                      if (item.isSubmenu) {
-                        toggleSubmenu(item.title, e);
-                      } else {
-                        navigateTo(item.path);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {React.cloneElement(item.icon, { 
-                        className: item.active 
-                          ? "text-green-600 dark:text-green-400" 
-                          : "text-gray-500 dark:text-gray-400" 
-                      })}
-                      <span className={cn(
-                        "text-sm", // Menor tamanho de fonte
-                        item.active && "font-medium" // Médio em vez de semibold
-                      )}>
-                        {item.title}
-                      </span>
-                    </div>
-                    {item.isSubmenu && (
-                      <ChevronDown
-                        size={16}
-                        className={cn(
-                          "transition-transform duration-200",
-                          expandedMenu === item.title ? "transform rotate-180" : "",
-                          item.active
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400"
-                        )}
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Renderização condicional do submenu */}
-                  {item.isSubmenu && expandedMenu === item.title && (
-                    <div className="pl-7 space-y-1 mt-1 mb-1 bg-gray-50 dark:bg-gray-800/30 py-1">
-                      {item.subItems?.map((subItem, subIndex) => (
-                        <div
-                          key={`free-subitem-${subIndex}`}
-                          className={cn(
-                            "flex items-center px-4 py-2 text-sm cursor-pointer rounded-md",
-                            subItem.active
-                              ? "text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20"
-                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          )}
-                          onClick={() => {
-                            console.log('Clicando em subitem:', subItem.title);
-                            // Mantém o submenu aberto ao navegar
-                            navigateTo(subItem.path);
-                            // Força o menu a permanecer aberto após a navegação
-                            setTimeout(() => openSubmenu(item.title), 100);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            {React.cloneElement(subItem.icon, {
-                              className: subItem.active
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-gray-500 dark:text-gray-400",
-                              size: 16
-                            })}
-                            <span className={cn(subItem.active && "font-medium")}>
-                              {subItem.title}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div
-                  className={cn(
-                    "flex items-center justify-center p-2 cursor-pointer",
-                    item.active ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  )}
-                  onClick={() => navigateTo(item.path)}
-                  title={item.title}
-                >
-                  {React.cloneElement(item.icon, { size: 20 })}
-                </div>
-              )}
-            </div>
+            <SidebarMenuItem
+              key={`free-${index}`}
+              item={item}
+              expandedMenu={expandedMenu}
+              toggleSubmenu={toggleSubmenu}
+              closeSubmenu={closeSubmenu}
+              navigateTo={navigateTo}
+              openSubmenu={openSubmenu}
+              collapsed={collapsed}
+            />
           ))}
-          
-          {/* Módulos Premium */}
-          {!collapsed && (
-            <div className="px-4 py-2 mt-6">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Módulos Premium</p>
-            </div>
+        </div>
+        
+        {/* Portal Médico (se aplicável) */}
+        {(user?.role === "doctor" || user?.role === "admin" || user?.role === "org_admin") && (
+          <div className="mb-4">
+            {collapsed ? null : (
+              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Portal Médico
+              </h3>
+            )}
+            
+            {medicalModules.map((item, index) => (
+              <SidebarMenuItem
+                key={`medical-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Portal Farmácia (se aplicável) */}
+        {(user?.role === "pharmacist" || user?.role === "admin" || user?.role === "org_admin") && (
+          <div className="mb-4">
+            {collapsed ? null : (
+              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Portal Farmácia
+              </h3>
+            )}
+            
+            {pharmacyModules.map((item, index) => (
+              <SidebarMenuItem
+                key={`pharmacy-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Seção de módulos premium */}
+        <div className="mb-4">
+          {collapsed ? null : (
+            <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Módulos Premium
+            </h3>
           )}
           
           {premiumModules.map((item, index) => (
-            <div key={`premium-${index}`} className={cn(
-              "relative",
-              item.active && "bg-green-50 dark:bg-green-900/30"
-            )}>
-              {!collapsed ? (
-                <>
-                  <div 
-                    className={cn(
-                      "flex items-center justify-between px-4 py-2 cursor-pointer group",
-                      item.active 
-                        ? "text-green-600 dark:text-green-400 font-medium" 
-                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    )}
-                    onClick={(e) => {
-                      console.log('Clicando em item premium:', item.title, 'isSubmenu:', !!item.isSubmenu);
-                      if (item.isSubmenu) {
-                        toggleSubmenu(item.title, e);
-                      } else {
-                        navigateTo(item.path);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      {React.cloneElement(item.icon, { 
-                        className: item.active 
-                          ? "text-green-600 dark:text-green-400" 
-                          : "text-gray-500 dark:text-gray-400" 
-                      })}
-                      <span className={cn(
-                        "text-sm", // Menor tamanho de fonte
-                        item.active && "font-medium" // Médio em vez de semibold
-                      )}>
-                        {item.title}
-                      </span>
-                    </div>
-                    {item.isSubmenu && (
-                      <ChevronDown
-                        size={16}
-                        className={cn(
-                          "transition-transform duration-200",
-                          expandedMenu === item.title ? "transform rotate-180" : "",
-                          item.active
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400"
-                        )}
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Renderização condicional do submenu */}
-                  {item.isSubmenu && expandedMenu === item.title && (
-                    <div className="pl-7 space-y-1 mt-1 mb-1 bg-gray-50 dark:bg-gray-800/30 py-1">
-                      {item.subItems?.map((subItem, subIndex) => (
-                        <div
-                          key={`subitem-${subIndex}`}
-                          className={cn(
-                            "flex items-center px-4 py-2 text-sm cursor-pointer rounded-md",
-                            subItem.active
-                              ? "text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20"
-                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          )}
-                          onClick={() => {
-                            console.log('Clicando em subitem:', subItem.title);
-                            // Mantém o submenu aberto ao navegar
-                            navigateTo(subItem.path);
-                            // Força o menu a permanecer aberto após a navegação
-                            setTimeout(() => openSubmenu(item.title), 100);
-                          }}
-                        >
-                          <div className="flex items-center gap-2">
-                            {React.cloneElement(subItem.icon, {
-                              className: subItem.active
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-gray-500 dark:text-gray-400",
-                              size: 16
-                            })}
-                            <span className={cn(subItem.active && "font-medium")}>
-                              {subItem.title}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div
-                  className={cn(
-                    "flex items-center justify-center p-2 cursor-pointer",
-                    item.active ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  )}
-                  onClick={() => navigateTo(item.path)}
-                  title={item.title}
-                >
-                  {React.cloneElement(item.icon, { size: 20 })}
-                </div>
-              )}
-            </div>
+            <SidebarMenuItem
+              key={`premium-${index}`}
+              item={item}
+              expandedMenu={expandedMenu}
+              toggleSubmenu={toggleSubmenu}
+              closeSubmenu={closeSubmenu}
+              navigateTo={navigateTo}
+              openSubmenu={openSubmenu}
+              collapsed={collapsed}
+            />
           ))}
-          
-          {/* Configurações */}
-          {!collapsed && (
-            <div className="px-4 py-2 mt-6">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Configurações</p>
-            </div>
+        </div>
+        
+        {/* Configurações */}
+        <div className="mb-4">
+          {collapsed ? null : (
+            <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Configurações
+            </h3>
           )}
           
-          <div className={cn(
-            "relative",
-            configModule.active && "bg-green-50 dark:bg-green-900/30"
-          )}>
-            {!collapsed ? (
-              <div 
-                className={cn(
-                  "flex items-center px-4 py-2 cursor-pointer",
-                  configModule.active 
-                    ? "text-green-600 dark:text-green-400 font-medium" 
-                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                )}
-                onClick={() => navigateTo(configModule.path)}
-              >
-                <div className="flex items-center gap-2">
-                  {React.cloneElement(configModule.icon, { 
-                    className: configModule.active 
-                      ? "text-green-600 dark:text-green-400" 
-                      : "text-gray-500 dark:text-gray-400" 
-                  })}
-                  <span className={cn(
-                    "text-sm", // Menor tamanho de fonte
-                    configModule.active && "font-medium" // Médio em vez de semibold
-                  )}>
-                    {configModule.title}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex items-center justify-center p-2 cursor-pointer",
-                  configModule.active ? "text-green-600 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                )}
-                onClick={() => navigateTo(configModule.path)}
-                title={configModule.title}
-              >
-                {React.cloneElement(configModule.icon, { size: 20 })}
-              </div>
-            )}
-          </div>
-        </nav>
+          <SidebarMenuItem
+            item={configModule}
+            expandedMenu={expandedMenu}
+            toggleSubmenu={toggleSubmenu}
+            closeSubmenu={closeSubmenu}
+            navigateTo={navigateTo}
+            openSubmenu={openSubmenu}
+            collapsed={collapsed}
+          />
+        </div>
       </div>
-
-      {/* Logout Button */}
+      
+      {/* Rodapé do sidebar */}
       <div className="border-t border-gray-200 dark:border-gray-800 p-4">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start font-normal text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-600 dark:hover:text-red-400", 
-            collapsed ? "h-10 w-10 p-0 mx-auto" : "h-10 px-3"
-          )}
-          onClick={logout}
-        >
-          <LogOut size={20} className={cn(
-            "text-red-500 dark:text-red-400",
-            collapsed ? "mx-auto" : "mr-3"
-          )} />
-          {!collapsed && <span className="text-sm">Sair</span>}
-        </Button>
+        {!collapsed ? (
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.profilePhoto || ""} />
+                <AvatarFallback>{user?.name ? user.name.substring(0, 2).toUpperCase() : "U"}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium dark:text-white truncate" style={{ maxWidth: "120px" }}>
+                  {user?.name || "Usuário"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate" style={{ maxWidth: "120px" }}>
+                  {user?.email || ""}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => logout()}
+              className="rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+              title="Sair"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => logout()}
+            className="w-full flex justify-center rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+            title="Sair"
+          >
+            <LogOut size={16} />
+          </button>
+        )}
       </div>
-    </aside>
+    </div>
   );
 }
