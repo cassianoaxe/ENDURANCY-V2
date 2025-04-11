@@ -87,6 +87,8 @@ import DataImport from "@/pages/DataImport";
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
+import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
+import ControleQualidadePage from "@/pages/organization/producao-industrial/controle-qualidade";
 import MedicalPortal from "@/pages/organization/medical-portal";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -547,6 +549,14 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial') {
       return <ProducaoIndustrialDashboard />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/garantia-qualidade') {
+      return <GarantiaQualidadePage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/controle-qualidade') {
+      return <ControleQualidadePage />;
     }
 
     if (currentPath === '/organization/expedicao') {
