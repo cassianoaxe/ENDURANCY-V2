@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { 
   Card, 
   CardContent, 
@@ -285,8 +286,9 @@ function EstoqueDistribuicaoPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <OrganizationLayout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Estoque e Distribuição</h1>
           <p className="text-muted-foreground">
@@ -1478,6 +1480,7 @@ function EstoqueDistribuicaoPage() {
         </DialogContent>
       </Dialog>
     </div>
+  </OrganizationLayout>
   );
 }
 
