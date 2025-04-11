@@ -416,6 +416,12 @@ export default function OrganizationSidebar() {
           path: "/organization/doctor-management/statistics",
           active: currentPath === "/organization/doctor-management/statistics",
           icon: <BarChart3 size={16} />
+        },
+        {
+          title: "Afiliação",
+          path: "/organization/doctor-management/afiliacao",
+          active: currentPath === "/organization/doctor-management/afiliacao",
+          icon: <Users size={16} />
         }
       ]
     }
