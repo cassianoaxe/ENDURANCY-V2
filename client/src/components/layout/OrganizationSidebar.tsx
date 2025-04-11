@@ -366,10 +366,40 @@ export default function OrganizationSidebar() {
           icon: <ShieldCheck size={16} />
         },
         {
-          title: "Trilha de Auditoria",
-          path: "/organization/producao-industrial/trilha-auditoria",
-          active: currentPath === "/organization/producao-industrial/trilha-auditoria",
+          title: "Estoque",
+          path: "/organization/producao-industrial/estoque",
+          active: currentPath === "/organization/producao-industrial/estoque",
+          icon: <PackageOpen size={16} />
+        },
+        {
+          title: "Movimentações",
+          path: "/organization/producao-industrial/movimentacoes",
+          active: currentPath === "/organization/producao-industrial/movimentacoes",
+          icon: <ArrowRightLeft size={16} />
+        },
+        {
+          title: "Ordens de Produção",
+          path: "/organization/producao-industrial/ordens-producao",
+          active: currentPath === "/organization/producao-industrial/ordens-producao",
+          icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Descartes",
+          path: "/organization/producao-industrial/descartes",
+          active: currentPath === "/organization/producao-industrial/descartes",
+          icon: <Trash2 size={16} />
+        },
+        {
+          title: "Rastreabilidade",
+          path: "/organization/producao-industrial/rastreabilidade",
+          active: currentPath === "/organization/producao-industrial/rastreabilidade",
           icon: <FileSearch size={16} />
+        },
+        {
+          title: "Catálogo de Produtos",
+          path: "/organization/producao-industrial/catalogo-produtos",
+          active: currentPath === "/organization/producao-industrial/catalogo-produtos",
+          icon: <BookOpen size={16} />
         },
         {
           title: "Extração",
