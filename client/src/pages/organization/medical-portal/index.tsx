@@ -499,6 +499,85 @@ function MedicalPortalDashboard() {
           </Card>
         </TabsContent>
 
+        {/* Farmacêuticos RT */}
+        <TabsContent value="pharmacists" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Farmacêuticos Responsáveis Técnicos</CardTitle>
+              <CardDescription>
+                Gerencie os farmacêuticos responsáveis técnicos que têm acesso ao portal médico
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {metrics?.doctors?.total ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Lista de Farmacêuticos</h3>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <FileText className="h-4 w-4 mr-1" />
+                        Exportar
+                      </Button>
+                      <Button size="sm">
+                        <PlusCircle className="h-4 w-4 mr-1" />
+                        Novo Farmacêutico
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="border rounded-md">
+                    <div className="grid grid-cols-6 p-3 bg-muted text-sm font-medium">
+                      <div>Nome</div>
+                      <div>CRF</div>
+                      <div>Email</div>
+                      <div>Telefone</div>
+                      <div>Status</div>
+                      <div className="text-right">Ações</div>
+                    </div>
+                    
+                    {/* Lista gerada com base em dados de métricas */}
+                    <div className="divide-y">
+                      {Array.from({ length: metrics?.doctors?.active || 0 }).map((_, i) => (
+                        <div key={i} className="grid grid-cols-6 p-3 text-sm items-center">
+                          <div className="font-medium">Farmacêutico {i + 1}</div>
+                          <div>CRF-XX {10000 + i}</div>
+                          <div>farmaceutico{i + 1}@exemplo.com</div>
+                          <div>(11) 9{i + 1}234-5678</div>
+                          <div>
+                            <Badge variant="success">Ativo</Badge>
+                          </div>
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon">
+                              <User className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                  <h3 className="text-lg font-medium mb-1">Nenhum farmacêutico cadastrado</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                    Ainda não existem farmacêuticos cadastrados no portal médico.
+                  </p>
+                  <Button>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Cadastrar Farmacêutico
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Assinaturas */}
         <TabsContent value="subscriptions" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
