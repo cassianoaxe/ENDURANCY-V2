@@ -299,6 +299,46 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "Portal Farmácia",
+      path: "/organization/farmacia",
+      active: currentPath === "/organization/farmacia" || 
+              currentPath.startsWith("/organization/farmacia/"),
+      icon: <Pill size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Farmácia",
+          path: "/organization/farmacia",
+          active: currentPath === "/organization/farmacia" && !currentPath.includes("/organization/farmacia/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Prescrições Pendentes",
+          path: "/organization/farmacia/prescricoes-pendentes",
+          active: currentPath === "/organization/farmacia/prescricoes-pendentes",
+          icon: <Clipboard size={16} />
+        },
+        {
+          title: "Produtos",
+          path: "/organization/farmacia/produtos",
+          active: currentPath === "/organization/farmacia/produtos",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Vendas",
+          path: "/organization/farmacia/vendas",
+          active: currentPath === "/organization/farmacia/vendas",
+          icon: <ShoppingCart size={16} />
+        },
+        {
+          title: "Farmacêuticos",
+          path: "/organization/farmacia/farmaceuticos",
+          active: currentPath === "/organization/farmacia/farmaceuticos",
+          icon: <Users size={16} />
+        }
+      ]
+    },
+    {
       title: "Produção Industrial",
       path: "/organization/producao-industrial",
       active: currentPath === "/organization/producao-industrial" || 
@@ -471,49 +511,8 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos do portal da farmácia
-  const pharmacyModules = [
-    {
-      title: "Portal Farmácia",
-      path: "/organization/farmacia",
-      active: currentPath === "/organization/farmacia" || 
-              currentPath.startsWith("/organization/farmacia/"),
-      icon: <Pill size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Farmácia",
-          path: "/organization/farmacia",
-          active: currentPath === "/organization/farmacia" && !currentPath.includes("/organization/farmacia/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Prescrições Pendentes",
-          path: "/organization/farmacia/prescricoes-pendentes",
-          active: currentPath === "/organization/farmacia/prescricoes-pendentes",
-          icon: <ClipboardList size={16} />
-        },
-        {
-          title: "Catálogo de Produtos",
-          path: "/organization/farmacia/produtos",
-          active: currentPath === "/organization/farmacia/produtos",
-          icon: <Package size={16} />
-        },
-        {
-          title: "Vendas",
-          path: "/organization/farmacia/vendas",
-          active: currentPath === "/organization/farmacia/vendas",
-          icon: <ShoppingCart size={16} />
-        },
-        {
-          title: "Farmacêuticos",
-          path: "/organization/farmacia/farmaceuticos",
-          active: currentPath === "/organization/farmacia/farmaceuticos",
-          icon: <Users size={16} />
-        }
-      ]
-    }
-  ];
+  // Módulos do portal da farmácia (movido para módulos premium)
+  const pharmacyModules = [];
   
   return (
     <div className={cn(
@@ -645,29 +644,7 @@ export default function OrganizationSidebar() {
           </div>
         )}
         
-        {/* Portal Farmácia (se aplicável) */}
-        {(user?.role === "pharmacist" || user?.role === "admin" || user?.role === "org_admin") && (
-          <div className="mb-4">
-            {collapsed ? null : (
-              <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Portal Farmácia
-              </h3>
-            )}
-            
-            {pharmacyModules.map((item, index) => (
-              <SidebarMenuItem
-                key={`pharmacy-${index}`}
-                item={item}
-                expandedMenu={expandedMenu}
-                toggleSubmenu={toggleSubmenu}
-                closeSubmenu={closeSubmenu}
-                navigateTo={navigateTo}
-                openSubmenu={openSubmenu}
-                collapsed={collapsed}
-              />
-            ))}
-          </div>
-        )}
+        {/* Portal Farmácia foi movido para os módulos premium */}
         
         {/* Seção de módulos premium */}
         <div className="mb-4">
