@@ -13,7 +13,10 @@ import {
   Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
   PackageOpen, BadgePercent, Printer, QrCode, Box, Pill,
   Factory, ShieldCheck, Microscope, FileSearch, Beaker, Droplet,
-  PackageCheck, Tag, PackagePlus
+  PackageCheck, Tag, PackagePlus, Scissors, ScrollText, Library, Check, Ban,
+  BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
+  UserPlus, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
+  HandCoins, Bell, Calendar, Radio, Headphones, Phone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -315,56 +318,353 @@ export default function OrganizationSidebar() {
     {
       title: "COMPRAS E ESTOQUE",
       path: "/organization/purchases-inventory",
-      active: currentPath === "/organization/purchases-inventory",
-      icon: <ShoppingCart size={18} />
+      active: currentPath === "/organization/purchases-inventory" || currentPath.startsWith("/organization/purchases-inventory/"),
+      icon: <ShoppingCart size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Compras",
+          path: "/organization/purchases-inventory",
+          active: currentPath === "/organization/purchases-inventory" && !currentPath.includes("/organization/purchases-inventory/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Fornecedores",
+          path: "/organization/purchases-inventory/fornecedores",
+          active: currentPath === "/organization/purchases-inventory/fornecedores",
+          icon: <Truck size={16} />
+        },
+        {
+          title: "Ordens de Compra",
+          path: "/organization/purchases-inventory/ordens",
+          active: currentPath === "/organization/purchases-inventory/ordens",
+          icon: <ScrollText size={16} />
+        },
+        {
+          title: "Catálogo de Produtos",
+          path: "/organization/purchases-inventory/catalogo",
+          active: currentPath === "/organization/purchases-inventory/catalogo",
+          icon: <Library size={16} />
+        },
+        {
+          title: "Estoque",
+          path: "/organization/purchases-inventory/estoque",
+          active: currentPath === "/organization/purchases-inventory/estoque",
+          icon: <Package size={16} />
+        }
+      ]
     },
     {
       title: "JURÍDICO",
       path: "/organization/legal",
-      active: currentPath === "/organization/legal",
-      icon: <Scale size={18} />
+      active: currentPath === "/organization/legal" || currentPath.startsWith("/organization/legal/"),
+      icon: <Scale size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Jurídico",
+          path: "/organization/legal",
+          active: currentPath === "/organization/legal" && !currentPath.includes("/organization/legal/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Contratos",
+          path: "/organization/legal/contratos",
+          active: currentPath === "/organization/legal/contratos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Compliance",
+          path: "/organization/legal/compliance",
+          active: currentPath === "/organization/legal/compliance",
+          icon: <Check size={16} />
+        },
+        {
+          title: "Regulação",
+          path: "/organization/legal/regulacao",
+          active: currentPath === "/organization/legal/regulacao",
+          icon: <Ban size={16} />
+        },
+        {
+          title: "Processos",
+          path: "/organization/legal/processos",
+          active: currentPath === "/organization/legal/processos",
+          icon: <FileBarChart size={16} />
+        }
+      ]
     },
     {
       title: "RH",
       path: "/organization/hr",
-      active: currentPath === "/organization/hr",
-      icon: <Briefcase size={18} />
+      active: currentPath === "/organization/hr" || currentPath.startsWith("/organization/hr/"),
+      icon: <Briefcase size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard RH",
+          path: "/organization/hr",
+          active: currentPath === "/organization/hr" && !currentPath.includes("/organization/hr/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Funcionários",
+          path: "/organization/hr/funcionarios",
+          active: currentPath === "/organization/hr/funcionarios",
+          icon: <Users size={16} />
+        },
+        {
+          title: "Contratações",
+          path: "/organization/hr/contratacoes",
+          active: currentPath === "/organization/hr/contratacoes",
+          icon: <UserPlus size={16} />
+        },
+        {
+          title: "Folha de Pagamento",
+          path: "/organization/hr/folha-pagamento",
+          active: currentPath === "/organization/hr/folha-pagamento",
+          icon: <DollarSign size={16} />
+        },
+        {
+          title: "Treinamentos",
+          path: "/organization/hr/treinamentos",
+          active: currentPath === "/organization/hr/treinamentos",
+          icon: <GraduationCap size={16} />
+        }
+      ]
     },
     {
       title: "PESQUISA CIENTÍFICA",
       path: "/organization/research",
-      active: currentPath === "/organization/research",
-      icon: <TestTube size={18} />
+      active: currentPath === "/organization/research" || currentPath.startsWith("/organization/research/"),
+      icon: <TestTube size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Pesquisa",
+          path: "/organization/research",
+          active: currentPath === "/organization/research" && !currentPath.includes("/organization/research/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Projetos",
+          path: "/organization/research/projetos",
+          active: currentPath === "/organization/research/projetos",
+          icon: <Layers size={16} />
+        },
+        {
+          title: "Resultados",
+          path: "/organization/research/resultados",
+          active: currentPath === "/organization/research/resultados",
+          icon: <BarChart4 size={16} />
+        },
+        {
+          title: "Publicações",
+          path: "/organization/research/publicacoes",
+          active: currentPath === "/organization/research/publicacoes",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Colaborações",
+          path: "/organization/research/colaboracoes",
+          active: currentPath === "/organization/research/colaboracoes",
+          icon: <Network size={16} />
+        }
+      ]
     },
     {
       title: "CRM",
       path: "/organization/crm",
-      active: currentPath === "/organization/crm",
-      icon: <Users size={18} />
+      active: currentPath === "/organization/crm" || currentPath.startsWith("/organization/crm/"),
+      icon: <Users size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard CRM",
+          path: "/organization/crm",
+          active: currentPath === "/organization/crm" && !currentPath.includes("/organization/crm/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Clientes",
+          path: "/organization/crm/clientes",
+          active: currentPath === "/organization/crm/clientes",
+          icon: <Users size={16} />
+        },
+        {
+          title: "Leads",
+          path: "/organization/crm/leads",
+          active: currentPath === "/organization/crm/leads",
+          icon: <Target size={16} />
+        },
+        {
+          title: "Campanhas",
+          path: "/organization/crm/campanhas",
+          active: currentPath === "/organization/crm/campanhas",
+          icon: <Send size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/crm/analises",
+          active: currentPath === "/organization/crm/analises",
+          icon: <LineChart size={16} />
+        }
+      ]
     },
     {
       title: "EDUCAÇÃO DO PACIENTE",
       path: "/organization/patient-education",
-      active: currentPath === "/organization/patient-education",
-      icon: <BookOpen size={18} />
+      active: currentPath === "/organization/patient-education" || currentPath.startsWith("/organization/patient-education/"),
+      icon: <BookOpen size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Educação",
+          path: "/organization/patient-education",
+          active: currentPath === "/organization/patient-education" && !currentPath.includes("/organization/patient-education/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Conteúdos",
+          path: "/organization/patient-education/conteudos",
+          active: currentPath === "/organization/patient-education/conteudos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Webinars",
+          path: "/organization/patient-education/webinars",
+          active: currentPath === "/organization/patient-education/webinars",
+          icon: <Video size={16} />
+        },
+        {
+          title: "Artigos",
+          path: "/organization/patient-education/artigos",
+          active: currentPath === "/organization/patient-education/artigos",
+          icon: <ScrollText size={16} />
+        },
+        {
+          title: "Comunidade",
+          path: "/organization/patient-education/comunidade",
+          active: currentPath === "/organization/patient-education/comunidade",
+          icon: <Users size={16} />
+        }
+      ]
     },
     {
       title: "PATRIMÔNIO",
       path: "/organization/assets",
-      active: currentPath === "/organization/assets",
-      icon: <Building size={18} />
+      active: currentPath === "/organization/assets" || currentPath.startsWith("/organization/assets/"),
+      icon: <Building size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Patrimônio",
+          path: "/organization/assets",
+          active: currentPath === "/organization/assets" && !currentPath.includes("/organization/assets/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Imóveis",
+          path: "/organization/assets/imoveis",
+          active: currentPath === "/organization/assets/imoveis",
+          icon: <Home size={16} />
+        },
+        {
+          title: "Equipamentos",
+          path: "/organization/assets/equipamentos",
+          active: currentPath === "/organization/assets/equipamentos",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Controle de Depreciação",
+          path: "/organization/assets/depreciacao",
+          active: currentPath === "/organization/assets/depreciacao",
+          icon: <CircleDollarSign size={16} />
+        },
+        {
+          title: "Manutenções",
+          path: "/organization/assets/manutencoes",
+          active: currentPath === "/organization/assets/manutencoes",
+          icon: <Settings size={16} />
+        }
+      ]
     },
     {
       title: "COMUNICAÇÃO",
       path: "/organization/communication",
-      active: currentPath === "/organization/communication",
-      icon: <MessageCircle size={18} />
+      active: currentPath === "/organization/communication" || currentPath.startsWith("/organization/communication/"),
+      icon: <MessageCircle size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Comunicação",
+          path: "/organization/communication",
+          active: currentPath === "/organization/communication" && !currentPath.includes("/organization/communication/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Mensagens",
+          path: "/organization/communication/mensagens",
+          active: currentPath === "/organization/communication/mensagens",
+          icon: <MessageSquare size={16} />
+        },
+        {
+          title: "Notificações",
+          path: "/organization/communication/notificacoes",
+          active: currentPath === "/organization/communication/notificacoes",
+          icon: <Bell size={16} />
+        },
+        {
+          title: "Eventos",
+          path: "/organization/communication/eventos",
+          active: currentPath === "/organization/communication/eventos",
+          icon: <Calendar size={16} />
+        },
+        {
+          title: "Canais",
+          path: "/organization/communication/canais",
+          active: currentPath === "/organization/communication/canais",
+          icon: <Radio size={16} />
+        }
+      ]
     },
     {
       title: "PORTAL MÉDICO",
       path: "/organization/medical-portal",
-      active: currentPath === "/organization/medical-portal",
-      icon: <HeartPulse size={18} />
+      active: currentPath === "/organization/medical-portal" || currentPath.startsWith("/organization/medical-portal/"),
+      icon: <HeartPulse size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Médico",
+          path: "/organization/medical-portal",
+          active: currentPath === "/organization/medical-portal" && !currentPath.includes("/organization/medical-portal/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Médicos",
+          path: "/organization/medical-portal/medicos",
+          active: currentPath === "/organization/medical-portal/medicos",
+          icon: <HeartPulse size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/medical-portal/prescricoes",
+          active: currentPath === "/organization/medical-portal/prescricoes",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Agendamento",
+          path: "/organization/medical-portal/agendamento",
+          active: currentPath === "/organization/medical-portal/agendamento",
+          icon: <Calendar size={16} />
+        },
+        {
+          title: "Suporte",
+          path: "/organization/medical-portal/suporte",
+          active: currentPath === "/organization/medical-portal/suporte",
+          icon: <Headphones size={16} />
+        }
+      ]
     },
     {
       title: "MÓDULO FARMÁCIA",
