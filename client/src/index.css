@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Estilos para a navegação lateral */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+}
+
+/* Estilo para evitar o desaparecimento do menu ao rolar */
+.sidebar-menu-item {
+  scroll-margin-top: 1rem;
+  scroll-margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
