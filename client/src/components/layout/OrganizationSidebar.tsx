@@ -228,19 +228,88 @@ export default function OrganizationSidebar() {
       title: "TAREFAS",
       path: "/organization/tasks",
       active: currentPath === "/organization/tasks",
-      icon: <FileClock size={18} />
+      icon: <FileClock size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Todas as Tarefas",
+          path: "/organization/tasks",
+          active: currentPath === "/organization/tasks",
+          icon: <FileClock size={16} />
+        },
+        {
+          title: "Criar Nova Tarefa",
+          path: "/organization/tasks/create",
+          active: currentPath === "/organization/tasks/create",
+          icon: <ClipboardList size={16} />
+        }
+      ]
     },
     {
       title: "SOCIAL",
       path: "/organization/social",
       active: currentPath === "/organization/social",
-      icon: <Users2 size={18} />
+      icon: <Users2 size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Feed Social",
+          path: "/organization/social",
+          active: currentPath === "/organization/social",
+          icon: <MessageCircle size={16} />
+        },
+        {
+          title: "Comunidade",
+          path: "/organization/social/community",
+          active: currentPath === "/organization/social/community",
+          icon: <Users2 size={16} />
+        },
+        {
+          title: "Mensagens",
+          path: "/organization/social/messages",
+          active: currentPath === "/organization/social/messages",
+          icon: <MessageSquare size={16} />
+        }
+      ]
     },
     {
       title: "CULTIVO",
       path: "/organization/cultivation",
       active: currentPath === "/organization/cultivation",
-      icon: <Leaf size={18} />
+      icon: <Leaf size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Cultivo",
+          path: "/organization/cultivation",
+          active: currentPath === "/organization/cultivation",
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Plantio",
+          path: "/organization/cultivation/plantio",
+          active: currentPath === "/organization/cultivation/plantio",
+          icon: <Leaf size={16} />
+        },
+        {
+          title: "Colheita",
+          path: "/organization/cultivation/colheita",
+          active: currentPath === "/organization/cultivation/colheita",
+          icon: <Scissors size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/cultivation/analises",
+          active: currentPath === "/organization/cultivation/analises",
+          icon: <LineChart size={16} />
+        },
+        {
+          title: "Estoque",
+          path: "/organization/cultivation/estoque",
+          active: currentPath === "/organization/cultivation/estoque",
+          icon: <Package size={16} />
+        }
+      ]
     },
 
     {
@@ -300,8 +369,47 @@ export default function OrganizationSidebar() {
     {
       title: "MÓDULO FARMÁCIA",
       path: "/organization/farmacia",
-      active: currentPath === "/organization/farmacia",
-      icon: <Pill size={18} />
+      active: currentPath === "/organization/farmacia" || currentPath.startsWith("/organization/farmacia/"),
+      icon: <Pill size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Farmácia",
+          path: "/organization/farmacia",
+          active: currentPath === "/organization/farmacia" && !currentPath.includes("/organization/farmacia/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/farmacia/prescricoes",
+          active: currentPath === "/organization/farmacia/prescricoes",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Estoque",
+          path: "/organization/farmacia/estoque",
+          active: currentPath === "/organization/farmacia/estoque",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Farmacêuticos",
+          path: "/organization/farmacia/farmaceuticos",
+          active: currentPath === "/organization/farmacia/farmaceuticos",
+          icon: <Users size={16} />
+        },
+        {
+          title: "Vendas",
+          path: "/organization/farmacia/vendas",
+          active: currentPath === "/organization/farmacia/vendas",
+          icon: <ShoppingCart size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/farmacia/configuracoes",
+          active: currentPath === "/organization/farmacia/configuracoes",
+          icon: <Settings size={16} />
+        }
+      ]
     },
     {
       title: "PRODUÇÃO INDUSTRIAL",
