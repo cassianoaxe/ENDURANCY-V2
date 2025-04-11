@@ -318,7 +318,7 @@ export default function PharmacistPerfil() {
               </TabsList>
               
               <TabsContent value="info" className="mt-0">
-              <form onSubmit={handleProfileUpdate}>
+                <form onSubmit={handleProfileUpdate}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo</Label>
