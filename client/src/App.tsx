@@ -103,6 +103,7 @@ import DoctorManagementDoctors from "@/pages/organization/doctor-management/doct
 import DoctorManagementAppointments from "@/pages/organization/doctor-management/appointments";
 import DoctorManagementStatistics from "@/pages/organization/doctor-management/statistics";
 import DoctorManagementDocuments from "@/pages/organization/doctor-management/documents";
+import DoctorManagementAffiliation from "@/pages/organization/doctor-management/afiliacao";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
 // Import pharmacist pages
@@ -693,6 +694,10 @@ function AppContent() {
 
     if (currentPath === '/organization/doctor-management/documents') {
       return <DoctorManagementDocuments />;
+    }
+
+    if (currentPath === '/organization/doctor-management/afiliacao') {
+      return <DoctorManagementAffiliation />;
     }
 
     if (currentPath === '/organization/farmacia') {

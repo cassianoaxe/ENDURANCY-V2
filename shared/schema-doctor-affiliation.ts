@@ -1,60 +1,66 @@
+import { pgTable, text, timestamp, integer, serial, boolean, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { pgTable, serial, integer, timestamp, varchar, text, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-// Tabela que relaciona médicos a organizações (muitos para muitos)
+// Tabela principal para afiliações entre médicos e organizações
 export const doctorOrganizationsTable = pgTable('doctor_organizations', {
   id: serial('id').primaryKey(),
-  doctorId: integer('doctor_id').notNull().references(() => usersTable.id), 
-  organizationId: integer('organization_id').notNull().references(() => organizationsTable.id),
-  status: varchar('status', { length: 20 }).notNull().default('active'), // active, inactive, pending
-  isDefault: boolean('is_default').default(false), // Organização padrão do médico
+  organizationId: integer('organization_id').notNull(),
+  doctorId: integer('doctor_id'),  // null se o convite não foi aceito ainda
+  name: text('name'),              // nome do médico convidado
+  email: text('email').notNull(),  // email do médico convidado
+  specialty: text('specialty'),    // especialidade do médico
+  crm: text('crm'),                // número do CRM
+  crmState: text('crm_state'),     // estado do CRM
+  status: text('status').notNull().default('pending'), // pending, active, denied, expired, cancelled, left, removed
+  inviteToken: text('invite_token'), // token para confirmar o convite
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  expiresAt: timestamp('expires_at'), // data em que o convite expira
+  respondedAt: timestamp('responded_at'), // data em que o convite foi respondido
+  updatedAt: timestamp('updated_at'),
+  isDefault: boolean('is_default').default(false), // indica se esta é a organização padrão do médico
 });
 
-// Tabela para prescrições médicas
+// Tabela de prescrições médicas
 export const prescriptionsTable = pgTable('prescriptions', {
   id: serial('id').primaryKey(),
-  patientId: integer('patient_id').notNull().references(() => patientsTable.id),
-  doctorId: integer('doctor_id').notNull().references(() => usersTable.id),
-  organizationId: integer('organization_id').notNull().references(() => organizationsTable.id),
-  productId: integer('product_id').references(() => productsTable.id),
-  dosage: varchar('dosage', { length: 100 }),
-  instructions: text('instructions'),
-  duration: varchar('duration', { length: 100 }),
-  status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, approved, rejected
-  approvedById: integer('approved_by_id').references(() => usersTable.id), // ID do farmacêutico
-  notes: text('notes'),
-  approvalDate: timestamp('approval_date'),
+  doctorId: integer('doctor_id').notNull(),
+  patientId: integer('patient_id').notNull(),
+  organizationId: integer('organization_id').notNull(),
+  content: text('content').notNull(),
+  status: text('status').notNull().default('pending'), // pending, approved, rejected, cancelled
   createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  updatedAt: timestamp('updated_at'),
+  expireAt: timestamp('expire_at'),
+  approvedById: integer('approved_by_id'),
+  approvedAt: timestamp('approved_at'),
+  notes: text('notes'),
+  documentUrl: text('document_url'),
 });
 
-// Referências às tabelas existentes para as relações
-// (Estas são simplificadas - você deve usar suas tabelas reais)
+// Referência para outras tabelas do esquema original para manter relações
 export const usersTable = pgTable('users', {
   id: serial('id').primaryKey(),
-  // outros campos necessários
+  // outros campos conforme o esquema original
 });
 
 export const organizationsTable = pgTable('organizations', {
   id: serial('id').primaryKey(),
-  // outros campos necessários
+  // outros campos conforme o esquema original
 });
 
 export const patientsTable = pgTable('patients', {
   id: serial('id').primaryKey(),
-  // outros campos necessários
+  // outros campos conforme o esquema original
 });
 
 export const productsTable = pgTable('products', {
   id: serial('id').primaryKey(),
-  // outros campos necessários
+  // outros campos conforme o esquema original
 });
 
-// Definir as relações
+// Definição de relações entre as tabelas
 export const doctorOrganizationsRelations = relations(doctorOrganizationsTable, ({ one }) => ({
   doctor: one(usersTable, {
     fields: [doctorOrganizationsTable.doctorId],
@@ -67,21 +73,17 @@ export const doctorOrganizationsRelations = relations(doctorOrganizationsTable, 
 }));
 
 export const prescriptionsRelations = relations(prescriptionsTable, ({ one }) => ({
-  patient: one(patientsTable, {
-    fields: [prescriptionsTable.patientId],
-    references: [patientsTable.id],
-  }),
   doctor: one(usersTable, {
     fields: [prescriptionsTable.doctorId],
     references: [usersTable.id],
   }),
+  patient: one(patientsTable, {
+    fields: [prescriptionsTable.patientId],
+    references: [patientsTable.id],
+  }),
   organization: one(organizationsTable, {
     fields: [prescriptionsTable.organizationId],
     references: [organizationsTable.id],
-  }),
-  product: one(productsTable, {
-    fields: [prescriptionsTable.productId],
-    references: [productsTable.id],
   }),
   approvedBy: one(usersTable, {
     fields: [prescriptionsTable.approvedById],
@@ -89,26 +91,24 @@ export const prescriptionsRelations = relations(prescriptionsTable, ({ one }) =>
   }),
 }));
 
-// Schemas para criação/validação
+// Esquemas Zod para validação
 export const insertDoctorOrganizationSchema = createInsertSchema(doctorOrganizationsTable).omit({ 
-  id: true,
+  id: true, 
   createdAt: true,
-  updatedAt: true 
+  respondedAt: true,
+  updatedAt: true
 });
 
 export const insertPrescriptionSchema = createInsertSchema(prescriptionsTable).omit({ 
   id: true, 
-  status: true,
-  approvedById: true,
-  approvalDate: true,
   createdAt: true,
-  updatedAt: true 
+  updatedAt: true,
+  approvedAt: true
 });
 
-// Tipos de inserção
+// Tipos exportados para uso em outras partes da aplicação
 export type InsertDoctorOrganization = z.infer<typeof insertDoctorOrganizationSchema>;
 export type InsertPrescription = z.infer<typeof insertPrescriptionSchema>;
 
-// Tipos de seleção
 export type DoctorOrganization = typeof doctorOrganizationsTable.$inferSelect;
 export type Prescription = typeof prescriptionsTable.$inferSelect;
