@@ -11,6 +11,7 @@ import { registerPharmacistRoutes } from './routes/pharmacist-routes';
 import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
 import * as fiscalRoutes from './routes/fiscal-routes';
 import { registerDocumentRoutes } from './routes/document-routes';
+import { registerProductionRoutes } from './routes/production-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5209,10 +5210,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const patientPrescriptionRoutes = await registerPatientPrescriptionRoutes(app);
   const documentRoutes = await registerDocumentRoutes(app);
   
+  // Register production routes (seed to counter traceability)
+  const productionRoutes = await registerProductionRoutes(app);
+  
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
   console.log("Patient prescription routes registered:", patientPrescriptionRoutes);
   console.log("Document routes registered:", documentRoutes);
+  console.log("Production routes registered:", productionRoutes);
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);

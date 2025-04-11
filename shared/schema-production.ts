@@ -473,6 +473,20 @@ export const productionConfigTable = pgTable('production_config', {
 
 // Definição de relações
 
+export const cultivationBatchesRelations = relations(cultivationBatchesTable, ({ many, one }) => ({
+  organization: one(organizationsTable, {
+    fields: [cultivationBatchesTable.organizationId],
+    references: [organizationsTable.id],
+  }),
+  responsibleUser: one(usersTable, {
+    fields: [cultivationBatchesTable.responsibleUserId],
+    references: [usersTable.id],
+  }),
+  qualityTests: many(qualityTestsTable),
+  extractionProcesses: many(extractionProcessesTable),
+  batchTraceability: many(batchTraceabilityTable),
+}));
+
 export const rawMaterialsRelations = relations(rawMaterialsTable, ({ many, one }) => ({
   organization: one(organizationsTable, {
     fields: [rawMaterialsTable.organizationId],
@@ -790,6 +804,7 @@ export const productionConfigRelations = relations(productionConfigTable, ({ one
 }));
 
 // Schema de inserção
+export const insertCultivationBatchSchema = createInsertSchema(cultivationBatchesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertRawMaterialSchema = createInsertSchema(rawMaterialsTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertRawMaterialBatchSchema = createInsertSchema(rawMaterialBatchesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertSupplierSchema = createInsertSchema(suppliersTable).omit({ id: true, createdAt: true, updatedAt: true });
@@ -812,6 +827,7 @@ export const insertRecallSimulationSchema = createInsertSchema(recallSimulations
 export const insertProductionConfigSchema = createInsertSchema(productionConfigTable).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types de inserção
+export type InsertCultivationBatch = z.infer<typeof insertCultivationBatchSchema>;
 export type InsertRawMaterial = z.infer<typeof insertRawMaterialSchema>;
 export type InsertRawMaterialBatch = z.infer<typeof insertRawMaterialBatchSchema>;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
@@ -834,6 +850,7 @@ export type InsertRecallSimulation = z.infer<typeof insertRecallSimulationSchema
 export type InsertProductionConfig = z.infer<typeof insertProductionConfigSchema>;
 
 // Types de seleção
+export type CultivationBatch = typeof cultivationBatchesTable.$inferSelect;
 export type RawMaterial = typeof rawMaterialsTable.$inferSelect;
 export type RawMaterialBatch = typeof rawMaterialBatchesTable.$inferSelect;
 export type Supplier = typeof suppliersTable.$inferSelect;
