@@ -86,6 +86,7 @@ import DataImport from "@/pages/DataImport";
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import ProductionModule from "@/pages/organization/production";
+import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import MedicalPortal from "@/pages/organization/medical-portal";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -542,6 +543,10 @@ function AppContent() {
 
     if (currentPath === '/organization/production') {
       return <ProductionModule />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial') {
+      return <ProducaoIndustrialDashboard />;
     }
 
     if (currentPath === '/organization/expedicao') {
