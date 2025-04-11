@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -9,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { 
   ExternalLink, LinkIcon, Grid, Users, Clipboard, Home, LineChart, 
   Settings, User, Building, FileText, ShieldCheck, Pill, Leaf, 
@@ -665,18 +665,26 @@ const Sitemap = () => {
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <Home className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/admin" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/admin"}
+                        >
                           Dashboard Principal
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Visão geral do sistema com métricas principais</p>
                     </div>
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <LineChart className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/admin/reports" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/admin/reports"}
+                        >
                           Relatórios
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Relatórios detalhados e análises</p>
                     </div>
@@ -703,18 +711,26 @@ const Sitemap = () => {
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <Home className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/doctor" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/doctor"}
+                        >
                           Dashboard
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Visão geral da atividade médica e métricas</p>
                     </div>
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <Users className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/doctor/pacientes" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/doctor/pacientes"}
+                        >
                           Pacientes
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Gerenciamento de pacientes da organização</p>
                     </div>
@@ -741,18 +757,26 @@ const Sitemap = () => {
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <Home className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/patient" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/patient"}
+                        >
                           Dashboard
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Página inicial do paciente</p>
                     </div>
                     <div className="p-3 border border-green-100 rounded-md shadow-sm">
                       <div className="flex items-center mb-2">
                         <Pill className="h-4 w-4 mr-2 text-green-500" />
-                        <Link href="/patient/prescricoes" className="text-green-600 hover:underline">
+                        <Button 
+                          variant="link" 
+                          className="text-green-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/patient/prescricoes"}
+                        >
                           Minhas Prescrições
-                        </Link>
+                        </Button>
                       </div>
                       <p className="text-xs text-gray-500 ml-6">Visualizar prescrições médicas aprovadas</p>
                     </div>
@@ -814,29 +838,49 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Login e Registro</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/login" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/login"}
+                    >
                       <User className="h-3.5 w-3.5" /> Login Principal
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/patient-login" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/patient-login"}
+                    >
                       <User className="h-3.5 w-3.5" /> Login de Pacientes
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/forgot-password" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/forgot-password"}
+                    >
                       <Key className="h-3.5 w-3.5" /> Recuperação de Senha
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/organization-registration" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/organization-registration"}
+                    >
                       <Building className="h-3.5 w-3.5" /> Cadastro de Organização
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/cadastrodemedicos" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/cadastrodemedicos"}
+                    >
                       <Stethoscope className="h-3.5 w-3.5" /> Cadastro de Médicos
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -846,39 +890,67 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área Administrativa</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/admin" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin"}
+                    >
                       <Home className="h-3.5 w-3.5" /> Dashboard Admin
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/organizations" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/organizations"}
+                    >
                       <Building className="h-3.5 w-3.5" /> Organizações
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/doctors" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/doctors"}
+                    >
                       <Stethoscope className="h-3.5 w-3.5" /> Médicos
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/patients" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/patients"}
+                    >
                       <Users className="h-3.5 w-3.5" /> Pacientes
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/plans" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/plans"}
+                    >
                       <LayoutGrid className="h-3.5 w-3.5" /> Planos e Módulos
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/reports" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/reports"}
+                    >
                       <LineChart className="h-3.5 w-3.5" /> Relatórios
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/admin/settings" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/admin/settings"}
+                    >
                       <Settings className="h-3.5 w-3.5" /> Configurações
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -888,29 +960,49 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área do Médico</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/doctor" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/doctor"}
+                    >
                       <Home className="h-3.5 w-3.5" /> Dashboard Médico
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/doctor/pacientes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/doctor/pacientes"}
+                    >
                       <Users className="h-3.5 w-3.5" /> Pacientes
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/doctor/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/doctor/prescricoes"}
+                    >
                       <FileText className="h-3.5 w-3.5" /> Prescrições
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/doctor/configuracoes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/doctor/configuracoes"}
+                    >
                       <Settings className="h-3.5 w-3.5" /> Configurações
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/doctor/afiliacoes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/doctor/afiliacoes"}
+                    >
                       <Building className="h-3.5 w-3.5" /> Minhas Organizações
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -920,24 +1012,40 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área do Paciente</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/patient" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/patient"}
+                    >
                       <Home className="h-3.5 w-3.5" /> Dashboard Paciente
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/patient/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/patient/prescricoes"}
+                    >
                       <FileText className="h-3.5 w-3.5" /> Minhas Prescrições
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/patient/historico" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/patient/historico"}
+                    >
                       <Clock className="h-3.5 w-3.5" /> Histórico Médico
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/patient/perfil" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/patient/perfil"}
+                    >
                       <User className="h-3.5 w-3.5" /> Meu Perfil
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -947,24 +1055,40 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Área da Farmácia</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/pharmacy" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/pharmacy"}
+                    >
                       <Home className="h-3.5 w-3.5" /> Dashboard Farmácia
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/pharmacy/prescricoes" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/pharmacy/prescricoes"}
+                    >
                       <FileText className="h-3.5 w-3.5" /> Aprovar Prescrições
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/pharmacy/products" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/pharmacy/products"}
+                    >
                       <Pill className="h-3.5 w-3.5" /> Produtos
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/pharmacy/reports" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/pharmacy/reports"}
+                    >
                       <LineChart className="h-3.5 w-3.5" /> Relatórios
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
@@ -974,29 +1098,49 @@ const Sitemap = () => {
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Outros Links</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/sitemap" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/sitemap"}
+                    >
                       <MapPin className="h-3.5 w-3.5" /> Sitemap
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/terms" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/terms"}
+                    >
                       <FileText className="h-3.5 w-3.5" /> Termos de Uso
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/privacy" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/privacy"}
+                    >
                       <ShieldCheck className="h-3.5 w-3.5" /> Política de Privacidade
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/help" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/help"}
+                    >
                       <HelpCircle className="h-3.5 w-3.5" /> Ajuda e Suporte
-                    </Link>
+                    </Button>
                   </li>
                   <li>
-                    <Link href="/contact" className="text-green-600 hover:underline flex items-center gap-1">
+                    <Button 
+                      variant="link" 
+                      className="text-green-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/contact"}
+                    >
                       <Mail className="h-3.5 w-3.5" /> Contato
-                    </Link>
+                    </Button>
                   </li>
                 </ul>
               </div>
