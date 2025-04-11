@@ -615,8 +615,8 @@ export default function OrganizationSidebar() {
           </div>
         )}
         
-        {/* Portal Médico (se aplicável) */}
-        {(user?.role === "doctor" || user?.role === "admin" || user?.role === "org_admin") && (
+        {/* Portal Médico (apenas para médicos) */}
+        {(user?.role === "doctor") && (
           <div className="mb-4">
             {collapsed ? null : (
               <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
