@@ -47,10 +47,25 @@ export default function OrganizationSidebar() {
     enabled: !!user?.organizationId,
   });
 
-  // Function to navigate to a path
+  // Function to navigate to a path, ensuring session is maintained
   const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new Event('popstate'));
+    // Primeiro verifica se o usuário está autenticado
+    if (!user) {
+      console.log("Tentando navegar sem autenticação. Redirecionando para login");
+      window.location.href = '/login';
+      return;
+    }
+    
+    // Se autenticado, usa o método de navegação mais seguro
+    try {
+      console.log(`Navegando para: ${path}`);
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new Event('popstate'));
+    } catch (error) {
+      console.error("Erro na navegação:", error);
+      // Fallback para método mais direto em caso de erro
+      window.location.href = path;
+    }
   };
 
   // Estado para controlar os submenus expandidos
