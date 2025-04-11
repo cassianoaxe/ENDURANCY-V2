@@ -75,20 +75,13 @@ export default function OrganizationSidebar() {
   const toggleSubmenu = (menuTitle: string, event: React.MouseEvent) => {
     event.stopPropagation();
     console.log("Toggle submenu:", menuTitle, "Current expanded:", expandedMenu);
-    // Se o menu não estiver aberto, abrimos ele
-    // Se já estiver aberto, mantemos aberto (não fechamos mais ao clicar)
-    if (expandedMenu !== menuTitle) {
+    if (expandedMenu === menuTitle) {
+      setExpandedMenu(null);
+      console.log("Fechando submenu:", menuTitle);
+    } else {
       setExpandedMenu(menuTitle);
       console.log("Abrindo submenu:", menuTitle);
     }
-    // Comportamento antigo que fechava ao clicar novamente:
-    // if (expandedMenu === menuTitle) {
-    //   setExpandedMenu(null);
-    //   console.log("Fechando submenu:", menuTitle);
-    // } else {
-    //   setExpandedMenu(menuTitle);
-    //   console.log("Abrindo submenu:", menuTitle);
-    // }
   };
   
   // Função para forçar a abertura do submenu sem fechá-lo
@@ -640,7 +633,13 @@ export default function OrganizationSidebar() {
                               ? "text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/20"
                               : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                           )}
-                          onClick={() => navigateTo(subItem.path)}
+                          onClick={() => {
+                            console.log('Clicando em subitem:', subItem.title);
+                            // Mantém o submenu aberto ao navegar
+                            navigateTo(subItem.path);
+                            // Força o menu a permanecer aberto após a navegação
+                            setTimeout(() => openSubmenu(item.title), 100);
+                          }}
                         >
                           <div className="flex items-center gap-2">
                             {React.cloneElement(subItem.icon, {
