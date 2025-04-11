@@ -49,7 +49,7 @@ export default function OrganizationSidebar() {
   });
 
   // Function to navigate to a path, ensuring session is maintained
-  const navigateTo = (path: string) => {
+  const navigateTo = (path: string, keepSubmenuOpen = false) => {
     // Primeiro verifica se o usuário está autenticado
     if (!user) {
       console.log("Tentando navegar sem autenticação. Redirecionando para login");
@@ -57,11 +57,22 @@ export default function OrganizationSidebar() {
       return;
     }
     
+    // Se for necessário manter o submenu aberto, salvamos o estado atual
+    const currentSubmenu = keepSubmenuOpen ? expandedMenu : null;
+    
     // Se autenticado, usa o método de navegação mais seguro
     try {
       console.log(`Navegando para: ${path}`);
-      window.history.pushState({}, '', path);
+      window.history.pushState({submenu: currentSubmenu}, '', path);
+      
+      // Nós disparamos o evento popstate e restauramos o estado do menu logo em seguida
       window.dispatchEvent(new Event('popstate'));
+      
+      // Se houver um submenu aberto e queremos mantê-lo aberto, restauramos após a navegação
+      if (keepSubmenuOpen && currentSubmenu) {
+        console.log("Mantendo submenu aberto após navegação:", currentSubmenu);
+        setTimeout(() => setExpandedMenu(currentSubmenu), 50);
+      }
     } catch (error) {
       console.error("Erro na navegação:", error);
       // Fallback para método mais direto em caso de erro
