@@ -210,8 +210,10 @@ export const qualityTestsTable = pgTable('quality_tests', {
   organizationId: integer('organization_id').notNull().references(() => organizationsTable.id),
   productionOrderId: integer('production_order_id').references(() => productionOrdersTable.id),
   rawMaterialBatchId: integer('raw_material_batch_id').references(() => rawMaterialBatchesTable.id),
+  cultivationBatchId: integer('cultivation_batch_id').references(() => cultivationBatchesTable.id),
   finishedProductBatchId: integer('finished_product_batch_id'),
-  testType: text('test_type').notNull(), // matéria-prima, processo, produto final
+  testType: text('test_type').notNull(), // matéria-prima, processo, cultivo, produto final
+  sourceType: text('source_type').notNull().default('raw_material'), // 'raw_material', 'cultivation', 'production', 'finished_product'
   testDate: timestamp('test_date').notNull(),
   testedBy: integer('tested_by').references(() => usersTable.id),
   status: qualityStatusEnum('status').notNull().default('pendente'),
@@ -557,6 +559,11 @@ export const qualityTestsRelations = relations(qualityTestsTable, ({ one, many }
     fields: [qualityTestsTable.rawMaterialBatchId],
     references: [rawMaterialBatchesTable.id],
     relationName: 'raw_material_tests',
+  }),
+  cultivationBatch: one(cultivationBatchesTable, {
+    fields: [qualityTestsTable.cultivationBatchId],
+    references: [cultivationBatchesTable.id],
+    relationName: 'cultivation_tests',
   }),
   tester: one(usersTable, {
     fields: [qualityTestsTable.testedBy],
