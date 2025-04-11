@@ -96,6 +96,13 @@ import EnvasePage from "@/pages/organization/producao-industrial/envase";
 import RotulagemPage from "@/pages/organization/producao-industrial/rotulagem";
 import EstoqueDistribuicaoPage from "@/pages/organization/producao-industrial/estoque-distribuicao";
 import MedicalPortal from "@/pages/organization/medical-portal";
+
+// Importações do módulo de Gerenciamento de Médicos
+import DoctorManagement from "@/pages/organization/doctor-management";
+import DoctorManagementDoctors from "@/pages/organization/doctor-management/doctors";
+import DoctorManagementAppointments from "@/pages/organization/doctor-management/appointments";
+import DoctorManagementStatistics from "@/pages/organization/doctor-management/statistics";
+import DoctorManagementDocuments from "@/pages/organization/doctor-management/documents";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
 // Import pharmacist pages
@@ -665,6 +672,27 @@ function AppContent() {
     // Rota para o Portal Médico
     if (currentPath === '/organization/medical-portal') {
       return <MedicalPortal />;
+    }
+
+    // Rotas para o módulo de Gerenciamento de Médicos
+    if (currentPath === '/organization/doctor-management') {
+      return <DoctorManagement />;
+    }
+    
+    if (currentPath === '/organization/doctor-management/doctors') {
+      return <DoctorManagementDoctors />;
+    }
+
+    if (currentPath === '/organization/doctor-management/appointments') {
+      return <DoctorManagementAppointments />;
+    }
+
+    if (currentPath === '/organization/doctor-management/statistics') {
+      return <DoctorManagementStatistics />;
+    }
+
+    if (currentPath === '/organization/doctor-management/documents') {
+      return <DoctorManagementDocuments />;
     }
 
     if (currentPath === '/organization/farmacia') {
