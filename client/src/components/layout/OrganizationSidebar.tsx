@@ -80,8 +80,16 @@ export default function OrganizationSidebar() {
     }
   };
 
-  // Estado para controlar os submenus expandidos
-  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+  // Use localStorage para persistir o estado do menu entre navegações
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(() => {
+    // Carrega o submenu aberto do localStorage na inicialização
+    try {
+      const savedMenu = localStorage.getItem('expandedSubmenu');
+      return savedMenu || null;
+    } catch (e) {
+      return null;
+    }
+  });
   
   // Função para alternar a exibição de um submenu
   const toggleSubmenu = (menuTitle: string, event: React.MouseEvent) => {
@@ -89,9 +97,11 @@ export default function OrganizationSidebar() {
     console.log("Toggle submenu:", menuTitle, "Current expanded:", expandedMenu);
     if (expandedMenu === menuTitle) {
       setExpandedMenu(null);
+      localStorage.removeItem('expandedSubmenu');
       console.log("Fechando submenu:", menuTitle);
     } else {
       setExpandedMenu(menuTitle);
+      localStorage.setItem('expandedSubmenu', menuTitle);
       console.log("Abrindo submenu:", menuTitle);
     }
   };
@@ -100,6 +110,7 @@ export default function OrganizationSidebar() {
   const closeSubmenu = (event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedMenu(null);
+    localStorage.removeItem('expandedSubmenu');
     console.log("Fechando todos os submenus");
   };
   
@@ -107,6 +118,7 @@ export default function OrganizationSidebar() {
   const openSubmenu = (menuTitle: string) => {
     console.log("Forçando abertura de submenu:", menuTitle);
     setExpandedMenu(menuTitle);
+    localStorage.setItem('expandedSubmenu', menuTitle);
   };
   
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)

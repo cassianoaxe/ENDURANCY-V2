@@ -112,8 +112,10 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
                   )}
                   onClick={(e) => {
                     console.log('Clicando em subitem:', subItem.title);
-                    // Navega para o caminho e passa true para manter o submenu aberto
-                    navigateTo(subItem.path, true);
+                    // Antes de navegar, garantimos que o localStorage é atualizado
+                    localStorage.setItem('expandedSubmenu', item.title);
+                    // Navega para o caminho mantendo o submenu aberto
+                    navigateTo(subItem.path);
                   }}
                 >
                   <div className="flex items-center gap-2">
