@@ -16,7 +16,7 @@ import {
   PackageCheck, Tag, PackagePlus, Scissors, ScrollText, Library, Check, Ban,
   BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
   UserPlus, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
-  HandCoins, Bell, Calendar, Radio, Headphones, Phone
+  HandCoins, Bell, Calendar, Radio, Headphones, Phone, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -82,6 +82,13 @@ export default function OrganizationSidebar() {
       setExpandedMenu(menuTitle);
       console.log("Abrindo submenu:", menuTitle);
     }
+  };
+  
+  // Função para fechar um submenu específico
+  const closeSubmenu = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setExpandedMenu(null);
+    console.log("Fechando todos os submenus");
   };
   
   // Função para forçar a abertura do submenu sem fechá-lo
