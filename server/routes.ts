@@ -5212,6 +5212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register production routes (seed to counter traceability)
   const productionRoutes = await registerProductionRoutes(app);
+  app.use('/api/production', productionRoutes);
   
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
