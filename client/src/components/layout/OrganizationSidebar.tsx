@@ -45,10 +45,13 @@ export default function OrganizationSidebar() {
   
   // Função para alternar a exibição de um submenu
   const toggleSubmenu = (menuTitle: string) => {
+    console.log("Toggle submenu:", menuTitle, "Current expanded:", expandedMenu);
     if (expandedMenu === menuTitle) {
       setExpandedMenu(null);
+      console.log("Fechando submenu:", menuTitle);
     } else {
       setExpandedMenu(menuTitle);
+      console.log("Abrindo submenu:", menuTitle);
     }
   };
   
@@ -902,7 +905,14 @@ export default function OrganizationSidebar() {
                         ? "text-green-600 dark:text-green-400 font-medium" 
                         : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                     )}
-                    onClick={() => item.isSubmenu ? toggleSubmenu(item.title) : navigateTo(item.path)}
+                    onClick={() => {
+                      console.log('Clicando em item premium:', item.title, 'isSubmenu:', !!item.isSubmenu);
+                      if (item.isSubmenu) {
+                        toggleSubmenu(item.title);
+                      } else {
+                        navigateTo(item.path);
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       <span className={cn(
@@ -1076,7 +1086,14 @@ export default function OrganizationSidebar() {
                       ? "text-green-600 dark:text-green-400 font-medium" 
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   )}
-                  onClick={() => navigateTo(item.path)}
+                  onClick={() => {
+                    console.log('Clicando no item add-on:', item.title, 'isSubmenu:', !!item.isSubmenu);
+                    if (item.isSubmenu) {
+                      toggleSubmenu(item.title);
+                    } else {
+                      navigateTo(item.path);
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <span className={cn(
