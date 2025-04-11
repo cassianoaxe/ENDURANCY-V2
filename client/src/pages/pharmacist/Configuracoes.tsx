@@ -372,6 +372,10 @@ export default function PharmacistConfiguracoes() {
       {/* Tabs */}
       <Card>
         <CardHeader className="pb-0">
+          <h2 className="text-xl font-bold">Configurações da Farmácia</h2>
+        </CardHeader>
+        
+        <CardContent className="pt-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="staff" className="flex items-center gap-2">
@@ -387,12 +391,9 @@ export default function PharmacistConfiguracoes() {
                 Segurança
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </CardHeader>
-        
-        <CardContent className="pt-6">
-          {/* Tab: Gerenciamento de Equipe */}
-          <TabsContent value="staff" className="mt-0">
+          
+            {/* Tab: Gerenciamento de Equipe */}
+            <TabsContent value="staff" className="mt-4">
             <div className="flex flex-col gap-5">
               <div className="flex justify-between items-center">
                 <div className="relative w-full md:w-96">
@@ -689,6 +690,7 @@ export default function PharmacistConfiguracoes() {
               </div>
             </div>
           </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       
