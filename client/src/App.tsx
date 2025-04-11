@@ -94,6 +94,7 @@ import ExtracaoPage from "@/pages/organization/producao-industrial/extracao";
 import DiluicaoPage from "@/pages/organization/producao-industrial/diluicao";
 import EnvasePage from "@/pages/organization/producao-industrial/envase";
 import RotulagemPage from "@/pages/organization/producao-industrial/rotulagem";
+import EstoqueDistribuicaoPage from "@/pages/organization/producao-industrial/estoque-distribuicao";
 import MedicalPortal from "@/pages/organization/medical-portal";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -582,6 +583,10 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial/rotulagem') {
       return <RotulagemPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/estoque-distribuicao') {
+      return <EstoqueDistribuicaoPage />;
     }
 
     if (currentPath === '/organization/expedicao') {
