@@ -89,6 +89,7 @@ import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
 import ControleQualidadePage from "@/pages/organization/producao-industrial/controle-qualidade";
+import TrilhaAuditoriaPage from "@/pages/organization/producao-industrial/trilha-auditoria";
 import MedicalPortal from "@/pages/organization/medical-portal";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -557,6 +558,10 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial/controle-qualidade') {
       return <ControleQualidadePage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/trilha-auditoria') {
+      return <TrilhaAuditoriaPage />;
     }
 
     if (currentPath === '/organization/expedicao') {
