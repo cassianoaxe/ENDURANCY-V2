@@ -110,9 +110,9 @@ function DoctorAffiliationPage() {
     defaultValues: {
       email: "",
       name: "",
-      specialty: "",
+      specialty: "Clínica Geral", // Valor padrão para evitar erros com Select.Item
       crm: "",
-      crmState: "",
+      crmState: "SP", // Valor padrão para evitar erros com Select.Item
       message: ""
     },
   });
