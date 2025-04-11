@@ -1192,7 +1192,7 @@ function DoctorManagementPage() {
   );
 }
 
-export default function DoctorManagementPage() {
+export default function DoctorManagementPageWrapper() {
   return (
     <OrganizationLayout>
       <DoctorManagementPage />
