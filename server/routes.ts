@@ -12,6 +12,7 @@ import { registerDoctorRegistrationRoutes } from './routes/doctor-registration';
 import * as fiscalRoutes from './routes/fiscal-routes';
 import { registerDocumentRoutes } from './routes/document-routes';
 import { registerProductionRoutes } from './routes/production-routes';
+import { registerDoctorAffiliationRoutes } from './routes/doctor-affiliation-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5214,11 +5215,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const productionRoutes = await registerProductionRoutes(app);
   app.use('/api/production', productionRoutes);
   
+  // Registrar rotas de afiliação de médicos
+  registerDoctorAffiliationRoutes(app);
+  
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
   console.log("Patient prescription routes registered:", patientPrescriptionRoutes);
   console.log("Document routes registered:", documentRoutes);
   console.log("Production routes registered:", productionRoutes);
+  console.log("Doctor affiliation routes registered");
   
   // Rotas de integrações
   app.use("/api/integrations", integrationsRouter);
@@ -6408,6 +6413,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/fiscal/printer/test', authenticate, fiscalRoutes.testPrinter);
   app.post('/api/fiscal/cash-drawer/:organizationId/open', authenticate, fiscalRoutes.openCashDrawer);
   app.post('/api/fiscal/reports/:organizationId/daily', authenticate, fiscalRoutes.printDailyReport);
+  
+  // ========= Rotas de Afiliação de Médicos =========
+  registerDoctorAffiliationRoutes(app);
   
   return server;
 }
