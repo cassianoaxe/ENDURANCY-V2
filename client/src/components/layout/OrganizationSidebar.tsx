@@ -405,8 +405,48 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos para gerenciamento de médicos (para uso dos colaboradores)
-  const doctorManagementModules = [
+  // Módulos Enterprise (disponíveis apenas no plano Enterprise)
+  const enterpriseModules = [
+    {
+      title: "Portal Médico",
+      path: "/organization/medical-portal",
+      active: currentPath === "/organization/medical-portal" || 
+              currentPath.startsWith("/organization/medical-portal/"),
+      icon: <HeartPulse size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Médico",
+          path: "/organization/medical-portal",
+          active: currentPath === "/organization/medical-portal" && !currentPath.includes("/organization/medical-portal/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Pacientes",
+          path: "/organization/medical-portal/patients",
+          active: currentPath === "/organization/medical-portal/patients",
+          icon: <Users size={16} />
+        },
+        {
+          title: "Prescrições",
+          path: "/organization/medical-portal/prescriptions",
+          active: currentPath === "/organization/medical-portal/prescriptions",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Agenda",
+          path: "/organization/medical-portal/agenda",
+          active: currentPath === "/organization/medical-portal/agenda",
+          icon: <CalendarDays size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/medical-portal/settings",
+          active: currentPath === "/organization/medical-portal/settings",
+          icon: <Settings size={16} />
+        }
+      ]
+    },
     {
       title: "Gerenciamento Médico",
       path: "/organization/doctor-management",
@@ -467,49 +507,9 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos do portal médico (para acesso dos médicos)
-  const medicalModules = [
-    {
-      title: "Portal Médico",
-      path: "/organization/medical-portal",
-      active: currentPath === "/organization/medical-portal" || 
-              currentPath.startsWith("/organization/medical-portal/"),
-      icon: <HeartPulse size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Médico",
-          path: "/organization/medical-portal",
-          active: currentPath === "/organization/medical-portal" && !currentPath.includes("/organization/medical-portal/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Pacientes",
-          path: "/organization/medical-portal/patients",
-          active: currentPath === "/organization/medical-portal/patients",
-          icon: <Users size={16} />
-        },
-        {
-          title: "Prescrições",
-          path: "/organization/medical-portal/prescriptions",
-          active: currentPath === "/organization/medical-portal/prescriptions",
-          icon: <FileText size={16} />
-        },
-        {
-          title: "Agenda",
-          path: "/organization/medical-portal/agenda",
-          active: currentPath === "/organization/medical-portal/agenda",
-          icon: <CalendarDays size={16} />
-        },
-        {
-          title: "Configurações",
-          path: "/organization/medical-portal/settings",
-          active: currentPath === "/organization/medical-portal/settings",
-          icon: <Settings size={16} />
-        }
-      ]
-    }
-  ];
+  // Módulos vazios para retrocompatibilidade
+  const doctorManagementModules = [];
+  const medicalModules = [];
   
   // Módulos do portal da farmácia (movido para módulos premium)
   const pharmacyModules = [];
@@ -657,6 +657,28 @@ export default function OrganizationSidebar() {
           {premiumModules.map((item, index) => (
             <SidebarMenuItem
               key={`premium-${index}`}
+              item={item}
+              expandedMenu={expandedMenu}
+              toggleSubmenu={toggleSubmenu}
+              closeSubmenu={closeSubmenu}
+              navigateTo={navigateTo}
+              openSubmenu={openSubmenu}
+              collapsed={collapsed}
+            />
+          ))}
+        </div>
+        
+        {/* Seção de módulos enterprise */}
+        <div className="mb-4">
+          {collapsed ? null : (
+            <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Módulos Enterprise
+            </h3>
+          )}
+          
+          {enterpriseModules.map((item, index) => (
+            <SidebarMenuItem
+              key={`enterprise-${index}`}
               item={item}
               expandedMenu={expandedMenu}
               toggleSubmenu={toggleSubmenu}
