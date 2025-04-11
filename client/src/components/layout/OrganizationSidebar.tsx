@@ -75,13 +75,20 @@ export default function OrganizationSidebar() {
   const toggleSubmenu = (menuTitle: string, event: React.MouseEvent) => {
     event.stopPropagation();
     console.log("Toggle submenu:", menuTitle, "Current expanded:", expandedMenu);
-    if (expandedMenu === menuTitle) {
-      setExpandedMenu(null);
-      console.log("Fechando submenu:", menuTitle);
-    } else {
+    // Se o menu não estiver aberto, abrimos ele
+    // Se já estiver aberto, mantemos aberto (não fechamos mais ao clicar)
+    if (expandedMenu !== menuTitle) {
       setExpandedMenu(menuTitle);
       console.log("Abrindo submenu:", menuTitle);
     }
+    // Comportamento antigo que fechava ao clicar novamente:
+    // if (expandedMenu === menuTitle) {
+    //   setExpandedMenu(null);
+    //   console.log("Fechando submenu:", menuTitle);
+    // } else {
+    //   setExpandedMenu(menuTitle);
+    //   console.log("Abrindo submenu:", menuTitle);
+    // }
   };
   
   // Função para forçar a abertura do submenu sem fechá-lo
