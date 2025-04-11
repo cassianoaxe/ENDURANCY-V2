@@ -90,6 +90,10 @@ import ProducaoIndustrialDashboard from "@/pages/organization/producao-industria
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
 import ControleQualidadePage from "@/pages/organization/producao-industrial/controle-qualidade";
 import TrilhaAuditoriaPage from "@/pages/organization/producao-industrial/trilha-auditoria";
+import ExtracaoPage from "@/pages/organization/producao-industrial/extracao";
+import DiluicaoPage from "@/pages/organization/producao-industrial/diluicao";
+import EnvasePage from "@/pages/organization/producao-industrial/envase";
+import RotulagemPage from "@/pages/organization/producao-industrial/rotulagem";
 import MedicalPortal from "@/pages/organization/medical-portal";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -562,6 +566,22 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial/trilha-auditoria') {
       return <TrilhaAuditoriaPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/extracao') {
+      return <ExtracaoPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/diluicao') {
+      return <DiluicaoPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/envase') {
+      return <EnvasePage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/rotulagem') {
+      return <RotulagemPage />;
     }
 
     if (currentPath === '/organization/expedicao') {
