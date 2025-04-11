@@ -270,267 +270,31 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
-      title: "Tarefas",
-      path: "/organization/tasks",
-      active: currentPath === "/organization/tasks",
-      icon: <FileClock size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Todas as Tarefas",
-          path: "/organization/tasks",
-          active: currentPath === "/organization/tasks",
-          icon: <FileClock size={16} />
-        },
-        {
-          title: "Criar Nova Tarefa",
-          path: "/organization/tasks/create",
-          active: currentPath === "/organization/tasks/create",
-          icon: <ClipboardList size={16} />
-        }
-      ]
-    },
-    {
-      title: "Social",
-      path: "/organization/social",
-      active: currentPath === "/organization/social",
-      icon: <Users2 size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Feed Social",
-          path: "/organization/social",
-          active: currentPath === "/organization/social",
-          icon: <MessageCircle size={16} />
-        },
-        {
-          title: "Comunidade",
-          path: "/organization/social/community",
-          active: currentPath === "/organization/social/community",
-          icon: <Users2 size={16} />
-        },
-        {
-          title: "Mensagens",
-          path: "/organization/social/messages",
-          active: currentPath === "/organization/social/messages",
-          icon: <MessageSquare size={16} />
-        }
-      ]
-    },
-    {
-      title: "Cultivo",
-      path: "/organization/cultivation",
-      active: currentPath === "/organization/cultivation",
-      icon: <Leaf size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Cultivo",
-          path: "/organization/cultivation",
-          active: currentPath === "/organization/cultivation",
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Plantio",
-          path: "/organization/cultivation/plantio",
-          active: currentPath === "/organization/cultivation/plantio",
-          icon: <Leaf size={16} />
-        },
-        {
-          title: "Colheita",
-          path: "/organization/cultivation/colheita",
-          active: currentPath === "/organization/cultivation/colheita",
-          icon: <Scissors size={16} />
-        },
-        {
-          title: "Análises",
-          path: "/organization/cultivation/analises",
-          active: currentPath === "/organization/cultivation/analises",
-          icon: <LineChart size={16} />
-        },
-        {
-          title: "Estoque",
-          path: "/organization/cultivation/estoque",
-          active: currentPath === "/organization/cultivation/estoque",
-          icon: <Package size={16} />
-        }
-      ]
-    },
-    {
-      title: "Compras e Estoque",
-      path: "/organization/purchases-inventory",
-      active: currentPath === "/organization/purchases-inventory" || currentPath.startsWith("/organization/purchases-inventory/"),
-      icon: <ShoppingCart size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Compras",
-          path: "/organization/purchases-inventory",
-          active: currentPath === "/organization/purchases-inventory" && !currentPath.includes("/organization/purchases-inventory/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Fornecedores",
-          path: "/organization/purchases-inventory/fornecedores",
-          active: currentPath === "/organization/purchases-inventory/fornecedores",
-          icon: <Truck size={16} />
-        },
-        {
-          title: "Ordens de Compra",
-          path: "/organization/purchases-inventory/ordens",
-          active: currentPath === "/organization/purchases-inventory/ordens",
-          icon: <ScrollText size={16} />
-        },
-        {
-          title: "Catálogo de Produtos",
-          path: "/organization/purchases-inventory/catalogo",
-          active: currentPath === "/organization/purchases-inventory/catalogo",
-          icon: <Library size={16} />
-        },
-        {
-          title: "Estoque",
-          path: "/organization/purchases-inventory/estoque",
-          active: currentPath === "/organization/purchases-inventory/estoque",
-          icon: <Package size={16} />
-        }
-      ]
-    },
-    {
-      title: "Jurídico",
-      path: "/organization/legal",
-      active: currentPath === "/organization/legal" || currentPath.startsWith("/organization/legal/"),
-      icon: <Scale size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Jurídico",
-          path: "/organization/legal",
-          active: currentPath === "/organization/legal" && !currentPath.includes("/organization/legal/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Contratos",
-          path: "/organization/legal/contratos",
-          active: currentPath === "/organization/legal/contratos",
-          icon: <FileText size={16} />
-        },
-        {
-          title: "Compliance",
-          path: "/organization/legal/compliance",
-          active: currentPath === "/organization/legal/compliance",
-          icon: <Check size={16} />
-        },
-        {
-          title: "Regulação",
-          path: "/organization/legal/regulacao",
-          active: currentPath === "/organization/legal/regulacao",
-          icon: <Ban size={16} />
-        },
-        {
-          title: "Processos",
-          path: "/organization/legal/processos",
-          active: currentPath === "/organization/legal/processos",
-          icon: <FileBarChart size={16} />
-        }
-      ]
-    },
-    {
-      title: "RH",
-      path: "/organization/hr",
-      active: currentPath === "/organization/hr" || currentPath.startsWith("/organization/hr/"),
-      icon: <Briefcase size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard RH",
-          path: "/organization/hr",
-          active: currentPath === "/organization/hr" && !currentPath.includes("/organization/hr/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Funcionários",
-          path: "/organization/hr/funcionarios",
-          active: currentPath === "/organization/hr/funcionarios",
-          icon: <Users size={16} />
-        },
-        {
-          title: "Contratações",
-          path: "/organization/hr/contratacoes",
-          active: currentPath === "/organization/hr/contratacoes",
-          icon: <UserPlus size={16} />
-        },
-        {
-          title: "Folha de Pagamento",
-          path: "/organization/hr/folha-pagamento",
-          active: currentPath === "/organization/hr/folha-pagamento",
-          icon: <DollarSign size={16} />
-        },
-        {
-          title: "Treinamentos",
-          path: "/organization/hr/treinamentos",
-          active: currentPath === "/organization/hr/treinamentos",
-          icon: <GraduationCap size={16} />
-        }
-      ]
-    },
-    {
-      title: "Pesquisa Científica",
-      path: "/organization/research",
-      active: currentPath === "/organization/research" || currentPath.startsWith("/organization/research/"),
-      icon: <Microscope size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Pesquisa",
-          path: "/organization/research",
-          active: currentPath === "/organization/research" && !currentPath.includes("/organization/research/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Experimentos",
-          path: "/organization/research/experimentos",
-          active: currentPath === "/organization/research/experimentos",
-          icon: <TestTube size={16} />
-        },
-        {
-          title: "Resultados",
-          path: "/organization/research/resultados",
-          active: currentPath === "/organization/research/resultados",
-          icon: <LineChart size={16} />
-        },
-        {
-          title: "Publicações",
-          path: "/organization/research/publicacoes",
-          active: currentPath === "/organization/research/publicacoes",
-          icon: <BookOpen size={16} />
-        }
-      ]
-    },
-    {
-      title: "Grupo Produção Industrial",
+      title: "Produção Industrial",
       path: "/organization/producao-industrial",
       active: currentPath === "/organization/producao-industrial" || 
-              currentPath.startsWith("/organization/producao-industrial"),
+              currentPath.startsWith("/organization/producao-industrial/"),
       icon: <Factory size={18} />,
       isSubmenu: true,
       subItems: [
         {
           title: "Dashboard Produção",
           path: "/organization/producao-industrial",
-          active: currentPath === "/organization/producao-industrial" && !currentPath.includes("/organization/producao-industrial/"),
+          active: currentPath === "/organization/producao-industrial" && 
+                  !currentPath.includes("/organization/producao-industrial/"),
           icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Garantia da Qualidade",
-          path: "/organization/producao-industrial/garantia-qualidade",
-          active: currentPath === "/organization/producao-industrial/garantia-qualidade",
-          icon: <ShieldCheck size={16} />
         },
         {
           title: "Controle de Qualidade",
           path: "/organization/producao-industrial/controle-qualidade",
           active: currentPath === "/organization/producao-industrial/controle-qualidade",
           icon: <Microscope size={16} />
+        },
+        {
+          title: "Garantia de Qualidade",
+          path: "/organization/producao-industrial/garantia-qualidade",
+          active: currentPath === "/organization/producao-industrial/garantia-qualidade",
+          icon: <ShieldCheck size={16} />
         },
         {
           title: "Trilha de Auditoria",
@@ -563,7 +327,7 @@ export default function OrganizationSidebar() {
           icon: <Tag size={16} />
         },
         {
-          title: "Estoque para Distribuição",
+          title: "Estoque Distribuição",
           path: "/organization/producao-industrial/estoque-distribuicao",
           active: currentPath === "/organization/producao-industrial/estoque-distribuicao",
           icon: <PackagePlus size={16} />
@@ -572,13 +336,13 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Menus do portal médico
+  // Módulos do portal médico
   const medicalModules = [
     {
       title: "Portal Médico",
       path: "/organization/medical-portal",
       active: currentPath === "/organization/medical-portal" || 
-              currentPath.startsWith("/organization/medical-portal"),
+              currentPath.startsWith("/organization/medical-portal/"),
       icon: <HeartPulse size={18} />,
       isSubmenu: true,
       subItems: [
@@ -590,8 +354,8 @@ export default function OrganizationSidebar() {
         },
         {
           title: "Pacientes",
-          path: "/organization/medical-portal/pacientes",
-          active: currentPath === "/organization/medical-portal/pacientes",
+          path: "/organization/medical-portal/patients",
+          active: currentPath === "/organization/medical-portal/patients",
           icon: <Users size={16} />
         },
         {
@@ -601,34 +365,28 @@ export default function OrganizationSidebar() {
           icon: <FileText size={16} />
         },
         {
-          title: "Documentos",
-          path: "/organization/medical-portal/documents",
-          active: currentPath === "/organization/medical-portal/documents",
-          icon: <FileText size={16} />
-        },
-        {
           title: "Agenda",
           path: "/organization/medical-portal/agenda",
           active: currentPath === "/organization/medical-portal/agenda",
           icon: <CalendarDays size={16} />
         },
         {
-          title: "Finanças",
-          path: "/organization/medical-portal/financas",
-          active: currentPath === "/organization/medical-portal/financas",
-          icon: <DollarSign size={16} />
+          title: "Configurações",
+          path: "/organization/medical-portal/settings",
+          active: currentPath === "/organization/medical-portal/settings",
+          icon: <Settings size={16} />
         }
       ]
     }
   ];
   
-  // Menus da farmácia
+  // Módulos do portal da farmácia
   const pharmacyModules = [
     {
-      title: "Farmácia",
+      title: "Portal Farmácia",
       path: "/organization/farmacia",
       active: currentPath === "/organization/farmacia" || 
-              currentPath.startsWith("/organization/farmacia"),
+              currentPath.startsWith("/organization/farmacia/"),
       icon: <Pill size={18} />,
       isSubmenu: true,
       subItems: [
@@ -639,15 +397,15 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Prescrições",
-          path: "/organization/farmacia/prescriptions",
-          active: currentPath === "/organization/farmacia/prescriptions",
-          icon: <ScrollText size={16} />
+          title: "Prescrições Pendentes",
+          path: "/organization/farmacia/prescricoes-pendentes",
+          active: currentPath === "/organization/farmacia/prescricoes-pendentes",
+          icon: <ClipboardList size={16} />
         },
         {
-          title: "Estoque",
-          path: "/organization/farmacia/estoque",
-          active: currentPath === "/organization/farmacia/estoque",
+          title: "Catálogo de Produtos",
+          path: "/organization/farmacia/produtos",
+          active: currentPath === "/organization/farmacia/produtos",
           icon: <Package size={16} />
         },
         {
@@ -655,12 +413,6 @@ export default function OrganizationSidebar() {
           path: "/organization/farmacia/vendas",
           active: currentPath === "/organization/farmacia/vendas",
           icon: <ShoppingCart size={16} />
-        },
-        {
-          title: "Relatórios",
-          path: "/organization/farmacia/relatorios",
-          active: currentPath === "/organization/farmacia/relatorios",
-          icon: <BarChart4 size={16} />
         },
         {
           title: "Farmacêuticos",
@@ -672,68 +424,58 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Todos os módulos
-  const allModules = [
-    ...freeModules,
-    ...medicalModules,
-    ...pharmacyModules,
-    ...premiumModules, 
-    configModule
-  ];
-  
-  // Get avatar initials from organization name or user name
-  const getAvatarInitials = () => {
-    if (organization?.name) {
-      return organization.name.substring(0, 2).toUpperCase();
-    } else if (user?.name) {
-      return user.name.substring(0, 2).toUpperCase();
-    }
-    return "OR";
-  };
-
   return (
-    <div 
-      className={cn(
-        "flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-        {!collapsed && (
-          <div className="flex items-center space-x-2 overflow-hidden">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={organization?.logoUrl || "/logo-placeholder.png"} />
-              <AvatarFallback>{getAvatarInitials()}</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate dark:text-white">
-                {isOrgLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+    <div className={cn(
+      "flex flex-col h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300",
+      collapsed ? "w-16" : "w-56 lg:w-64"
+    )}>
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        {!collapsed ? (
+          <div className="flex items-center truncate">
+            {isOrgLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+            ) : (
+              <>
+                {organization?.logoUrl ? (
+                  <img 
+                    src={organization.logoUrl} 
+                    alt={organization?.name || "Logo"} 
+                    className="h-8 w-8 rounded mr-2"
+                  />
                 ) : (
-                  organization?.name || "Organização"
+                  <Building className="h-6 w-6 text-primary mr-2" />
                 )}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {user?.role === "admin" ? "Administrador" : 
-                 user?.role === "org_admin" ? "Admin da Organização" : 
-                 user?.role === "doctor" ? "Médico" : 
-                 user?.role === "patient" ? "Paciente" : 
-                 user?.role === "manager" ? "Gerente" : 
-                 user?.role === "pharmacist" ? "Farmacêutico" : 
-                 "Funcionário"}
-              </p>
-            </div>
+                <span className="text-sm font-semibold truncate" style={{ maxWidth: "150px" }}>
+                  {organization?.name || "Endurancy"}
+                </span>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="mx-auto">
+            {user?.role === "doctor" || user?.role === "pharmacist" || user?.role === "admin" || user?.role === "manager" ? (
+              <div className="h-6 w-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-semibold">
+                  {user.role === "doctor" ? "M" : user.role === "pharmacist" ? "F" : "A"}
+                </span>
+              </div>
+            ) : (
+              <Building className="h-6 w-6 text-primary" />
+            )}
           </div>
         )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+        
+        <button 
+          onClick={() => setCollapsed(!collapsed)} 
+          className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           {collapsed ? <ChevronLeft size={16} /> : <Menu size={16} />}
         </button>
       </div>
       
-      <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
+      <div className="flex-1 overflow-hidden py-2">
+        <div className="h-full overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }}>
         {/* Seção de módulos gratuitos */}
         <div className="mb-4">
           {collapsed ? null : (
@@ -843,6 +585,7 @@ export default function OrganizationSidebar() {
             openSubmenu={openSubmenu}
             collapsed={collapsed}
           />
+        </div>
         </div>
       </div>
       
