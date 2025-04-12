@@ -16,6 +16,10 @@ import LaboratoryReports from "@/pages/laboratory/Reports";
 import LaboratoryTeam from "@/pages/laboratory/Team";
 import LaboratorySettings from "@/pages/laboratory/Settings";
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
+import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
+import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
+import HplcConsumables from "@/pages/laboratory/hplc/Consumables";
+import HplcRuns from "@/pages/laboratory/hplc/Runs";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1234,42 +1238,22 @@ function AppContent() {
         
         // Equipamentos
         if (currentPath === '/laboratory/hplc/equipments') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Equipamentos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcEquipments />;
         }
         
         // Manutenções
         if (currentPath === '/laboratory/hplc/maintenances') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Manutenções HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcMaintenances />;
         }
         
         // Consumíveis
         if (currentPath === '/laboratory/hplc/consumables') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Consumíveis HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcConsumables />;
         }
         
         // Corridas
         if (currentPath === '/laboratory/hplc/runs') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Corridas HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcRuns />;
         }
         
         // Nova corrida
