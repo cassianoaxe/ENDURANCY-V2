@@ -95,6 +95,12 @@ import DiluicaoPage from "@/pages/organization/producao-industrial/diluicao";
 import EnvasePage from "@/pages/organization/producao-industrial/envase";
 import RotulagemPage from "@/pages/organization/producao-industrial/rotulagem";
 import EstoqueDistribuicaoPage from "@/pages/organization/producao-industrial/estoque-distribuicao";
+import EstoquePage from "@/pages/organization/producao-industrial/estoque";
+import MovimentacoesPage from "@/pages/organization/producao-industrial/movimentacoes";
+import OrdensProducaoPage from "@/pages/organization/producao-industrial/ordens-producao";
+import DescartesPage from "@/pages/organization/producao-industrial/descartes";
+import RastreabilidadePage from "@/pages/organization/producao-industrial/rastreabilidade";
+import CatalogoProdutosPage from "@/pages/organization/producao-industrial/catalogo-produtos";
 import MedicalPortal from "@/pages/organization/medical-portal";
 
 // Importações do módulo de Gerenciamento de Médicos
@@ -595,6 +601,30 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial/estoque-distribuicao') {
       return <EstoqueDistribuicaoPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/estoque') {
+      return <EstoquePage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/movimentacoes') {
+      return <MovimentacoesPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/ordens-producao') {
+      return <OrdensProducaoPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/descartes') {
+      return <DescartesPage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/rastreabilidade') {
+      return <RastreabilidadePage />;
+    }
+    
+    if (currentPath === '/organization/producao-industrial/catalogo-produtos') {
+      return <CatalogoProdutosPage />;
     }
 
     if (currentPath === '/organization/expedicao') {
