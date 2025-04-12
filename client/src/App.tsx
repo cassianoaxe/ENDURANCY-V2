@@ -1295,11 +1295,7 @@ function AppContent() {
         
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
-          return (
-            <LaboratoryLayout>
-              <HplcTrainings />
-            </LaboratoryLayout>
-          );
+          return <HplcTrainings />;
         }
         
         // Rota não reconhecida, mostrar dashboard
