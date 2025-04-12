@@ -115,16 +115,15 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
     const isActive = location === item.href;
     return (
       <li>
-        <Button
-          asChild
-          variant={isActive ? "default" : "ghost"}
-          className="w-full justify-start"
-        >
-          <Link href={item.href}>
+        <Link href={item.href}>
+          <Button
+            variant={isActive ? "default" : "ghost"}
+            className="w-full justify-start"
+          >
             <item.icon className="h-5 w-5 mr-2" />
             <span>{item.title}</span>
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </li>
     );
   };
