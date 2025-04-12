@@ -195,7 +195,7 @@ export default function HplcConsumables() {
 
     return consumableList.filter((consumable) => {
       // Filtrar por tipo
-      if (filters.type && consumable.type !== filters.type) {
+      if (filters.type && filters.type !== "all" && consumable.type !== filters.type) {
         return false;
       }
 
@@ -306,7 +306,7 @@ export default function HplcConsumables() {
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tipos</SelectItem>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
                     {consumableTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
