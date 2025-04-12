@@ -185,9 +185,9 @@ export default function Trainings() {
     },
   });
 
-  // Buscar dados de treinamentos
+  // Buscar dados de treinamentos usando a rota alternativa
   const { data: trainings, isLoading: isLoadingTrainings } = useQuery({
-    queryKey: ["/api/laboratory/hplc/trainings", filters],
+    queryKey: ["/api/trainer", filters],
     queryFn: async () => {
       // Construir URL com filtros
       const queryParams = new URLSearchParams();
@@ -198,7 +198,7 @@ export default function Trainings() {
         queryParams.append("search", filters.search);
       }
       
-      const url = `/api/laboratory/hplc/trainings${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `/api/trainer${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error("Erro ao buscar treinamentos");
@@ -207,11 +207,11 @@ export default function Trainings() {
     },
   });
 
-  // Buscar usuários disponíveis para treinamento
+  // Buscar usuários disponíveis para treinamento usando rota alternativa
   const { data: users, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["/api/laboratory/hplc/training-users"],
+    queryKey: ["/api/trainer/users"],
     queryFn: async () => {
-      const response = await fetch("/api/laboratory/hplc/training-users");
+      const response = await fetch("/api/trainer/users");
       if (!response.ok) {
         throw new Error("Erro ao buscar usuários");
       }
@@ -219,11 +219,11 @@ export default function Trainings() {
     },
   });
 
-  // Buscar procedimentos disponíveis para treinamento
+  // Buscar procedimentos disponíveis para treinamento usando rota alternativa
   const { data: procedures, isLoading: isLoadingProcedures } = useQuery({
-    queryKey: ["/api/laboratory/hplc/training-procedures"],
+    queryKey: ["/api/trainer/procedures"],
     queryFn: async () => {
-      const response = await fetch("/api/laboratory/hplc/training-procedures");
+      const response = await fetch("/api/trainer/procedures");
       if (!response.ok) {
         throw new Error("Erro ao buscar procedimentos");
       }
@@ -231,11 +231,11 @@ export default function Trainings() {
     },
   });
 
-  // Buscar equipamentos disponíveis para treinamento
+  // Buscar equipamentos disponíveis para treinamento usando rota alternativa
   const { data: equipments, isLoading: isLoadingEquipments } = useQuery({
-    queryKey: ["/api/laboratory/hplc/training-equipments"],
+    queryKey: ["/api/trainer/equipments"],
     queryFn: async () => {
-      const response = await fetch("/api/laboratory/hplc/training-equipments");
+      const response = await fetch("/api/trainer/equipments");
       if (!response.ok) {
         throw new Error("Erro ao buscar equipamentos");
       }
@@ -261,7 +261,7 @@ export default function Trainings() {
         notes: data.notes || null,
       };
 
-      const response = await apiRequest("/api/laboratory/hplc/trainings", {
+      const response = await apiRequest("/api/trainer/create", {
         method: "POST",
         data: trainingData,
       });
@@ -305,7 +305,7 @@ export default function Trainings() {
         notes: data.notes || null,
       };
 
-      const response = await apiRequest(`/api/laboratory/hplc/trainings/${selectedTraining.id}`, {
+      const response = await apiRequest(`/api/trainer/update/${selectedTraining.id}`, {
         method: "PUT",
         data: trainingData,
       });
@@ -332,7 +332,7 @@ export default function Trainings() {
   // Mutação para excluir treinamento
   const deleteTrainingMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/laboratory/hplc/trainings/${id}`, {
+      const response = await apiRequest(`/api/trainer/delete/${id}`, {
         method: "DELETE",
       });
       return response;
