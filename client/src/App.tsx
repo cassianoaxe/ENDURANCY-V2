@@ -1296,9 +1296,9 @@ function AppContent() {
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
           return (
-            <HplcLayout>
+            <LaboratoryLayout>
               <HplcTrainings />
-            </HplcLayout>
+            </LaboratoryLayout>
           );
         }
         
