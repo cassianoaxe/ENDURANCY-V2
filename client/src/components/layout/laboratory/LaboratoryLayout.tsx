@@ -11,7 +11,8 @@ import {
   SettingsIcon,
   UsersIcon,
   LogOutIcon,
-  BellIcon
+  BellIcon,
+  ChevronRight
 } from "lucide-react";
 
 import {
@@ -55,7 +56,49 @@ const menuItems = [
   {
     icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
     label: "HPLC",
-    path: "/laboratory/hplc/dashboard",
+    path: "/laboratory/hplc",
+    submenu: [
+      {
+        icon: <HomeIcon className="mr-2 h-4 w-4" />,
+        label: "Dashboard",
+        path: "/laboratory/hplc/dashboard",
+      },
+      {
+        icon: <BeakerIcon className="mr-2 h-4 w-4" />,
+        label: "Equipamentos",
+        path: "/laboratory/hplc/equipments",
+      },
+      {
+        icon: <SettingsIcon className="mr-2 h-4 w-4" />,
+        label: "Manutenções",
+        path: "/laboratory/hplc/maintenances",
+      },
+      {
+        icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
+        label: "Consumíveis",
+        path: "/laboratory/hplc/consumables", 
+      },
+      {
+        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
+        label: "Corridas",
+        path: "/laboratory/hplc/runs",
+      },
+      {
+        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
+        label: "Procedimentos",
+        path: "/laboratory/hplc/procedures",
+      },
+      {
+        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
+        label: "Validações",
+        path: "/laboratory/hplc/validations",
+      },
+      {
+        icon: <UsersIcon className="mr-2 h-4 w-4" />,
+        label: "Treinamentos",
+        path: "/laboratory/hplc/trainings",
+      },
+    ]
   },
   {
     icon: <FileTextIcon className="mr-2 h-4 w-4" />,
@@ -80,6 +123,7 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
   const queryClient = useQueryClient();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [activeMenuItem, setActiveMenuItem] = React.useState("/laboratory/dashboard");
+  const [expandedMenu, setExpandedMenu] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     // Definir o item de menu ativo com base na URL atual
@@ -111,7 +155,13 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
     };
   }, []);
 
-  const handleMenuItemClick = (path: string) => {
+  const handleMenuItemClick = (path: string, hasSubmenu = false) => {
+    if (hasSubmenu) {
+      // Se o item tem submenu, expande/colapsa em vez de navegar
+      setExpandedMenu(expandedMenu === path ? null : path);
+      return;
+    }
+    
     setActiveMenuItem(path);
     setIsMobileMenuOpen(false);
   };
@@ -174,38 +224,92 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
                 <Separator className="my-2" />
                 <nav className="flex flex-col gap-1 mt-4">
                   {menuItems.map((item) => (
-                    <a
-                      key={item.path}
-                      href={item.path}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log(`Menu móvel: Clicando no item ${item.label}, navegando para: ${item.path}`);
-                        handleMenuItemClick(item.path);
-                        
-                        // Navegação manual
-                        window.history.pushState({}, '', item.path);
-                        
-                        // Disparar eventos para garantir atualização de componentes
-                        window.dispatchEvent(new Event('popstate'));
-                        window.dispatchEvent(new CustomEvent('navigation', { 
-                          detail: { path: item.path } 
-                        }));
-                        
-                        // Forçar atualização do DOM
-                        document.body.classList.add('navigating');
-                        setTimeout(() => {
-                          document.body.classList.remove('navigating');
-                        }, 10);
-                      }}
-                    >
-                      <Button
-                        variant={activeMenuItem === item.path ? "default" : "ghost"}
-                        className="w-full justify-start"
+                    <div key={item.path}>
+                      <a
+                        href={item.path}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          
+                          // Verificar se o item tem submenu
+                          if (item.submenu) {
+                            console.log(`Menu móvel com submenu: ${item.label}, expandindo/contraindo`);
+                            handleMenuItemClick(item.path, true);
+                            return;
+                          }
+                          
+                          console.log(`Menu móvel: Clicando no item ${item.label}, navegando para: ${item.path}`);
+                          handleMenuItemClick(item.path);
+                          
+                          // Navegação manual
+                          window.history.pushState({}, '', item.path);
+                          
+                          // Disparar eventos para garantir atualização de componentes
+                          window.dispatchEvent(new Event('popstate'));
+                          window.dispatchEvent(new CustomEvent('navigation', { 
+                            detail: { path: item.path } 
+                          }));
+                          
+                          // Forçar atualização do DOM
+                          document.body.classList.add('navigating');
+                          setTimeout(() => {
+                            document.body.classList.remove('navigating');
+                          }, 10);
+                        }}
                       >
-                        {item.icon}
-                        {item.label}
-                      </Button>
-                    </a>
+                        <Button
+                          variant={activeMenuItem === item.path || (item.submenu && activeMenuItem.startsWith(item.path)) ? "default" : "ghost"}
+                          className="w-full justify-start"
+                        >
+                          {item.icon}
+                          {item.label}
+                          {item.submenu && (
+                            <ChevronRight className={`ml-auto h-4 w-4 shrink-0 transition-transform ${expandedMenu === item.path ? 'rotate-90' : ''}`} />
+                          )}
+                        </Button>
+                      </a>
+                      
+                      {/* Renderizar submenu mobile se existir e estiver expandido */}
+                      {item.submenu && expandedMenu === item.path && (
+                        <div className="pl-6 mt-1 space-y-1">
+                          {item.submenu.map((subItem) => (
+                            <a
+                              key={subItem.path}
+                              href={subItem.path}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log(`Clicando no subitem de menu mobile: ${subItem.label}, navegando para: ${subItem.path}`);
+                                setActiveMenuItem(subItem.path);
+                                setIsMobileMenuOpen(false);
+                                
+                                // Navegação manual
+                                window.history.pushState({}, '', subItem.path);
+                                
+                                // Disparar eventos para garantir atualização de componentes
+                                window.dispatchEvent(new Event('popstate'));
+                                window.dispatchEvent(new CustomEvent('navigation', { 
+                                  detail: { path: subItem.path } 
+                                }));
+                                
+                                // Forçar atualização do DOM
+                                document.body.classList.add('navigating');
+                                setTimeout(() => {
+                                  document.body.classList.remove('navigating');
+                                }, 10);
+                              }}
+                            >
+                              <Button
+                                variant={activeMenuItem === subItem.path ? "default" : "ghost"}
+                                size="sm"
+                                className="w-full justify-start"
+                              >
+                                {subItem.icon}
+                                {subItem.label}
+                              </Button>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                   <Separator className="my-2" />
                   <Button
@@ -317,38 +421,91 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
           {/* Menu de navegação */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {menuItems.map((item) => (
-              <a 
-                key={item.path} 
-                href={item.path}
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log(`Clicando no item de menu: ${item.label}, navegando para: ${item.path}`);
-                  setActiveMenuItem(item.path);
-                  
-                  // Navegação manual
-                  window.history.pushState({}, '', item.path);
-                  
-                  // Disparar eventos para garantir atualização de componentes
-                  window.dispatchEvent(new Event('popstate'));
-                  window.dispatchEvent(new CustomEvent('navigation', { 
-                    detail: { path: item.path } 
-                  }));
-                  
-                  // Forçar atualização do DOM
-                  document.body.classList.add('navigating');
-                  setTimeout(() => {
-                    document.body.classList.remove('navigating');
-                  }, 10);
-                }}
-              >
-                <Button
-                  variant={activeMenuItem === item.path ? "default" : "ghost"}
-                  className="w-full justify-start"
+              <div key={item.path}>
+                <a 
+                  href={item.path}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    
+                    // Verificar se o item tem submenu
+                    if (item.submenu) {
+                      console.log(`Menu com submenu: ${item.label}, expandindo/contraindo`);
+                      handleMenuItemClick(item.path, true);
+                      return;
+                    }
+                    
+                    console.log(`Clicando no item de menu: ${item.label}, navegando para: ${item.path}`);
+                    setActiveMenuItem(item.path);
+                    
+                    // Navegação manual
+                    window.history.pushState({}, '', item.path);
+                    
+                    // Disparar eventos para garantir atualização de componentes
+                    window.dispatchEvent(new Event('popstate'));
+                    window.dispatchEvent(new CustomEvent('navigation', { 
+                      detail: { path: item.path } 
+                    }));
+                    
+                    // Forçar atualização do DOM
+                    document.body.classList.add('navigating');
+                    setTimeout(() => {
+                      document.body.classList.remove('navigating');
+                    }, 10);
+                  }}
                 >
-                  {item.icon}
-                  {item.label}
-                </Button>
-              </a>
+                  <Button
+                    variant={activeMenuItem === item.path || (item.submenu && activeMenuItem.startsWith(item.path)) ? "default" : "ghost"}
+                    className="w-full justify-start"
+                  >
+                    {item.icon}
+                    {item.label}
+                    {item.submenu && (
+                      <ChevronRight className={`ml-auto h-4 w-4 shrink-0 transition-transform ${expandedMenu === item.path ? 'rotate-90' : ''}`} />
+                    )}
+                  </Button>
+                </a>
+                
+                {/* Renderizar submenu se existir e estiver expandido */}
+                {item.submenu && expandedMenu === item.path && (
+                  <div className="pl-6 mt-1 space-y-1">
+                    {item.submenu.map((subItem) => (
+                      <a
+                        key={subItem.path}
+                        href={subItem.path}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log(`Clicando no subitem de menu: ${subItem.label}, navegando para: ${subItem.path}`);
+                          setActiveMenuItem(subItem.path);
+                          
+                          // Navegação manual
+                          window.history.pushState({}, '', subItem.path);
+                          
+                          // Disparar eventos para garantir atualização de componentes
+                          window.dispatchEvent(new Event('popstate'));
+                          window.dispatchEvent(new CustomEvent('navigation', { 
+                            detail: { path: subItem.path } 
+                          }));
+                          
+                          // Forçar atualização do DOM
+                          document.body.classList.add('navigating');
+                          setTimeout(() => {
+                            document.body.classList.remove('navigating');
+                          }, 10);
+                        }}
+                      >
+                        <Button
+                          variant={activeMenuItem === subItem.path ? "default" : "ghost"}
+                          size="sm"
+                          className="w-full justify-start"
+                        >
+                          {subItem.icon}
+                          {subItem.label}
+                        </Button>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
           
