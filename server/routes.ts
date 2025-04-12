@@ -13,6 +13,7 @@ import * as fiscalRoutes from './routes/fiscal-routes';
 import { registerDocumentRoutes } from './routes/document-routes';
 import { registerProductionRoutes } from './routes/production-routes';
 import { registerDoctorAffiliationRoutes } from './routes/doctor-affiliation-routes';
+import { registerLaboratoryRoutes } from './routes/laboratory-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -6416,6 +6417,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========= Rotas de Afiliação de Médicos =========
   registerDoctorAffiliationRoutes(app);
+  
+  // ========= Rotas do Portal de Laboratório =========
+  registerLaboratoryRoutes(app);
   
   return server;
 }
