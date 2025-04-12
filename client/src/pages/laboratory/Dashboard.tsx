@@ -162,7 +162,14 @@ const formatProcessingTimeData = (data: any) => {
 
 export default function LaboratoryDashboard() {
   const { data: dashboardData = {}, isLoading, error } = useQuery({
-    queryKey: ['/api/laboratory/dashboard'],
+    queryKey: ['/api/lab-dashboard'],
+    queryFn: async () => {
+      const response = await fetch('/api/lab-dashboard');
+      if (!response.ok) {
+        throw new Error("Erro ao buscar dados do dashboard");
+      }
+      return response.json();
+    },
     refetchInterval: 60000, // Atualizar a cada 1 minuto
   });
 
