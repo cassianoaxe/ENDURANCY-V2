@@ -53,6 +53,11 @@ const menuItems = [
     path: "/laboratory/tests",
   },
   {
+    icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
+    label: "HPLC",
+    path: "/laboratory/hplc/dashboard",
+  },
+  {
     icon: <FileTextIcon className="mr-2 h-4 w-4" />,
     label: "Relatórios",
     path: "/laboratory/reports",
