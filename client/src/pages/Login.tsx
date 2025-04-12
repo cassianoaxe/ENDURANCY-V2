@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, User, Eye, Info, ArrowRight, Building, Code, Leaf } from 'lucide-react';
+import { Loader2, User, Eye, Info, ArrowRight, Building, Code, Leaf, TestTube } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
 import { useLocation } from 'wouter';
@@ -28,7 +28,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist';
+type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory';
 
 export default function Login() {
   const { login } = useAuth();
@@ -66,7 +66,8 @@ export default function Login() {
     org_admin: 'Organização',
     doctor: 'Médico',
     patient: 'Paciente',
-    pharmacist: 'Farmacêutico'
+    pharmacist: 'Farmacêutico',
+    laboratory: 'Laboratório'
   };
 
   const form = useForm<LoginFormData>({
@@ -145,6 +146,10 @@ export default function Login() {
         form.setValue('username', 'farmaceutico@endurancy.com');
         form.setValue('password', 'farmacia123');
         break;
+      case 'laboratory':
+        form.setValue('username', 'admin@laboratorio.com');
+        form.setValue('password', 'lab123');
+        break;
       case 'patient':
         form.setValue('username', 'paciente@email.com');
         form.setValue('password', 'paciente123');
@@ -195,7 +200,7 @@ export default function Login() {
         >
           {!isOrgLogin && (
             <div className="px-6">
-              <TabsList className="grid grid-cols-5 h-12 rounded-md bg-gray-100">
+              <TabsList className="grid grid-cols-6 h-12 rounded-md bg-gray-100">
                 <TabsTrigger 
                   value="admin" 
                   className={cn(
@@ -231,6 +236,15 @@ export default function Login() {
                   )}
                 >
                   Farmacêutico
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="laboratory" 
+                  className={cn(
+                    "rounded-md data-[state=active]:bg-white data-[state=active]:text-gray-800",
+                    "data-[state=active]:shadow-sm font-medium"
+                  )}
+                >
+                  Laboratório
                 </TabsTrigger>
                 <TabsTrigger 
                   value="patient" 
@@ -350,6 +364,12 @@ export default function Login() {
                         <>
                           <p className="text-xs text-blue-600 mt-1">Email: paciente@email.com</p>
                           <p className="text-xs text-blue-600">Senha: paciente123</p>
+                        </>
+                      )}
+                      {role === 'laboratory' && (
+                        <>
+                          <p className="text-xs text-blue-600 mt-1">Email: admin@laboratorio.com</p>
+                          <p className="text-xs text-blue-600">Senha: lab123</p>
                         </>
                       )}
                       <Button 
