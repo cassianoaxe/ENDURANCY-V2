@@ -825,6 +825,213 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
+  // ============== ROTAS PARA PROCEDIMENTOS HPLC ==============
+
+  // Obter todos os procedimentos
+  app.get('/api/laboratory/hplc/procedures', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+    try {
+      const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
+      
+      if (!laboratoryId) {
+        return res.status(400).json({ message: "Nenhum laboratório associado a este usuário" });
+      }
+      
+      const query = `
+        SELECT p.*, u.name as created_by_name 
+        FROM hplc_procedures p
+        LEFT JOIN users u ON p.created_by = u.id
+        WHERE p.laboratory_id = $1
+        ORDER BY p.updated_at DESC
+      `;
+      
+      const result = await pool.query(query, [laboratoryId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Erro ao buscar procedimentos HPLC:", error);
+      res.status(500).json({ message: "Erro ao buscar procedimentos HPLC" });
+    }
+  });
+
+  // Obter procedimento por ID
+  app.get('/api/laboratory/hplc/procedures/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
+      
+      if (!laboratoryId) {
+        return res.status(400).json({ message: "Nenhum laboratório associado a este usuário" });
+      }
+      
+      const query = `
+        SELECT p.*, u.name as created_by_name
+        FROM hplc_procedures p
+        LEFT JOIN users u ON p.created_by = u.id
+        WHERE p.id = $1 AND p.laboratory_id = $2
+      `;
+      
+      const result = await pool.query(query, [id, laboratoryId]);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Procedimento não encontrado" });
+      }
+      
+      // Buscar treinamentos relacionados a este procedimento
+      const relatedTrainingsQuery = `
+        SELECT t.*, u.name as user_name, tu.name as trainer_name
+        FROM hplc_user_trainings t
+        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN users tu ON t.trained_by = tu.id
+        WHERE t.procedure_id = $1
+        ORDER BY t.start_date DESC
+      `;
+      
+      const relatedTrainings = await pool.query(relatedTrainingsQuery, [id]);
+      
+      // Retornar procedimento com treinamentos relacionados
+      const procedure = {
+        ...result.rows[0],
+        relatedTrainings: relatedTrainings.rows || []
+      };
+      
+      res.json(procedure);
+    } catch (error) {
+      console.error("Erro ao buscar procedimento HPLC:", error);
+      res.status(500).json({ message: "Erro ao buscar procedimento HPLC" });
+    }
+  });
+
+  // Criar novo procedimento
+  app.post('/api/laboratory/hplc/procedures', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+    try {
+      const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
+      
+      if (!laboratoryId) {
+        return res.status(400).json({ message: "Nenhum laboratório associado a este usuário" });
+      }
+      
+      // Validar campos obrigatórios
+      if (!req.body.title || !req.body.documentNumber || !req.body.version || !req.body.category || !req.body.content) {
+        return res.status(400).json({ message: "Campos obrigatórios ausentes" });
+      }
+      
+      // Preparar dados para inserção
+      const procedureData = {
+        laboratoryId,
+        title: req.body.title,
+        documentNumber: req.body.documentNumber,
+        version: req.body.version,
+        effectiveDate: new Date(req.body.effectiveDate || Date.now()),
+        category: req.body.category,
+        content: req.body.content,
+        attachments: req.body.attachments || null,
+        createdBy: req.session.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Inserir procedimento
+      const [newProcedure] = await db.insert(hplcProcedures).values(procedureData).returning();
+      
+      res.status(201).json(newProcedure);
+    } catch (error) {
+      console.error("Erro ao criar procedimento HPLC:", error);
+      res.status(500).json({ message: "Erro ao criar procedimento HPLC" });
+    }
+  });
+
+  // Atualizar procedimento existente
+  app.put('/api/laboratory/hplc/procedures/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
+      
+      if (!laboratoryId) {
+        return res.status(400).json({ message: "Nenhum laboratório associado a este usuário" });
+      }
+      
+      // Verificar se o procedimento existe e pertence ao laboratório
+      const checkResult = await pool.query(
+        "SELECT id FROM hplc_procedures WHERE id = $1 AND laboratory_id = $2",
+        [id, laboratoryId]
+      );
+      
+      if (checkResult.rowCount === 0) {
+        return res.status(404).json({ message: "Procedimento não encontrado ou não autorizado" });
+      }
+      
+      // Preparar dados para atualização
+      const updateData: any = {
+        updatedAt: new Date()
+      };
+      
+      // Adicionar campos para atualização, se fornecidos
+      if (req.body.title) updateData.title = req.body.title;
+      if (req.body.documentNumber) updateData.documentNumber = req.body.documentNumber;
+      if (req.body.version) updateData.version = req.body.version;
+      if (req.body.effectiveDate) updateData.effectiveDate = new Date(req.body.effectiveDate);
+      if (req.body.category) updateData.category = req.body.category;
+      if (req.body.content) updateData.content = req.body.content;
+      if (req.body.attachments !== undefined) updateData.attachments = req.body.attachments;
+      
+      // Atualizar procedimento
+      const [updatedProcedure] = await db
+        .update(hplcProcedures)
+        .set(updateData)
+        .where(eq(hplcProcedures.id, parseInt(id)))
+        .returning();
+      
+      res.json(updatedProcedure);
+    } catch (error) {
+      console.error("Erro ao atualizar procedimento HPLC:", error);
+      res.status(500).json({ message: "Erro ao atualizar procedimento HPLC" });
+    }
+  });
+
+  // Excluir procedimento
+  app.delete('/api/laboratory/hplc/procedures/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
+      
+      if (!laboratoryId) {
+        return res.status(400).json({ message: "Nenhum laboratório associado a este usuário" });
+      }
+      
+      // Verificar se o procedimento existe e pertence ao laboratório
+      const checkResult = await pool.query(
+        "SELECT id FROM hplc_procedures WHERE id = $1 AND laboratory_id = $2",
+        [id, laboratoryId]
+      );
+      
+      if (checkResult.rowCount === 0) {
+        return res.status(404).json({ message: "Procedimento não encontrado ou não autorizado" });
+      }
+      
+      // Verificar se há treinamentos associados a este procedimento
+      const relatedTrainings = await pool.query(
+        "SELECT id FROM hplc_user_trainings WHERE procedure_id = $1 LIMIT 1",
+        [id]
+      );
+      
+      if (relatedTrainings.rowCount > 0) {
+        return res.status(400).json({ 
+          message: "Não é possível excluir este procedimento pois existem treinamentos associados a ele" 
+        });
+      }
+      
+      // Excluir procedimento
+      await db
+        .delete(hplcProcedures)
+        .where(eq(hplcProcedures.id, parseInt(id)));
+      
+      res.json({ message: "Procedimento excluído com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir procedimento HPLC:", error);
+      res.status(500).json({ message: "Erro ao excluir procedimento HPLC" });
+    }
+  });
+
   // Função auxiliar para obter o ID do laboratório a partir do ID do usuário
   async function getLaboratoryId(userId: number, role: string): Promise<number | null> {
     try {
