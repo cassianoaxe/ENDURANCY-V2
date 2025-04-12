@@ -1271,29 +1271,17 @@ function AppContent() {
         
         // Procedimentos
         if (currentPath === '/laboratory/hplc/procedures') {
-          return (
-            <HplcLayout>
-              <HplcProcedures />
-            </HplcLayout>
-          );
+          return <HplcProcedures />;
         }
         
         // Validações
         if (currentPath === '/laboratory/hplc/validations') {
-          return (
-            <HplcLayout>
-              <HplcValidations />
-            </HplcLayout>
-          );
+          return <HplcValidations />;
         }
         
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
-          return (
-            <HplcLayout>
-              <HplcTrainings />
-            </HplcLayout>
-          );
+          return <HplcTrainings />;
         }
         
         // Rota não reconhecida, mostrar dashboard
@@ -1301,11 +1289,13 @@ function AppContent() {
         return <HplcDashboard />;
       };
       
-      // Renderizar o layout do Laboratório com o componente HPLC apropriado
-      console.log('Renderizando LaboratoryLayout com componente HPLC apropriado');
+      // Renderizar o componente com o layout HPLC apropriado
+      console.log('Renderizando HplcLayout com o componente apropriado');
       return (
         <LaboratoryLayout>
-          {getHplcComponent()}
+          <HplcLayout>
+            {getHplcComponent()}
+          </HplcLayout>
         </LaboratoryLayout>
       );
     }
