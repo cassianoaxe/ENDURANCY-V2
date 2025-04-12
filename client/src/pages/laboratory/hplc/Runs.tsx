@@ -187,12 +187,12 @@ export default function HplcRuns() {
 
     return runList.filter((run) => {
       // Filtrar por status
-      if (filters.status && run.status !== filters.status) {
+      if (filters.status && filters.status !== "all" && run.status !== filters.status) {
         return false;
       }
 
       // Filtrar por equipamento
-      if (filters.equipment && run.equipmentId !== filters.equipment) {
+      if (filters.equipment && filters.equipment !== "all" && run.equipmentId !== filters.equipment) {
         return false;
       }
 
@@ -329,7 +329,7 @@ export default function HplcRuns() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="all">Todos os status</SelectItem>
                     <SelectItem value="scheduled">Agendada</SelectItem>
                     <SelectItem value="in_progress">Em Andamento</SelectItem>
                     <SelectItem value="completed">Concluída</SelectItem>
@@ -345,7 +345,7 @@ export default function HplcRuns() {
                     <SelectValue placeholder="Equipamento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os equipamentos</SelectItem>
+                    <SelectItem value="all">Todos os equipamentos</SelectItem>
                     {equipments?.map((equipment) => (
                       <SelectItem key={equipment.id} value={equipment.id.toString()}>
                         {equipment.name}
@@ -517,7 +517,7 @@ export default function HplcRuns() {
                     <SelectValue placeholder="Selecione a coluna (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
+                    <SelectItem value="none">Nenhuma</SelectItem>
                     {columns?.map((column) => (
                       <SelectItem key={column.id} value={column.id.toString()}>
                         {column.name} ({column.manufacturer})
