@@ -1289,14 +1289,13 @@ function AppContent() {
         return <HplcDashboard />;
       };
       
-      // Renderizar o componente com o layout HPLC apropriado
+      // Renderizar o componente com o layout HPLC apropriado 
+      // Remover LaboratoryLayout para evitar duplicação de menu
       console.log('Renderizando HplcLayout com o componente apropriado');
       return (
-        <LaboratoryLayout>
-          <HplcLayout>
-            {getHplcComponent()}
-          </HplcLayout>
-        </LaboratoryLayout>
+        <HplcLayout>
+          {getHplcComponent()}
+        </HplcLayout>
       );
     }
 
