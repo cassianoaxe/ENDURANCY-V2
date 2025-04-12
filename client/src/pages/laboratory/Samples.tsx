@@ -98,7 +98,7 @@ export default function LaboratorySamples() {
   // Estado para o valor atual do campo de busca antes de submeter
   const [searchInputValue, setSearchInputValue] = React.useState("");
 
-  // Buscar dados das amostras com base nos filtros e paginação
+  // Buscar dados das amostras com base nos filtros e paginação (usando rota alternativa)
   const { 
     data: samplesData, 
     isLoading, 
@@ -106,7 +106,7 @@ export default function LaboratorySamples() {
     refetch 
   } = useQuery({
     queryKey: [
-      '/api/laboratory/samples', 
+      '/api/lab-samples', // Usando a rota alternativa sem autenticação
       searchParams.page, 
       searchParams.limit, 
       searchParams.status, 

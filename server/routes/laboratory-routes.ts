@@ -921,6 +921,72 @@ export async function registerLaboratoryRoutes(app: Express) {
     }
   });
 
+  // Rota alternativa para listar amostras (para depuração) - Usamos /lab-samples para evitar intercepção do middleware vite
+  app.get('/api/lab-samples', async (req: Request, res: Response) => {
+    try {
+      // Parâmetros de filtro e paginação
+      const page = req.query.page ? parseInt(req.query.page as string) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const offset = (page - 1) * limit;
+      
+      const status = req.query.status as string || null;
+      const sampleType = req.query.sampleType as string || null;
+      const searchTerm = req.query.search as string || null;
+      const labId = req.query.labId ? parseInt(req.query.labId as string) : 1; // Default para o primeiro laboratório
+      
+      // Construir a consulta SQL
+      let query = sql`
+        SELECT s.*, o.name as organization_name, u.name as created_by_name, 
+               (SELECT COUNT(*) FROM tests WHERE sample_id = s.id) as tests_count
+        FROM samples s
+        LEFT JOIN organizations o ON s.organization_id = o.id
+        LEFT JOIN users u ON s.created_by = u.id
+        WHERE s.laboratory_id = ${labId}
+      `;
+
+      // Adicionar filtros
+      if (status) {
+        query = sql`${query} AND s.status = ${status}`;
+      }
+      
+      if (sampleType) {
+        query = sql`${query} AND s.sample_type = ${sampleType}`;
+      }
+      
+      if (searchTerm) {
+        query = sql`${query} AND (
+          s.code ILIKE ${`%${searchTerm}%`} OR 
+          s.batch_number ILIKE ${`%${searchTerm}%`} OR
+          o.name ILIKE ${`%${searchTerm}%`}
+        )`;
+      }
+      
+      // Contar total de resultados para paginação
+      const countQuery = sql`SELECT COUNT(*) FROM (${query}) AS count_query`;
+      const countResult = await db.execute(countQuery);
+      const totalCount = parseInt(countResult.rows[0]?.count || '0');
+      
+      // Adicionar ordenação e limites
+      query = sql`${query} ORDER BY s.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
+      
+      const samples = await db.execute(query);
+      
+      // Retornar resultados com metadados de paginação
+      res.json({
+        data: samples.rows,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages: Math.ceil(totalCount / limit)
+        }
+      });
+    } catch (error) {
+      console.error("Erro ao listar amostras do laboratório:", error);
+      res.status(500).json({ message: "Erro ao processar a solicitação" });
+    }
+  });
+  
   // Rota para registrar um novo laboratório (para admins)
   app.post('/api/laboratory/register', authenticate, async (req: Request, res: Response) => {
     try {
