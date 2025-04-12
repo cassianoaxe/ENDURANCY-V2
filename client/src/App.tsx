@@ -24,6 +24,7 @@ import HplcProcedures from "@/pages/laboratory/hplc/Procedures";
 import HplcProcedureDetail from "@/pages/laboratory/hplc/ProcedureDetail";
 import HplcValidations from "@/pages/laboratory/hplc/Validations";
 import HplcValidationDetail from "@/pages/laboratory/hplc/ValidationDetail";
+import HplcTrainings from "@/pages/laboratory/hplc/Trainings";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1295,10 +1296,9 @@ function AppContent() {
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
           return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Treinamentos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
+            <HplcLayout>
+              <HplcTrainings />
+            </HplcLayout>
           );
         }
         
