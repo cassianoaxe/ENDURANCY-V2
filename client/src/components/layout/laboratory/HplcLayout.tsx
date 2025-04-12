@@ -116,12 +116,17 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
     console.log(`Renderizando item de menu: ${item.title}, href: ${item.href}, isActive: ${isActive}`);
     
     const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault(); // Impedir comportamento padrão do link
       console.log(`Clicou em: ${item.title}, navegando para: ${item.href}`);
+      
+      // Navegação manual usando window.history e disparo de evento
+      window.history.pushState({}, '', item.href);
+      window.dispatchEvent(new Event('popstate'));
     };
     
     return (
       <li>
-        <Link href={item.href} onClick={handleClick}>
+        <a href={item.href} onClick={handleClick}>
           <Button
             variant={isActive ? "default" : "ghost"}
             className="w-full justify-start"
@@ -129,7 +134,7 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
             <item.icon className="h-5 w-5 mr-2" />
             <span>{item.title}</span>
           </Button>
-        </Link>
+        </a>
       </li>
     );
   };
@@ -140,14 +145,22 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <div className="flex flex-1 items-center gap-4">
           {/* Logo */}
-          <Link href="/laboratory/dashboard">
+          <a 
+            href="/laboratory/dashboard"
+            onClick={(e) => {
+              e.preventDefault();
+              console.log('Clicou no logo para voltar ao lab principal');
+              window.history.pushState({}, '', '/laboratory/dashboard');
+              window.dispatchEvent(new Event('popstate'));
+            }}
+          >
             <Button variant="ghost" className="p-0">
               <div className="flex items-center gap-2 font-semibold">
                 <Beaker className="h-6 w-6 text-primary" />
                 <span className="hidden md:inline-block">Portal HPLC</span>
               </div>
             </Button>
-          </Link>
+          </a>
 
           {/* Navegação principal (visível apenas em telas grandes) */}
           <nav className="hidden md:flex flex-1">
@@ -155,7 +168,15 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
               <NavigationMenuList>
                 {/* Link para voltar ao portal de laboratório */}
                 <NavigationMenuItem>
-                  <Link href="/laboratory/dashboard">
+                  <a
+                    href="/laboratory/dashboard"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log('Menu principal: Clicou em Laboratório');
+                      window.history.pushState({}, '', '/laboratory/dashboard');
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                  >
                     <NavigationMenuLink
                       className={cn(
                         "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
@@ -164,7 +185,7 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                       <Home className="mr-2 h-4 w-4" />
                       Laboratório
                     </NavigationMenuLink>
-                  </Link>
+                  </a>
                 </NavigationMenuItem>
 
                 {/* Menu HPLC */}
@@ -174,7 +195,15 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {hplcMenuItems.map((item) => (
                         <li key={item.href}>
-                          <Link href={item.href}>
+                          <a 
+                            href={item.href}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log(`Menu principal: Clicou em ${item.title}`);
+                              window.history.pushState({}, '', item.href);
+                              window.dispatchEvent(new Event('popstate'));
+                            }}
+                          >
                             <NavigationMenuLink
                               className={cn(
                                 "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
@@ -195,7 +224,7 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                                 </p>
                               )}
                             </NavigationMenuLink>
-                          </Link>
+                          </a>
                         </li>
                       ))}
                     </ul>
@@ -298,7 +327,15 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
             </nav>
 
             <div className="mt-auto">
-              <Link href="/laboratory/dashboard">
+              <a
+                href="/laboratory/dashboard"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('Clicou em Voltar ao Laboratório');
+                  window.history.pushState({}, '', '/laboratory/dashboard');
+                  window.dispatchEvent(new Event('popstate'));
+                }}
+              >
                 <Button
                   variant="outline"
                   size="sm"
@@ -309,7 +346,7 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                     Voltar ao Laboratório
                   </div>
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </aside>
