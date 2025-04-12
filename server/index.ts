@@ -3,6 +3,7 @@ import path from 'path';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeMockTickets, ensureOrganizationsExist, ensureAdminUserExists } from "./services/ticketsMockData";
+import { seedHplcTrainings } from "./hplc-training-seed";
 import { patientAuthRouter } from "./routes/patient-auth";
 
 const app = express();
@@ -558,6 +559,7 @@ app.use((req, res, next) => {
     await ensureAdminUserExists();
     await ensureOrganizationsExist();
     await initializeMockTickets();
+    await seedHplcTrainings();
   } catch (error) {
     console.error("Erro ao inicializar dados de exemplo:", error);
   }
