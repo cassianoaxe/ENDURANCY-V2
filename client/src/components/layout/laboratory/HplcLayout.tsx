@@ -113,9 +113,15 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
 
   const SidebarMenuItem = ({ item }: { item: HplcMenuItem }) => {
     const isActive = location === item.href;
+    console.log(`Renderizando item de menu: ${item.title}, href: ${item.href}, isActive: ${isActive}`);
+    
+    const handleClick = (e: React.MouseEvent) => {
+      console.log(`Clicou em: ${item.title}, navegando para: ${item.href}`);
+    };
+    
     return (
       <li>
-        <Link href={item.href}>
+        <Link href={item.href} onClick={handleClick}>
           <Button
             variant={isActive ? "default" : "ghost"}
             className="w-full justify-start"

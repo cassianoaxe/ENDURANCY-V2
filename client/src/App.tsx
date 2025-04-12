@@ -1178,7 +1178,10 @@ function AppContent() {
     }
     
     // Rotas do módulo HPLC
+    console.log(`App.tsx: Rota atual: ${currentPath}`);
+    
     if (currentPath === '/laboratory/hplc/dashboard') {
+      console.log('App.tsx: Renderizando o Dashboard HPLC');
       return (
         <HplcLayout>
           <HplcDashboard />
@@ -1291,8 +1294,22 @@ function AppContent() {
     }
 
     // Se nenhuma rota específica for encontrada, mas o caminho começa com /laboratory/hplc/
-    // redirecionar para o dashboard HPLC
-    if (currentPath.startsWith('/laboratory/hplc/')) {
+    // redirecionar para o dashboard HPLC apenas se não for uma rota definida
+    const validHplcRoutes = [
+      '/laboratory/hplc/dashboard',
+      '/laboratory/hplc/equipments',
+      '/laboratory/hplc/maintenances',
+      '/laboratory/hplc/consumables',
+      '/laboratory/hplc/runs',
+      '/laboratory/hplc/runs/new',
+      '/laboratory/hplc/procedures',
+      '/laboratory/hplc/validations',
+      '/laboratory/hplc/trainings'
+    ];
+    
+    // Se o caminho é uma rota HPLC mas não está na lista de rotas válidas
+    if (currentPath.startsWith('/laboratory/hplc/') && !validHplcRoutes.includes(currentPath)) {
+      console.log(`Rota HPLC não reconhecida: ${currentPath}, redirecionando para dashboard`);
       window.history.pushState({}, '', '/laboratory/hplc/dashboard');
       window.dispatchEvent(new Event('popstate'));
       return (
