@@ -9,6 +9,8 @@ import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
+import SampleDetail from "@/pages/laboratory/SampleDetail";
+import TestDetail from "@/pages/laboratory/TestDetail";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1149,6 +1151,26 @@ function AppContent() {
       return (
         <LaboratoryLayout>
           <LaboratorySamples />
+        </LaboratoryLayout>
+      );
+    }
+    
+    // Detalhes da amostra
+    const sampleDetailMatch = currentPath.match(/^\/laboratory\/samples\/(\d+)$/);
+    if (sampleDetailMatch) {
+      return (
+        <LaboratoryLayout>
+          <SampleDetail />
+        </LaboratoryLayout>
+      );
+    }
+    
+    // Detalhes do teste
+    const testDetailMatch = currentPath.match(/^\/laboratory\/tests\/(\d+)$/);
+    if (testDetailMatch) {
+      return (
+        <LaboratoryLayout>
+          <TestDetail />
         </LaboratoryLayout>
       );
     }

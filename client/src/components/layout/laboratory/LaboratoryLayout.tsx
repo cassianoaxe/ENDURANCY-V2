@@ -1,10 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Bell, Settings, LogOut, Menu, X, Beaker, TestTube, Database, ListChecks, BarChart3, UsersRound, Home } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { 
+  BeakerIcon, 
+  HomeIcon, 
+  FlaskConicalIcon, 
+  ListFilterIcon, 
+  FileTextIcon, 
+  SettingsIcon,
+  UsersIcon,
+  LogOutIcon,
+  BellIcon
+} from "lucide-react";
+
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,307 +33,253 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "wouter";
 
-const navigationItems = [
+const menuItems = [
   {
-    name: "Dashboard",
-    icon: <Home size={20} />,
-    href: "/laboratory/dashboard",
+    icon: <HomeIcon className="mr-2 h-4 w-4" />,
+    label: "Dashboard",
+    path: "/laboratory/dashboard",
   },
   {
-    name: "Amostras",
-    icon: <Beaker size={20} />,
-    href: "/laboratory/samples",
+    icon: <BeakerIcon className="mr-2 h-4 w-4" />,
+    label: "Amostras",
+    path: "/laboratory/samples",
   },
   {
-    name: "Testes",
-    icon: <TestTube size={20} />,
-    href: "/laboratory/tests",
+    icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
+    label: "Testes",
+    path: "/laboratory/tests",
   },
   {
-    name: "Resultados",
-    icon: <Database size={20} />,
-    href: "/laboratory/results",
+    icon: <FileTextIcon className="mr-2 h-4 w-4" />,
+    label: "Relatórios",
+    path: "/laboratory/reports",
   },
   {
-    name: "Controle de Qualidade",
-    icon: <ListChecks size={20} />,
-    href: "/laboratory/quality",
+    icon: <UsersIcon className="mr-2 h-4 w-4" />,
+    label: "Equipe",
+    path: "/laboratory/team",
   },
   {
-    name: "Relatórios",
-    icon: <BarChart3 size={20} />,
-    href: "/laboratory/reports",
-  },
-  {
-    name: "Técnicos",
-    icon: <UsersRound size={20} />,
-    href: "/laboratory/technicians",
+    icon: <SettingsIcon className="mr-2 h-4 w-4" />,
+    label: "Configurações",
+    path: "/laboratory/settings",
   },
 ];
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  profilePhoto?: string;
-}
-
 export default function LaboratoryLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [location] = useLocation();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [activeMenuItem, setActiveMenuItem] = React.useState("/laboratory/dashboard");
 
-  const { data: userData, isLoading } = useQuery<User>({
-    queryKey: ['/api/auth/me'],
-  });
+  React.useEffect(() => {
+    // Definir o item de menu ativo com base na URL atual
+    const path = window.location.pathname;
+    setActiveMenuItem(path);
+  }, []);
 
-  const { data: notifications = [] } = useQuery<any[]>({
-    queryKey: ['/api/notifications'],
-    enabled: !!userData,
-  });
-
-  const unreadNotifications = notifications.filter(n => !n.read).length;
+  const handleMenuItemClick = (path: string) => {
+    setActiveMenuItem(path);
+    setIsMobileMenuOpen(false);
+  };
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        window.location.href = '/login';
-      } else {
-        toast({
-          title: 'Erro ao sair',
-          description: 'Não foi possível desconectar. Tente novamente.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      await logout();
+      queryClient.clear();
       toast({
-        title: 'Erro ao sair',
-        description: 'Ocorreu um erro ao tentar desconectar.',
-        variant: 'destructive',
+        title: "Logout realizado com sucesso",
+        description: "Você foi desconectado do portal do laboratório.",
+      });
+      // Redirecionar para a página de login
+      window.history.pushState({}, "", "/login");
+      window.dispatchEvent(new Event("popstate"));
+    } catch (error) {
+      toast({
+        title: "Erro ao realizar logout",
+        description: "Ocorreu um erro ao desconectar. Por favor, tente novamente.",
+        variant: "destructive",
       });
     }
   };
 
-  // Efetuar verificações de atualizações de sistema a cada 5 minutos
-  useEffect(() => {
-    // Simulação de verificação de atualizações
-    const checkForUpdates = () => {
-      // Lógica para verificar atualizações do sistema
-      console.log("Verificando atualizações do sistema laboratorial...");
-    };
-
-    checkForUpdates();
-    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar para desktop (sempre visível) e mobile (pode ser aberta/fechada) */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-gray-200 transition-all duration-300 ease-in-out",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "lg:relative lg:translate-x-0" // No desktop, sempre visível
-        )}
-      >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-          <Link href="/laboratory/dashboard">
-            <div className="flex items-center cursor-pointer">
-              <Beaker className="h-6 w-6 text-emerald-600" />
-              <span className="ml-2 text-lg font-semibold">Portal Laboratório</span>
-            </div>
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X size={20} />
-          </Button>
-        </div>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Navbar superior para dispositivos móveis */}
+      <header className="bg-white shadow-sm py-3 px-4 sticky top-0 z-10 lg:hidden">
+        <div className="flex justify-between items-center">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <ListFilterIcon className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[80%] sm:w-[350px]">
+              <SheetHeader>
+                <SheetTitle>Portal do Laboratório</SheetTitle>
+                <SheetDescription>
+                  Gerencie amostras, resultados e relatórios
+                </SheetDescription>
+              </SheetHeader>
+              <div className="py-4">
+                <div className="flex items-center gap-4 py-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
+                    <AvatarFallback>
+                      {user?.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium">{user?.name}</h3>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  </div>
+                </div>
+                <Separator className="my-2" />
+                <nav className="flex flex-col gap-1 mt-4">
+                  {menuItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      onClick={() => handleMenuItemClick(item.path)}
+                    >
+                      <Button
+                        variant={activeMenuItem === item.path ? "default" : "ghost"}
+                        className="w-full justify-start"
+                      >
+                        {item.icon}
+                        {item.label}
+                      </Button>
+                    </Link>
+                  ))}
+                  <Separator className="my-2" />
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    Sair
+                  </Button>
+                </nav>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-        <div className="flex-1 px-4 py-4 overflow-y-auto">
-          <nav className="space-y-1">
-            {navigationItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                    location === item.href
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  )}
+          <div className="flex items-center">
+            <BeakerIcon className="h-6 w-6 text-green-600 mr-2" />
+            <span className="font-semibold text-lg">LabSystem</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="relative">
+              <BellIcon className="h-5 w-5" />
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                3
+              </Badge>
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 cursor-pointer">
+                  <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
+                  <AvatarFallback>
+                    {user?.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  <span>Configurações</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500">
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      {/* Layout para desktop */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar para desktop */}
+        <aside className="hidden lg:flex lg:w-64 flex-col bg-white border-r border-gray-200">
+          <div className="p-4 border-b border-gray-200 flex items-center">
+            <BeakerIcon className="h-6 w-6 text-green-600 mr-2" />
+            <span className="font-semibold text-lg">Portal do Laboratório</span>
+          </div>
+          
+          <div className="flex flex-col p-4 border-b border-gray-200">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
+                <AvatarFallback>
+                  {user?.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{user?.name}</h3>
+                <p className="text-sm text-muted-foreground truncate max-w-[150px]">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Menu de navegação */}
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+            {menuItems.map((item) => (
+              <Link key={item.path} href={item.path}>
+                <Button
+                  variant={activeMenuItem === item.path ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => setActiveMenuItem(item.path)}
                 >
-                  <span className="mr-3 text-emerald-500">{item.icon}</span>
-                  {item.name}
-                </a>
+                  {item.icon}
+                  {item.label}
+                </Button>
               </Link>
             ))}
           </nav>
-        </div>
-
-        <div className="p-4 border-t border-gray-200">
-          <div className="mt-2">
-            <p className="text-xs text-gray-500">
-              Portal Laboratório v1.0.2
-            </p>
-            <details className="mt-1">
-              <summary className="text-xs text-emerald-600 cursor-pointer">
-                Changelog
-              </summary>
-              <div className="mt-2 text-xs text-gray-600">
-                <p className="mb-1 font-medium">v1.0.2 (12 Abr, 2024)</p>
-                <ul className="list-disc ml-4 space-y-1">
-                  <li>Melhorias no módulo de rastreamento de amostras</li>
-                  <li>Correção de bugs no fluxo de aprovação</li>
-                </ul>
-                <p className="mt-2 mb-1 font-medium">v1.0.1 (5 Abr, 2024)</p>
-                <ul className="list-disc ml-4 space-y-1">
-                  <li>Relatórios de canabinoides adicionados</li>
-                  <li>Integração com sistema de notificações</li>
-                </ul>
-              </div>
-            </details>
+          
+          {/* Botão de logout no final da sidebar */}
+          <div className="p-4 border-t border-gray-200">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Sobreposição escura quando o sidebar está aberto no mobile */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Conteúdo principal */}
-      <main className="relative flex-1 overflow-y-auto">
-        {/* Cabeçalho */}
-        <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={20} />
-          </Button>
-
-          <div className="flex items-center ml-auto space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell size={20} />
-                  {unreadNotifications > 0 && (
-                    <Badge
-                      className="absolute -top-1 -right-1 px-1.5 min-w-[18px] h-4 bg-red-500"
-                    >
-                      {unreadNotifications}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {notifications.length === 0 ? (
-                  <div className="py-2 px-3 text-sm text-gray-500">
-                    Nenhuma notificação.
-                  </div>
-                ) : (
-                  notifications.slice(0, 5).map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="cursor-pointer">
-                      <div className="flex flex-col space-y-1">
-                        <p className={cn("text-sm", !notification.read && "font-medium")}>
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {notification.message}
-                        </p>
-                      </div>
-                    </DropdownMenuItem>
-                  ))
-                )}
-                <DropdownMenuSeparator />
-                <Link href="/laboratory/notifications">
-                  <DropdownMenuItem className="cursor-pointer text-emerald-600">
-                    Ver todas
-                  </DropdownMenuItem>
-                </Link>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="focus:outline-none">
-                  {isLoading ? (
-                    <Skeleton className="w-8 h-8 rounded-full" />
-                  ) : (
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={userData?.profilePhoto} />
-                      <AvatarFallback className="bg-emerald-100 text-emerald-700">
-                        {userData?.name?.charAt(0) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {isLoading ? (
-                  <div className="p-2">
-                    <Skeleton className="w-full h-5 mb-2" />
-                    <Skeleton className="w-3/4 h-4" />
-                  </div>
-                ) : (
-                  <>
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col">
-                        <span>{userData?.name || "Usuário"}</span>
-                        <span className="text-xs text-gray-500">{userData?.email}</span>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <Link href="/laboratory/profile">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <div className="flex items-center">
-                          <Settings size={16} className="mr-2" />
-                          <span>Configurações</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                      <div className="flex items-center text-red-600">
-                        <LogOut size={16} className="mr-2" />
-                        <span>Sair</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        <div className="p-6">
+        {/* Conteúdo principal */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
