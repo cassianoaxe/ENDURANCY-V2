@@ -408,7 +408,7 @@ export default function Trainings() {
     <div className="space-y-6">
       <div className="flex justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Gerenciamento de Treinamentos</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Treinamentos HPLC</h2>
           <p className="text-muted-foreground">
             Organize e acompanhe treinamentos para usuários do laboratório.
           </p>
