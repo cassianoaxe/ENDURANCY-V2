@@ -44,7 +44,7 @@ export async function registerHplcRoutes(app: Express) {
    * Rota para o dashboard do HPLC
    * Retorna estatísticas gerais para o dashboard HPLC
    */
-  app.get('/api/hplc/dashboard', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/dashboard', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       const timeRange = req.query.timeRange as string || '30d';
@@ -92,7 +92,7 @@ export async function registerHplcRoutes(app: Express) {
   /**
    * API de Equipamentos HPLC
    */
-  app.get('/api/hplc/equipments', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/equipments', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -119,7 +119,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.get('/api/hplc/equipments/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/equipments/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -164,7 +164,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.post('/api/hplc/equipments', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.post('/api/laboratory/hplc/equipments', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -202,7 +202,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.put('/api/hplc/equipments/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.put('/api/laboratory/hplc/equipments/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -255,7 +255,7 @@ export async function registerHplcRoutes(app: Express) {
   /**
    * API de Manutenções HPLC
    */
-  app.get('/api/hplc/maintenances', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/maintenances', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -293,7 +293,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.post('/api/hplc/maintenances', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.post('/api/laboratory/hplc/maintenances', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -349,7 +349,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.put('/api/hplc/maintenances/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.put('/api/laboratory/hplc/maintenances/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -427,7 +427,7 @@ export async function registerHplcRoutes(app: Express) {
   /**
    * API de Consumíveis HPLC
    */
-  app.get('/api/hplc/consumables', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/consumables', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -460,7 +460,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.post('/api/hplc/consumables', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.post('/api/laboratory/hplc/consumables', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -501,7 +501,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.put('/api/hplc/consumables/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.put('/api/laboratory/hplc/consumables/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -555,7 +555,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.post('/api/hplc/consumables/:id/usage', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.post('/api/laboratory/hplc/consumables/:id/usage', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -616,7 +616,7 @@ export async function registerHplcRoutes(app: Express) {
   /**
    * API de Corridas HPLC
    */
-  app.get('/api/hplc/runs', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/runs', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -667,7 +667,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.post('/api/hplc/runs', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.post('/api/laboratory/hplc/runs', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
       
@@ -718,7 +718,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.get('/api/hplc/runs/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.get('/api/laboratory/hplc/runs/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
@@ -764,7 +764,7 @@ export async function registerHplcRoutes(app: Express) {
     }
   });
 
-  app.put('/api/hplc/runs/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
+  app.put('/api/laboratory/hplc/runs/:id', authenticate, checkHplcAccess, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const laboratoryId = await getLaboratoryId(req.session.user.id, req.session.user.role);
