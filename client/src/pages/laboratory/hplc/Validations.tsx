@@ -700,7 +700,7 @@ export default function Validations() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nenhum</SelectItem>
+                              <SelectItem value="none">Nenhum</SelectItem>
                               {equipments?.map((equipment: any) => (
                                 <SelectItem key={equipment.id} value={equipment.name}>
                                   {equipment.name} ({equipment.model})
@@ -1177,7 +1177,7 @@ export default function Validations() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Nenhum</SelectItem>
+                            <SelectItem value="none">Nenhum</SelectItem>
                             {equipments?.map((equipment: any) => (
                               <SelectItem key={equipment.id} value={equipment.name}>
                                 {equipment.name} ({equipment.model})
