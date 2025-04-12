@@ -274,7 +274,7 @@ export default function Trainings() {
       });
       setIsAddDialogOpen(false);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/laboratory/hplc/trainings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trainer"] });
     },
     onError: (error) => {
       toast({
@@ -318,7 +318,7 @@ export default function Trainings() {
       });
       setIsEditDialogOpen(false);
       setSelectedTraining(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/laboratory/hplc/trainings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trainer"] });
     },
     onError: (error) => {
       toast({
@@ -342,7 +342,7 @@ export default function Trainings() {
         title: "Treinamento excluído",
         description: "O treinamento foi excluído com sucesso.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/laboratory/hplc/trainings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/trainer"] });
     },
     onError: (error) => {
       toast({
@@ -774,7 +774,7 @@ export default function Trainings() {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/laboratory/hplc/trainings"] })}
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/trainer"] })}
           >
             <SearchIcon className="h-4 w-4" />
           </Button>
