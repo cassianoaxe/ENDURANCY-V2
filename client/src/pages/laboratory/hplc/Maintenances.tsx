@@ -99,8 +99,8 @@ export default function HplcMaintenances() {
   const queryClient = useQueryClient();
   const [isNewMaintenanceOpen, setIsNewMaintenanceOpen] = useState(false);
   const [filters, setFilters] = useState<MaintenanceFilters>({
-    status: null,
-    type: null,
+    status: "all",
+    type: "all",
     search: "",
   });
   const [newMaintenance, setNewMaintenance] = useState<Partial<HplcMaintenance>>({
@@ -158,12 +158,12 @@ export default function HplcMaintenances() {
 
     return maintenanceList.filter((maintenance) => {
       // Filtrar por status
-      if (filters.status && maintenance.status !== filters.status) {
+      if (filters.status && filters.status !== "all" && maintenance.status !== filters.status) {
         return false;
       }
 
       // Filtrar por tipo
-      if (filters.type && maintenance.maintenanceType !== filters.type) {
+      if (filters.type && filters.type !== "all" && maintenance.maintenanceType !== filters.type) {
         return false;
       }
 
@@ -280,7 +280,7 @@ export default function HplcMaintenances() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="all">Todos os status</SelectItem>
                     <SelectItem value="scheduled">Agendada</SelectItem>
                     <SelectItem value="in_progress">Em Andamento</SelectItem>
                     <SelectItem value="completed">Concluída</SelectItem>
@@ -295,7 +295,7 @@ export default function HplcMaintenances() {
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tipos</SelectItem>
+                    <SelectItem value="all">Todos os tipos</SelectItem>
                     <SelectItem value="preventive">Preventiva</SelectItem>
                     <SelectItem value="corrective">Corretiva</SelectItem>
                     <SelectItem value="calibration">Calibração</SelectItem>
