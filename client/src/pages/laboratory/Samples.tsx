@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 import {
   Card,
   CardContent,
@@ -113,6 +114,41 @@ export default function LaboratorySamples() {
       searchParams.sampleType, 
       searchParams.search
     ],
+    queryFn: async ({ queryKey }) => {
+      const [url, page, limit, status, sampleType, search] = queryKey;
+      try {
+        console.log("Buscando amostras com URL:", url);
+        
+        // Construir a URL com query params
+        let apiUrl = `${url}?page=${page}&limit=${limit}`;
+        if (status) apiUrl += `&status=${status}`;
+        if (sampleType) apiUrl += `&sampleType=${sampleType}`;
+        if (search) apiUrl += `&search=${search}`;
+        
+        // Fazer a requisição com o próprio fetch para ter mais controle
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          console.error("Erro na resposta:", response.status, response.statusText);
+          throw new Error(`Erro ao buscar amostras: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("Resposta não é JSON:", contentType);
+          throw new Error("Resposta inválida do servidor");
+        }
+        
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar amostras:", error);
+        throw error;
+      }
+    },
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   // Manipuladores de eventos para filtros e paginação
