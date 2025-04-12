@@ -1317,12 +1317,12 @@ function AppContent() {
         return <HplcDashboard />;
       };
       
-      // Renderizar o layout HPLC com o componente apropriado
-      console.log('Renderizando HplcLayout com componente apropriado');
+      // Renderizar o layout do Laboratório com o componente HPLC apropriado
+      console.log('Renderizando LaboratoryLayout com componente HPLC apropriado');
       return (
-        <HplcLayout>
+        <LaboratoryLayout>
           {getHplcComponent()}
-        </HplcLayout>
+        </LaboratoryLayout>
       );
     }
 
