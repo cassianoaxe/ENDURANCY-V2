@@ -18,6 +18,7 @@ import { registerHplcRoutes } from './routes/hplc-routes';
 import { registerHplcValidationRoutes } from './routes/hplc-validation-routes';
 import { registerHplcTrainingRoutes } from './routes/hplc-training-routes';
 import { registerTrainerRoutes } from './routes/trainer-routes';
+import equipmentRoutes from './routes/equipment-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5250,6 +5251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas de treinamentos HPLC alternativas
   await registerTrainerRoutes(app);
+  
+  // Registrar rotas de equipamentos de laboratório
+  app.use('/api/laboratory', equipmentRoutes);
   
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
