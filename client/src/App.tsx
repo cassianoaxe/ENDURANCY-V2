@@ -187,15 +187,28 @@ function AppContent() {
   // Listen for path changes
   useEffect(() => {
     const handlePathChange = () => {
-      setCurrentPath(window.location.pathname);
+      const newPath = window.location.pathname;
+      console.log(`App.tsx: Mudança detectada de rota de ${currentPath} para ${newPath}`);
+      setCurrentPath(newPath);
     };
 
+    // Ouvir evento popstate (navegação pelo histórico)
     window.addEventListener('popstate', handlePathChange);
+    
+    // Ouvir evento customizado para navegação manual
+    const handleCustomNavigation = () => {
+      const newPath = window.location.pathname;
+      console.log(`App.tsx: Navegação manual detectada para ${newPath}`);
+      setCurrentPath(newPath);
+    };
+    
+    window.addEventListener('navigation', handleCustomNavigation);
     
     return () => {
       window.removeEventListener('popstate', handlePathChange);
+      window.removeEventListener('navigation', handleCustomNavigation);
     };
-  }, []);
+  }, [currentPath]);
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {

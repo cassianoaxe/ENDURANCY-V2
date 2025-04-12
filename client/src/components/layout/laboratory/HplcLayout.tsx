@@ -119,9 +119,18 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
       e.preventDefault(); // Impedir comportamento padrão do link
       console.log(`Clicou em: ${item.title}, navegando para: ${item.href}`);
       
-      // Navegação manual usando window.history e disparo de evento
+      // Navegação manual usando window.history e disparo de evento personalizado
       window.history.pushState({}, '', item.href);
+      
+      // Disparar tanto evento popstate quanto navegação customizada
       window.dispatchEvent(new Event('popstate'));
+      window.dispatchEvent(new CustomEvent('navigation', { detail: { path: item.href } }));
+      
+      // Forçar atualização do DOM adicionando classe temporária
+      document.body.classList.add('navigating');
+      setTimeout(() => {
+        document.body.classList.remove('navigating');
+      }, 10);
     };
     
     return (
@@ -151,7 +160,16 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
               e.preventDefault();
               console.log('Clicou no logo para voltar ao lab principal');
               window.history.pushState({}, '', '/laboratory/dashboard');
+              
+              // Disparar tanto evento popstate quanto navegação customizada
               window.dispatchEvent(new Event('popstate'));
+              window.dispatchEvent(new CustomEvent('navigation', { detail: { path: '/laboratory/dashboard' } }));
+              
+              // Forçar atualização do DOM adicionando classe temporária
+              document.body.classList.add('navigating');
+              setTimeout(() => {
+                document.body.classList.remove('navigating');
+              }, 10);
             }}
           >
             <Button variant="ghost" className="p-0">
