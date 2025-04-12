@@ -6,6 +6,9 @@ import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
 import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
+import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
+import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
+import LaboratorySamples from "@/pages/laboratory/Samples";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -47,6 +50,7 @@ import PaymentTest from "@/pages/PaymentTest";
 // Importar novas páginas de pagamento por email
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
+// Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
 // Importar página de cadastro de médicos
@@ -1106,6 +1110,60 @@ function AppContent() {
   }
   
   // Handle patient-specific routes
+  // Check for laboratory routes
+  if (currentPath.startsWith('/laboratory/')) {
+    // Verificando se o usuário tem permissão para acessar
+    // Para o MVP, permitiremos acesso de admin e org_admin
+    if (userRole !== 'admin' && userRole !== 'org_admin') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar o portal do laboratório. Esta área é reservada para administradores de laboratório.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    // Rotas específicas do laboratório
+    if (currentPath === '/laboratory/dashboard') {
+      return (
+        <LaboratoryLayout>
+          <LaboratoryDashboard />
+        </LaboratoryLayout>
+      );
+    }
+    
+    if (currentPath === '/laboratory/samples') {
+      return (
+        <LaboratoryLayout>
+          <LaboratorySamples />
+        </LaboratoryLayout>
+      );
+    }
+    
+    // Se nenhuma rota específica for encontrada, mas o caminho começa com /laboratory/
+    // redirecionar para o dashboard do laboratório
+    window.history.pushState({}, '', '/laboratory/dashboard');
+    window.dispatchEvent(new Event('popstate'));
+    return (
+      <LaboratoryLayout>
+        <LaboratoryDashboard />
+      </LaboratoryLayout>
+    );
+  }
+  
   if (currentPath.startsWith('/patient/')) {
     // Para a dashboard e outras páginas do portal do paciente
     if (currentPath === '/patient/dashboard') {
