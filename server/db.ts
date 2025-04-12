@@ -3,9 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 import * as productionSchema from "@shared/schema-production";
+import * as laboratorySchema from "@shared/schema-laboratory";
 
 // Combine schemas for the database
-const combinedSchema = { ...schema, ...productionSchema };
+const combinedSchema = { ...schema, ...productionSchema, ...laboratorySchema };
 
 neonConfig.webSocketConstructor = ws;
 
