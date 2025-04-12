@@ -20,6 +20,9 @@ import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
 import HplcConsumables from "@/pages/laboratory/hplc/Consumables";
 import HplcRuns from "@/pages/laboratory/hplc/Runs";
+import HplcProcedures from "@/pages/laboratory/hplc/Procedures";
+import HplcValidations from "@/pages/laboratory/hplc/Validations";
+import HplcTrainings from "@/pages/laboratory/hplc/Trainings";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1269,30 +1272,27 @@ function AppContent() {
         // Procedimentos
         if (currentPath === '/laboratory/hplc/procedures') {
           return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Procedimentos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
+            <HplcLayout>
+              <HplcProcedures />
+            </HplcLayout>
           );
         }
         
         // Validações
         if (currentPath === '/laboratory/hplc/validations') {
           return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Validações de Métodos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
+            <HplcLayout>
+              <HplcValidations />
+            </HplcLayout>
           );
         }
         
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
           return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Treinamentos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
+            <HplcLayout>
+              <HplcTrainings />
+            </HplcLayout>
           );
         }
         
