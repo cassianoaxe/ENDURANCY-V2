@@ -8,7 +8,99 @@ import { users } from "../../shared/schema";
 import { authenticate } from "../routes";
 
 export async function registerLaboratoryRoutes(app: Express) {
+  // Rota alternativa para contornar o problema do middleware Vite
+  app.get('/api/lab-dashboard', authenticate, async (req: Request, res: Response) => {
+    try {
+      if (!req.session.user || (req.session.user.role !== 'laboratory' && req.session.user.role !== 'admin')) {
+        return res.status(403).json({ message: "Acesso não autorizado" });
+      }
+
+      const userId = req.session.user.id;
+      let laboratoryId: number | null = null;
+
+      // Obter o laboratório associado ao usuário
+      const userLaboratory = await db.select().from(laboratories).where(eq(laboratories.userId, userId)).limit(1);
+      
+      if (userLaboratory.length > 0) {
+        laboratoryId = userLaboratory[0].id;
+      } else if (req.session.user.role === 'admin') {
+        // Administradores podem visualizar dados de qualquer laboratório
+        // Para simplificar, vamos pegar o primeiro
+        const allLaboratories = await db.select().from(laboratories).limit(1);
+        if (allLaboratories.length > 0) {
+          laboratoryId = allLaboratories[0].id;
+        }
+      }
+
+      if (!laboratoryId) {
+        return res.status(404).json({ message: "Laboratório não encontrado" });
+      }
+
+      // Estatísticas de amostras por status
+      const samplesByStatusResult = await db.execute(sql`
+        SELECT status, COUNT(*) as count
+        FROM samples
+        WHERE laboratory_id = ${laboratoryId}
+        GROUP BY status
+      `);
+
+      // Amostras recebidas por dia (últimos 30 dias)
+      const samplesReceivedByDayResult = await db.execute(sql`
+        SELECT DATE(received_date) as date, COUNT(*) as count
+        FROM samples
+        WHERE laboratory_id = ${laboratoryId}
+          AND received_date IS NOT NULL
+          AND received_date >= NOW() - INTERVAL '30 days'
+        GROUP BY DATE(received_date)
+        ORDER BY date
+      `);
+
+      // Tempo médio de processamento por tipo de teste
+      const avgProcessingTimeByTestTypeResult = await db.execute(sql`
+        SELECT test_type, 
+               AVG(EXTRACT(EPOCH FROM (result_date - received_date))/3600)::numeric(10,2) as avg_hours
+        FROM tests t
+        JOIN samples s ON t.sample_id = s.id
+        WHERE t.laboratory_id = ${laboratoryId}
+          AND s.received_date IS NOT NULL
+          AND t.result_date IS NOT NULL
+        GROUP BY test_type
+        ORDER BY avg_hours DESC
+      `);
+
+      // Amostras pendentes há muito tempo (mais de 7 dias)
+      const samplesPendingTooLongResult = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM samples
+        WHERE laboratory_id = ${laboratoryId}
+          AND status = 'pending'
+          AND created_at < NOW() - INTERVAL '7 days'
+      `);
+
+      // Formatar os dados para um formato que o frontend espera
+      const samplesByStatus = samplesByStatusResult.rows || [];
+      const samplesReceivedByDay = samplesReceivedByDayResult.rows || [];
+      const avgProcessingTimeByTestType = avgProcessingTimeByTestTypeResult.rows || [];
+      const samplesPendingTooLong = parseInt(samplesPendingTooLongResult.rows?.[0]?.count || '0');
+
+      // Dashboard completo
+      const dashboardData = {
+        samplesByStatus,
+        samplesReceivedByDay,
+        avgProcessingTimeByTestType,
+        samplesPendingTooLong,
+        // Adicione mais estatísticas conforme necessário
+      };
+
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Erro ao obter dados do dashboard do laboratório:", error);
+      res.status(500).json({ message: "Erro ao processar a solicitação" });
+    }
+  });
+
   // Rota para obter os dados do dashboard do laboratório
+  // Rota original
   app.get('/api/laboratory/dashboard', authenticate, async (req: Request, res: Response) => {
     try {
       if (!req.session.user || (req.session.user.role !== 'laboratory' && req.session.user.role !== 'admin')) {
