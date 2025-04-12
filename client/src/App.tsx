@@ -1113,8 +1113,8 @@ function AppContent() {
   // Check for laboratory routes
   if (currentPath.startsWith('/laboratory/')) {
     // Verificando se o usuário tem permissão para acessar
-    // Para o MVP, permitiremos acesso de admin e org_admin
-    if (userRole !== 'admin' && userRole !== 'org_admin') {
+    // Permitimos acesso de admin, org_admin e usuários do tipo laboratory
+    if (userRole !== 'admin' && userRole !== 'org_admin' && userRole !== 'laboratory') {
       return (
         <Layout>
           <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">

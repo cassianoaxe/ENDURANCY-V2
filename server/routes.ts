@@ -67,7 +67,7 @@ declare module 'express-session' {
     user: {
       id: number;
       username: string;
-      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee';
+      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee' | 'pharmacist' | 'laboratory';
       name: string;
       email: string;
       organizationId: number | null;
@@ -294,6 +294,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: 'farmaceutico@endurancy.com',
         });
         console.log('Pharmacist user created (using doctor role)');
+      }
+      
+      // Check if laboratory user exists
+      const existingLaboratory = await db.select().from(users).where(eq(users.email, 'admin@laboratorio.com'));
+      if (existingLaboratory.length === 0) {
+        await db.insert(users).values({
+          username: 'laboratorio',
+          password: 'lab123', // In production, this should be hashed
+          role: 'laboratory',
+          name: 'Laboratório Demo',
+          email: 'admin@laboratorio.com',
+        });
+        console.log('Laboratory user created');
       }
     } catch (error) {
       console.error('Error initializing default users:', error);
