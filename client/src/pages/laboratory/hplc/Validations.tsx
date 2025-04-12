@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 interface ValidationParameter {
   name: string;
@@ -79,7 +79,7 @@ interface MethodValidation {
 
 export default function Validations() {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
