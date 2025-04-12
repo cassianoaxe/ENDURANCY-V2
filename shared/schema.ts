@@ -1268,3 +1268,25 @@ export type UserGroupMembership = typeof userGroupMemberships.$inferSelect;
 export type InsertUserGroupMembership = z.infer<typeof insertUserGroupMembershipSchema>;
 export type UserInvitation = typeof userInvitations.$inferSelect;
 export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
+
+// Importações dos schemas de equipamentos de laboratório para combinar todos os schemas
+import {
+  labEquipments,
+  equipmentMaintenances,
+  equipmentCertificates,
+  equipmentStatusEnum,
+  maintenanceTypeEnum,
+  maintenanceStatusEnum,
+  insertLabEquipmentSchema,
+  insertEquipmentMaintenanceSchema,
+  insertEquipmentCertificateSchema,
+  LabEquipment,
+  EquipmentMaintenance,
+  EquipmentCertificate,
+  InsertLabEquipment,
+  InsertEquipmentMaintenance,
+  InsertEquipmentCertificate,
+  labEquipmentsRelations,
+  equipmentMaintenancesRelations,
+  equipmentCertificatesRelations
+} from './schema-lab-equipment';
