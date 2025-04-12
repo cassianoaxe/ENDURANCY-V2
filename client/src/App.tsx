@@ -22,6 +22,8 @@ import HplcConsumables from "@/pages/laboratory/hplc/Consumables";
 import HplcRuns from "@/pages/laboratory/hplc/Runs";
 import HplcProcedures from "@/pages/laboratory/hplc/Procedures";
 import HplcProcedureDetail from "@/pages/laboratory/hplc/ProcedureDetail";
+import HplcValidations from "@/pages/laboratory/hplc/Validations";
+import HplcValidationDetail from "@/pages/laboratory/hplc/ValidationDetail";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1281,12 +1283,13 @@ function AppContent() {
         
         // Validações
         if (currentPath === '/laboratory/hplc/validations') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Validações de Métodos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcValidations />;
+        }
+        
+        // Detalhes da Validação
+        const validationDetailMatch = currentPath.match(/^\/laboratory\/hplc\/validations\/(\d+)$/);
+        if (validationDetailMatch) {
+          return <HplcValidationDetail />;
         }
         
         // Treinamentos
