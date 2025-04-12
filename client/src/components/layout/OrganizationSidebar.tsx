@@ -17,7 +17,7 @@ import {
   BarChart3, BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
   UserPlus, UserCog, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
   HandCoins, Bell, Calendar, Radio, Headphones, Phone, X, CalendarCheck, 
-  Stethoscope
+  Stethoscope, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
