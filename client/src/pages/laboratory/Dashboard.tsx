@@ -1,445 +1,450 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from "recharts";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
-import { BarChart, LineChart, PieChart } from "@/components/ui/charts";
-import { 
-  Activity, 
-  CheckCircle2, 
-  Clock, 
-  Beaker, 
-  AlertTriangle, 
-  TestTube, 
-  XCircle,
-  Clock9,
-  Settings,
-  Users,
-  BarChart3,
-  FileText,
-  Plus
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ArrowUp, ArrowDown, Clock, AlertCircle, CheckCircle, Activity, Beaker, FileCheck } from "lucide-react";
 
-// Cores do sistema para gráficos
-const colors = {
-  approved: "#10b981", // verde
-  completed: "#3b82f6", // azul
-  pending: "#f59e0b", // amarelo
-  rejected: "#ef4444", // vermelho
-  received: "#8b5cf6", // roxo
-  inProgress: "#6366f1", // indigo
-  canceled: "#9ca3af", // cinza
+// Cores para status de amostras
+const SAMPLE_STATUS_COLORS = {
+  pending: "#f97316", // Orange
+  received: "#0ea5e9", // Blue
+  in_progress: "#a855f7", // Purple
+  completed: "#22c55e", // Green
+  approved: "#15803d", // Dark Green
+  rejected: "#dc2626", // Red
+  canceled: "#6b7280", // Gray
 };
 
-const statusLabel = {
-  approved: "Aprovado",
-  completed: "Concluído",
+// Labels amigáveis para status
+const STATUS_LABELS = {
   pending: "Pendente",
-  rejected: "Rejeitado",
-  received: "Recebido",
-  in_progress: "Em Andamento",
-  canceled: "Cancelado",
+  received: "Recebida",
+  in_progress: "Em Análise",
+  completed: "Concluída",
+  approved: "Aprovada",
+  rejected: "Rejeitada",
+  canceled: "Cancelada",
+};
+
+// Rótulos amigáveis para tipos de teste
+const TEST_TYPE_LABELS = {
+  cannabinoid_profile: "Perfil de Canabinóides",
+  terpene_profile: "Perfil de Terpenos",
+  heavy_metals: "Metais Pesados",
+  pesticides: "Pesticidas",
+  microbials: "Microbiológicos",
+  residual_solvents: "Solventes Residuais",
+  mycotoxins: "Micotoxinas",
+  water_activity: "Atividade da Água",
+  moisture_content: "Teor de Umidade",
+  foreign_matter: "Matéria Estranha",
+  visual_inspection: "Inspeção Visual",
+  full_panel: "Painel Completo",
+};
+
+// Função para formatar dados para o gráfico de pizza
+const formatSampleStatusData = (data: any) => {
+  if (!data || !data.samplesByStatus) return [];
+  
+  return data.samplesByStatus.map((item: any) => ({
+    name: STATUS_LABELS[item.status as keyof typeof STATUS_LABELS] || item.status,
+    value: parseInt(item.count),
+    status: item.status,
+  }));
+};
+
+// Função para formatar dados para o gráfico de linha
+const formatSamplesReceivedData = (data: any) => {
+  if (!data || !data.samplesReceivedByDay) return [];
+  
+  return data.samplesReceivedByDay.map((item: any) => ({
+    date: new Date(item.date).toLocaleDateString('pt-BR'),
+    count: parseInt(item.count),
+  }));
+};
+
+// Função para formatar dados para o gráfico de barras
+const formatProcessingTimeData = (data: any) => {
+  if (!data || !data.avgProcessingTimeByTestType) return [];
+  
+  return data.avgProcessingTimeByTestType.map((item: any) => ({
+    name: TEST_TYPE_LABELS[item.test_type as keyof typeof TEST_TYPE_LABELS] || item.test_type,
+    hours: parseFloat(item.avg_hours),
+    test_type: item.test_type,
+  }));
 };
 
 export default function LaboratoryDashboard() {
-  // Buscar dados estatísticos do dashboard
-  const { data: dashboardStats, isLoading } = useQuery({
+  const { data: dashboardData = {}, isLoading, error } = useQuery({
     queryKey: ['/api/laboratory/dashboard'],
-    refetchInterval: 60000, // Atualiza a cada 1 minuto
+    refetchInterval: 60000, // Atualizar a cada 1 minuto
   });
 
+  // Dados formatados para os gráficos
+  const sampleStatusData = React.useMemo(
+    () => formatSampleStatusData(dashboardData),
+    [dashboardData]
+  );
+  
+  const samplesReceivedData = React.useMemo(
+    () => formatSamplesReceivedData(dashboardData),
+    [dashboardData]
+  );
+  
+  const processingTimeData = React.useMemo(
+    () => formatProcessingTimeData(dashboardData),
+    [dashboardData]
+  );
+
   if (isLoading) {
-    return <DashboardSkeleton />;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-lg font-medium mb-2">Carregando dados do dashboard...</h2>
+          <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
+        </div>
+      </div>
+    );
   }
 
-  // Preparar dados para gráficos
-  const samplesByStatusData = {
-    labels: dashboardStats?.samplesByStatus.map((item: any) => statusLabel[item.status as keyof typeof statusLabel] || item.status),
-    datasets: [
-      {
-        data: dashboardStats?.samplesByStatus.map((item: any) => item.count),
-        backgroundColor: [
-          colors.approved,
-          colors.completed,
-          colors.pending,
-          colors.rejected,
-          colors.received,
-          colors.inProgress,
-          colors.canceled,
-        ],
-      },
-    ],
-  };
-
-  const samplesReceivedByDayData = {
-    labels: dashboardStats?.samplesReceivedByDay.map((item: any) => {
-      const date = new Date(item.date);
-      return `${date.getDate()}/${date.getMonth() + 1}`;
-    }),
-    datasets: [
-      {
-        label: "Amostras Recebidas",
-        data: dashboardStats?.samplesReceivedByDay.map((item: any) => item.count),
-        borderColor: colors.completed,
-        backgroundColor: "rgba(59, 130, 246, 0.2)",
-      },
-    ],
-  };
-
-  const processingTimeData = {
-    labels: dashboardStats?.avgProcessingTimeByTestType.map((item: any) => {
-      switch (item.testType) {
-        case "cannabinoid_profile": return "Canabinoides";
-        case "terpene_profile": return "Terpenos";
-        case "heavy_metals": return "Metais Pesados";
-        case "pesticides": return "Pesticidas";
-        case "microbials": return "Microbiológico";
-        case "residual_solvents": return "Solventes";
-        case "mycotoxins": return "Micotoxinas";
-        default: return item.testType;
-      }
-    }),
-    datasets: [
-      {
-        label: "Tempo de Processamento (horas)",
-        data: dashboardStats?.avgProcessingTimeByTestType.map((item: any) => parseFloat(item.avgTime).toFixed(1)),
-        backgroundColor: colors.inProgress,
-      },
-    ],
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-medium mb-2">Erro ao carregar dados</h2>
+          <p className="text-gray-500 mb-4">
+            Ocorreu um erro ao buscar os dados do dashboard. Por favor, tente novamente mais tarde.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard do Laboratório</h1>
-          <p className="text-gray-500 mt-1">
-            Acompanhe o desempenho e as atividades do laboratório em tempo real
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard do Laboratório</h1>
+          <p className="text-muted-foreground">
+            Visão geral das análises, amostras e resultados
           </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="hidden md:flex">
-            <FileText className="mr-2 h-4 w-4" />
-            Exportar Relatório
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Atualizar dados
           </Button>
-          <Link href="/laboratory/samples/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Amostra
-            </Button>
-          </Link>
+          <Button>
+            <FileCheck className="mr-2 h-4 w-4" />
+            Gerar relatório
+          </Button>
         </div>
       </div>
 
-      {/* Cards com métricas principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <Separator />
+
+      {/* Cards de estatísticas */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Total de Amostras</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between p-4">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">Total de Amostras</CardTitle>
+              <CardDescription>Soma de todos os status</CardDescription>
+            </div>
+            <Beaker className="h-5 w-5 text-gray-500" />
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Beaker className="h-8 w-8 text-emerald-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {dashboardStats?.samplesByStatus.reduce((acc: number, item: any) => acc + item.count, 0)}
-                </div>
-                <p className="text-xs text-gray-500">Todos os status</p>
-              </div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-3xl font-bold">
+              {sampleStatusData.reduce((sum, item) => sum + item.value, 0)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span className="text-green-500 font-medium inline-flex items-center">
+                <ArrowUp className="h-3 w-3 mr-1" />
+                12%
+              </span>{" "}
+              vs. mês anterior
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Amostras Pendentes</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between p-4">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">Amostras Pendentes</CardTitle>
+              <CardDescription>Requer ação</CardDescription>
+            </div>
+            <Clock className="h-5 w-5 text-orange-500" />
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-amber-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {dashboardStats?.samplesByStatus.find((item: any) => item.status === "pending")?.count || 0}
-                </div>
-                <p className="text-xs text-gray-500">Aguardando processamento</p>
-              </div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-3xl font-bold">
+              {sampleStatusData.find(item => item.status === 'pending')?.value || 0}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {dashboardData.samplesPendingTooLong > 0 ? (
+                <span className="text-orange-500 font-medium inline-flex items-center">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {dashboardData.samplesPendingTooLong} com atraso
+                </span>
+              ) : (
+                <span className="text-green-500 font-medium inline-flex items-center">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Sem atrasos
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Concluídas/Aprovadas</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between p-4">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">Em Análise</CardTitle>
+              <CardDescription>Amostras em processamento</CardDescription>
+            </div>
+            <Activity className="h-5 w-5 text-purple-500" />
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <CheckCircle2 className="h-8 w-8 text-emerald-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {(dashboardStats?.samplesByStatus.find((item: any) => item.status === "completed")?.count || 0) +
-                   (dashboardStats?.samplesByStatus.find((item: any) => item.status === "approved")?.count || 0)}
-                </div>
-                <p className="text-xs text-gray-500">Resultados disponíveis</p>
-              </div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-3xl font-bold">
+              {sampleStatusData.find(item => item.status === 'in_progress')?.value || 0}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span className="text-purple-500 font-medium">
+                Tempo médio: 48h
+              </span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Tempo Médio</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between p-4">
+            <div className="flex flex-col gap-1">
+              <CardTitle className="text-base">Concluídas</CardTitle>
+              <CardDescription>Últimos 30 dias</CardDescription>
+            </div>
+            <CheckCircle className="h-5 w-5 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Activity className="h-8 w-8 text-blue-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {dashboardStats?.avgProcessingTimeByTestType.length > 0 
-                    ? (dashboardStats?.avgProcessingTimeByTestType.reduce(
-                        (acc: number, item: any) => acc + parseFloat(item.avgTime), 
-                        0
-                      ) / dashboardStats?.avgProcessingTimeByTestType.length).toFixed(1)
-                    : "N/A"}
-                </div>
-                <p className="text-xs text-gray-500">Horas para conclusão</p>
-              </div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-3xl font-bold">
+              {sampleStatusData.find(item => item.status === 'completed')?.value || 0}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span className={
+                  sampleStatusData.find(item => item.status === 'rejected')?.value > 0
+                    ? "text-red-500 font-medium inline-flex items-center"
+                    : "text-green-500 font-medium inline-flex items-center"
+                }
+              >
+                {sampleStatusData.find(item => item.status === 'rejected')?.value > 0 ? (
+                  <>
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    {sampleStatusData.find(item => item.status === 'rejected')?.value} rejeitadas
+                  </>
+                ) : (
+                  <>
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    0% de rejeição
+                  </>
+                )}
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Distribuição de amostras por status */}
+        <Card className="col-span-1">
           <CardHeader>
             <CardTitle>Amostras por Status</CardTitle>
-            <CardDescription>Distribuição atual de todas as amostras</CardDescription>
+            <CardDescription>
+              Distribuição atual das amostras por status
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <PieChart data={samplesByStatusData} />
-            </div>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={sampleStatusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => 
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {sampleStatusData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={SAMPLE_STATUS_COLORS[entry.status as keyof typeof SAMPLE_STATUS_COLORS] || "#8884d8"} 
+                    />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: any, name: any, props: any) => [
+                    `${value} amostras`, 
+                    props.payload.name
+                  ]}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        {/* Amostras recebidas por dia */}
+        <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Amostras Recebidas por Dia</CardTitle>
-            <CardDescription>Últimos 30 dias</CardDescription>
+            <CardTitle>Recebimento de Amostras</CardTitle>
+            <CardDescription>
+              Amostras recebidas nos últimos 30 dias
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <LineChart data={samplesReceivedByDayData} />
-            </div>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={samplesReceivedData}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 70,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={70}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  name="Amostras Recebidas"
+                  stroke="#0ea5e9"
+                  activeDot={{ r: 8 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        {/* Tempo médio de processamento por tipo de teste */}
+        <Card className="col-span-1 lg:col-span-1 md:col-span-2">
           <CardHeader>
-            <CardTitle>Tempo Médio de Processamento por Tipo</CardTitle>
-            <CardDescription>Em horas, para cada tipo de teste</CardDescription>
+            <CardTitle>Tempo de Processamento</CardTitle>
+            <CardDescription>
+              Tempo médio de análise por tipo de teste (horas)
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-80">
-              <BarChart data={processingTimeData} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Amostras Aguardando por Mais Tempo</CardTitle>
-            <CardDescription>Amostras pendentes por mais de 3 dias</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2">
-            <div className="space-y-2">
-              {dashboardStats?.samplesPendingTooLong && dashboardStats.samplesPendingTooLong.length > 0 ? (
-                dashboardStats.samplesPendingTooLong.map((sample: any) => (
-                  <div key={sample.id} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50">
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 mr-3" />
-                      <div>
-                        <div className="text-sm font-medium">{sample.productName}</div>
-                        <div className="text-xs text-gray-500">
-                          #{sample.trackingNumber} • {sample.organizationName}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-sm font-semibold text-amber-600 mr-2">
-                        {sample.waitingDays} dias
-                      </span>
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link href={`/laboratory/samples/${sample.id}`}>
-                          <span>Ver</span>
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-3" />
-                  <h3 className="text-lg font-medium">Sem atrasos!</h3>
-                  <p className="text-sm text-gray-500 max-w-md">
-                    Todas as amostras estão dentro do prazo esperado de processamento.
-                  </p>
-                </div>
-              )}
-            </div>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={processingTimeData}
+                layout="vertical"
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 150,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={140}
+                  tick={{ fontSize: 11 }}
+                />
+                <Tooltip 
+                  formatter={(value: any) => [`${value.toFixed(1)} horas`, "Tempo médio"]}
+                />
+                <Legend />
+                <Bar 
+                  dataKey="hours" 
+                  name="Tempo médio (horas)" 
+                  fill="#a855f7" 
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Ícones para acesso rápido */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-        <Link href="/laboratory/samples">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Beaker className="h-8 w-8 text-emerald-500 mb-2" />
-              <span className="text-sm font-medium">Amostras</span>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/laboratory/tests">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <TestTube className="h-8 w-8 text-blue-500 mb-2" />
-              <span className="text-sm font-medium">Testes</span>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/laboratory/results">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <FileText className="h-8 w-8 text-purple-500 mb-2" />
-              <span className="text-sm font-medium">Resultados</span>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/laboratory/samples/track">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Clock9 className="h-8 w-8 text-amber-500 mb-2" />
-              <span className="text-sm font-medium">Rastreio</span>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/laboratory/reports">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <BarChart3 className="h-8 w-8 text-indigo-500 mb-2" />
-              <span className="text-sm font-medium">Relatórios</span>
-            </CardContent>
-          </Card>
-        </Link>
-        
-        <Link href="/laboratory/settings">
-          <Card className="cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
-              <Settings className="h-8 w-8 text-gray-500 mb-2" />
-              <span className="text-sm font-medium">Configurações</span>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// Esqueleto para carregamento
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-4 w-72 mt-2" />
-        </div>
-        <div className="flex gap-3">
-          <Skeleton className="h-10 w-36" />
-          <Skeleton className="h-10 w-36" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Card key={index}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <Skeleton className="h-8 w-8 rounded-full mr-3" />
-                <div>
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-3 w-24 mt-1" />
-                </div>
+      {/* Alertas e ações necessárias */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Alertas e Ações</CardTitle>
+          <CardDescription>
+            Tarefas que precisam de atenção
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dashboardData.samplesPendingTooLong > 0 ? (
+            <div className="bg-orange-50 p-4 rounded-md border border-orange-200 flex items-start gap-3 mb-3">
+              <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-orange-700">Amostras com atraso</h3>
+                <p className="text-orange-600 text-sm">
+                  Existem {dashboardData.samplesPendingTooLong} amostras pendentes há mais de 7 dias.
+                </p>
+                <Button variant="outline" size="sm" className="mt-2">
+                  Ver amostras
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Array.from({ length: 2 }).map((_, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-64 mt-1" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-80 w-full rounded-md" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-56" />
-            <Skeleton className="h-4 w-48 mt-1" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-80 w-full rounded-md" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-64" />
-            <Skeleton className="h-4 w-48 mt-1" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Skeleton className="h-5 w-5 rounded-full mr-3" />
-                    <div>
-                      <Skeleton className="h-4 w-36" />
-                      <Skeleton className="h-3 w-24 mt-1" />
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <Skeleton className="h-4 w-12 mr-2" />
-                    <Skeleton className="h-8 w-16 rounded-md" />
-                  </div>
-                </div>
-              ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          ) : (
+            <div className="bg-green-50 p-4 rounded-md border border-green-200 flex items-start gap-3">
+              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-green-700">Nenhum alerta crítico</h3>
+                <p className="text-green-600 text-sm">
+                  Todas as amostras estão sendo processadas dentro do prazo esperado.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
