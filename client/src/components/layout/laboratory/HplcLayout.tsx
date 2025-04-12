@@ -115,19 +115,16 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
     const isActive = location === item.href;
     return (
       <li>
-        <Link href={item.href}>
-          <a
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
+        <Button
+          asChild
+          variant={isActive ? "default" : "ghost"}
+          className="w-full justify-start"
+        >
+          <Link href={item.href}>
+            <item.icon className="h-5 w-5 mr-2" />
             <span>{item.title}</span>
-          </a>
-        </Link>
+          </Link>
+        </Button>
       </li>
     );
   };
@@ -138,12 +135,14 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <div className="flex flex-1 items-center gap-4">
           {/* Logo */}
-          <Link href="/laboratory/dashboard">
-            <a className="flex items-center gap-2 font-semibold">
-              <Beaker className="h-6 w-6 text-primary" />
-              <span className="hidden md:inline-block">Portal HPLC</span>
-            </a>
-          </Link>
+          <Button asChild variant="ghost" className="p-0">
+            <Link href="/laboratory/dashboard">
+              <div className="flex items-center gap-2 font-semibold">
+                <Beaker className="h-6 w-6 text-primary" />
+                <span className="hidden md:inline-block">Portal HPLC</span>
+              </div>
+            </Link>
+          </Button>
 
           {/* Navegação principal (visível apenas em telas grandes) */}
           <nav className="hidden md:flex flex-1">
@@ -249,7 +248,7 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/profile">
-                        <a className="w-full cursor-pointer">Perfil</a>
+                        <div className="w-full cursor-pointer">Perfil</div>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -301,10 +300,10 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                 asChild
               >
                 <Link href="/laboratory/dashboard">
-                  <a className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Home className="h-4 w-4" />
                     Voltar ao Laboratório
-                  </a>
+                  </div>
                 </Link>
               </Button>
             </div>
