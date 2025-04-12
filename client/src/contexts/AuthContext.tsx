@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: number;
   username: string;
-  role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist';
+  role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory';
   name: string;
   email: string;
   organizationId: number | null;
@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist', orgCode?: string) => Promise<void>;
+  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory', orgCode?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuthStatus();
   }, []);
 
-  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist', orgCode?: string) => {
+  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory', orgCode?: string) => {
     setIsLoading(true);
     try {
       // Construir o corpo da requisição com base nos parâmetros disponíveis
@@ -129,6 +129,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectPath = '/patient/dashboard';
       } else if (userData.role === 'pharmacist') {
         redirectPath = '/pharmacist/dashboard';
+      } else if (userData.role === 'laboratory') {
+        redirectPath = '/laboratory/dashboard';
+        console.log("Redirecionando laboratório para o dashboard do laboratório");
       }
       
       console.log(`Login bem-sucedido como ${userData.role}, redirecionando para ${redirectPath}`);

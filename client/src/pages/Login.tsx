@@ -89,12 +89,13 @@ export default function Login() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
-      // Ajuste temporário: Se está tentando logar como farmacêutico, enviar role "doctor"
-      // Isso é necessário porque no banco de dados o usuário farmacêutico está com role "doctor"
+      // Ajuste para tipos de usuário específicos
       let loginType = userType;
+      // Farmacêutico temporariamente usando "doctor"
       if (userType === 'pharmacist') {
-        loginType = 'doctor'; // Temporariamente usando "doctor" para farmacêutico
+        loginType = 'doctor'; 
       }
+      // Agora laboratório usa seu próprio tipo
       
       // Se é um login específico para organização, incluir o código no login
       if (isOrgLogin && orgCode) {
@@ -104,9 +105,12 @@ export default function Login() {
         await login(data.username, data.password, loginType);
       }
       
-      // Se é farmacêutico, redirecionar para dashboard de farmacêutico após login bem-sucedido
+      // Redirecionamentos baseados no tipo de usuário
       if (userType === 'pharmacist') {
         window.history.pushState({}, '', '/pharmacist/dashboard');
+        window.dispatchEvent(new Event('popstate'));
+      } else if (userType === 'laboratory') {
+        window.history.pushState({}, '', '/laboratory/dashboard');
         window.dispatchEvent(new Event('popstate'));
       }
       
@@ -278,6 +282,8 @@ export default function Login() {
                                   role === 'admin' ? 'admin@comply.com' :
                                   role === 'org_admin' ? 'admin@organizacao.com' :
                                   role === 'doctor' ? 'medico@endurancy.com' :
+                                  role === 'laboratory' ? 'admin@laboratorio.com' :
+                                  role === 'pharmacist' ? 'farmaceutico@endurancy.com' :
                                   'paciente@email.com'
                                 } 
                                 className="pl-10 h-12 bg-white" 
