@@ -164,11 +164,31 @@ export default function LaboratoryDashboard() {
   const { data: dashboardData = {}, isLoading, error } = useQuery({
     queryKey: ['/api/lab-dashboard'],
     queryFn: async () => {
-      const response = await fetch('/api/lab-dashboard');
-      if (!response.ok) {
-        throw new Error("Erro ao buscar dados do dashboard");
+      console.log("Tentando buscar dados do dashboard de laboratório...");
+      try {
+        const response = await fetch('/api/lab-dashboard', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        console.log("Response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Erro ao buscar dados do dashboard:", errorText);
+          throw new Error(`Erro ao buscar dados do dashboard: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Dados do dashboard recebidos:", data);
+        return data;
+      } catch (err) {
+        console.error("Erro durante a requisição do dashboard:", err);
+        throw err;
       }
-      return response.json();
     },
     refetchInterval: 60000, // Atualizar a cada 1 minuto
   });
