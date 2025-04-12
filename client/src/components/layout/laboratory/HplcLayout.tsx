@@ -87,13 +87,7 @@ const hplcMenuItems: HplcMenuItem[] = [
     title: "Validações",
     href: "/laboratory/hplc/validations",
     description: "Validação de métodos analíticos",
-  },
-  {
-    icon: School,
-    title: "Treinamentos",
-    href: "/laboratory/hplc/trainings",
-    description: "Gestão de treinamentos",
-  },
+  }
 ];
 
 interface HplcLayoutProps {
