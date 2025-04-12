@@ -12,6 +12,9 @@ import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
+import LaboratoryReports from "@/pages/laboratory/Reports";
+import LaboratoryTeam from "@/pages/laboratory/Team";
+import LaboratorySettings from "@/pages/laboratory/Settings";
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
@@ -20,7 +23,7 @@ import OrganizationRegistration from "@/pages/OrganizationRegistration";
 import OrganizationConfirmation from "@/pages/OrganizationConfirmation";
 import EmailTemplates from "@/pages/EmailTemplates";
 import RoutesList from "@/pages/RoutesList";
-import Settings from "@/pages/Settings";
+import AdminSettings from "@/pages/Settings";
 import OrderView from "@/pages/OrderView";
 import Login from "@/pages/Login";
 import ActivityLog from "@/pages/ActivityLog";
@@ -1170,6 +1173,30 @@ function AppContent() {
       );
     }
     
+    if (currentPath === '/laboratory/reports') {
+      return (
+        <LaboratoryLayout>
+          <LaboratoryReports />
+        </LaboratoryLayout>
+      );
+    }
+    
+    if (currentPath === '/laboratory/team') {
+      return (
+        <LaboratoryLayout>
+          <LaboratoryTeam />
+        </LaboratoryLayout>
+      );
+    }
+    
+    if (currentPath === '/laboratory/settings') {
+      return (
+        <LaboratoryLayout>
+          <LaboratorySettings />
+        </LaboratoryLayout>
+      );
+    }
+    
     // Detalhes da amostra
     const sampleDetailMatch = currentPath.match(/^\/laboratory\/samples\/(\d+)$/);
     if (sampleDetailMatch) {
@@ -1449,7 +1476,7 @@ function AppContent() {
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
-      case '/settings': Component = Settings; break;
+      case '/settings': Component = AdminSettings; break;
       case '/support-dashboard': Component = SupportDashboard; break;
       case '/documentation': Component = Documentation; break;
       case '/data-import': Component = DataImport; break;

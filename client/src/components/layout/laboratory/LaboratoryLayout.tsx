@@ -250,7 +250,27 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    console.log('Clicando em Configurações no dropdown, navegando para: /laboratory/settings');
+                    setActiveMenuItem('/laboratory/settings');
+                    
+                    // Navegação manual
+                    window.history.pushState({}, '', '/laboratory/settings');
+                    
+                    // Disparar eventos para garantir atualização de componentes
+                    window.dispatchEvent(new Event('popstate'));
+                    window.dispatchEvent(new CustomEvent('navigation', { 
+                      detail: { path: '/laboratory/settings' } 
+                    }));
+                    
+                    // Forçar atualização do DOM
+                    document.body.classList.add('navigating');
+                    setTimeout(() => {
+                      document.body.classList.remove('navigating');
+                    }, 10);
+                  }}
+                >
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   <span>Configurações</span>
                 </DropdownMenuItem>
