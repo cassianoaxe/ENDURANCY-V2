@@ -25,6 +25,8 @@ import HplcProcedureDetail from "@/pages/laboratory/hplc/ProcedureDetail";
 import HplcValidations from "@/pages/laboratory/hplc/Validations";
 import HplcValidationDetail from "@/pages/laboratory/hplc/ValidationDetail";
 import HplcTrainings from "@/pages/laboratory/hplc/Trainings";
+import LabEquipments from "@/pages/laboratory/equipment/Equipments";
+import EquipmentDetail from "@/pages/laboratory/equipment/EquipmentDetail";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1222,6 +1224,25 @@ function AppContent() {
       return (
         <LaboratoryLayout>
           <TestDetail />
+        </LaboratoryLayout>
+      );
+    }
+    
+    // Rotas do módulo de Equipamentos
+    if (currentPath === '/laboratory/equipment') {
+      return (
+        <LaboratoryLayout>
+          <LabEquipments />
+        </LaboratoryLayout>
+      );
+    }
+    
+    // Detalhes do equipamento
+    const equipmentDetailMatch = currentPath.match(/^\/laboratory\/equipment\/(\d+)$/);
+    if (equipmentDetailMatch) {
+      return (
+        <LaboratoryLayout>
+          <EquipmentDetail />
         </LaboratoryLayout>
       );
     }
