@@ -92,7 +92,7 @@ export default function HplcEquipments() {
   const queryClient = useQueryClient();
   const [isNewEquipmentOpen, setIsNewEquipmentOpen] = useState(false);
   const [filters, setFilters] = useState<EquipmentFilters>({
-    status: null,
+    status: "all",
     search: "",
   });
   const [newEquipment, setNewEquipment] = useState<Partial<HplcEquipment>>({
@@ -149,8 +149,8 @@ export default function HplcEquipments() {
     if (!equipmentList) return [];
 
     return equipmentList.filter((equipment) => {
-      // Filtrar por status
-      if (filters.status && equipment.status !== filters.status) {
+      // Filtrar por status (ignorar filtro se for "all")
+      if (filters.status && filters.status !== "all" && equipment.status !== filters.status) {
         return false;
       }
 
@@ -237,7 +237,7 @@ export default function HplcEquipments() {
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="operational">Operacional</SelectItem>
                   <SelectItem value="maintenance">Em Manutenção</SelectItem>
                   <SelectItem value="out_of_service">Fora de Serviço</SelectItem>
