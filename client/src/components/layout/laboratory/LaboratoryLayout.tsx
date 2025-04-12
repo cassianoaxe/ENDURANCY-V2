@@ -84,7 +84,31 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
   React.useEffect(() => {
     // Definir o item de menu ativo com base na URL atual
     const path = window.location.pathname;
+    console.log('LaboratoryLayout: URL atual:', path);
     setActiveMenuItem(path);
+    
+    // Adicionar listener para eventos de navegação
+    const handleNavigation = () => {
+      const newPath = window.location.pathname;
+      console.log('LaboratoryLayout: Atualização da navegação para:', newPath);
+      setActiveMenuItem(newPath);
+    };
+    
+    // Escutar eventos regulares de navegação
+    window.addEventListener('popstate', handleNavigation);
+    
+    // Escutar eventos personalizados de navegação
+    window.addEventListener('navigation', (e: any) => {
+      console.log('LaboratoryLayout: Evento de navegação customizado:', e.detail?.path);
+      if (e.detail?.path) {
+        setActiveMenuItem(e.detail.path);
+      }
+    });
+    
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('navigation', handleNavigation as EventListener);
+    };
   }, []);
 
   const handleMenuItemClick = (path: string) => {
@@ -150,10 +174,29 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
                 <Separator className="my-2" />
                 <nav className="flex flex-col gap-1 mt-4">
                   {menuItems.map((item) => (
-                    <Link
+                    <a
                       key={item.path}
                       href={item.path}
-                      onClick={() => handleMenuItemClick(item.path)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(`Menu móvel: Clicando no item ${item.label}, navegando para: ${item.path}`);
+                        handleMenuItemClick(item.path);
+                        
+                        // Navegação manual
+                        window.history.pushState({}, '', item.path);
+                        
+                        // Disparar eventos para garantir atualização de componentes
+                        window.dispatchEvent(new Event('popstate'));
+                        window.dispatchEvent(new CustomEvent('navigation', { 
+                          detail: { path: item.path } 
+                        }));
+                        
+                        // Forçar atualização do DOM
+                        document.body.classList.add('navigating');
+                        setTimeout(() => {
+                          document.body.classList.remove('navigating');
+                        }, 10);
+                      }}
                     >
                       <Button
                         variant={activeMenuItem === item.path ? "default" : "ghost"}
@@ -162,7 +205,7 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
                         {item.icon}
                         {item.label}
                       </Button>
-                    </Link>
+                    </a>
                   ))}
                   <Separator className="my-2" />
                   <Button
@@ -254,16 +297,38 @@ export default function LaboratoryLayout({ children }: { children: React.ReactNo
           {/* Menu de navegação */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {menuItems.map((item) => (
-              <Link key={item.path} href={item.path}>
+              <a 
+                key={item.path} 
+                href={item.path}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log(`Clicando no item de menu: ${item.label}, navegando para: ${item.path}`);
+                  setActiveMenuItem(item.path);
+                  
+                  // Navegação manual
+                  window.history.pushState({}, '', item.path);
+                  
+                  // Disparar eventos para garantir atualização de componentes
+                  window.dispatchEvent(new Event('popstate'));
+                  window.dispatchEvent(new CustomEvent('navigation', { 
+                    detail: { path: item.path } 
+                  }));
+                  
+                  // Forçar atualização do DOM
+                  document.body.classList.add('navigating');
+                  setTimeout(() => {
+                    document.body.classList.remove('navigating');
+                  }, 10);
+                }}
+              >
                 <Button
                   variant={activeMenuItem === item.path ? "default" : "ghost"}
                   className="w-full justify-start"
-                  onClick={() => setActiveMenuItem(item.path)}
                 >
                   {item.icon}
                   {item.label}
                 </Button>
-              </Link>
+              </a>
             ))}
           </nav>
           
