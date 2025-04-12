@@ -1,17 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { useLocation } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -21,71 +17,51 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  AlertTriangle, 
-  CheckCircle2, 
-  Clock, 
-  Download, 
-  FileText, 
-  Filter, 
-  Beaker, 
-  Loader2, 
-  MoreHorizontal,
-  Plus,
-  Search,
-  TestTube,
-  XCircle,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { AlertCircle, Search, Filter, Beaker, Plus, RefreshCw } from "lucide-react";
 
-// Mapear cores para status
-const statusColors: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  received: "bg-blue-100 text-blue-800 border-blue-200",
-  in_progress: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  approved: "bg-green-100 text-green-800 border-green-200",
-  rejected: "bg-red-100 text-red-800 border-red-200",
-  canceled: "bg-gray-100 text-gray-800 border-gray-200",
-};
-
-// Mapear ícones para status
-const statusIcons: Record<string, React.ReactNode> = {
-  pending: <Clock className="w-4 h-4" />,
-  received: <Beaker className="w-4 h-4" />,
-  in_progress: <Loader2 className="w-4 h-4" />,
-  completed: <TestTube className="w-4 h-4" />,
-  approved: <CheckCircle2 className="w-4 h-4" />,
-  rejected: <XCircle className="w-4 h-4" />,
-  canceled: <AlertTriangle className="w-4 h-4" />,
-};
-
-// Tradução dos status para português
-const statusLabels: Record<string, string> = {
+// Labels amigáveis para status
+const STATUS_LABELS = {
   pending: "Pendente",
-  received: "Recebido",
+  received: "Recebida",
   in_progress: "Em Análise",
-  completed: "Concluído",
-  approved: "Aprovado",
-  rejected: "Rejeitado",
-  canceled: "Cancelado",
+  completed: "Concluída",
+  approved: "Aprovada",
+  rejected: "Rejeitada",
+  canceled: "Cancelada",
 };
 
-// Tradução dos tipos de amostra
-const sampleTypeLabels: Record<string, string> = {
+// Cores para badges de status
+const STATUS_COLORS: Record<string, string> = {
+  pending: "bg-orange-100 text-orange-800 hover:bg-orange-200",
+  received: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+  in_progress: "bg-purple-100 text-purple-800 hover:bg-purple-200",
+  completed: "bg-green-100 text-green-800 hover:bg-green-200",
+  approved: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200",
+  rejected: "bg-red-100 text-red-800 hover:bg-red-200",
+  canceled: "bg-gray-100 text-gray-800 hover:bg-gray-200",
+};
+
+// Tipos de amostra
+const SAMPLE_TYPES = {
   flower: "Flor",
   concentrate: "Concentrado",
   extract: "Extrato",
@@ -94,297 +70,383 @@ const sampleTypeLabels: Record<string, string> = {
   tincture: "Tintura",
   oil: "Óleo",
   raw_material: "Matéria-prima",
-  in_process: "Em processo",
-  finished_product: "Produto final",
+  in_process: "Em processamento",
+  finished_product: "Produto Final",
   other: "Outro",
 };
 
-export default function LaboratorySamples() {
-  // Estados para filtros
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+interface SampleSearchParams {
+  page: number;
+  limit: number;
+  status: string | null;
+  sampleType: string | null;
+  search: string;
+}
 
-  // Buscar amostras com filtros aplicados
-  const { data: samplesData, isLoading } = useQuery({
-    queryKey: ['/api/laboratory/samples', statusFilter, typeFilter, searchQuery],
-    queryFn: async () => {
-      let url = '/api/laboratory/samples?';
-      if (statusFilter) url += `status=${statusFilter}&`;
-      if (typeFilter) url += `sampleType=${typeFilter}&`;
-      if (searchQuery) url += `trackingNumber=${searchQuery}&`;
-      
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Erro ao buscar amostras');
-      return response.json();
-    },
+export default function LaboratorySamples() {
+  const [, setLocation] = useLocation();
+
+  // Estado para parâmetros de busca e filtros
+  const [searchParams, setSearchParams] = React.useState<SampleSearchParams>({
+    page: 1,
+    limit: 10,
+    status: null,
+    sampleType: null,
+    search: "",
   });
 
-  // Calcular a paginação
-  const samples = samplesData || [];
-  const totalPages = Math.ceil(samples.length / itemsPerPage);
-  const paginatedSamples = samples.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Estado para o valor atual do campo de busca antes de submeter
+  const [searchInputValue, setSearchInputValue] = React.useState("");
+
+  // Buscar dados das amostras com base nos filtros e paginação
+  const { 
+    data: samplesData, 
+    isLoading, 
+    error,
+    refetch 
+  } = useQuery({
+    queryKey: [
+      '/api/laboratory/samples', 
+      searchParams.page, 
+      searchParams.limit, 
+      searchParams.status, 
+      searchParams.sampleType, 
+      searchParams.search
+    ],
+  });
+
+  // Manipuladores de eventos para filtros e paginação
+  const handleStatusChange = (value: string) => {
+    setSearchParams({
+      ...searchParams,
+      status: value === "all" ? null : value,
+      page: 1, // Resetar para a primeira página quando mudar o filtro
+    });
+  };
+
+  const handleTypeChange = (value: string) => {
+    setSearchParams({
+      ...searchParams,
+      sampleType: value === "all" ? null : value,
+      page: 1,
+    });
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchParams({
+      ...searchParams,
+      search: searchInputValue,
+      page: 1,
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({
+      ...searchParams,
+      page: newPage,
+    });
+  };
+
+  // Função para renderizar os controles de paginação
+  const renderPagination = () => {
+    if (!samplesData || !samplesData.pagination) return null;
+
+    const { page, totalPages } = samplesData.pagination;
+    
+    // Determinar quais páginas mostrar
+    const pageNumbers: (number | string)[] = [];
+    
+    if (totalPages <= 7) {
+      // Se houver 7 ou menos páginas, mostrar todas
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Sempre incluir primeira página
+      pageNumbers.push(1);
+      
+      // Se a página atual estiver próxima do início
+      if (page <= 3) {
+        pageNumbers.push(2, 3, 4, '...', totalPages);
+      } 
+      // Se a página atual estiver próxima do fim
+      else if (page >= totalPages - 2) {
+        pageNumbers.push('...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } 
+      // Se a página atual estiver no meio
+      else {
+        pageNumbers.push('...', page - 1, page, page + 1, '...', totalPages);
+      }
+    }
+
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => page > 1 && handlePageChange(page - 1)}
+              className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {pageNumbers.map((pageNum, index) => (
+            typeof pageNum === 'string' ? (
+              <PaginationItem key={`ellipsis-${index}`}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            ) : (
+              <PaginationItem key={pageNum}>
+                <PaginationLink
+                  onClick={() => handlePageChange(pageNum)}
+                  isActive={page === pageNum}
+                >
+                  {pageNum}
+                </PaginationLink>
+              </PaginationItem>
+            )
+          ))}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => page < totalPages && handlePageChange(page + 1)}
+              className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
+  // Formatar data para exibição
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Estado de carregamento
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h2 className="text-lg font-medium mb-2">Carregando amostras...</h2>
+          <div className="animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de erro
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-medium mb-2">Erro ao carregar amostras</h2>
+          <p className="text-gray-500 mb-4">
+            Ocorreu um erro ao buscar as amostras. Por favor, tente novamente mais tarde.
+          </p>
+          <Button 
+            onClick={() => refetch()}
+            variant="outline"
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Amostras</h1>
-          <p className="text-gray-500 mt-1">
-            Gerencie e acompanhe todas as amostras do laboratório
+          <h1 className="text-2xl font-bold tracking-tight">Amostras</h1>
+          <p className="text-muted-foreground">
+            Gerencie e monitore as amostras enviadas para análise
           </p>
         </div>
-        <Link href="/laboratory/samples/new">
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => refetch()}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Atualizar
+          </Button>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Nova Amostra
           </Button>
-        </Link>
+        </div>
       </div>
 
-      {/* Filtros */}
+      <Separator />
+
+      {/* Filtros e busca */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center">
-            <Filter className="mr-2 h-5 w-5 text-gray-500" />
-            Filtros e Pesquisa
-          </CardTitle>
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+          <CardDescription>
+            Filtre as amostras por status, tipo ou busque por código
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Pesquisar por código de rastreio..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                onValueChange={handleStatusChange}
+                defaultValue="all"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="received">Recebido</SelectItem>
-                <SelectItem value="in_progress">Em Análise</SelectItem>
-                <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="approved">Aprovado</SelectItem>
-                <SelectItem value="rejected">Rejeitado</SelectItem>
-                <SelectItem value="canceled">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de Amostra</label>
+              <Select
+                onValueChange={handleTypeChange}
+                defaultValue="all"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os tipos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  {Object.entries(SAMPLE_TYPES).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de Amostra" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
-                <SelectItem value="flower">Flor</SelectItem>
-                <SelectItem value="concentrate">Concentrado</SelectItem>
-                <SelectItem value="extract">Extrato</SelectItem>
-                <SelectItem value="oil">Óleo</SelectItem>
-                <SelectItem value="edible">Comestível</SelectItem>
-                <SelectItem value="topical">Tópico</SelectItem>
-                <SelectItem value="raw_material">Matéria-prima</SelectItem>
-                <SelectItem value="finished_product">Produto final</SelectItem>
-                <SelectItem value="other">Outro</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Buscar</label>
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <Input 
+                  placeholder="Código, lote ou organização..."
+                  value={searchInputValue}
+                  onChange={(e) => setSearchInputValue(e.target.value)}
+                  className="flex-1"
+                />
+                <Button type="submit" variant="secondary">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Lista de amostras */}
       <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <TableSkeleton />
-          ) : samples.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Beaker className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">Nenhuma amostra encontrada</h3>
-              <p className="mt-1 text-sm text-gray-500 max-w-md">
-                Não encontramos nenhuma amostra com os filtros aplicados. Tente ajustar seus critérios de pesquisa ou adicione uma nova amostra.
-              </p>
-              <Button className="mt-4" asChild>
-                <Link href="/laboratory/samples/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nova Amostra
-                </Link>
-              </Button>
-            </div>
-          ) : (
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Amostras</CardTitle>
+            {samplesData?.pagination && (
+              <div className="text-sm text-muted-foreground">
+                Mostrando {samplesData.data.length} de {samplesData.pagination.totalCount} amostras
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {samplesData?.data && samplesData.data.length > 0 ? (
             <>
-              <div className="overflow-x-auto">
+              <div className="rounded-md border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[100px]">Código</TableHead>
-                      <TableHead>Produto</TableHead>
-                      <TableHead>Organização</TableHead>
+                      <TableHead>Código</TableHead>
                       <TableHead>Tipo</TableHead>
+                      <TableHead>Organização</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Data de Recebimento</TableHead>
+                      <TableHead>Data de Envio</TableHead>
+                      <TableHead>Testes</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedSamples.map((sample) => (
+                    {samplesData.data.map((sample: any) => (
                       <TableRow key={sample.id}>
-                        <TableCell className="font-mono text-xs">
-                          {sample.trackingNumber}
-                        </TableCell>
+                        <TableCell className="font-medium">{sample.code}</TableCell>
                         <TableCell>
-                          <div className="font-medium">{sample.productName}</div>
-                          {sample.batchNumber && (
-                            <div className="text-xs text-gray-500">
-                              Lote: {sample.batchNumber}
-                            </div>
-                          )}
+                          {SAMPLE_TYPES[sample.sample_type as keyof typeof SAMPLE_TYPES] || sample.sample_type}
                         </TableCell>
-                        <TableCell>{sample.organizationName}</TableCell>
+                        <TableCell>{sample.organization_name || "N/A"}</TableCell>
                         <TableCell>
-                          <span className="capitalize">
-                            {sampleTypeLabels[sample.sampleType] || sample.sampleType}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            className={`flex items-center gap-1 ${statusColors[sample.status]} border`}
-                            variant="outline"
-                          >
-                            {statusIcons[sample.status]}
-                            <span>{statusLabels[sample.status] || sample.status}</span>
+                          <Badge className={STATUS_COLORS[sample.status] || "bg-gray-100"}>
+                            {STATUS_LABELS[sample.status as keyof typeof STATUS_LABELS] || sample.status}
                           </Badge>
-                          {sample.priority && (
-                            <Badge className="mt-1 bg-red-100 text-red-800 border-red-200" variant="outline">
-                              Prioridade
-                            </Badge>
-                          )}
                         </TableCell>
+                        <TableCell>{formatDate(sample.created_at)}</TableCell>
                         <TableCell>
-                          {sample.receivedAt ? (
-                            new Date(sample.receivedAt).toLocaleDateString('pt-BR')
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
+                          <Badge variant="outline">
+                            {sample.tests_count || 0} testes
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/laboratory/samples/${sample.id}`}>
-                                <FileText className="h-4 w-4" />
-                                <span className="sr-only">Ver detalhes</span>
-                              </Link>
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Mais opções</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/laboratory/samples/${sample.id}`}>
-                                    Ver detalhes
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/laboratory/samples/${sample.id}/tests`}>
-                                    Ver testes
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/laboratory/samples/${sample.id}/results`}>
-                                    Resultados
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/laboratory/samples/${sample.id}/report`}>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Baixar relatório
-                                  </Link>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setLocation(`/laboratory/samples/${sample.id}`)}
+                          >
+                            Ver detalhes
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-
-              {/* Paginação */}
-              {totalPages > 1 && (
-                <div className="p-4 border-t">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          className={currentPage === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            isActive={page === currentPage}
-                            onClick={() => setCurrentPage(page)}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          className={currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
+              
+              <div className="flex justify-center mt-6">
+                {renderPagination()}
+              </div>
             </>
+          ) : (
+            <div className="py-12 text-center">
+              <Beaker className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhuma amostra encontrada</h3>
+              <p className="text-gray-500 mb-6">
+                Não foram encontradas amostras com os filtros aplicados.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchParams({
+                    page: 1,
+                    limit: 10,
+                    status: null,
+                    sampleType: null,
+                    search: "",
+                  });
+                  setSearchInputValue("");
+                }}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Limpar filtros
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function TableSkeleton() {
-  return (
-    <div className="p-4">
-      <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="flex items-center space-x-4">
-            <Skeleton className="h-10 w-[10%]" />
-            <Skeleton className="h-10 w-[20%]" />
-            <Skeleton className="h-10 w-[20%]" />
-            <Skeleton className="h-10 w-[10%]" />
-            <Skeleton className="h-10 w-[10%]" />
-            <Skeleton className="h-10 w-[15%]" />
-            <Skeleton className="h-10 w-[15%]" />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
