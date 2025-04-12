@@ -13,7 +13,9 @@ export async function seedHplcTrainings() {
     
     const trainingCount = parseInt(existingTrainings.rows[0].count);
     
-    if (trainingCount > 0) {
+    // Modificado para sempre criar mais dados de exemplo, 
+    // independentemente de já existirem treinamentos no banco de dados
+    if (trainingCount > 15) {
       console.log(`[HPLC Trainings] ${trainingCount} treinamentos já existem no banco de dados, pulando criação de dados de exemplo.`);
       return;
     }
@@ -33,8 +35,18 @@ export async function seedHplcTrainings() {
       
       // Criar um laboratório de exemplo se não existir nenhum
       const createLabQuery = `
-        INSERT INTO organizations (name, type, status, created_at, updated_at)
-        VALUES ('Laboratório de Análises Clínicas', 'laboratory', 'active', NOW(), NOW())
+        INSERT INTO organizations (
+          name, type, status, created_at, updated_at, 
+          plan, email, cnpj, phone, address, city, state, bank_name, bank_branch, bank_account,
+          terms_accepted, admin_cpf, password, admin_name, confirm_password
+        )
+        VALUES (
+          'Laboratório de Análises Clínicas', 'laboratory', 
+          'active', NOW(), NOW(), 'free', 
+          'lab@exemplo.com.br', '12.345.678/0001-99', 
+          '(11) 9999-8888', 'Av. Paulista, 1000', 'São Paulo', 'SP', 'Banco do Brasil', '0001', '12345-6',
+          true, '123.456.789-00', '$2b$10$VHqP2JZPD5FZpCCzXEwJxOe.19q2HzDCNX2jL1KPpFRFDnB5RRJhm', 'Administrador Lab', '$2b$10$VHqP2JZPD5FZpCCzXEwJxOe.19q2HzDCNX2jL1KPpFRFDnB5RRJhm'
+        )
         RETURNING id, name
       `;
       const newLab = await pool.query(createLabQuery);
@@ -50,6 +62,58 @@ export async function seedHplcTrainings() {
       
       console.log(`[HPLC Trainings] Processando laboratório: ${labName} (ID: ${labId})`);
       
+      // Verificar se já existe um registro na tabela laboratories
+      const checkLabQuery = `
+        SELECT id FROM laboratories 
+        WHERE name = $1
+        LIMIT 1
+      `;
+      const existingLab = await pool.query(checkLabQuery, [labName]);
+      
+      let labTableId;
+      
+      if (existingLab.rows.length === 0) {
+        // Criar um registro na tabela laboratories correspondente à organização
+        // Primeiro, buscar um usuário administrador para associar ao laboratório
+        const findAdminQuery = `
+          SELECT id FROM users 
+          WHERE organization_id = $1 
+          ORDER BY id ASC 
+          LIMIT 1
+        `;
+        const adminResult = await pool.query(findAdminQuery, [labId]);
+        let userId = null;
+        
+        if (adminResult.rows.length > 0) {
+          userId = adminResult.rows[0].id;
+        } else {
+          // Criar um usuário administrador para o laboratório se não existir
+          const createUserQuery = `
+            INSERT INTO users (name, email, username, password, role, organization_id, created_at)
+            VALUES ('Admin do Laboratório', 'admin@${labName.toLowerCase().replace(/\s+/g, '')}.com', 'admin_lab', '$2b$10$VHqP2JZPD5FZpCCzXEwJxOe.19q2HzDCNX2jL1KPpFRFDnB5RRJhm', 'laboratory', $1, NOW())
+            RETURNING id
+          `;
+          const newUser = await pool.query(createUserQuery, [labId]);
+          userId = newUser.rows[0].id;
+        }
+        
+        // Agora criar o registro na tabela laboratories
+        const createLabRecordQuery = `
+          INSERT INTO laboratories (
+            name, user_id, license_number, status, created_at, updated_at
+          )
+          VALUES ($1, $2, 'LIC-2025-001', 'active', NOW(), NOW())
+          RETURNING id
+        `;
+        
+        const newLabRecord = await pool.query(createLabRecordQuery, [labName, userId]);
+        labTableId = newLabRecord.rows[0].id;
+        console.log(`[HPLC Trainings] Registro de laboratório criado na tabela laboratories: ID ${labTableId}`);
+      } else {
+        labTableId = existingLab.rows[0].id;
+        console.log(`[HPLC Trainings] Usando registro de laboratório existente: ID ${labTableId}`);
+      }
+      
       // Verificar se existem usuários para este laboratório
       const usersQuery = `
         SELECT id, name, email FROM users 
@@ -63,10 +127,10 @@ export async function seedHplcTrainings() {
       // Se não existirem usuários, criar alguns
       if (users.length < 3) {
         const usersToCreate = [
-          { name: 'Ana Paula Técnica', email: 'ana@lab.com', role: 'employee' },
-          { name: 'Bruno Santos', email: 'bruno@lab.com', role: 'employee' },
-          { name: 'Carlos Eduardo', email: 'carlos@lab.com', role: 'employee' },
-          { name: 'Daniela Oliveira', email: 'daniela@lab.com', role: 'manager' },
+          { name: 'Ana Paula Técnica', email: 'ana@lab.com', role: 'laboratory' },
+          { name: 'Bruno Santos', email: 'bruno@lab.com', role: 'laboratory' },
+          { name: 'Carlos Eduardo', email: 'carlos@lab.com', role: 'laboratory' },
+          { name: 'Daniela Oliveira', email: 'daniela@lab.com', role: 'laboratory' },
           { name: 'Eduardo Martins', email: 'eduardo@lab.com', role: 'laboratory' }
         ];
         
@@ -80,8 +144,8 @@ export async function seedHplcTrainings() {
           if (existingUser.rows.length === 0) {
             // Criar usuário
             const createUserQuery = `
-              INSERT INTO users (name, email, username, password_hash, role, organization_id, created_at, updated_at)
-              VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+              INSERT INTO users (name, email, username, password, role, organization_id, created_at)
+              VALUES ($1, $2, $3, $4, $5, $6, NOW())
               RETURNING id, name, email
             `;
             
@@ -125,9 +189,9 @@ export async function seedHplcTrainings() {
           const createEquipmentQuery = `
             INSERT INTO hplc_equipments (
               name, model, serial_number, manufacturer, status, 
-              laboratory_id, created_by, created_at, updated_at
+              laboratory_id, created_at, updated_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
             RETURNING id, name, model
           `;
           
@@ -137,8 +201,7 @@ export async function seedHplcTrainings() {
             equipment.serial_number,
             equipment.manufacturer,
             'operational',
-            labId,
-            users[0].id // Primeiro usuário como criador
+            labTableId
           ]);
           
           equipments.push(newEquipment.rows[0]);
@@ -152,7 +215,7 @@ export async function seedHplcTrainings() {
         WHERE laboratory_id = $1
         LIMIT 3
       `;
-      const proceduresResult = await pool.query(proceduresQuery, [labId]);
+      const proceduresResult = await pool.query(proceduresQuery, [labTableId]);
       
       let procedures = proceduresResult.rows;
       
@@ -168,19 +231,25 @@ export async function seedHplcTrainings() {
           const createProcedureQuery = `
             INSERT INTO hplc_procedures (
               title, document_number, version, content, 
-              laboratory_id, created_by, created_at, updated_at
+              laboratory_id, created_by, created_at, updated_at,
+              effective_date, category
             )
-            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7, $8)
             RETURNING id, title, document_number
           `;
+          
+          // Data efetiva (normalmente a data atual)
+          const effectiveDate = new Date();
           
           const newProcedure = await pool.query(createProcedureQuery, [
             procedure.title,
             procedure.document_number,
             procedure.version,
             'Conteúdo do procedimento operacional padrão',
-            labId,
-            users[0].id // Primeiro usuário como criador
+            labTableId, // Usar o ID da tabela laboratories em vez do ID da organização
+            users[0].id, // Primeiro usuário como criador
+            effectiveDate,
+            'HPLC' // Categoria padrão
           ]);
           
           procedures.push(newProcedure.rows[0]);
@@ -188,8 +257,9 @@ export async function seedHplcTrainings() {
         }
       }
       
-      // Agora criar treinamentos
+      // Agora criar treinamentos - Com mais exemplos adicionados
       const trainingsToCreate = [
+        // Treinamentos existentes
         {
           title: 'Treinamento Inicial HPLC Agilent',
           type: 'initial',
@@ -249,6 +319,128 @@ export async function seedHplcTrainings() {
           completion_date: null,
           status: 'pending',
           score: null
+        },
+        
+        // Novos treinamentos adicionados
+        {
+          title: 'Operação Avançada HPLC Shimadzu',
+          type: 'specialized',
+          user_id: users[0].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[2].id,
+          procedure_id: procedures[0].id,
+          start_date: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 92
+        },
+        {
+          title: 'Calibração de Detectores UV',
+          type: 'specialized',
+          user_id: users[1].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[0].id,
+          procedure_id: procedures[1].id,
+          start_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 98
+        },
+        {
+          title: 'Validação de Métodos Analíticos',
+          type: 'certification',
+          user_id: users[2].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[1].id,
+          procedure_id: procedures[2].id,
+          start_date: new Date(Date.now() - 75 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 73 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 85
+        },
+        {
+          title: 'Treinamento em Análise Quantitativa',
+          type: 'specialized',
+          user_id: users[0].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[2].id,
+          procedure_id: procedures[2].id,
+          start_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 88 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 90
+        },
+        {
+          title: 'Procedimentos de Emergência e Segurança',
+          type: 'refresher',
+          user_id: users[1].id,
+          trained_by: users[3].id,
+          equipment_id: null,
+          procedure_id: procedures[1].id,
+          start_date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 96
+        },
+        {
+          title: 'Atualização ISO 17025',
+          type: 'certification',
+          user_id: users[2].id,
+          trained_by: users[3].id,
+          equipment_id: null,
+          procedure_id: procedures[0].id,
+          start_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          completion_date: null,
+          status: 'in_progress',
+          score: null
+        },
+        {
+          title: 'Manuseio de Padrões Analíticos',
+          type: 'initial',
+          user_id: users[0].id,
+          trained_by: users[3].id,
+          equipment_id: null,
+          procedure_id: procedures[2].id,
+          start_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          completion_date: null,
+          status: 'scheduled',
+          score: null
+        },
+        {
+          title: 'Desenvolvimento de Métodos HPLC',
+          type: 'specialized',
+          user_id: users[1].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[0].id,
+          procedure_id: procedures[2].id,
+          start_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          completion_date: null,
+          status: 'scheduled',
+          score: null
+        },
+        {
+          title: 'Manutenção Preventiva de Bombas de HPLC',
+          type: 'specialized',
+          user_id: users[2].id,
+          trained_by: users[3].id,
+          equipment_id: equipments[1].id,
+          procedure_id: procedures[1].id,
+          start_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 dias no futuro
+          completion_date: null,
+          status: 'scheduled',
+          score: null
+        },
+        {
+          title: 'Preparação de Soluções Padrão',
+          type: 'initial',
+          user_id: users[1].id,
+          trained_by: users[3].id,
+          equipment_id: null,
+          procedure_id: procedures[2].id,
+          start_date: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+          completion_date: new Date(Date.now() - 39 * 24 * 60 * 60 * 1000),
+          status: 'completed',
+          score: 80
         }
       ];
       
@@ -257,7 +449,7 @@ export async function seedHplcTrainings() {
           INSERT INTO hplc_user_trainings (
             training_title, training_type, user_id, trained_by,
             equipment_id, procedure_id, start_date, completion_date,
-            status, assessment_score, comments, created_by, created_at, updated_at
+            status, assessment_score, notes, created_by, created_at, updated_at
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
           RETURNING id
