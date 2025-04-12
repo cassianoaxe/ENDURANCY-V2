@@ -20,9 +20,6 @@ import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
 import HplcConsumables from "@/pages/laboratory/hplc/Consumables";
 import HplcRuns from "@/pages/laboratory/hplc/Runs";
-import HplcProcedures from "@/pages/laboratory/hplc/Procedures";
-import HplcValidations from "@/pages/laboratory/hplc/Validations";
-import HplcTrainings from "@/pages/laboratory/hplc/Trainings";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1271,17 +1268,32 @@ function AppContent() {
         
         // Procedimentos
         if (currentPath === '/laboratory/hplc/procedures') {
-          return <HplcProcedures />;
+          return (
+            <div className="p-6">
+              <h1 className="text-xl font-bold mb-4">Procedimentos HPLC</h1>
+              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+            </div>
+          );
         }
         
         // Validações
         if (currentPath === '/laboratory/hplc/validations') {
-          return <HplcValidations />;
+          return (
+            <div className="p-6">
+              <h1 className="text-xl font-bold mb-4">Validações de Métodos HPLC</h1>
+              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+            </div>
+          );
         }
         
         // Treinamentos
         if (currentPath === '/laboratory/hplc/trainings') {
-          return <HplcTrainings />;
+          return (
+            <div className="p-6">
+              <h1 className="text-xl font-bold mb-4">Treinamentos HPLC</h1>
+              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+            </div>
+          );
         }
         
         // Rota não reconhecida, mostrar dashboard
@@ -1289,13 +1301,12 @@ function AppContent() {
         return <HplcDashboard />;
       };
       
-      // Renderizar o componente com o layout HPLC apropriado 
-      // Remover LaboratoryLayout para evitar duplicação de menu
-      console.log('Renderizando HplcLayout com o componente apropriado');
+      // Renderizar o layout do Laboratório com o componente HPLC apropriado
+      console.log('Renderizando LaboratoryLayout com componente HPLC apropriado');
       return (
-        <HplcLayout>
+        <LaboratoryLayout>
           {getHplcComponent()}
-        </HplcLayout>
+        </LaboratoryLayout>
       );
     }
 
