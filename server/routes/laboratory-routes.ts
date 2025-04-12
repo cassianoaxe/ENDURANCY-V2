@@ -266,7 +266,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       // Contar total de resultados para paginação
       const countQuery = sql`SELECT COUNT(*) FROM (${query}) AS count_query`;
       const countResult = await db.execute(countQuery);
-      const totalCount = parseInt(countResult[0]?.count || '0');
+      const totalCount = parseInt(countResult.rows[0]?.count || '0');
       
       // Adicionar ordenação e limites
       query = sql`${query} ORDER BY s.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
@@ -275,7 +275,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       
       // Retornar resultados com metadados de paginação
       res.json({
-        data: samples,
+        data: samples.rows,
         pagination: {
           page,
           limit,
@@ -539,7 +539,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       // Contar total de resultados para paginação
       const countQuery = sql`SELECT COUNT(*) FROM (${query}) AS count_query`;
       const countResult = await db.execute(countQuery);
-      const totalCount = parseInt(countResult[0]?.count || '0');
+      const totalCount = parseInt(countResult.rows[0]?.count || '0');
       
       // Adicionar ordenação e limites
       query = sql`${query} ORDER BY t.created_at DESC LIMIT ${limit} OFFSET ${offset}`;
@@ -548,7 +548,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       
       // Retornar resultados com metadados de paginação
       res.json({
-        data: testsResult,
+        data: testsResult.rows,
         pagination: {
           page,
           limit,
