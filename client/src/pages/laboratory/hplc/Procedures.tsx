@@ -54,7 +54,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 
 interface Procedure {
   id: number;
@@ -71,7 +71,7 @@ interface Procedure {
 
 export default function Procedures() {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
