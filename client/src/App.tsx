@@ -20,6 +20,8 @@ import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
 import HplcConsumables from "@/pages/laboratory/hplc/Consumables";
 import HplcRuns from "@/pages/laboratory/hplc/Runs";
+import HplcProcedures from "@/pages/laboratory/hplc/Procedures";
+import HplcProcedureDetail from "@/pages/laboratory/hplc/ProcedureDetail";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1268,12 +1270,13 @@ function AppContent() {
         
         // Procedimentos
         if (currentPath === '/laboratory/hplc/procedures') {
-          return (
-            <div className="p-6">
-              <h1 className="text-xl font-bold mb-4">Procedimentos HPLC</h1>
-              <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
-            </div>
-          );
+          return <HplcProcedures />;
+        }
+        
+        // Detalhes do Procedimento
+        const procedureDetailMatch = currentPath.match(/^\/laboratory\/hplc\/procedures\/(\d+)$/);
+        if (procedureDetailMatch) {
+          return <HplcProcedureDetail />;
         }
         
         // Validações
