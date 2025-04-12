@@ -210,10 +210,10 @@ export default function HplcDashboard() {
                 </Button>
                 <Button size="sm" asChild>
                   <Link href="/laboratory/hplc/runs">
-                    <a className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <LineChart className="h-4 w-4" />
                       Ver detalhes
-                    </a>
+                    </div>
                   </Link>
                 </Button>
               </CardFooter>
@@ -244,10 +244,10 @@ export default function HplcDashboard() {
                 </Button>
                 <Button size="sm" asChild>
                   <Link href="/laboratory/hplc/consumables">
-                    <a className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <TestTube className="h-4 w-4" />
                       Gerenciar consumíveis
-                    </a>
+                    </div>
                   </Link>
                 </Button>
               </CardFooter>
@@ -290,10 +290,10 @@ export default function HplcDashboard() {
               <CardFooter>
                 <Button className="w-full" asChild>
                   <Link href="/laboratory/hplc/equipments">
-                    <a className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <LayoutGrid className="h-4 w-4" />
                       Ver todos os equipamentos
-                    </a>
+                    </div>
                   </Link>
                 </Button>
               </CardFooter>
@@ -320,10 +320,10 @@ export default function HplcDashboard() {
               <CardFooter>
                 <Button className="w-full" asChild>
                   <Link href="/laboratory/hplc/runs">
-                    <a className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <Beaker className="h-4 w-4" />
                       Gerenciar corridas
-                    </a>
+                    </div>
                   </Link>
                 </Button>
               </CardFooter>
@@ -340,34 +340,34 @@ export default function HplcDashboard() {
               <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
                 <Button variant="outline" className="h-24 flex-col" asChild>
                   <Link href="/laboratory/hplc/runs/new">
-                    <a className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-2">
                       <Beaker className="h-5 w-5" />
                       <span>Nova Corrida</span>
-                    </a>
+                    </div>
                   </Link>
                 </Button>
                 <Button variant="outline" className="h-24 flex-col" asChild>
                   <Link href="/laboratory/hplc/maintenances">
-                    <a className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-2">
                       <Wrench className="h-5 w-5" />
                       <span>Agendar Manutenção</span>
-                    </a>
+                    </div>
                   </Link>
                 </Button>
                 <Button variant="outline" className="h-24 flex-col" asChild>
                   <Link href="/laboratory/hplc/consumables">
-                    <a className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-2">
                       <TestTube className="h-5 w-5" />
                       <span>Registrar Consumo</span>
-                    </a>
+                    </div>
                   </Link>
                 </Button>
                 <Button variant="outline" className="h-24 flex-col" asChild>
                   <Link href="/laboratory/hplc/validations">
-                    <a className="flex flex-col items-center justify-center gap-2">
+                    <div className="flex flex-col items-center justify-center gap-2">
                       <ClipboardCheck className="h-5 w-5" />
                       <span>Nova Validação</span>
-                    </a>
+                    </div>
                   </Link>
                 </Button>
               </div>
