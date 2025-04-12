@@ -37,7 +37,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       }
 
       // Estatísticas de amostras por status
-      const samplesByStatus = await db.execute(sql`
+      const samplesByStatusResult = await db.execute(sql`
         SELECT status, COUNT(*) as count
         FROM samples
         WHERE laboratory_id = ${laboratoryId}
@@ -45,7 +45,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       `);
 
       // Amostras recebidas por dia (últimos 30 dias)
-      const samplesReceivedByDay = await db.execute(sql`
+      const samplesReceivedByDayResult = await db.execute(sql`
         SELECT DATE(received_date) as date, COUNT(*) as count
         FROM samples
         WHERE laboratory_id = ${laboratoryId}
@@ -56,7 +56,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       `);
 
       // Tempo médio de processamento por tipo de teste
-      const avgProcessingTimeByTestType = await db.execute(sql`
+      const avgProcessingTimeByTestTypeResult = await db.execute(sql`
         SELECT test_type, 
                AVG(EXTRACT(EPOCH FROM (result_date - received_date))/3600)::numeric(10,2) as avg_hours
         FROM tests t
@@ -69,7 +69,7 @@ export async function registerLaboratoryRoutes(app: Express) {
       `);
 
       // Amostras pendentes há muito tempo (mais de 7 dias)
-      const samplesPendingTooLong = await db.execute(sql`
+      const samplesPendingTooLongResult = await db.execute(sql`
         SELECT COUNT(*) as count
         FROM samples
         WHERE laboratory_id = ${laboratoryId}
@@ -77,12 +77,18 @@ export async function registerLaboratoryRoutes(app: Express) {
           AND created_at < NOW() - INTERVAL '7 days'
       `);
 
+      // Formatar os dados para um formato que o frontend espera
+      const samplesByStatus = samplesByStatusResult.rows || [];
+      const samplesReceivedByDay = samplesReceivedByDayResult.rows || [];
+      const avgProcessingTimeByTestType = avgProcessingTimeByTestTypeResult.rows || [];
+      const samplesPendingTooLong = parseInt(samplesPendingTooLongResult.rows?.[0]?.count || '0');
+
       // Dashboard completo
       const dashboardData = {
         samplesByStatus,
         samplesReceivedByDay,
         avgProcessingTimeByTestType,
-        samplesPendingTooLong: samplesPendingTooLong[0]?.count || 0,
+        samplesPendingTooLong,
         // Adicione mais estatísticas conforme necessário
       };
 
