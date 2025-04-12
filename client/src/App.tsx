@@ -7,10 +7,12 @@ import Layout from "@/components/layout/Layout";
 import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
 import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
+import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
+import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Organizations from "@/pages/Organizations";
@@ -1175,6 +1177,131 @@ function AppContent() {
       );
     }
     
+    // Rotas do módulo HPLC
+    if (currentPath === '/laboratory/hplc/dashboard') {
+      return (
+        <HplcLayout>
+          <HplcDashboard />
+        </HplcLayout>
+      );
+    }
+
+    // Rota para equipamentos HPLC
+    if (currentPath === '/laboratory/hplc/equipments') {
+      return (
+        <HplcLayout>
+          {/* <HplcEquipments /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Equipamentos HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para manutenções HPLC
+    if (currentPath === '/laboratory/hplc/maintenances') {
+      return (
+        <HplcLayout>
+          {/* <HplcMaintenances /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Manutenções HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para consumíveis HPLC
+    if (currentPath === '/laboratory/hplc/consumables') {
+      return (
+        <HplcLayout>
+          {/* <HplcConsumables /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Consumíveis HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para corridas HPLC
+    if (currentPath === '/laboratory/hplc/runs') {
+      return (
+        <HplcLayout>
+          {/* <HplcRuns /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Corridas HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para nova corrida HPLC
+    if (currentPath === '/laboratory/hplc/runs/new') {
+      return (
+        <HplcLayout>
+          {/* <NewHplcRun /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Nova Corrida HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para documentos/procedimentos HPLC
+    if (currentPath === '/laboratory/hplc/procedures') {
+      return (
+        <HplcLayout>
+          {/* <HplcProcedures /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Procedimentos HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para validações de métodos HPLC
+    if (currentPath === '/laboratory/hplc/validations') {
+      return (
+        <HplcLayout>
+          {/* <HplcValidations /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Validações de Métodos HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Rota para treinamentos HPLC
+    if (currentPath === '/laboratory/hplc/trainings') {
+      return (
+        <HplcLayout>
+          {/* <HplcTrainings /> */}
+          <div className="p-6">
+            <h1 className="text-xl font-bold mb-4">Treinamentos HPLC</h1>
+            <p className="text-muted-foreground">Esta funcionalidade será implementada em breve.</p>
+          </div>
+        </HplcLayout>
+      );
+    }
+
+    // Se nenhuma rota específica for encontrada, mas o caminho começa com /laboratory/hplc/
+    // redirecionar para o dashboard HPLC
+    if (currentPath.startsWith('/laboratory/hplc/')) {
+      window.history.pushState({}, '', '/laboratory/hplc/dashboard');
+      window.dispatchEvent(new Event('popstate'));
+      return (
+        <HplcLayout>
+          <HplcDashboard />
+        </HplcLayout>
+      );
+    }
+
     // Se nenhuma rota específica for encontrada, mas o caminho começa com /laboratory/
     // redirecionar para o dashboard do laboratório
     window.history.pushState({}, '', '/laboratory/dashboard');
