@@ -134,14 +134,14 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
         <div className="flex flex-1 items-center gap-4">
           {/* Logo */}
-          <Button asChild variant="ghost" className="p-0">
-            <Link href="/laboratory/dashboard">
+          <Link href="/laboratory/dashboard">
+            <Button variant="ghost" className="p-0">
               <div className="flex items-center gap-2 font-semibold">
                 <Beaker className="h-6 w-6 text-primary" />
                 <span className="hidden md:inline-block">Portal HPLC</span>
               </div>
-            </Link>
-          </Button>
+            </Button>
+          </Link>
 
           {/* Navegação principal (visível apenas em telas grandes) */}
           <nav className="hidden md:flex flex-1">
@@ -245,9 +245,9 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem>
                       <Link href="/profile">
-                        <div className="w-full cursor-pointer">Perfil</div>
+                        <span className="w-full cursor-pointer">Perfil</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -292,19 +292,18 @@ export default function HplcLayout({ children }: HplcLayoutProps) {
             </nav>
 
             <div className="mt-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start"
-                asChild
-              >
-                <Link href="/laboratory/dashboard">
+              <Link href="/laboratory/dashboard">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <div className="flex items-center gap-2">
                     <Home className="h-4 w-4" />
                     Voltar ao Laboratório
                   </div>
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
           </div>
         </aside>
