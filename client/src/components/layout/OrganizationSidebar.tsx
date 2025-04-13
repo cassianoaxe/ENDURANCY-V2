@@ -323,6 +323,12 @@ export default function OrganizationSidebar() {
           path: "/organization/tarefas/minhas-tarefas",
           active: currentPath === "/organization/tarefas/minhas-tarefas",
           icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/tarefas/configuracoes",
+          active: currentPath === "/organization/tarefas/configuracoes",
+          icon: <Settings size={16} />
         }
       ]
     },
