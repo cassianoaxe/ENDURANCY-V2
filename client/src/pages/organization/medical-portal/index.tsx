@@ -425,7 +425,7 @@ function MedicalPortalDashboard() {
                 <Label>Portal do Profissional (Médico/Dentista/Veterinário)</Label>
                 <div className="flex">
                   <Input 
-                    value={moduleStatus?.settings?.doctorPortalUrl || "Não configurado"} 
+                    value={moduleStatus?.settings?.professionalPortalUrl || "Não configurado"} 
                     readOnly 
                     className="rounded-r-none"
                   />
@@ -801,10 +801,10 @@ function MedicalPortalDashboard() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="doctorPortalSecondaryUrl">URL do Portal de Profissionais de Saúde</Label>
+                    <Label htmlFor="professionalPortalUrl">URL do Portal de Profissionais de Saúde</Label>
                     <Input 
-                      id="doctorPortalSecondaryUrl" 
-                      value={moduleStatus?.settings?.doctorPortalUrl || ""} 
+                      id="professionalPortalUrl" 
+                      value={moduleStatus?.settings?.professionalPortalUrl || ""} 
                       placeholder="https://medicos.suaorganizacao.com.br"
                       // Na implementação real, adicionar onChange para atualizar estado
                     />
