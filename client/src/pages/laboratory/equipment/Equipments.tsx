@@ -53,12 +53,33 @@ export default function Equipments() {
   // Log para debugging
   console.log("Equipments component mounted");
 
-  // Buscar lista de equipamentos
+  // Buscar lista de equipamentos com queryFn explícito para debug
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/laboratory/equipments'],
     retry: 1,
+    queryFn: async () => {
+      console.log('Iniciando busca por equipamentos...');
+      try {
+        const response = await fetch('/api/laboratory/equipments', {
+          credentials: 'include' // Importante: inclui cookies na requisição
+        });
+        console.log('Resposta da API:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          console.error('Erro na resposta da API:', response.status, response.statusText);
+          throw new Error(`Erro ao buscar equipamentos: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        return data;
+      } catch (error) {
+        console.error('Exceção ao buscar equipamentos:', error);
+        throw error;
+      }
+    },
     onError: (error) => {
-      console.error('Erro ao buscar equipamentos:', error);
+      console.error('Erro no handler de erro:', error);
       toast({
         title: 'Erro ao carregar equipamentos',
         description: 'Ocorreu um erro ao carregar os equipamentos. Por favor, tente novamente.',

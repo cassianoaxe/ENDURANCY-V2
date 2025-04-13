@@ -19,13 +19,17 @@ const checkLabPermission = (req: Request, res: Response, next: Function) => {
     const user = req.session.user;
     
     if (!user) {
+      console.log("Usuário não autenticado no checkLabPermission");
       return res.status(401).json({ message: "Não autenticado" });
     }
     
-    if (user.role !== 'laboratory') {
+    // Corrigido para aceitar 'laboratory' e 'labor' como tipos válidos de usuário de laboratório
+    if (user.role !== 'laboratory' && user.role !== 'labor') {
+      console.log(`Usuário com role inválida: ${user.role}`);
       return res.status(403).json({ message: "Acesso negado. Apenas usuários do laboratório podem acessar este recurso" });
     }
     
+    console.log(`Usuário ${user.username} (${user.role}) autorizado a acessar recurso de laboratório`);
     next();
   } catch (error) {
     console.error("Erro ao verificar permissão:", error);
