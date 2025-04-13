@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
+import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
 import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
@@ -670,56 +671,82 @@ function AppContent() {
 
     // Módulo Jurídico
     if (currentPath === '/organization/juridico') {
-      return <DashboardJuridico />;
+      return <OrganizationLayout>
+        <DashboardJuridico />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/juridico/acoes-judiciais') {
-      return <AcoesJudiciais />;
+      return <OrganizationLayout>
+        <AcoesJudiciais />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/juridico/documentos') {
-      return <DocumentosJuridicos />;
+      return <OrganizationLayout>
+        <DocumentosJuridicos />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/juridico/compliance') {
-      return <Compliance />;
+      return <OrganizationLayout>
+        <Compliance />
+      </OrganizationLayout>;
     }
 
     if (currentPath === '/organization/expedicao') {
-      return <Expedicao />;
+      return <OrganizationLayout>
+        <Expedicao />
+      </OrganizationLayout>;
     }
     
     // Subpáginas de Expedição
     if (currentPath === '/organization/expedicao/pedidos') {
-      return <PreparacaoPedidos />;
+      return <OrganizationLayout>
+        <PreparacaoPedidos />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/etiquetas') {
-      return <Etiquetas />;
+      return <OrganizationLayout>
+        <Etiquetas />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/codigos') {
-      return <CodigosExpedicao />;
+      return <OrganizationLayout>
+        <CodigosExpedicao />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/documentacao') {
-      return <DocumentacaoExpedicao />;
+      return <OrganizationLayout>
+        <DocumentacaoExpedicao />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/juncao') {
-      return <JuncaoPedidos />;
+      return <OrganizationLayout>
+        <JuncaoPedidos />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/malotes') {
-      return <RegistroMalotes />;
+      return <OrganizationLayout>
+        <RegistroMalotes />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/rastreios') {
-      return <AtualizacaoRastreios />;
+      return <OrganizationLayout>
+        <AtualizacaoRastreios />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/expedicao/estoque') {
-      return <EstoqueExpedicao />;
+      return <OrganizationLayout>
+        <EstoqueExpedicao />
+      </OrganizationLayout>;
     }
 
     if (currentPath === '/organization/gerenciar-pacientes') {
