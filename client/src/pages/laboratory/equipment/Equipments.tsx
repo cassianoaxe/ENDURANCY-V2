@@ -53,9 +53,9 @@ export default function Equipments() {
   // Log para debugging
   console.log("Equipments component mounted");
 
-  // Buscar lista de equipamentos - usando a rota correta
+  // Buscar lista de equipamentos
   const { data, isLoading, error } = useQuery({
-    queryKey: ['/api/laboratory/equipment/list'],
+    queryKey: ['/api/laboratory/equipments'],
     retry: 1,
     onError: (error) => {
       console.error('Erro ao buscar equipamentos:', error);
@@ -80,7 +80,7 @@ export default function Equipments() {
         title: 'Equipamento adicionado com sucesso',
         variant: 'default',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipment/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipments'] });
       setIsAddOpen(false);
     },
     onError: (error) => {
@@ -106,7 +106,7 @@ export default function Equipments() {
         title: 'Equipamento atualizado com sucesso',
         variant: 'default',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipment/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipments'] });
       setIsEditOpen(false);
     },
     onError: (error) => {
@@ -131,7 +131,7 @@ export default function Equipments() {
         title: 'Equipamento excluído com sucesso',
         variant: 'default',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipment/list'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipments'] });
       setIsDeleteOpen(false);
     },
     onError: (error) => {
