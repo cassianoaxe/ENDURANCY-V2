@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import NovaTarefaDialog from "@/components/tarefas/NovaTarefaDialog";
-import { StatusTarefa } from '../../../../shared/schema-tarefas';
+import { StatusTarefa } from '@shared/schema-tarefas';
 
 // Componente para cada coluna do quadro Kanban
 interface KanbanColumnProps {

@@ -299,6 +299,34 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "Tarefas",
+      path: "/organization/tarefas",
+      active: currentPath === "/organization/tarefas" || 
+              currentPath.startsWith("/organization/tarefas/"),
+      icon: <FileClock size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Tarefas",
+          path: "/organization/tarefas",
+          active: currentPath === "/organization/tarefas" && !currentPath.includes("/organization/tarefas/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Quadro Kanban",
+          path: "/organization/tarefas/quadro",
+          active: currentPath === "/organization/tarefas/quadro",
+          icon: <Layers size={16} />
+        },
+        {
+          title: "Minhas Tarefas",
+          path: "/organization/tarefas/minhas-tarefas",
+          active: currentPath === "/organization/tarefas/minhas-tarefas",
+          icon: <ClipboardList size={16} />
+        }
+      ]
+    },
+    {
       title: "Compras e Estoque",
       path: "/organization/compras",
       active: currentPath === "/organization/compras" || 
