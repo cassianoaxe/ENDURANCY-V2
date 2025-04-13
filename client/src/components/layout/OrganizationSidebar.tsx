@@ -209,9 +209,81 @@ export default function OrganizationSidebar() {
     },
     {
       title: "Financeiro",
-      path: "/organization/financial",
-      active: currentPath === "/organization/financial",
-      icon: <DollarSign size={18} />
+      path: "/organization/financeiro",
+      active: currentPath === "/organization/financeiro" || 
+              currentPath === "/organization/financeiro/contas-a-pagar" ||
+              currentPath === "/organization/financeiro/contas-a-receber" ||
+              currentPath === "/organization/financeiro/dre" ||
+              currentPath === "/organization/financeiro/orcamento" ||
+              currentPath === "/organization/financeiro/fluxo-de-caixa" ||
+              currentPath === "/organization/financeiro/calendario" ||
+              currentPath === "/organization/financeiro/conciliacao" ||
+              currentPath === "/organization/financeiro/analise-ia" ||
+              currentPath === "/organization/financeiro/configuracoes",
+      icon: <DollarSign size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Financeiro",
+          path: "/organization/financeiro",
+          active: currentPath === "/organization/financeiro" && !currentPath.includes("/organization/financeiro/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Contas a Pagar",
+          path: "/organization/financeiro/contas-a-pagar",
+          active: currentPath === "/organization/financeiro/contas-a-pagar",
+          icon: <ArrowUp size={16} />
+        },
+        {
+          title: "Contas a Receber",
+          path: "/organization/financeiro/contas-a-receber",
+          active: currentPath === "/organization/financeiro/contas-a-receber",
+          icon: <ArrowDown size={16} />
+        },
+        {
+          title: "DRE",
+          path: "/organization/financeiro/dre",
+          active: currentPath === "/organization/financeiro/dre",
+          icon: <FileBarChart size={16} />
+        },
+        {
+          title: "Orçamento",
+          path: "/organization/financeiro/orcamento",
+          active: currentPath === "/organization/financeiro/orcamento",
+          icon: <BarChart size={16} />
+        },
+        {
+          title: "Fluxo de Caixa",
+          path: "/organization/financeiro/fluxo-de-caixa",
+          active: currentPath === "/organization/financeiro/fluxo-de-caixa",
+          icon: <LineChart size={16} />
+        },
+        {
+          title: "Calendário Financeiro",
+          path: "/organization/financeiro/calendario",
+          active: currentPath === "/organization/financeiro/calendario",
+          icon: <CalendarRange size={16} />
+        },
+        {
+          title: "Conciliação Bancária",
+          path: "/organization/financeiro/conciliacao",
+          active: currentPath === "/organization/financeiro/conciliacao",
+          icon: <Building2 size={16} />
+        },
+        {
+          title: "Análise com IA",
+          path: "/organization/financeiro/analise-ia",
+          active: currentPath === "/organization/financeiro/analise-ia",
+          icon: <Sparkles size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/financeiro/configuracoes",
+          active: currentPath === "/organization/financeiro/configuracoes",
+          icon: <Settings size={16} />
+        }
+      ]
     },
     {
       title: "ComplyPay",
