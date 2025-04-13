@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, Users, Package, ClipboardList, 
+  LayoutDashboard, Users, User, Package, ClipboardList, 
   Receipt, Settings, MessageSquare, BellRing, 
   CalendarDays, FileText, BookOpen, HelpCircle, 
   Menu, ChevronLeft, ChevronDown, LogOut, Leaf, Loader2,
@@ -316,7 +316,7 @@ export default function OrganizationSidebar() {
           title: "Colaboradores",
           path: "/organization/rh/colaboradores",
           active: currentPath === "/organization/rh/colaboradores",
-          icon: <User size={16} />
+          icon: <Users size={16} />
         },
         {
           title: "Documentos RH",
