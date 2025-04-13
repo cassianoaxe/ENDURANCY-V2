@@ -69,6 +69,12 @@ import PaymentTest from "@/pages/PaymentTest";
 // Importar novas páginas de pagamento por email
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
+
+// Importar páginas do módulo Financeiro
+import DashboardFinanceiro from "@/pages/organization/financeiro/index";
+import ContasAPagar from "@/pages/organization/financeiro/contas-a-pagar";
+import ContasAReceber from "@/pages/organization/financeiro/contas-a-receber";
+import DRE from "@/pages/organization/financeiro/dre";
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -735,6 +741,31 @@ function AppContent() {
     if (currentPath === '/organization/rh/escalas') {
       return <OrganizationLayout>
         <EscalasTrabalho />
+      </OrganizationLayout>;
+    }
+    
+    // Rotas do módulo Financeiro
+    if (currentPath === '/organization/financeiro') {
+      return <OrganizationLayout>
+        <DashboardFinanceiro />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/contas-a-pagar') {
+      return <OrganizationLayout>
+        <ContasAPagar />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/contas-a-receber') {
+      return <OrganizationLayout>
+        <ContasAReceber />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/dre') {
+      return <OrganizationLayout>
+        <DRE />
       </OrganizationLayout>;
     }
 
