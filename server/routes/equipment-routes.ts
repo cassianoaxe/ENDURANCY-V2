@@ -13,18 +13,34 @@ import { authenticate } from '../routes';
 
 const router = Router();
 
+// Rota de teste básica sem autenticação
+router.get('/test', (req: Request, res: Response) => {
+  console.log("Rota de teste acionada!");
+  // Forçar resposta JSON
+  res.setHeader('Content-Type', 'application/json');
+  return res.status(200).json({ 
+    message: "API de equipamentos de laboratório funcionando!", 
+    timestamp: new Date(),
+    success: true 
+  });
+});
+
 // Verificar se o usuário tem permissão (laboratório)
 const checkLabPermission = (req: Request, res: Response, next: Function) => {
   try {
     const user = req.session.user;
+    
+    console.log("checkLabPermission executando com sessão:", req.session);
     
     if (!user) {
       console.log("Usuário não autenticado no checkLabPermission");
       return res.status(401).json({ message: "Não autenticado" });
     }
     
-    // Corrigido para aceitar 'laboratory' e 'labor' como tipos válidos de usuário de laboratório
-    if (user.role !== 'laboratory' && user.role !== 'labor') {
+    console.log(`checkLabPermission: Usuário autenticado: ${user.username}, role: ${user.role}`);
+    
+    // Aceitando apenas 'laboratory' como tipo válido (role 'labor' é inválido no enum)
+    if (user.role !== 'laboratory') {
       console.log(`Usuário com role inválida: ${user.role}`);
       return res.status(403).json({ message: "Acesso negado. Apenas usuários do laboratório podem acessar este recurso" });
     }

@@ -5253,7 +5253,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await registerTrainerRoutes(app);
   
   // Registrar rotas de equipamentos de laboratório
+  console.log("Registrando rotas de equipamentos de laboratório");
   app.use('/api/laboratory', equipmentRoutes);
+  console.log("Rotas de equipamentos registradas");
+  
+  // Rota de teste direta para contornar o middleware do Vite
+  app.get('/api/laboratory-test', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
+      message: "API de equipamentos de laboratório funcionando!",
+      timestamp: new Date(),
+      success: true
+    });
+  });
   
   console.log("Doctor routes registered:", doctorRoutes);
   console.log("Pharmacist routes registered:", pharmacistRoutes);
