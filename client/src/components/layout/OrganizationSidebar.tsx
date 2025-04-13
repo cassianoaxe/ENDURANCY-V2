@@ -299,6 +299,40 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "JURÍDICO",
+      path: "/organization/juridico",
+      active: currentPath === "/organization/juridico" || 
+              currentPath.startsWith("/organization/juridico/"),
+      icon: <Scale size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Jurídico",
+          path: "/organization/juridico",
+          active: currentPath === "/organization/juridico" && !currentPath.includes("/organization/juridico/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Ações Judiciais",
+          path: "/organization/juridico/acoes-judiciais",
+          active: currentPath === "/organization/juridico/acoes-judiciais",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Documentos Jurídicos",
+          path: "/organization/juridico/documentos",
+          active: currentPath === "/organization/juridico/documentos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Compliance",
+          path: "/organization/juridico/compliance",
+          active: currentPath === "/organization/juridico/compliance",
+          icon: <ShieldCheck size={16} />
+        }
+      ]
+    },
+    {
       title: "Portal Farmácia",
       path: "/organization/farmacia",
       active: currentPath === "/organization/farmacia" || 
