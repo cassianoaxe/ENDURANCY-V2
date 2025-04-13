@@ -131,7 +131,7 @@ export default function Equipments() {
         title: 'Equipamento excluído com sucesso',
         variant: 'default',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/laboratory/equipment/list'] });
       setIsDeleteOpen(false);
     },
     onError: (error) => {
