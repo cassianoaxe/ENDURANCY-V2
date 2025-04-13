@@ -33,14 +33,31 @@ export default function OrganizationSidebar() {
   
   // Listen for path changes
   useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+    const handleNavigation = () => {
+      const path = window.location.pathname;
+      console.log("Atualizando path na navegação:", path);
+      setCurrentPath(path);
+      
+      try {
+        // Verifica se há um estado de menu a ser restaurado
+        // @ts-ignore
+        const stateSubmenu = window.history.state?.submenu;
+        if (stateSubmenu) {
+          console.log("Restaurando estado de submenu:", stateSubmenu);
+          setExpandedMenu(stateSubmenu);
+        }
+      } catch (error) {
+        console.error("Erro ao restaurar estado do menu:", error);
+      }
     };
     
-    window.addEventListener('popstate', handlePopState);
+    // Capturamos tanto popstate quanto nosso evento personalizado de navegação
+    window.addEventListener('popstate', handleNavigation);
+    window.addEventListener('navigation', handleNavigation);
     
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', handleNavigation);
+      window.removeEventListener('navigation', handleNavigation);
     };
   }, []);
   
@@ -86,21 +103,33 @@ export default function OrganizationSidebar() {
       return;
     }
     
+    // Prevenir navegação para a mesma rota para evitar duplicação
+    if (path === currentPath) {
+      console.log(`Já estamos na rota ${path}, evitando navegação redundante`);
+      return;
+    }
+    
     // Se for necessário manter o submenu aberto, salvamos o estado atual
     const currentSubmenu = keepSubmenuOpen ? expandedMenu : null;
     
     // Se autenticado, usa o método de navegação mais seguro
     try {
-      console.log(`Navegando para: ${path}`);
+      console.log(`Navegando para: ${path}, mantendo submenu: ${keepSubmenuOpen}`);
+      
+      // Atualizamos o estado do currentPath antes da navegação para evitar loops
+      setCurrentPath(path);
+      
+      // Atualizamos o histórico
       window.history.pushState({submenu: currentSubmenu}, '', path);
       
-      // Nós disparamos o evento popstate e restauramos o estado do menu logo em seguida
-      window.dispatchEvent(new Event('popstate'));
+      // Nós disparamos o evento navigation em vez de popstate para maior controle
+      window.dispatchEvent(new Event('navigation'));
       
       // Se houver um submenu aberto e queremos mantê-lo aberto, restauramos após a navegação
       if (keepSubmenuOpen && currentSubmenu) {
         console.log("Mantendo submenu aberto após navegação:", currentSubmenu);
-        setTimeout(() => setExpandedMenu(currentSubmenu), 50);
+        localStorage.setItem('expandedSubmenu', currentSubmenu);
+        setExpandedMenu(currentSubmenu);
       }
     } catch (error) {
       console.error("Erro na navegação:", error);
