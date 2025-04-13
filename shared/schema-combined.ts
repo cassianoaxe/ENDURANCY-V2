@@ -19,6 +19,9 @@ import * as comprasSchema from './schema-compras';
 // Importando o schema de tarefas
 import * as tarefasSchema from './schema-tarefas';
 
+// Importando o schema financeiro
+import * as financeiroSchema from './schema-financeiro';
+
 // Combinando todos os schemas em um objeto único
 export const combinedSchema = {
   ...baseSchema,
@@ -26,7 +29,8 @@ export const combinedSchema = {
   ...doctorAffiliationSchema,
   ...labEquipmentSchema,
   ...comprasSchema,
-  ...tarefasSchema
+  ...tarefasSchema,
+  ...financeiroSchema
 };
 
 // Exportando todos os tipos e enums
@@ -36,3 +40,4 @@ export * from './schema-doctor-affiliation';
 export * from './schema-lab-equipment';
 export * from './schema-compras';
 export * from './schema-tarefas';
+export * from './schema-financeiro';
