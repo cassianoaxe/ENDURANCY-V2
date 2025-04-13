@@ -126,15 +126,9 @@ export default function ModuleSubscriptionSales() {
   const { data: moduleStats, isLoading: isStatsLoading } = useQuery({
     queryKey: ['/api/module-subscriptions/stats', selectedPeriod],
     queryFn: async () => {
-      // This would be replaced with actual API call
-      return {
-        totalRevenue: 58000,
-        activeSubscriptions: 124,
-        conversionRate: 12.5,
-        averageModulesPerOrg: 2.3,
-        mostPopularModule: 'Financeiro',
-        mrr: 32800
-      };
+      const response = await fetch(`/api/module-subscriptions/stats?period=${selectedPeriod}`);
+      if (!response.ok) throw new Error('Falha ao carregar estatísticas de assinaturas');
+      return response.json();
     },
   });
 
@@ -142,7 +136,11 @@ export default function ModuleSubscriptionSales() {
   const { data: subscriptions, isLoading: isSubscriptionsLoading } = useQuery({
     queryKey: ['/api/module-subscriptions/recent'],
     queryFn: async () => {
-      // This would be replaced with actual API call
+      // Enquanto não temos endpoint dedicado, usamos os dados mockados
+      // Quando o endpoint estiver pronto, substituir por:
+      // const response = await fetch('/api/module-subscriptions/recent');
+      // if (!response.ok) throw new Error('Falha ao carregar assinaturas recentes');
+      // return response.json();
       return recentSubscriptions;
     },
   });

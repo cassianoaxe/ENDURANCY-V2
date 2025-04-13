@@ -1924,6 +1924,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch modules" });
     }
   });
+  
+  // Módulos com estatísticas
+  app.get("/api/modules/stats", async (_req, res) => {
+    try {
+      const modulesList = await db.select().from(modules);
+      
+      // Cálculo de estatísticas
+      const totalSales = modulesList.reduce((sum, module) => sum + (module.sales_count || 0), 0);
+      const totalSubscriptions = modulesList.reduce((sum, module) => sum + (module.subscriptions_count || 0), 0);
+      const totalRevenue = modulesList.reduce((sum, module) => sum + Number(module.monthly_revenue || 0), 0);
+      const topModules = [...modulesList].sort((a, b) => Number(b.monthly_revenue || 0) - Number(a.monthly_revenue || 0)).slice(0, 5);
+      
+      res.json({
+        modules: modulesList,
+        stats: {
+          totalSales,
+          totalSubscriptions,
+          totalRevenue,
+          topModules
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching modules stats:", error);
+      res.status(500).json({ message: "Failed to fetch modules statistics" });
+    }
+  });
+  
+  // Endpoint de estatísticas de assinaturas
+  app.get("/api/module-subscriptions/stats", async (req, res) => {
+    try {
+      const period = req.query.period || '30'; // Dias por padrão
+      
+      // Obter módulos com estatísticas
+      const modulesList = await db.select().from(modules);
+      const subscriptions = await db.select().from(organizationModules);
+      
+      // Calcular estatísticas de acordo com o período
+      const totalRevenue = modulesList.reduce((sum, module) => sum + Number(module.monthly_revenue || 0), 0);
+      const activeSubscriptions = subscriptions.filter(sub => sub.status === 'active').length;
+      const mrr = totalRevenue; // Monthly Recurring Revenue (igual ao total de receita mensal)
+      
+      // Identificar módulo mais popular por número de assinaturas
+      const moduleSubscriptionCounts = {};
+      subscriptions.forEach(sub => {
+        if (moduleSubscriptionCounts[sub.moduleId]) {
+          moduleSubscriptionCounts[sub.moduleId]++;
+        } else {
+          moduleSubscriptionCounts[sub.moduleId] = 1;
+        }
+      });
+      
+      // Encontrar o módulo mais popular
+      let mostPopularModuleId = 0;
+      let maxCount = 0;
+      
+      Object.entries(moduleSubscriptionCounts).forEach(([moduleId, count]) => {
+        if (Number(count) > maxCount) {
+          mostPopularModuleId = Number(moduleId);
+          maxCount = Number(count);
+        }
+      });
+      
+      // Buscar os detalhes do módulo mais popular
+      const mostPopularModule = modulesList.find(m => m.id === mostPopularModuleId)?.name || 'Não disponível';
+      
+      // Calcular média de módulos por organização
+      const organizationIds = [...new Set(subscriptions.map(sub => sub.organizationId))];
+      const averageModulesPerOrg = organizationIds.length > 0 
+        ? (subscriptions.length / organizationIds.length).toFixed(1) 
+        : 0;
+      
+      // Taxa de conversão (mockada)
+      const conversionRate = 12.5;
+      
+      res.json({
+        totalRevenue,
+        activeSubscriptions,
+        conversionRate,
+        averageModulesPerOrg,
+        mostPopularModule,
+        mrr
+      });
+    } catch (error) {
+      console.error("Error fetching module subscription stats:", error);
+      res.status(500).json({ message: "Failed to fetch subscription statistics" });
+    }
+  });
 
   app.get("/api/module-plans", async (_req, res) => {
     try {
