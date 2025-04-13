@@ -40,8 +40,8 @@ import { AdicionarColaboradorDialog } from "@/components/rh/AdicionarColaborador
 export default function Colaboradores() {
   const [abaPrincipal, setAbaPrincipal] = useState("ativos");
   const [dialogAdicionarAberto, setDialogAdicionarAberto] = useState(false);
-  const [departamentoSelecionado, setDepartamentoSelecionado] = useState("");
-  const [statusSelecionado, setStatusSelecionado] = useState("");
+  const [departamentoSelecionado, setDepartamentoSelecionado] = useState("todos_departamentos");
+  const [statusSelecionado, setStatusSelecionado] = useState("todos_status");
   const [termoBusca, setTermoBusca] = useState("");
 
   // Mock de dados de colaboradores
@@ -106,10 +106,10 @@ export default function Colaboradores() {
   // Filtrar colaboradores com base nos filtros selecionados
   const colaboradoresFiltrados = colaboradores.filter(colaborador => {
     // Filtro por departamento
-    if (departamentoSelecionado && colaborador.departamento !== departamentoSelecionado) return false;
+    if (departamentoSelecionado && departamentoSelecionado !== "todos_departamentos" && colaborador.departamento !== departamentoSelecionado) return false;
     
     // Filtro por status
-    if (statusSelecionado && colaborador.status !== statusSelecionado) return false;
+    if (statusSelecionado && statusSelecionado !== "todos_status" && colaborador.status !== statusSelecionado) return false;
     
     // Filtro por termo de busca
     if (termoBusca) {
@@ -163,7 +163,7 @@ export default function Colaboradores() {
                 <SelectValue placeholder="Todos..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os departamentos</SelectItem>
+                <SelectItem value="todos_departamentos">Todos os departamentos</SelectItem>
                 <SelectItem value="Produção">Produção</SelectItem>
                 <SelectItem value="Qualidade">Qualidade</SelectItem>
                 <SelectItem value="Cultivo">Cultivo</SelectItem>
@@ -178,7 +178,7 @@ export default function Colaboradores() {
                 <SelectValue placeholder="Todos status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos status</SelectItem>
+                <SelectItem value="todos_status">Todos status</SelectItem>
                 <SelectItem value="Ativo">Ativo</SelectItem>
                 <SelectItem value="Férias">Férias</SelectItem>
                 <SelectItem value="Licença">Licença</SelectItem>
