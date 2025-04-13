@@ -134,6 +134,12 @@ import DoctorManagementDocuments from "@/pages/organization/doctor-management/do
 import DoctorManagementAffiliation from "@/pages/organization/doctor-management/afiliacao";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
+// Importações do módulo Jurídico
+import DashboardJuridico from "@/pages/organization/juridico";
+import AcoesJudiciais from "@/pages/organization/juridico/acoes-judiciais";
+import DocumentosJuridicos from "@/pages/organization/juridico/documentos";
+import Compliance from "@/pages/organization/juridico/compliance";
+
 // Import pharmacist pages
 import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
 import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
@@ -660,6 +666,23 @@ function AppContent() {
     
     if (currentPath === '/organization/producao-industrial/catalogo-produtos') {
       return <CatalogoProdutosPage />;
+    }
+
+    // Módulo Jurídico
+    if (currentPath === '/organization/juridico') {
+      return <DashboardJuridico />;
+    }
+    
+    if (currentPath === '/organization/juridico/acoes-judiciais') {
+      return <AcoesJudiciais />;
+    }
+    
+    if (currentPath === '/organization/juridico/documentos') {
+      return <DocumentosJuridicos />;
+    }
+    
+    if (currentPath === '/organization/juridico/compliance') {
+      return <Compliance />;
     }
 
     if (currentPath === '/organization/expedicao') {
