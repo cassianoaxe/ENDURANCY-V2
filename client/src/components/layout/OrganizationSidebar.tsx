@@ -299,6 +299,40 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "RH",
+      path: "/organization/rh",
+      active: currentPath === "/organization/rh" || 
+              currentPath.startsWith("/organization/rh/"),
+      icon: <Users size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard RH",
+          path: "/organization/rh",
+          active: currentPath === "/organization/rh" && !currentPath.includes("/organization/rh/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Colaboradores",
+          path: "/organization/rh/colaboradores",
+          active: currentPath === "/organization/rh/colaboradores",
+          icon: <User size={16} />
+        },
+        {
+          title: "Documentos RH",
+          path: "/organization/rh/documentos",
+          active: currentPath === "/organization/rh/documentos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Escalas de Trabalho",
+          path: "/organization/rh/escalas",
+          active: currentPath === "/organization/rh/escalas",
+          icon: <Calendar size={16} />
+        }
+      ]
+    },
+    {
       title: "JURÍDICO",
       path: "/organization/juridico",
       active: currentPath === "/organization/juridico" || 
