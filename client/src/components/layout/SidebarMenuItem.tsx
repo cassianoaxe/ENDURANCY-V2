@@ -19,7 +19,7 @@ interface MenuItemProps {
   expandedMenu: string | null;
   toggleSubmenu: (title: string, event: React.MouseEvent) => void;
   closeSubmenu: (event: React.MouseEvent) => void;
-  navigateTo: (path: string) => void;
+  navigateTo: (path: string, keepSubmenuOpen?: boolean) => void;
   openSubmenu: (title: string) => void;
   collapsed: boolean;
 }
@@ -127,11 +127,12 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
                     const currentScroll = document.querySelector('.custom-scrollbar')?.scrollTop || 0;
                     localStorage.setItem('sidebarScrollPos', currentScroll.toString());
                     
-                    // Navega para o caminho mantendo o submenu aberto
-                    navigateTo(subItem.path);
-                    
                     // Marca este elemento para manter em foco
                     e.currentTarget.setAttribute('data-last-clicked', 'true');
+                    
+                    // Navega para o caminho mantendo o submenu aberto
+                    // Passamos true como segundo parâmetro para manter o submenu aberto
+                    navigateTo(subItem.path, true);
                   }}
                 >
                   <div className="flex items-center gap-2">
