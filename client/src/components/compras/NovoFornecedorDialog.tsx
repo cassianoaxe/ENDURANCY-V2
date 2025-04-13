@@ -31,15 +31,23 @@ type NovoFornecedorFormData = z.infer<typeof novoFornecedorSchema>;
 interface NovoFornecedorDialogProps {
   children?: React.ReactNode;
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onFornecedorCreated?: (fornecedor: NovoFornecedorFormData) => void;
 }
 
 export default function NovoFornecedorDialog({
   children,
   trigger,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
   onFornecedorCreated
 }: NovoFornecedorDialogProps) {
-  const [open, setOpen] = React.useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = setControlledOpen || setUncontrolledOpen;
 
   const {
     register,
