@@ -53,6 +53,7 @@ import { patientAuthRouter } from './routes/patient-auth';
 import planChangesRouter from './routes/plan-changes';
 // Importar rotas para gerenciamento de módulos
 import modulesRouter from './routes/modules';
+import medicalPortalRouter from './routes/medical-portal';
 // Importar rotas do módulo de farmácia
 import { farmaciaRouter } from './routes/farmacia-routes';
 import * as notificationService from "./services/notificationService";
@@ -5233,6 +5234,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas do módulo de farmácia
   app.use('/api/organization/farmacia', farmaciaRouter);
+  
+  // Rotas do portal médico
+  app.use(medicalPortalRouter);
   
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
