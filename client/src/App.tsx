@@ -95,7 +95,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 // Import role-specific dashboards
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import OrgAdminDashboard from "@/pages/dashboards/OrgAdminDashboard";
-import DoctorDashboard from "@/pages/dashboards/DoctorDashboard";
+import DoctorDashboard from "@/pages/doctor/Dashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
 import OrganizationDashboard from "@/pages/organization/Dashboard";
 import Onboarding from "@/pages/organization/Onboarding";
