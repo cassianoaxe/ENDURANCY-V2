@@ -50,7 +50,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { icon: Home, label: "Dashboard", path: "/" },
+  { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: BarChart2, label: "Analytics", path: "/analytics" },
   { icon: FileText, label: "Registro de Atividades", path: "/activity-log" },
   { icon: Database, label: "Backups", path: "/backups" },
