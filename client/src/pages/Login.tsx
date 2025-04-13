@@ -254,6 +254,15 @@ export default function Login() {
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-indigo-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Building className="h-3 w-3 text-indigo-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal da Organização</span>
+                      <p className="text-xs text-gray-600">Gestão para associações (327) e importadoras (660)</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
                     <div className="w-5 h-5 bg-orange-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
                       <Pill className="h-3 w-3 text-orange-600" />
                     </div>
@@ -278,6 +287,7 @@ export default function Login() {
                 <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
                   <PanelTopInactive className="h-5 w-5" /> Módulos Principais
                 </h3>
+                <p className="text-xs text-gray-600 mb-2">Disponíveis em planos Freemium, Seed, Grow, Pro e Enterprise</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50/80 p-2 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-800">HPLC Avançado</h4>
@@ -295,6 +305,13 @@ export default function Login() {
                     <h4 className="text-sm font-medium text-gray-800">Analytics & BI</h4>
                     <p className="text-xs text-gray-600">Dashboards e relatórios avançados em tempo real</p>
                   </div>
+                </div>
+                <div className="mt-3 flex gap-1.5">
+                  <div className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">Freemium</div>
+                  <div className="bg-teal-100 text-teal-700 text-xs font-medium px-2 py-1 rounded-full">Seed</div>
+                  <div className="bg-emerald-100 text-emerald-700 text-xs font-medium px-2 py-1 rounded-full">Grow</div>
+                  <div className="bg-violet-100 text-violet-700 text-xs font-medium px-2 py-1 rounded-full">Pro</div>
+                  <div className="bg-indigo-100 text-indigo-700 text-xs font-medium px-2 py-1 rounded-full">Enterprise</div>
                 </div>
               </div>
               
