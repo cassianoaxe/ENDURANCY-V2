@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
+// DoctorLayout é fornecido pelo App.tsx
 import { 
   Building, 
   LinkIcon, 
@@ -289,8 +289,7 @@ export default function DoctorAfiliacao() {
   };
 
   return (
-    <DoctorLayout>
-      <div className="space-y-4">
+    <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <p className="text-gray-500 text-sm">Gerencie suas conexões com farmácias e dispensários</p>
           <div className="flex space-x-2 mt-4 sm:mt-0">
@@ -546,6 +545,6 @@ export default function DoctorAfiliacao() {
           </form>
         </DialogContent>
       </Dialog>
-    </DoctorLayout>
+    </div>
   );
 }
