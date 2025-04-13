@@ -76,7 +76,7 @@ export default function QuadroKanban() {
   ];
 
   return (
-    <OrganizationLayout>
+    <>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -107,6 +107,6 @@ export default function QuadroKanban() {
         open={dialogNovaTarefaAberto} 
         onOpenChange={setDialogNovaTarefaAberto} 
       />
-    </OrganizationLayout>
+    </>
   );
 }
