@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
+// DoctorLayout já é fornecido pelo App.tsx
 import { 
   Search, 
   Plus,
@@ -307,7 +307,6 @@ export default function DoctorPacientes() {
   ];
 
   return (
-    <DoctorLayout>
       <div>
         {/* Search and action buttons */}
         <div className="mb-6">
@@ -458,6 +457,5 @@ export default function DoctorPacientes() {
           )}
         </Card>
       </div>
-    </DoctorLayout>
   );
 }
