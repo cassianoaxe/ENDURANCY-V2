@@ -147,6 +147,11 @@ import Colaboradores from "@/pages/organization/rh/colaboradores";
 import DocumentosRH from "@/pages/organization/rh/documentos";
 import EscalasTrabalho from "@/pages/organization/rh/escalas";
 
+// Importações do módulo Tarefas
+import DashboardTarefas from "@/pages/organization/tarefas";
+import QuadroKanban from "@/pages/organization/tarefas/quadro";
+import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
+
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
 import SolicitacoesCompra from "@/pages/organization/compras/solicitacoes";
@@ -732,6 +737,25 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
+    // Rotas do módulo de Tarefas
+    if (currentPath === '/organization/tarefas') {
+      return <OrganizationLayout>
+        <DashboardTarefas />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/tarefas/quadro') {
+      return <OrganizationLayout>
+        <QuadroKanban />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/tarefas/minhas-tarefas') {
+      return <OrganizationLayout>
+        <MinhasTarefas />
+      </OrganizationLayout>;
+    }
+
     // Rotas do módulo de Compras e Estoque
     if (currentPath === '/organization/compras') {
       return <OrganizationLayout>
@@ -760,6 +784,25 @@ function AppContent() {
     if (currentPath === '/organization/compras/pedidos') {
       return <OrganizationLayout>
         <PedidosCompra />
+      </OrganizationLayout>;
+    }
+    
+    // Rotas do módulo Tarefas
+    if (currentPath === '/organization/tarefas') {
+      return <OrganizationLayout>
+        <DashboardTarefas />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/tarefas/quadro') {
+      return <OrganizationLayout>
+        <QuadroKanban />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/tarefas/minhas-tarefas') {
+      return <OrganizationLayout>
+        <MinhasTarefas />
       </OrganizationLayout>;
     }
 
