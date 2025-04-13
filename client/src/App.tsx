@@ -151,6 +151,7 @@ import EscalasTrabalho from "@/pages/organization/rh/escalas";
 import DashboardTarefas from "@/pages/organization/tarefas";
 import QuadroKanban from "@/pages/organization/tarefas/quadro";
 import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
+import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
 
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
@@ -803,6 +804,12 @@ function AppContent() {
     if (currentPath === '/organization/tarefas/minhas-tarefas') {
       return <OrganizationLayout>
         <MinhasTarefas />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/tarefas/configuracoes') {
+      return <OrganizationLayout>
+        <ConfiguracoesTarefas />
       </OrganizationLayout>;
     }
 
