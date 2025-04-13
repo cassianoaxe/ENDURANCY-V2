@@ -227,7 +227,7 @@ export default function DocumentosRH() {
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="todas_categorias">Todas as categorias</SelectItem>
                 <SelectItem value="Políticas">Políticas</SelectItem>
                 <SelectItem value="Formulários">Formulários</SelectItem>
                 <SelectItem value="Manuais">Manuais</SelectItem>
