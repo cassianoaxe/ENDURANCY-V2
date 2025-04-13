@@ -13,12 +13,16 @@ import * as doctorAffiliationSchema from './schema-doctor-affiliation';
 // Importando o schema de equipamentos de laboratório
 import * as labEquipmentSchema from './schema-lab-equipment';
 
+// Importando o schema de compras e estoque
+import * as comprasSchema from './schema-compras';
+
 // Combinando todos os schemas em um objeto único
 export const combinedSchema = {
   ...baseSchema,
   ...hplcSchema,
   ...doctorAffiliationSchema,
-  ...labEquipmentSchema
+  ...labEquipmentSchema,
+  ...comprasSchema
 };
 
 // Exportando todos os tipos e enums
@@ -26,3 +30,4 @@ export * from './schema';
 export * from './schema-hplc';
 export * from './schema-doctor-affiliation';
 export * from './schema-lab-equipment';
+export * from './schema-compras';
