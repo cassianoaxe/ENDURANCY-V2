@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, Truck, Package, Filter, MoreHorizontal, Eye, ClipboardEdit, Star, Phone, Mail, ShoppingCart } from "lucide-react";
-import { OrganizationLayout } from "@/components/layout/OrganizationLayout";
+import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { NovoFornecedorDialog } from "@/components/compras/NovoFornecedorDialog";
 
 // Dados mockados para demonstração
