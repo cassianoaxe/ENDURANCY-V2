@@ -38,9 +38,16 @@ interface NovoItemEstoqueDialogProps {
 export default function NovoItemEstoqueDialog({
   children,
   trigger,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  categoriaInicial,
   onItemCreated
 }: NovoItemEstoqueDialogProps) {
-  const [open, setOpen] = React.useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : uncontrolledOpen;
+  const setOpen = setControlledOpen || setUncontrolledOpen;
 
   const {
     register,
