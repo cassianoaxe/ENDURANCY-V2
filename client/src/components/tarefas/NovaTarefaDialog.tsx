@@ -15,7 +15,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { StatusTarefa, PrioridadeTarefa } from '../../../shared/schema-tarefas';
+import { StatusTarefa, PrioridadeTarefa } from '@shared/schema-tarefas';
 
 const novaTarefaSchema = z.object({
   titulo: z.string().min(3, "O título deve ter pelo menos 3 caracteres"),
