@@ -50,21 +50,41 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { icon: Home, label: "Dashboard", path: "/" },
-  { icon: BarChart2, label: "Analytics", path: "/analytics" },
-  { icon: FileText, label: "Registro de Atividades", path: "/activity-log" },
-  { icon: Database, label: "Backups", path: "/backups" },
-  { icon: AlertTriangle, label: "Emergências", path: "/emergencies" },
-  { icon: Package, label: "Planos", path: "/plans" },
+  { 
+    icon: Home, 
+    label: "Dashboard", 
+    submenu: [
+      { icon: Home, label: "Visão Geral", path: "/" },
+      { icon: BarChart2, label: "Analytics", path: "/analytics" },
+      { icon: FileText, label: "Registro de Atividades", path: "/activity-log" }
+    ]
+  },
   { 
     icon: Blocks, 
     label: "Módulos", 
     submenu: [
-      { icon: Blocks, label: "Lista de Módulos", path: "/modules" },
+      { icon: Blocks, label: "Visão Geral", path: "/modules" },
+      { icon: Package, label: "Módulos em Tabela", path: "/modules-table" },
+      { icon: BarChart, label: "Vendas e Assinaturas", path: "/module-subscription-sales" },
       { icon: Package, label: "Módulos por Organização", path: "/organization-modules" }
     ]
   },
-  { icon: Building2, label: "Cadastro", path: "/cadastro" },
+  { 
+    icon: Package, 
+    label: "Planos", 
+    submenu: [
+      { icon: Package, label: "Lista de Planos", path: "/plans" },
+      { icon: Settings, label: "Configurações de Planos", path: "/plans/settings" }
+    ]
+  },
+  { 
+    icon: Building2, 
+    label: "Organizações", 
+    submenu: [
+      { icon: Building2, label: "Lista de Organizações", path: "/cadastro" },
+      { icon: Building2, label: "Cadastro de Organização", path: "/organization-registration" }
+    ]
+  },
   { 
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
@@ -89,12 +109,35 @@ const menuItems: MenuItem[] = [
       { icon: Settings, label: "Configurações", path: "/financial/settings" }
     ]
   },
-  { icon: Mail, label: "Templates de Email", path: "/email-templates" },
-  { icon: Users, label: "Administradores", path: "/administrators" },
-  { icon: Upload, label: "Importação de Dados", path: "/data-import" },
-  { icon: Settings, label: "Configurações", path: "/settings" },
-  { icon: Link, label: "Lista de URLs", path: "/routes-list" },
-  { icon: BookOpen, label: "Documentação", path: "/documentation" }
+  { 
+    icon: Plug, 
+    label: "Integrações", 
+    submenu: [
+      { icon: MessageSquare, label: "WhatsApp", path: "/integracoes/comunicacao/whatsapp" },
+      { icon: CreditCard, label: "Asaas", path: "/integracoes/pagamentos/asaas" },
+      { icon: CreditCard, label: "Zoop", path: "/integracoes/pagamentos/zoop" },
+      { icon: Truck, label: "Melhor Envio", path: "/integracoes/logistica/melhor-envio" },
+      { icon: Truck, label: "Azul Cargo", path: "/integracoes/logistica/azul-cargo" },
+      { icon: Truck, label: "Correios", path: "/integracoes/logistica/correios" },
+      { icon: Brain, label: "ChatGPT", path: "/integracoes/ia/chatgpt" },
+      { icon: Brain, label: "Claude", path: "/integracoes/ia/claude" },
+      { icon: GitBranch, label: "Kentro CRM", path: "/integracoes/crm/kentro" }
+    ]
+  },
+  { 
+    icon: Settings, 
+    label: "Sistema", 
+    submenu: [
+      { icon: Mail, label: "Templates de Email", path: "/email-templates" },
+      { icon: Users, label: "Administradores", path: "/administrators" },
+      { icon: Upload, label: "Importação de Dados", path: "/data-import" },
+      { icon: Settings, label: "Configurações", path: "/settings" },
+      { icon: Link, label: "Lista de URLs", path: "/routes-list" },
+      { icon: Database, label: "Backups", path: "/backups" },
+      { icon: AlertTriangle, label: "Emergências", path: "/emergencies" },
+      { icon: BookOpen, label: "Documentação", path: "/documentation" }
+    ]
+  }
 ];
 
 export default function Sidebar() {
@@ -102,9 +145,14 @@ export default function Sidebar() {
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
+    "Dashboard": false,
     "Módulos": false,
+    "Planos": false,
+    "Organizações": false,
     "Tickets de Suporte": false,
-    "Financeiro": false // Menu financeiro deve começar retraído como os outros
+    "Financeiro": false,
+    "Integrações": false,
+    "Sistema": false
   });
   
   // Controla se a sidebar está colapsada/retraída
