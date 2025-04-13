@@ -25,7 +25,7 @@ export default function MinhasTarefas() {
   // Aqui seria a lógica para buscar as tarefas do usuário atual da API
 
   return (
-    <OrganizationLayout>
+    <>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -112,6 +112,6 @@ export default function MinhasTarefas() {
         open={dialogNovaTarefaAberto} 
         onOpenChange={setDialogNovaTarefaAberto} 
       />
-    </OrganizationLayout>
+    </>
   );
 }

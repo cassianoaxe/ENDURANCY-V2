@@ -22,8 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
-import { Save, AlertCircle, Clock, Bell } from "lucide-react";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
+import { Save, AlertCircle } from "lucide-react";
 
 export default function ConfiguracoesTarefas() {
   // Estados para armazenar as configurações
@@ -39,7 +38,6 @@ export default function ConfiguracoesTarefas() {
 
   // Função para salvar configurações
   const salvarConfiguracoes = () => {
-    // Aqui você adicionaria a integração com a API
     toast({
       title: "Configurações salvas",
       description: "As configurações do módulo de tarefas foram atualizadas com sucesso."
@@ -79,7 +77,7 @@ export default function ConfiguracoesTarefas() {
   };
 
   return (
-    <OrganizationLayout>
+    <>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -393,6 +391,6 @@ export default function ConfiguracoesTarefas() {
           </TabsContent>
         </Tabs>
       </div>
-    </OrganizationLayout>
+    </>
   );
 }
