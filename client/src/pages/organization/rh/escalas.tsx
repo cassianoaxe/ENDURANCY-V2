@@ -55,8 +55,8 @@ import { NovaEscalaDialog } from "@/components/rh/NovaEscalaDialog";
 
 export default function EscalasTrabalho() {
   const [abaVisualização, setAbaVisualização] = useState("lista");
-  const [departamentoFiltro, setDepartamentoFiltro] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState("");
+  const [departamentoFiltro, setDepartamentoFiltro] = useState("todos_departamentos");
+  const [statusFiltro, setStatusFiltro] = useState("todos_status");
   const [termoBusca, setTermoBusca] = useState("");
   const [dialogNovaEscalaAberto, setDialogNovaEscalaAberto] = useState(false);
   const [data, setData] = useState<Date | undefined>(new Date());
@@ -128,10 +128,10 @@ export default function EscalasTrabalho() {
   // Filtrar escalas
   const escalasFiltradas = escalas.filter(escala => {
     // Filtro por departamento
-    if (departamentoFiltro && escala.departamento !== departamentoFiltro) return false;
+    if (departamentoFiltro !== "todos_departamentos" && escala.departamento !== departamentoFiltro) return false;
     
     // Filtro por status
-    if (statusFiltro && escala.status !== statusFiltro) return false;
+    if (statusFiltro !== "todos_status" && escala.status !== statusFiltro) return false;
     
     // Filtro por termo de busca
     if (termoBusca) {
@@ -332,7 +332,7 @@ export default function EscalasTrabalho() {
                   <SelectValue placeholder="Todos os departamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os departamentos</SelectItem>
+                  <SelectItem value="todos_departamentos">Todos os departamentos</SelectItem>
                   <SelectItem value="Produção">Produção</SelectItem>
                   <SelectItem value="Qualidade">Qualidade</SelectItem>
                   <SelectItem value="Cultivo">Cultivo</SelectItem>
