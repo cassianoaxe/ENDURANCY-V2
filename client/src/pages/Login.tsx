@@ -222,41 +222,100 @@ export default function Login() {
           
           <div className="flex-grow flex flex-col justify-center max-w-md mx-auto">
             <h2 className="text-3xl font-bold text-gray-800 mb-6">
-              Plataforma de controle completa para cannabis medicinal
+              Plataforma integrada para toda cadeia de cannabis medicinal
             </h2>
-            <p className="text-gray-600 mb-8">
-              Gerencie todo o processo, desde a prescrição médica até a análise laboratorial 
-              e dispensação do medicamento, com controle total e em conformidade com a legislação.
+            <p className="text-gray-600 mb-6">
+              Sistema completo de gestão end-to-end com IA para cannabis medicinal, integrando prescrição, 
+              laboratório, cultivo, produção e distribuição em conformidade com ANVISA.
             </p>
             
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
-                  <Stethoscope className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800">Portal Médico</h3>
-                  <p className="text-sm text-gray-600">Gestão de pacientes e prescrições seguras</p>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-white/70 p-4 rounded-xl shadow-sm">
+                <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5" /> Portais Especializados
+                </h3>
+                <ul className="space-y-2.5">
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-emerald-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Stethoscope className="h-3 w-3 text-emerald-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal Médico</span>
+                      <p className="text-xs text-gray-600">Prescrições eletrônicas, prontuários e gestão de pacientes</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-purple-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Beaker className="h-3 w-3 text-purple-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal Laboratorial</span>
+                      <p className="text-xs text-gray-600">HPLC, testes de qualidade e rastreabilidade de amostras</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-orange-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Pill className="h-3 w-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal de Farmácia</span>
+                      <p className="text-xs text-gray-600">Dispensação, estoque e conformidade regulatória</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <UserCircle className="h-3 w-3 text-blue-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal do Paciente</span>
+                      <p className="text-xs text-gray-600">Histórico médico, prescrições e comunicação segura</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="bg-white/70 p-4 rounded-xl shadow-sm">
+                <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
+                  <PanelTopInactive className="h-5 w-5" /> Módulos Principais
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50/80 p-2 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-800">HPLC Avançado</h4>
+                    <p className="text-xs text-gray-600">Gestão completa de equipamentos, calibrações e análises</p>
+                  </div>
+                  <div className="bg-gray-50/80 p-2 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-800">Cultivo Inteligente</h4>
+                    <p className="text-xs text-gray-600">Monitoramento e controle de produção agrícola</p>
+                  </div>
+                  <div className="bg-gray-50/80 p-2 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-800">Prescrição Digital</h4>
+                    <p className="text-xs text-gray-600">Controle de doses e assinatura digital segura</p>
+                  </div>
+                  <div className="bg-gray-50/80 p-2 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-800">Analytics & BI</h4>
+                    <p className="text-xs text-gray-600">Dashboards e relatórios avançados em tempo real</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
-                  <Beaker className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800">Portal Laboratorial</h3>
-                  <p className="text-sm text-gray-600">Análise e controle de qualidade com HPLC</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mt-0.5">
-                  <Pill className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-800">Portal de Farmácia</h3>
-                  <p className="text-sm text-gray-600">Dispensação segura e rastreabilidade completa</p>
+              <div className="bg-gradient-to-r from-gray-50 to-green-50 p-4 rounded-xl shadow-sm border border-green-100">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-1">
+                  <span className="text-sm bg-green-100 text-green-700 py-1 px-2 rounded-md">NOVO</span> Inteligência Artificial
+                </h3>
+                <p className="text-xs text-gray-600 mb-2">Recursos avançados de IA integrados em toda a plataforma</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white p-1.5 rounded border border-gray-100">
+                    <p className="text-xs font-medium text-gray-800">Previsão de colheita</p>
+                  </div>
+                  <div className="bg-white p-1.5 rounded border border-gray-100">
+                    <p className="text-xs font-medium text-gray-800">Análise de cromatogramas</p>
+                  </div>
+                  <div className="bg-white p-1.5 rounded border border-gray-100">
+                    <p className="text-xs font-medium text-gray-800">Otimização de doses</p>
+                  </div>
+                  <div className="bg-white p-1.5 rounded border border-gray-100">
+                    <p className="text-xs font-medium text-gray-800">Detecção de anomalias</p>
+                  </div>
                 </div>
               </div>
             </div>
