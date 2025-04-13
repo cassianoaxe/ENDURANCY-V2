@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// DoctorLayout é fornecido pelo App.tsx
 import { 
   Building, 
   LinkIcon, 
@@ -290,231 +289,220 @@ export default function DoctorAfiliacao() {
 
   return (
     <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <p className="text-gray-500 text-sm">Gerencie suas conexões com farmácias e dispensários</p>
-          <div className="flex space-x-2 mt-4 sm:mt-0">
-            <Button variant="outline" onClick={() => setShowInviteDialog(true)} className="flex items-center gap-1">
-              <LinkIcon className="h-4 w-4" />
-              <span>Usar código de convite</span>
-            </Button>
-          </div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <p className="text-gray-500 text-sm">Gerencie suas conexões com farmácias e dispensários</p>
+        <div className="flex space-x-2 mt-4 sm:mt-0">
+          <Button variant="outline" onClick={() => setShowInviteDialog(true)} className="flex items-center gap-1">
+            <LinkIcon className="h-4 w-4" />
+            <span>Usar código de convite</span>
+          </Button>
         </div>
-
-        <Tabs defaultValue="active" onValueChange={setActiveTab} className="space-y-4">
-          <div className="flex justify-between items-center">
-            <TabsList>
-              <TabsTrigger value="active">Ativos</TabsTrigger>
-              <TabsTrigger value="pending">Pendentes</TabsTrigger>
-              <TabsTrigger value="invites">Convites</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="active" className="space-y-4">
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : filteredAffiliations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
-                  <Card key={affiliation.id} className={`${affiliation.isDefault ? 'border-primary border-2' : ''}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
-                          </div>
-                          <div>
-                            <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
-                            {affiliation.isDefault && (
-                              <Badge className="mt-1 bg-primary/10 text-primary">Padrão</Badge>
-                            )}
-                          </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {!affiliation.isDefault && (
-                              <DropdownMenuItem onClick={() => handleSetDefault(affiliation.id)}>
-                                <Star className="mr-2 h-4 w-4" />
-                                <span>Tornar padrão</span>
-                              </DropdownMenuItem>
-                            )}
-                            {affiliation.website && (
-                              <DropdownMenuItem onClick={() => window.open(affiliation.website, '_blank')}>
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                <span>Visitar site</span>
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem 
-                              onClick={() => handleLeaveOrganization(affiliation.id)} 
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              <span>Deixar organização</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <CardDescription className="text-xs mt-2">
-                        {affiliation.address || ''}
-                        {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="bg-gray-50 p-2 rounded-md">
-                          <p className="text-gray-500 text-xs">Pacientes</p>
-                          <p className="font-medium">{affiliation.patientsCount || '0'}</p>
-                        </div>
-                        <div className="bg-gray-50 p-2 rounded-md">
-                          <p className="text-gray-500 text-xs">Prescrições</p>
-                          <p className="font-medium">{affiliation.prescriptionsCount || '0'}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="text-xs text-gray-500 pt-0">
-                      Afiliado desde {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-500">Você não possui afiliações ativas</p>
-                  <p className="text-gray-500 text-sm mt-1">Entre usando um código de convite para se afiliar a uma organização</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="pending" className="space-y-4">
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : filteredAffiliations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
-                  <Card key={affiliation.id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
-                          </div>
-                          <div>
-                            <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
-                            <Badge className="mt-1 bg-yellow-100 text-yellow-800">Pendente</Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <CardDescription className="text-xs mt-2">
-                        {affiliation.address || ''}
-                        {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">Sua solicitação está em análise pela administração da organização.</p>
-                    </CardContent>
-                    <CardFooter className="text-xs text-gray-500 pt-0">
-                      Solicitado em {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-500">Você não possui afiliações pendentes</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="invites" className="space-y-4">
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : invitations.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {invitations.map((invitation: Invitation) => (
-                  <Card key={invitation.id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
-                            {invitation.logo || invitation.organizationName?.[0]?.toUpperCase() || "🏥"}
-                          </div>
-                          <div>
-                            <CardTitle className="text-base">{invitation.organizationName}</CardTitle>
-                            <p className="text-xs text-gray-500">
-                              Convidado por: {invitation.invitedBy}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">Você foi convidado a se tornar um médico afiliado a esta organização.</p>
-                    </CardContent>
-                    <CardFooter className="pt-0 flex justify-between">
-                      <p className="text-xs text-gray-500">
-                        Convidado em {invitation.inviteDate}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleRejectInvitation(invitation.id)}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Recusar
-                        </Button>
-                        <Button 
-                          size="sm"
-                          onClick={() => handleAcceptInvitation(invitation.id)}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Aceitar
-                        </Button>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-500">Você não possui convites pendentes</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-          
-          {/* Mostrar loading state enquanto o botão é clicado */}
-          {joiningOrganization && (
-            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-md shadow-lg flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p>Processando sua solicitação...</p>
-              </div>
-            </div>
-          )}
-        </Tabs>
       </div>
+
+      <Tabs defaultValue="active" onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex justify-between items-center">
+          <TabsList>
+            <TabsTrigger value="active">Ativos</TabsTrigger>
+            <TabsTrigger value="pending">Pendentes</TabsTrigger>
+            <TabsTrigger value="invites">Convites</TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <TabsContent value="active" className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredAffiliations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
+                <Card key={affiliation.id} className={`${affiliation.isDefault ? 'border-primary border-2' : ''}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                          {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
+                          {affiliation.isDefault && (
+                            <Badge className="mt-1 bg-primary/10 text-primary">Padrão</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {!affiliation.isDefault && (
+                            <DropdownMenuItem onClick={() => handleSetDefault(affiliation.id)}>
+                              <Star className="mr-2 h-4 w-4" />
+                              <span>Tornar padrão</span>
+                            </DropdownMenuItem>
+                          )}
+                          {affiliation.website && (
+                            <DropdownMenuItem onClick={() => window.open(affiliation.website, '_blank')}>
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              <span>Visitar site</span>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem 
+                            onClick={() => handleLeaveOrganization(affiliation.id)} 
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <X className="mr-2 h-4 w-4" />
+                            <span>Deixar organização</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <CardDescription className="text-xs mt-2">
+                      {affiliation.address || ''}
+                      {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="bg-gray-50 p-2 rounded-md">
+                        <p className="text-gray-500 text-xs">Pacientes</p>
+                        <p className="font-medium">{affiliation.patientsCount || '0'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-2 rounded-md">
+                        <p className="text-gray-500 text-xs">Prescrições</p>
+                        <p className="font-medium">{affiliation.prescriptionsCount || '0'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="text-xs text-gray-500 pt-0">
+                    Afiliado desde {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">Você não possui afiliações ativas</p>
+                <p className="text-gray-500 text-sm mt-1">Entre usando um código de convite para se afiliar a uma organização</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="pending" className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredAffiliations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAffiliations.map((affiliation: DoctorAffiliation) => (
+                <Card key={affiliation.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                          {affiliation.organizationName?.[0]?.toUpperCase() || "🏥"}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{affiliation.organizationName}</CardTitle>
+                          <Badge className="mt-1 bg-yellow-100 text-yellow-800">Pendente</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <CardDescription className="text-xs mt-2">
+                      {affiliation.address || ''}
+                      {affiliation.city && affiliation.state ? `, ${affiliation.city}, ${affiliation.state}` : ''}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">Sua solicitação está em análise pela administração da organização.</p>
+                  </CardContent>
+                  <CardFooter className="text-xs text-gray-500 pt-0 justify-between">
+                    <span>Solicitação enviada em {new Date(affiliation.createdAt).toLocaleDateString('pt-BR')}</span>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">Você não possui afiliações pendentes</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="invites" className="space-y-4">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : invitations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {invitations.map((invitation: Invitation) => (
+                <Card key={invitation.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-2xl">
+                          {invitation.logo || invitation.organizationName?.[0]?.toUpperCase() || "🏥"}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{invitation.organizationName}</CardTitle>
+                          <p className="text-xs text-gray-500">
+                            Convidado por: {invitation.invitedBy}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">Você foi convidado a se tornar um médico afiliado a esta organização.</p>
+                  </CardContent>
+                  <CardFooter className="pt-0 flex justify-between">
+                    <p className="text-xs text-gray-500">
+                      Convidado em {invitation.inviteDate}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleRejectInvitation(invitation.id)}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Recusar
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => handleAcceptInvitation(invitation.id)}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Aceitar
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <Building className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">Você não possui convites pendentes</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
       
-      {/* Diálogo para usar código de convite */}
+      {/* Dialog para usar código de convite */}
       <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -540,11 +528,28 @@ export default function DoctorAfiliacao() {
               <Button type="button" variant="outline" onClick={() => setShowInviteDialog(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Aderir à organização</Button>
+              <Button type="submit" disabled={joiningOrganization}>
+                {joiningOrganization ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : 'Aderir à organização'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+      
+      {/* Mostrar loading state enquanto o botão é clicado */}
+      {joiningOrganization && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p>Processando sua solicitação...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
