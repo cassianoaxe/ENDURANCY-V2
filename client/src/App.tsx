@@ -738,25 +738,6 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
-    // Rotas do módulo de Tarefas
-    if (currentPath === '/organization/tarefas') {
-      return <OrganizationLayout>
-        <DashboardTarefas />
-      </OrganizationLayout>;
-    }
-
-    if (currentPath === '/organization/tarefas/quadro') {
-      return <OrganizationLayout>
-        <QuadroKanban />
-      </OrganizationLayout>;
-    }
-
-    if (currentPath === '/organization/tarefas/minhas-tarefas') {
-      return <OrganizationLayout>
-        <MinhasTarefas />
-      </OrganizationLayout>;
-    }
-
     // Rotas do módulo de Compras e Estoque
     if (currentPath === '/organization/compras') {
       return <OrganizationLayout>
