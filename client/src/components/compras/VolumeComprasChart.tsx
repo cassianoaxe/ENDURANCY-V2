@@ -1,77 +1,105 @@
-'use client';
-
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card } from '@/components/ui/card';
+import { 
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend 
+} from 'recharts';
+import { formatCurrency } from '@/lib/utils';
 
-// Dados mockados de volume de compras
-const data = [
-  { mes: 'Jan', total: 12800 },
-  { mes: 'Fev', total: 14500 },
-  { mes: 'Mar', total: 18200 },
-  { mes: 'Abr', total: 16900 },
-  { mes: 'Mai', total: 21500 },
-  { mes: 'Jun', total: 19800 },
-  { mes: 'Jul', total: 24300 },
-];
+interface VolumeComprasChartProps {
+  data?: {
+    mes: string;
+    valor: number;
+  }[];
+  period?: 'monthly' | 'quarterly' | 'yearly';
+  title?: string;
+  description?: string;
+  className?: string;
+}
 
-// Formata valores para moeda brasileira
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
+export default function VolumeComprasChart({
+  data,
+  period = 'monthly',
+  title = 'Volume de Compras',
+  description = 'Valor total de compras por período',
+  className
+}: VolumeComprasChartProps) {
+  // Dados de exemplo para quando não há dados reais fornecidos
+  const sampleData = [
+    { mes: 'Jan', valor: 24500 },
+    { mes: 'Fev', valor: 35800 },
+    { mes: 'Mar', valor: 28900 },
+    { mes: 'Abr', valor: 42100 },
+    { mes: 'Mai', valor: 38500 },
+    { mes: 'Jun', valor: 35700 },
+  ];
 
-// Custom tooltip para o gráfico
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <Card className="bg-background border shadow-sm p-2">
-        <p className="text-sm font-medium">{`${label}`}</p>
-        <p className="text-sm font-bold text-primary">{formatCurrency(payload[0].value)}</p>
-      </Card>
-    );
-  }
+  const chartData = data || sampleData;
 
-  return null;
-};
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border rounded shadow-sm">
+          <p className="font-medium">{`${label}`}</p>
+          <p className="text-sm">{`Valor: ${formatCurrency(payload[0].value)}`}</p>
+        </div>
+      );
+    }
+    
+    return null;
+  };
 
-export function VolumeComprasChart() {
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart
-        data={data}
-        margin={{
-          top: 5,
-          right: 10,
-          left: 10,
-          bottom: 5,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="mes" 
-          tick={{ fontSize: 12 }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis 
-          tickFormatter={(value) => `R$ ${value / 1000}k`}
-          tick={{ fontSize: 12 }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Bar 
-          dataKey="total" 
-          fill="rgba(99, 102, 241, 0.8)" 
-          radius={[4, 4, 0, 0]}
-          barSize={30}
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <Card className={className}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart
+            data={chartData}
+            margin={{
+              top: 5,
+              right: 5,
+              left: 5,
+              bottom: 15,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis 
+              dataKey="mes" 
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis 
+              tickFormatter={(value) => `R$${value/1000}k`} 
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar 
+              dataKey="valor" 
+              fill="#16a34a" 
+              radius={[4, 4, 0, 0]}
+              barSize={40} 
+              fillOpacity={0.8}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 }
