@@ -141,6 +141,12 @@ import AcoesJudiciais from "@/pages/organization/juridico/acoes-judiciais";
 import DocumentosJuridicos from "@/pages/organization/juridico/documentos";
 import Compliance from "@/pages/organization/juridico/compliance";
 
+// Importações do módulo RH
+import DashboardRH from "@/pages/organization/rh";
+import Colaboradores from "@/pages/organization/rh/colaboradores";
+import DocumentosRH from "@/pages/organization/rh/documentos";
+import EscalasTrabalho from "@/pages/organization/rh/escalas";
+
 // Import pharmacist pages
 import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
 import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
