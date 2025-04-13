@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Package2, Filter, MoreHorizontal, Eye, ClipboardEdit, Check, Clock, ShoppingCart, Package, X } from "lucide-react";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
-import { NovaSolicitacaoDialog } from "@/components/compras/NovaSolicitacaoDialog";
+import NovaSolicitacaoDialog from "@/components/compras/NovaSolicitacaoDialog";
 
 // Dados mockados para demonstração
 const solicitacoes = [

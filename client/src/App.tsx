@@ -147,6 +147,13 @@ import Colaboradores from "@/pages/organization/rh/colaboradores";
 import DocumentosRH from "@/pages/organization/rh/documentos";
 import EscalasTrabalho from "@/pages/organization/rh/escalas";
 
+// Importações do módulo Compras e Estoque
+import ComprasDashboard from "@/pages/organization/compras";
+import SolicitacoesCompra from "@/pages/organization/compras/solicitacoes";
+import Fornecedores from "@/pages/organization/compras/fornecedores";
+import Estoque from "@/pages/organization/compras/estoque";
+import PedidosCompra from "@/pages/organization/compras/pedidos";
+
 // Import pharmacist pages
 import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
 import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
@@ -722,6 +729,37 @@ function AppContent() {
     if (currentPath === '/organization/rh/escalas') {
       return <OrganizationLayout>
         <EscalasTrabalho />
+      </OrganizationLayout>;
+    }
+
+    // Rotas do módulo de Compras e Estoque
+    if (currentPath === '/organization/compras') {
+      return <OrganizationLayout>
+        <ComprasDashboard />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/compras/solicitacoes') {
+      return <OrganizationLayout>
+        <SolicitacoesCompra />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/compras/fornecedores') {
+      return <OrganizationLayout>
+        <Fornecedores />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/compras/estoque') {
+      return <OrganizationLayout>
+        <Estoque />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/compras/pedidos') {
+      return <OrganizationLayout>
+        <PedidosCompra />
       </OrganizationLayout>;
     }
 

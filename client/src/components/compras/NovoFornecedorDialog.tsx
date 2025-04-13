@@ -1,370 +1,292 @@
-'use client';
-
-import React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Truck, Building, User, Mail, Phone, MapPin, Globe } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "@/hooks/use-toast";
+import { z } from "zod";
 
-// Validação do formulário de fornecedor
-const formSchema = z.object({
-  // Dados básicos
-  nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  razaoSocial: z.string().min(3, "Razão social deve ter pelo menos 3 caracteres"),
-  cnpj: z.string().min(14, "CNPJ deve ter 14 números").max(18, "CNPJ inválido"),
+const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$/;
+
+const novoFornecedorSchema = z.object({
+  nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
+  cnpj: z.string().regex(cnpjRegex, "CNPJ inválido"),
   tipo: z.string().min(1, "Selecione um tipo de fornecedor"),
-  
-  // Contato
-  contatoNome: z.string().min(3, "Nome do contato deve ter pelo menos 3 caracteres"),
-  contatoEmail: z.string().email("Email inválido"),
-  contatoTelefone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
-  website: z.string().url("URL inválida").optional().or(z.literal("")),
-  
-  // Endereço
-  endereco: z.string().min(5, "Endereço deve ter pelo menos 5 caracteres"),
-  cidade: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres"),
-  estado: z.string().length(2, "Estado deve ter 2 caracteres"),
-  cep: z.string().min(8, "CEP deve ter 8 dígitos").max(9, "CEP inválido"),
-  
-  // Observações
-  observacoes: z.string().optional()
+  telefone: z.string().min(10, "Telefone inválido"),
+  email: z.string().email("Email inválido"),
+  endereco: z.string().min(10, "O endereço deve ter pelo menos 10 caracteres"),
+  contato: z.string().min(3, "O nome do contato deve ter pelo menos 3 caracteres"),
+  descricao: z.string().optional(),
+  site: z.string().url("URL inválida").optional().or(z.literal('')),
+  prazoEntrega: z.number().min(1, "O prazo de entrega deve ser maior que zero"),
+  condicaoPagamento: z.string().min(1, "Selecione uma condição de pagamento"),
 });
 
-type NovoFornecedorDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-};
+type NovoFornecedorFormData = z.infer<typeof novoFornecedorSchema>;
 
-export function NovoFornecedorDialog({ open, onOpenChange }: NovoFornecedorDialogProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+interface NovoFornecedorDialogProps {
+  children?: React.ReactNode;
+  trigger?: React.ReactNode;
+  onFornecedorCreated?: (fornecedor: NovoFornecedorFormData) => void;
+}
+
+export default function NovoFornecedorDialog({
+  children,
+  trigger,
+  onFornecedorCreated
+}: NovoFornecedorDialogProps) {
+  const [open, setOpen] = React.useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<NovoFornecedorFormData>({
+    resolver: zodResolver(novoFornecedorSchema),
     defaultValues: {
-      nome: "",
-      razaoSocial: "",
-      cnpj: "",
-      tipo: "",
-      contatoNome: "",
-      contatoEmail: "",
-      contatoTelefone: "",
-      website: "",
-      endereco: "",
-      cidade: "",
-      estado: "",
-      cep: "",
-      observacoes: ""
-    }
+      nome: '',
+      cnpj: '',
+      tipo: '',
+      telefone: '',
+      email: '',
+      endereco: '',
+      contato: '',
+      descricao: '',
+      site: '',
+      prazoEntrega: 7,
+      condicaoPagamento: '',
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Fornecedor cadastrado:", values);
-    
-    // Limpar formulário e fechar dialog
-    form.reset();
-    onOpenChange(false);
-  }
+  const onSubmit = async (data: NovoFornecedorFormData) => {
+    try {
+      // Aqui seria feita a integração com a API
+      console.log("Dados do fornecedor:", data);
+      
+      // Simular um atraso na requisição
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Fornecedor cadastrado com sucesso",
+        description: "Novo fornecedor foi adicionado ao sistema",
+      });
+      
+      if (onFornecedorCreated) {
+        onFornecedorCreated(data);
+      }
+      
+      reset();
+      setOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao cadastrar fornecedor",
+        description: "Ocorreu um erro ao registrar o fornecedor. Tente novamente.",
+      });
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || children || (
+          <Button variant="default">Novo Fornecedor</Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
-            Novo Fornecedor
-          </DialogTitle>
-          <DialogDescription>
-            Preencha os dados para cadastrar um novo fornecedor
-          </DialogDescription>
+          <DialogTitle>Novo Fornecedor</DialogTitle>
         </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs defaultValue="dados_basicos" className="space-y-6">
-              <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="dados_basicos" className="gap-2">
-                  <Building className="h-4 w-4" />
-                  <span className="hidden sm:inline">Dados Básicos</span>
-                </TabsTrigger>
-                <TabsTrigger value="contato" className="gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Contato</span>
-                </TabsTrigger>
-                <TabsTrigger value="endereco" className="gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="hidden sm:inline">Endereço</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="dados_basicos" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="nome"
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nome">Nome da Empresa</Label>
+              <Input
+                id="nome"
+                placeholder="Razão social completa"
+                {...register("nome")}
+              />
+              {errors.nome && (
+                <p className="text-sm text-red-500">{errors.nome.message}</p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="cnpj">CNPJ</Label>
+                <Input
+                  id="cnpj"
+                  placeholder="00.000.000/0000-00"
+                  {...register("cnpj")}
+                />
+                {errors.cnpj && (
+                  <p className="text-sm text-red-500">{errors.cnpj.message}</p>
+                )}
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="tipo">Tipo de Fornecedor</Label>
+                <Controller
+                  name="tipo"
+                  control={control}
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome Fantasia*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome comercial do fornecedor" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger id="tipo">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="produtos">Produtos</SelectItem>
+                        <SelectItem value="servicos">Serviços</SelectItem>
+                        <SelectItem value="insumos">Insumos</SelectItem>
+                        <SelectItem value="equipamentos">Equipamentos</SelectItem>
+                        <SelectItem value="logistica">Logística</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="razaoSocial"
+                {errors.tipo && (
+                  <p className="text-sm text-red-500">{errors.tipo.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="telefone">Telefone</Label>
+                <Input
+                  id="telefone"
+                  placeholder="(00) 00000-0000"
+                  {...register("telefone")}
+                />
+                {errors.telefone && (
+                  <p className="text-sm text-red-500">{errors.telefone.message}</p>
+                )}
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="contato@empresa.com"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="endereco">Endereço Completo</Label>
+              <Textarea
+                id="endereco"
+                placeholder="Rua, número, bairro, cidade, estado, CEP"
+                {...register("endereco")}
+              />
+              {errors.endereco && (
+                <p className="text-sm text-red-500">{errors.endereco.message}</p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="contato">Nome do Contato</Label>
+                <Input
+                  id="contato"
+                  placeholder="Pessoa responsável pelo contato"
+                  {...register("contato")}
+                />
+                {errors.contato && (
+                  <p className="text-sm text-red-500">{errors.contato.message}</p>
+                )}
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="site">Site</Label>
+                <Input
+                  id="site"
+                  placeholder="https://www.empresa.com"
+                  {...register("site")}
+                />
+                {errors.site && (
+                  <p className="text-sm text-red-500">{errors.site.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="prazoEntrega">Prazo de Entrega (dias)</Label>
+                <Input
+                  id="prazoEntrega"
+                  type="number"
+                  min="1"
+                  {...register("prazoEntrega", { valueAsNumber: true })}
+                />
+                {errors.prazoEntrega && (
+                  <p className="text-sm text-red-500">{errors.prazoEntrega.message}</p>
+                )}
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="condicaoPagamento">Condição de Pagamento</Label>
+                <Controller
+                  name="condicaoPagamento"
+                  control={control}
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Razão Social*</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Razão social completa" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger id="condicaoPagamento">
+                        <SelectValue placeholder="Selecione a condição" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="a_vista">À vista</SelectItem>
+                        <SelectItem value="15dias">15 dias</SelectItem>
+                        <SelectItem value="30dias">30 dias</SelectItem>
+                        <SelectItem value="45dias">45 dias</SelectItem>
+                        <SelectItem value="60dias">60 dias</SelectItem>
+                        <SelectItem value="parcelado">Parcelado</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
                 />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cnpj"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CNPJ*</FormLabel>
-                        <FormControl>
-                          <Input placeholder="00.000.000/0000-00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="tipo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Fornecedor*</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um tipo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="distribuidor">Distribuidor</SelectItem>
-                            <SelectItem value="fabricante">Fabricante</SelectItem>
-                            <SelectItem value="prestador_servico">Prestador de Serviço</SelectItem>
-                            <SelectItem value="representante">Representante</SelectItem>
-                            <SelectItem value="outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="observacoes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observações</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Observações adicionais sobre o fornecedor"
-                          className="resize-none"
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>Qualquer informação adicional relevante.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-
-              <TabsContent value="contato" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="contatoNome"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Nome do Contato*
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome da pessoa de contato" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="contatoEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Email de Contato*
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="email@fornecedor.com.br" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="contatoTelefone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Phone className="h-4 w-4" />
-                          Telefone de Contato*
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder="(00) 00000-0000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="website"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Globe className="h-4 w-4" />
-                        Website
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://www.fornecedor.com.br" {...field} />
-                      </FormControl>
-                      <FormDescription>Site da empresa (opcional)</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-
-              <TabsContent value="endereco" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="endereco"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        Endereço*
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Logradouro, número e complemento" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="col-span-2 md:col-span-2">
-                    <FormField
-                      control={form.control}
-                      name="cidade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cidade*</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Cidade" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="estado"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estado*</FormLabel>
-                          <FormControl>
-                            <Input placeholder="UF" maxLength={2} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="cep"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>CEP*</FormLabel>
-                          <FormControl>
-                            <Input placeholder="00000-000" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" className="gap-2">
-                <Truck className="h-4 w-4" /> Cadastrar Fornecedor
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+                {errors.condicaoPagamento && (
+                  <p className="text-sm text-red-500">{errors.condicaoPagamento.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="descricao">Descrição/Observações</Label>
+              <Textarea
+                id="descricao"
+                placeholder="Informações adicionais sobre o fornecedor"
+                {...register("descricao")}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Enviando..." : "Cadastrar Fornecedor"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

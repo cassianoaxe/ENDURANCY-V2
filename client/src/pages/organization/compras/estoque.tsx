@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { Package, Box, AlertCircle, ChevronRight } from "lucide-react";
-import { NovoItemEstoqueDialog } from "@/components/compras/NovoItemEstoqueDialog";
+import NovoItemEstoqueDialog from "@/components/compras/NovoItemEstoqueDialog";
 
 // Definição dos tipos de categorias de estoque
 type CategoriaEstoque = {
