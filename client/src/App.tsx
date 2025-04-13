@@ -81,6 +81,7 @@ import CalendarioFinanceiro from "@/pages/organization/financeiro/calendario";
 import ConciliacaoBancaria from "@/pages/organization/financeiro/conciliacao";
 import AnaliseFinanceira from "@/pages/organization/financeiro/analise";
 import ConfiguracaoFinanceira from "@/pages/organization/financeiro/configuracao";
+import AnaliseIA from "@/pages/organization/financeiro/analise-ia";
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -808,6 +809,12 @@ function AppContent() {
     if (currentPath === '/organization/financeiro/configuracao') {
       return <OrganizationLayout>
         <ConfiguracaoFinanceira />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/analise-ia') {
+      return <OrganizationLayout>
+        <AnaliseIA />
       </OrganizationLayout>;
     }
 
