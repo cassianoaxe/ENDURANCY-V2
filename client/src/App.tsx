@@ -699,6 +699,31 @@ function AppContent() {
         <Compliance />
       </OrganizationLayout>;
     }
+    
+    // Rotas do módulo RH
+    if (currentPath === '/organization/rh') {
+      return <OrganizationLayout>
+        <DashboardRH />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/rh/colaboradores') {
+      return <OrganizationLayout>
+        <Colaboradores />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/rh/documentos') {
+      return <OrganizationLayout>
+        <DocumentosRH />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/rh/escalas') {
+      return <OrganizationLayout>
+        <EscalasTrabalho />
+      </OrganizationLayout>;
+    }
 
     if (currentPath === '/organization/expedicao') {
       return <OrganizationLayout>
