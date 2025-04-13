@@ -37,7 +37,7 @@ import {
   Star
 } from "lucide-react";
 
-// Tipo para o farmacêutico responsável técnico
+// Tipo para o médico registrado
 interface Pharmacist {
   id: number;
   userId: number;
@@ -87,10 +87,10 @@ interface ModuleStatus {
   settings: {
     patientPortalUrl?: string;
     doctorPortalUrl?: string;
-    pharmacistPortalUrl?: string;
+    professionalPortalUrl?: string;
     allowPatientRegistration: boolean;
     allowDoctorRegistration: boolean;
-    requirePharmacistApproval: boolean;
+    requireAdminApproval: boolean;
     autoApproveVerifiedDoctors: boolean;
   }
 }
@@ -106,7 +106,7 @@ function MedicalPortalDashboard() {
     queryKey: ['/api/organization/modules/medical-portal/status'],
   });
 
-  // Removida a consulta de farmacêuticos RT para o novo módulo de farmácia
+  // Removida a consulta de médicos para o novo módulo médico
 
   // Buscar métricas do portal médico
   const { data: metrics, isLoading: isMetricsLoading } = useQuery({
@@ -193,34 +193,34 @@ function MedicalPortalDashboard() {
     },
   });
 
-  // Mutação para adicionar farmacêutico RT
-  const addPharmacistMutation = useMutation({
-    mutationFn: async (pharmacistData: any) => {
-      const response = await fetch('/api/organization/pharmacists', {
+  // Mutação para adicionar médico
+  const addDoctorMutation = useMutation({
+    mutationFn: async (doctorData: any) => {
+      const response = await fetch('/api/organization/doctors', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(pharmacistData),
+        body: JSON.stringify(doctorData),
       });
       
       if (!response.ok) {
-        throw new Error('Falha ao adicionar farmacêutico RT');
+        throw new Error('Falha ao adicionar médico');
       }
       
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organization/pharmacists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organization/doctors'] });
       toast({
-        title: "Farmacêutico RT adicionado",
-        description: "O farmacêutico responsável técnico foi adicionado com sucesso.",
+        title: "Médico adicionado",
+        description: "O médico foi registrado com sucesso.",
         variant: "default",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro ao adicionar farmacêutico RT",
+        title: "Erro ao adicionar médico",
         description: error.message,
         variant: "destructive",
       });
@@ -241,7 +241,7 @@ function MedicalPortalDashboard() {
         <div>
           <h1 className="text-3xl font-bold">Portal Médico</h1>
           <p className="text-muted-foreground">
-            Gerencie o portal médico, farmacêuticos RT e configurações para integração com o portal do paciente.
+            Gerencie o portal médico, médicos registrados e configurações para integração com o portal do paciente.
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -271,10 +271,10 @@ function MedicalPortalDashboard() {
             Visão Geral
           </TabsTrigger>
           <TabsTrigger 
-            value="pharmacists" 
+            value="doctors" 
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent py-2 px-4"
           >
-            Farmacêuticos RT
+            Médicos
           </TabsTrigger>
           <TabsTrigger 
             value="settings" 
@@ -402,7 +402,7 @@ function MedicalPortalDashboard() {
             <CardHeader>
               <CardTitle>Links de Acesso ao Portal</CardTitle>
               <CardDescription>
-                Compartilhe estes links com médicos, farmacêuticos e pacientes para acessar o portal.
+                Compartilhe estes links com médicos e pacientes para acessar o portal.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -870,7 +870,7 @@ function MedicalPortalDashboard() {
                     </div>
                     <Switch 
                       id="requireApproval"
-                      checked={moduleStatus?.settings?.requirePharmacistApproval || false}
+                      checked={moduleStatus?.settings?.requireAdminApproval || false}
                       // Na implementação real, adicionar onCheckedChange para atualizar estado
                     />
                   </div>
