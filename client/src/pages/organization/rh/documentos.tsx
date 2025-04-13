@@ -49,8 +49,8 @@ import { NovaPastaDialog } from "@/components/rh/NovaPastaDialog";
 
 export default function DocumentosRH() {
   const [abaAtual, setAbaAtual] = useState("todos");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("");
-  const [nivelFiltro, setNivelFiltro] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("todas_categorias");
+  const [nivelFiltro, setNivelFiltro] = useState("todos_niveis");
   const [termoBusca, setTermoBusca] = useState("");
   const [dialogNovoDocumentoAberto, setDialogNovoDocumentoAberto] = useState(false);
   const [dialogNovaPastaAberto, setDialogNovaPastaAberto] = useState(false);
@@ -143,10 +143,10 @@ export default function DocumentosRH() {
     if (abaAtual === "favoritos") return false; // Implementação futura
     
     // Filtro por categoria
-    if (categoriaFiltro && doc.categoria !== categoriaFiltro) return false;
+    if (categoriaFiltro && categoriaFiltro !== "todas_categorias" && doc.categoria !== categoriaFiltro) return false;
     
     // Filtro por nível de acesso
-    if (nivelFiltro && doc.acesso !== nivelFiltro) return false;
+    if (nivelFiltro && nivelFiltro !== "todos_niveis" && doc.acesso !== nivelFiltro) return false;
     
     // Filtro por termo de busca
     if (termoBusca) {
@@ -242,7 +242,7 @@ export default function DocumentosRH() {
                 <SelectValue placeholder="Todos os níveis" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os níveis</SelectItem>
+                <SelectItem value="todos_niveis">Todos os níveis</SelectItem>
                 <SelectItem value="público">Público</SelectItem>
                 <SelectItem value="restrito">Restrito</SelectItem>
               </SelectContent>
