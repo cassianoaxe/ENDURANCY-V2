@@ -47,6 +47,20 @@ router.get('/equipments', authenticate, checkLabPermission, async (req: Request,
   }
 });
 
+// GET - Listar todos os equipamentos (endpoint alternativo para uso do cliente)
+router.get('/equipment/list', authenticate, checkLabPermission, async (req: Request, res: Response) => {
+  try {
+    const equipments = await db.query.labEquipments.findMany({
+      orderBy: [desc(labEquipments.id)]
+    });
+    
+    return res.json({ equipments });
+  } catch (error) {
+    console.error("Erro ao buscar equipamentos:", error);
+    return res.status(500).json({ message: "Erro ao buscar equipamentos" });
+  }
+});
+
 // GET - Buscar equipamento por ID
 router.get('/equipments/:id', authenticate, checkLabPermission, async (req: Request, res: Response) => {
   try {
