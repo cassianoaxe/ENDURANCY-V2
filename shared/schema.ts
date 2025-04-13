@@ -231,6 +231,9 @@ export const modules = pgTable("modules", {
   slug: text("slug").notNull().unique(), // identificador único para o módulo (ex: "compras", "crm")
   is_active: boolean("is_active").default(true), // se o módulo está disponível para contratação
   type: moduleTypeEnum("type").notNull(),
+  sales_count: integer("sales_count").default(0), // contagem de vendas do módulo
+  subscriptions_count: integer("subscriptions_count").default(0), // contagem de assinaturas ativas
+  monthly_revenue: decimal("monthly_revenue", { precision: 10, scale: 2 }).default("0"), // receita mensal do módulo
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
