@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDays, Package2, Users, TrendingUp, AlertCircle, Archive } from "lucide-react";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
-import { NovaSolicitacaoDialog } from "@/components/compras/NovaSolicitacaoDialog";
-import { VolumeComprasChart } from "@/components/compras/VolumeComprasChart";
-import { SolicitacoesPorStatusChart } from "@/components/compras/SolicitacoesPorStatusChart";
+import NovaSolicitacaoDialog from "@/components/compras/NovaSolicitacaoDialog";
+import VolumeComprasChart from "@/components/compras/VolumeComprasChart";
+import SolicitacoesPorStatusChart from "@/components/compras/SolicitacoesPorStatusChart";
 
 export default function ComprasDashboard() {
   const [dialogNovaSolicitacaoAberto, setDialogNovaSolicitacaoAberto] = useState(false);
