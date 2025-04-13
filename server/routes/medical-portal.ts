@@ -72,10 +72,13 @@ router.get('/api/organization/modules/medical-portal/status', authenticate, asyn
         id: 0,
         active: false,
         // Adicionando objeto de configurações padrão
-        moduleSettings: {
+        settings: {
+          patientPortalUrl: "https://pacientes.exemplo.com",
+          doctorPortalUrl: "https://medicos.exemplo.com",
+          professionalPortalUrl: "https://profissionais.exemplo.com",
           allowPatientRegistration: false,
           allowDoctorRegistration: false,
-          requirePharmacistApproval: true,
+          requireAdminApproval: true,
           autoApproveVerifiedDoctors: false
         }
       });
@@ -86,10 +89,10 @@ router.get('/api/organization/modules/medical-portal/status', authenticate, asyn
       id: moduleStatus[0].id,
       active: moduleStatus[0].active,
       // Adicionando objeto de configurações
-      moduleSettings: {
+      settings: {
         allowPatientRegistration: false,
         allowDoctorRegistration: false,
-        requirePharmacistApproval: true,
+        requireAdminApproval: true,
         autoApproveVerifiedDoctors: false
       }
     });
@@ -154,10 +157,10 @@ router.put('/api/organization/modules/medical-portal/settings', authenticate, is
       return res.json({
         id: newModule[0].id,
         active: newModule[0].active,
-        moduleSettings: {
+        settings: {
           allowPatientRegistration: false,
           allowDoctorRegistration: false,
-          requirePharmacistApproval: true,
+          requireAdminApproval: true,
           autoApproveVerifiedDoctors: false
         }
       });
@@ -175,10 +178,13 @@ router.put('/api/organization/modules/medical-portal/settings', authenticate, is
     return res.json({
       id: updatedModule[0].id,
       active: updatedModule[0].active,
-      moduleSettings: {
+      settings: {
+        patientPortalUrl: settings.patientPortalUrl || "https://pacientes.exemplo.com",
+        doctorPortalUrl: settings.doctorPortalUrl || "https://medicos.exemplo.com",
+        professionalPortalUrl: settings.professionalPortalUrl || "https://profissionais.exemplo.com",
         allowPatientRegistration: settings.allowPatientRegistration || false,
         allowDoctorRegistration: settings.allowDoctorRegistration || false,
-        requirePharmacistApproval: settings.requirePharmacistApproval || true,
+        requireAdminApproval: settings.requireAdminApproval || true,
         autoApproveVerifiedDoctors: settings.autoApproveVerifiedDoctors || false
       }
     });
@@ -242,10 +248,13 @@ router.put('/api/organization/modules/medical-portal/toggle', authenticate, isOr
       return res.json({
         id: newModule[0].id,
         active: newModule[0].active,
-        moduleSettings: {
+        settings: {
+          patientPortalUrl: "https://pacientes.exemplo.com",
+          doctorPortalUrl: "https://medicos.exemplo.com",
+          professionalPortalUrl: "https://profissionais.exemplo.com",
           allowPatientRegistration: false,
           allowDoctorRegistration: false,
-          requirePharmacistApproval: true,
+          requireAdminApproval: true,
           autoApproveVerifiedDoctors: false
         }
       });
@@ -265,10 +274,13 @@ router.put('/api/organization/modules/medical-portal/toggle', authenticate, isOr
     return res.json({
       id: updatedModule[0].id,
       active: updatedModule[0].active,
-      moduleSettings: {
-        allowPatientRegistration: false,
+      settings: {
+        patientPortalUrl: "https://pacientes.exemplo.com",
+          doctorPortalUrl: "https://medicos.exemplo.com",
+          professionalPortalUrl: "https://profissionais.exemplo.com",
+          allowPatientRegistration: false,
         allowDoctorRegistration: false,
-        requirePharmacistApproval: true,
+        requireAdminApproval: true,
         autoApproveVerifiedDoctors: false
       }
     });
