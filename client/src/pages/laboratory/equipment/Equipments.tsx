@@ -49,6 +49,9 @@ export default function Equipments() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
+  
+  // Log para debugging
+  console.log("Equipments component mounted");
 
   // Buscar lista de equipamentos
   const { data, isLoading, error } = useQuery({
@@ -182,33 +185,28 @@ export default function Equipments() {
   // Se estiver carregando, exibir skeleton
   if (isLoading) {
     return (
-      <LaboratoryLayout>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Equipamentos do Laboratório</h1>
-            <Skeleton className="h-10 w-40" />
-          </div>
-          <Skeleton className="h-[400px] w-full rounded-lg" />
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Equipamentos do Laboratório</h1>
+          <Skeleton className="h-10 w-40" />
         </div>
-      </LaboratoryLayout>
+        <Skeleton className="h-[400px] w-full rounded-lg" />
+      </div>
     );
   }
 
   // Se houver erro, exibir mensagem
   if (error) {
     return (
-      <LaboratoryLayout>
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>
-            Erro ao carregar os equipamentos. Por favor, tente novamente mais tarde.
-          </AlertDescription>
-        </Alert>
-      </LaboratoryLayout>
+      <Alert variant="destructive" className="mb-4">
+        <AlertDescription>
+          Erro ao carregar os equipamentos. Por favor, tente novamente mais tarde.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <LaboratoryLayout>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Equipamentos do Laboratório</h1>
@@ -353,6 +351,5 @@ export default function Equipments() {
           </DialogContent>
         </Dialog>
       </div>
-    </LaboratoryLayout>
   );
 }
