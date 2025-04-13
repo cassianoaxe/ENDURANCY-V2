@@ -313,6 +313,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log('Laboratory user created');
       }
+      
+      // Check if doctor user exists
+      const existingDoctor = await db.select().from(users).where(eq(users.email, 'medico@endurancy.com'));
+      if (existingDoctor.length === 0) {
+        await db.insert(users).values({
+          username: 'medico',
+          password: 'medico123', // In production, this should be hashed
+          role: 'doctor',
+          name: 'Médico Demo',
+          email: 'medico@endurancy.com',
+        });
+        console.log('Doctor user created');
+      }
     } catch (error) {
       console.error('Error initializing default users:', error);
     }
