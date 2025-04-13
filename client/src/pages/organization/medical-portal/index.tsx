@@ -345,7 +345,7 @@ function MedicalPortalDashboard() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Farmacêuticos RT</CardTitle>
+                <CardTitle className="text-xl">Médicos Registrados</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center">
@@ -362,10 +362,10 @@ function MedicalPortalDashboard() {
                 <Button 
                   variant="outline"
                   className="w-full"
-                  onClick={() => setActiveTab("pharmacists")}
+                  onClick={() => setActiveTab("doctors")}
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Gerenciar Farmacêuticos
+                  Gerenciar Médicos
                 </Button>
               </CardFooter>
             </Card>
@@ -422,10 +422,10 @@ function MedicalPortalDashboard() {
               </div>
 
               <div className="space-y-2">
-                <Label>Portal do Farmacêutico</Label>
+                <Label>Portal do Profissional (Médico/Dentista/Veterinário)</Label>
                 <div className="flex">
                   <Input 
-                    value={moduleStatus?.settings?.pharmacistPortalUrl || "Não configurado"} 
+                    value={moduleStatus?.settings?.doctorPortalUrl || "Não configurado"} 
                     readOnly 
                     className="rounded-r-none"
                   />
@@ -499,20 +499,20 @@ function MedicalPortalDashboard() {
           </Card>
         </TabsContent>
 
-        {/* Farmacêuticos RT */}
-        <TabsContent value="pharmacists" className="space-y-6">
+        {/* Médicos */}
+        <TabsContent value="doctors" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Farmacêuticos Responsáveis Técnicos</CardTitle>
+              <CardTitle>Médicos Registrados</CardTitle>
               <CardDescription>
-                Gerencie os farmacêuticos responsáveis técnicos que têm acesso ao portal médico
+                Gerencie os médicos, dentistas e veterinários que têm acesso ao portal médico
               </CardDescription>
             </CardHeader>
             <CardContent>
               {metrics?.doctors?.total ? (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Lista de Farmacêuticos</h3>
+                    <h3 className="text-lg font-medium">Lista de Médicos</h3>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm">
                         <FileText className="h-4 w-4 mr-1" />
@@ -520,14 +520,14 @@ function MedicalPortalDashboard() {
                       </Button>
                       <Button size="sm">
                         <PlusCircle className="h-4 w-4 mr-1" />
-                        Novo Farmacêutico
+                        Novo Médico
                       </Button>
                     </div>
                   </div>
                   <div className="border rounded-md">
                     <div className="grid grid-cols-6 p-3 bg-muted text-sm font-medium">
                       <div>Nome</div>
-                      <div>CRF</div>
+                      <div>CRM/CRO/CRMV</div>
                       <div>Email</div>
                       <div>Telefone</div>
                       <div>Status</div>
@@ -538,12 +538,12 @@ function MedicalPortalDashboard() {
                     <div className="divide-y">
                       {Array.from({ length: metrics?.doctors?.active || 0 }).map((_, i) => (
                         <div key={i} className="grid grid-cols-6 p-3 text-sm items-center">
-                          <div className="font-medium">Farmacêutico {i + 1}</div>
-                          <div>CRF-XX {10000 + i}</div>
-                          <div>farmaceutico{i + 1}@exemplo.com</div>
+                          <div className="font-medium">Médico {i + 1}</div>
+                          <div>CRM-XX {10000 + i}</div>
+                          <div>medico{i + 1}@exemplo.com</div>
                           <div>(11) 9{i + 1}234-5678</div>
                           <div>
-                            <Badge variant="success">Ativo</Badge>
+                            <Badge className="bg-green-500 hover:bg-green-600">Ativo</Badge>
                           </div>
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon">
@@ -564,13 +564,13 @@ function MedicalPortalDashboard() {
               ) : (
                 <div className="text-center py-6">
                   <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                  <h3 className="text-lg font-medium mb-1">Nenhum farmacêutico cadastrado</h3>
+                  <h3 className="text-lg font-medium mb-1">Nenhum médico cadastrado</h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                    Ainda não existem farmacêuticos cadastrados no portal médico.
+                    Ainda não existem médicos cadastrados no portal médico.
                   </p>
                   <Button>
                     <PlusCircle className="h-4 w-4 mr-2" />
-                    Cadastrar Farmacêutico
+                    Cadastrar Médico
                   </Button>
                 </div>
               )}
@@ -801,15 +801,15 @@ function MedicalPortalDashboard() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="pharmacistPortalUrl">URL do Portal do Farmacêutico</Label>
+                    <Label htmlFor="doctorPortalSecondaryUrl">URL do Portal de Profissionais de Saúde</Label>
                     <Input 
-                      id="pharmacistPortalUrl" 
-                      value={moduleStatus?.settings?.pharmacistPortalUrl || ""} 
-                      placeholder="https://farmacia.suaorganizacao.com.br"
+                      id="doctorPortalSecondaryUrl" 
+                      value={moduleStatus?.settings?.doctorPortalUrl || ""} 
+                      placeholder="https://medicos.suaorganizacao.com.br"
                       // Na implementação real, adicionar onChange para atualizar estado
                     />
                     <p className="text-sm text-muted-foreground">
-                      URL onde farmacêuticos acessarão o portal para aprovar prescrições
+                      URL onde médicos, dentistas e veterinários acessarão o portal para criar prescrições
                     </p>
                   </div>
                   
@@ -863,13 +863,13 @@ function MedicalPortalDashboard() {
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="requirePharmacistApproval">Exigir aprovação de farmacêutico RT</Label>
+                      <Label htmlFor="requireApproval">Exigir aprovação de administrador</Label>
                       <p className="text-sm text-muted-foreground">
-                        Todas as prescrições devem ser aprovadas por um farmacêutico RT antes de ficarem disponíveis
+                        Todas as prescrições devem ser aprovadas por um administrador antes de ficarem disponíveis
                       </p>
                     </div>
                     <Switch 
-                      id="requirePharmacistApproval"
+                      id="requireApproval"
                       checked={moduleStatus?.settings?.requirePharmacistApproval || false}
                       // Na implementação real, adicionar onCheckedChange para atualizar estado
                     />
@@ -926,14 +926,14 @@ function MedicalPortalDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Aprovações por Farmacêutico</CardTitle>
+                <CardTitle>Prescrições por Médico</CardTitle>
                 <CardDescription>
-                  Total de aprovações por farmacêutico RT
+                  Total de prescrições por médico
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-72 flex items-center justify-center">
                 <BarChart3 className="h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground ml-3">Gráfico de aprovações por farmacêutico</p>
+                <p className="text-muted-foreground ml-3">Gráfico de prescrições por médico</p>
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full">
