@@ -26,6 +26,9 @@ interface Module {
   is_active: boolean;
   type: string;
   status: string; // 'active', 'test', 'development'
+  sales_count: number;
+  subscriptions_count: number;
+  monthly_revenue: number;
   created_at: string;
   updated_at: string;
 }
@@ -159,6 +162,11 @@ export default function ModulesTable() {
     emTeste: modules.filter(m => m.is_active && m.status === 'test').length,
     emDesenvolvimento: modules.filter(m => m.is_active && m.status === 'development').length
   };
+  
+  // Cálculo de métricas de assinaturas e receita
+  const totalSubscriptions = modules.reduce((sum, module) => sum + module.subscriptions_count, 0);
+  const totalSales = modules.reduce((sum, module) => sum + module.sales_count, 0);
+  const totalMonthlyRevenue = modules.reduce((sum, module) => sum + module.monthly_revenue, 0);
 
   return (
     <Layout>
@@ -188,6 +196,54 @@ export default function ModulesTable() {
               Adicionar Módulo
             </Button>
           </div>
+        </div>
+        
+        {/* Estatísticas de Receita e Assinaturas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Receita Mensal Total</p>
+                  <p className="text-2xl font-bold">{formatPrice(totalMonthlyRevenue)}</p>
+                  <p className="text-xs text-gray-500 mt-1">De todos os módulos ativos</p>
+                </div>
+                <div className="p-2 bg-green-100 rounded-full">
+                  <LineChart className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total de Assinaturas</p>
+                  <p className="text-2xl font-bold">{totalSubscriptions}</p>
+                  <p className="text-xs text-gray-500 mt-1">Assinantes ativos</p>
+                </div>
+                <div className="p-2 bg-purple-100 rounded-full">
+                  <ShoppingCart className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Total de Vendas</p>
+                  <p className="text-2xl font-bold">{totalSales}</p>
+                  <p className="text-xs text-gray-500 mt-1">De todos os tempos</p>
+                </div>
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Briefcase className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         {/* Stats Cards */}
@@ -307,7 +363,9 @@ export default function ModulesTable() {
                         <th className="py-3 px-4 text-left font-medium text-gray-500">Módulo</th>
                         <th className="py-3 px-4 text-left font-medium text-gray-500">Status</th>
                         <th className="py-3 px-4 text-left font-medium text-gray-500">Planos</th>
-                        <th className="py-3 px-4 text-left font-medium text-gray-500">Último Preço</th>
+                        <th className="py-3 px-4 text-left font-medium text-gray-500">Assinaturas</th>
+                        <th className="py-3 px-4 text-left font-medium text-gray-500">Vendas</th>
+                        <th className="py-3 px-4 text-left font-medium text-gray-500">Receita Mensal</th>
                         <th className="py-3 px-4 text-center font-medium text-gray-500">Ativo</th>
                         <th className="py-3 px-4 text-right font-medium text-gray-500">Ações</th>
                       </tr>
@@ -351,14 +409,22 @@ export default function ModulesTable() {
                               </div>
                             </td>
                             <td className="py-3 px-4">
-                              {plansCount > 0 ? (
-                                <div>
-                                  <p className="font-medium">{formatPrice(lowestPrice)}</p>
-                                  <p className="text-xs text-gray-500">por mês</p>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-gray-500">Sem planos</span>
-                              )}
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">{module.subscriptions_count}</span>
+                                <span className="text-xs text-gray-500">assinaturas</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">{module.sales_count}</span>
+                                <span className="text-xs text-gray-500">vendas</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div>
+                                <p className="font-medium">{formatPrice(module.monthly_revenue)}</p>
+                                <p className="text-xs text-gray-500">por mês</p>
+                              </div>
                             </td>
                             <td className="py-3 px-4 text-center">
                               <Switch 
