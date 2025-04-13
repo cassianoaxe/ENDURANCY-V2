@@ -55,7 +55,7 @@ import planChangesRouter from './routes/plan-changes';
 import modulesRouter from './routes/modules';
 import medicalPortalRouter from './routes/medical-portal';
 // Importar rotas do módulo de farmácia
-import { farmaciaRouter } from './routes/farmacia-routes';
+import { dispensarioRouter } from './routes/dispensario-routes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -5232,8 +5232,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de pagamento por email
   app.use('/api/payment-email', paymentEmailRouter);
   
-  // Rotas do módulo de farmácia
-  app.use('/api/organization/farmacia', farmaciaRouter);
+  // Rotas do módulo de dispensário
+  app.use('/api/organization/dispensario', dispensarioRouter);
   
   // Rotas do portal médico
   app.use(medicalPortalRouter);
