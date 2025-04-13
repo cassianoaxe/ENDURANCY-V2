@@ -76,6 +76,11 @@ import ContasAPagar from "@/pages/organization/financeiro/contas-a-pagar";
 import ContasAReceber from "@/pages/organization/financeiro/contas-a-receber";
 import DRE from "@/pages/organization/financeiro/dre";
 import Orcamento from "@/pages/organization/financeiro/orcamento";
+import FluxoDeCaixa from "@/pages/organization/financeiro/fluxo-de-caixa";
+import CalendarioFinanceiro from "@/pages/organization/financeiro/calendario";
+import ConciliacaoBancaria from "@/pages/organization/financeiro/conciliacao";
+import AnaliseFinanceira from "@/pages/organization/financeiro/analise";
+import ConfiguracaoFinanceira from "@/pages/organization/financeiro/configuracao";
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -773,6 +778,36 @@ function AppContent() {
     if (currentPath === '/organization/financeiro/orcamento') {
       return <OrganizationLayout>
         <Orcamento />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/fluxo-de-caixa') {
+      return <OrganizationLayout>
+        <FluxoDeCaixa />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/calendario') {
+      return <OrganizationLayout>
+        <CalendarioFinanceiro />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/conciliacao') {
+      return <OrganizationLayout>
+        <ConciliacaoBancaria />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/analise') {
+      return <OrganizationLayout>
+        <AnaliseFinanceira />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/configuracao') {
+      return <OrganizationLayout>
+        <ConfiguracaoFinanceira />
       </OrganizationLayout>;
     }
 
