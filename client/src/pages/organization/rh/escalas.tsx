@@ -185,7 +185,7 @@ export default function EscalasTrabalho() {
                 <SelectValue placeholder="Todos os..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os departamentos</SelectItem>
+                <SelectItem value="todos_departamentos">Todos os departamentos</SelectItem>
                 <SelectItem value="Produção">Produção</SelectItem>
                 <SelectItem value="Qualidade">Qualidade</SelectItem>
                 <SelectItem value="Cultivo">Cultivo</SelectItem>
@@ -198,7 +198,7 @@ export default function EscalasTrabalho() {
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="todos_status">Todos os status</SelectItem>
                 <SelectItem value="Publicada">Publicada</SelectItem>
                 <SelectItem value="Rascunho">Rascunho</SelectItem>
               </SelectContent>
