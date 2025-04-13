@@ -54,6 +54,11 @@ const menuItems = [
     path: "/laboratory/tests",
   },
   {
+    icon: <SettingsIcon className="mr-2 h-4 w-4" />,
+    label: "Equipamentos",
+    path: "/laboratory/equipment",
+  },
+  {
     icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
     label: "HPLC",
     path: "/laboratory/hplc",
