@@ -219,8 +219,9 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/financeiro/fluxo-de-caixa" ||
               currentPath === "/organization/financeiro/calendario" ||
               currentPath === "/organization/financeiro/conciliacao" ||
+              currentPath === "/organization/financeiro/analise" ||
               currentPath === "/organization/financeiro/analise-ia" ||
-              currentPath === "/organization/financeiro/configuracoes",
+              currentPath === "/organization/financeiro/configuracao",
       icon: <DollarSign size={18} />,
       isSubmenu: true,
       subItems: [
@@ -273,6 +274,12 @@ export default function OrganizationSidebar() {
           icon: <Building2 size={16} />
         },
         {
+          title: "Análise Financeira",
+          path: "/organization/financeiro/analise",
+          active: currentPath === "/organization/financeiro/analise",
+          icon: <BarChart2 size={16} />
+        },
+        {
           title: "Análise com IA",
           path: "/organization/financeiro/analise-ia",
           active: currentPath === "/organization/financeiro/analise-ia",
@@ -280,8 +287,8 @@ export default function OrganizationSidebar() {
         },
         {
           title: "Configurações",
-          path: "/organization/financeiro/configuracoes",
-          active: currentPath === "/organization/financeiro/configuracoes",
+          path: "/organization/financeiro/configuracao",
+          active: currentPath === "/organization/financeiro/configuracao",
           icon: <Settings size={16} />
         }
       ]
