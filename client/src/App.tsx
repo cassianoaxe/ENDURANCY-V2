@@ -75,6 +75,7 @@ import DashboardFinanceiro from "@/pages/organization/financeiro/index";
 import ContasAPagar from "@/pages/organization/financeiro/contas-a-pagar";
 import ContasAReceber from "@/pages/organization/financeiro/contas-a-receber";
 import DRE from "@/pages/organization/financeiro/dre";
+import Orcamento from "@/pages/organization/financeiro/orcamento";
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -766,6 +767,12 @@ function AppContent() {
     if (currentPath === '/organization/financeiro/dre') {
       return <OrganizationLayout>
         <DRE />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/financeiro/orcamento') {
+      return <OrganizationLayout>
+        <Orcamento />
       </OrganizationLayout>;
     }
 
