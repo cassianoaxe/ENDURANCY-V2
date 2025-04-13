@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
+// DoctorLayout é fornecido pelo App.tsx
 import { 
   ClipboardCheck, 
   Search, 
@@ -319,7 +319,6 @@ export default function DoctorPrescricoes() {
   };
 
   return (
-    <DoctorLayout>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <p className="text-gray-500 text-sm">Gerencie prescrições médicas e produtos</p>
@@ -620,6 +619,5 @@ export default function DoctorPrescricoes() {
           </DialogContent>
         </Dialog>
       </div>
-    </DoctorLayout>
   );
 }

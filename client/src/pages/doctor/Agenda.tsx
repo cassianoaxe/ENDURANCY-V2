@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import DoctorLayout from '@/components/layout/doctor/DoctorLayout';
+// DoctorLayout é fornecido pelo App.tsx
 import { Calendar, Clock, Users, FileText, Filter, Plus, X, CalendarIcon, CheckCircle } from 'lucide-react';
 import { 
   Card, 
@@ -94,7 +94,6 @@ export default function DoctorAgenda() {
   ];
 
   return (
-    <DoctorLayout>
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <p className="text-gray-500 text-sm capitalize">{formattedDate}</p>
@@ -393,6 +392,5 @@ export default function DoctorAgenda() {
           </TabsContent>
         </Tabs>
       </div>
-    </DoctorLayout>
   );
 }
