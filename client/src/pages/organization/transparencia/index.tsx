@@ -585,7 +585,7 @@ const TransparenciaPublica = () => {
   
   useEffect(() => {
     // Analisar o URL para determinar a organização e a aba
-    const match = location.match(/\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
+    const match = location.match(/\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?/);
     
     if (match) {
       setOrgId(match[1]);
@@ -593,7 +593,11 @@ const TransparenciaPublica = () => {
       // Se a aba for especificada, use-a; caso contrário, mantenha a aba atual ou use "sobre" como padrão
       if (match[2]) {
         setTab(match[2]);
+      } else {
+        // Se não houver aba especificada, use "sobre" como padrão
+        setTab('sobre');
       }
+      console.log("URL de transparência reconhecido:", location, "ID da organização:", match[1], "Aba:", match[2] || 'sobre');
     } else {
       // URL não corresponde ao padrão esperado
       console.error("URL não reconhecido:", location);
