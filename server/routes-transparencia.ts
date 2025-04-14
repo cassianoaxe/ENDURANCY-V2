@@ -53,21 +53,16 @@ const upload = multer({
 });
 
 /**
- * Verifica se uma organização pode ter portal de transparência
- * Incluímos tipos: associacao, Empresa ou quaisquer organizações com ID 32 (hempmeds)
+ * Verifica se uma organização é do tipo associação
+ * O portal de transparência é exclusivo para organizações do tipo associação
  */
 async function isAssociationOrganization(organizationId: number): Promise<boolean> {
-  // Permitir especificamente a organização hempmeds (ID 32)
-  if (organizationId === 32) {
-    return true;
-  }
-  
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId)
   });
   
-  // Permitir associações e empresas
-  return org?.type === 'associacao' || org?.type === 'Empresa';
+  // Apenas organizações do tipo associação podem ter portal de transparência
+  return org?.type === 'associacao';
 }
 
 export function registerTransparenciaRoutes(app: Express) {
