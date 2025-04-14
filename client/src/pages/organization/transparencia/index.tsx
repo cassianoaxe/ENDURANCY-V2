@@ -125,11 +125,14 @@ const DocumentosTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const { data: documentos, isLoading, error } = useQuery({
     queryKey: ['/api/public/transparencia/organizacao/documentos', organizacaoId, categoriaSelecionada],
     queryFn: async () => {
+      // Corrigido URL da API para acessar os documentos
       const url = categoriaSelecionada === 'todas'
         ? `/api/public/transparencia/organizacao/${organizacaoId}/documentos`
         : `/api/public/transparencia/organizacao/${organizacaoId}/documentos?categoria=${categoriaSelecionada}`;
       
+      console.log('Fazendo requisição para:', url);
       const response = await axios.get(url);
+      console.log('Resposta da API:', response.data);
       // Garantir que a resposta seja um array
       return Array.isArray(response.data) ? response.data : [];
     }
@@ -211,11 +214,14 @@ const CertificacoesTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const { data: certificacoes, isLoading, error } = useQuery({
     queryKey: ['/api/public/transparencia/organizacao/certificacoes', organizacaoId, tipoSelecionado],
     queryFn: async () => {
+      // Corrigido URL da API para acessar as certificações
       const url = tipoSelecionado === 'todos'
         ? `/api/public/transparencia/organizacao/${organizacaoId}/certificacoes`
         : `/api/public/transparencia/organizacao/${organizacaoId}/certificacoes?tipo=${tipoSelecionado}`;
       
+      console.log('Fazendo requisição para certificações:', url);
       const response = await axios.get(url);
+      console.log('Resposta da API de certificações:', response.data);
       // Garantir que a resposta seja um array
       return Array.isArray(response.data) ? response.data : [];
     }
@@ -297,11 +303,14 @@ const MembrosTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const { data: membros, isLoading, error } = useQuery({
     queryKey: ['/api/public/transparencia/organizacao/membros', organizacaoId, tipoSelecionado],
     queryFn: async () => {
+      // Corrigido URL da API para acessar os membros
       const url = tipoSelecionado === 'todos'
         ? `/api/public/transparencia/organizacao/${organizacaoId}/membros`
         : `/api/public/transparencia/organizacao/${organizacaoId}/membros?tipo=${tipoSelecionado}`;
       
+      console.log('Fazendo requisição para membros:', url);
       const response = await axios.get(url);
+      console.log('Resposta da API de membros:', response.data);
       // Garantir que a resposta seja um array
       return Array.isArray(response.data) ? response.data : [];
     }
@@ -383,11 +392,14 @@ const RelatoriosFinanceirosTab = ({ organizacaoId }: { organizacaoId: string }) 
   const { data: relatorios, isLoading, error } = useQuery({
     queryKey: ['/api/public/transparencia/organizacao/financeiro', organizacaoId, anoSelecionado],
     queryFn: async () => {
+      // Corrigido URL da API para acessar os relatórios financeiros
       const url = anoSelecionado === 'todos'
         ? `/api/public/transparencia/organizacao/${organizacaoId}/financeiro`
         : `/api/public/transparencia/organizacao/${organizacaoId}/financeiro?ano=${anoSelecionado}`;
       
+      console.log('Fazendo requisição para relatórios financeiros:', url);
       const response = await axios.get(url);
+      console.log('Resposta da API de relatórios financeiros:', response.data);
       // Garantir que a resposta seja um array
       return Array.isArray(response.data) ? response.data : [];
     }
