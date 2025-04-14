@@ -2948,7 +2948,7 @@ const GerenciarTransparencia = () => {
 
   // Função para abrir o portal de transparência em uma nova janela
   const abrirPortalTransparencia = () => {
-    window.open(`/organization/transparencia/${organizationId}/sobre`, '_blank');
+    window.open(`/organization/transparencia/${organizationId}`, '_blank');
   };
 
   return (
