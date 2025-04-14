@@ -394,7 +394,7 @@ const RelatoriosFinanceirosTab = ({ organizacaoId }: { organizacaoId: string }) 
   });
 
   // Obter lista de anos disponíveis a partir dos relatórios
-  const anosDisponiveis = relatorios 
+  const anosDisponiveis = Array.isArray(relatorios) && relatorios.length > 0
     ? [...new Set(relatorios.map((r: any) => r.ano))].sort((a, b) => b - a)
     : [];
 
