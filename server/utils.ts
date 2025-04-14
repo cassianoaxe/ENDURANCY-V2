@@ -1,158 +1,174 @@
-// Utility functions for the server
+import { ZodError } from "zod";
 
 /**
- * Generates a random string of specified length
- * @param length Length of the string to generate
- * @returns Random string
+ * Converte os erros do Zod para mensagens legíveis
+ * @param error Objeto de erro do Zod
+ * @returns Um objeto com as mensagens de erro em formato legível
  */
-export function generateRandomString(length: number): string {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export function zodErrorToReadableMessages(error: ZodError) {
+  return error.errors.reduce((acc, err) => {
+    const path = err.path.join(".");
+    const key = path || "geral";
+    
+    acc[key] = acc[key] || [];
+    acc[key].push(err.message);
+    
+    return acc;
+  }, {} as Record<string, string[]>);
+}
+
+/**
+ * Verifica se uma string é um JSON válido
+ * @param str String para verificar
+ * @returns boolean indicando se é um JSON válido
+ */
+export function isValidJSON(str: string): boolean {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Formata um valor monetário para exibição
+ * @param value Valor a ser formatado
+ * @param currency Símbolo da moeda (padrão: R$)
+ * @returns String formatada como valor monetário
+ */
+export function formatCurrency(value: number, currency: string = "R$"): string {
+  return `${currency} ${value.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+}
+
+/**
+ * Formata data para o formato brasileiro
+ * @param date Data para formatar
+ * @returns Data formatada como dd/mm/yyyy
+ */
+export function formatDateBR(date: Date | string): string {
+  const d = date instanceof Date ? date : new Date(date);
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Gera um slug a partir de uma string
+ * @param str String para converter em slug
+ * @returns String formatada como slug
+ */
+export function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+/**
+ * Trunca um texto para um tamanho máximo
+ * @param text Texto para truncar
+ * @param maxLength Tamanho máximo
+ * @returns Texto truncado com "..." ao final se necessário
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + "...";
+}
+
+/**
+ * Gera um código aleatório com letras e números
+ * @param length Tamanho do código
+ * @returns String com código aleatório
+ */
+export function generateRandomCode(length: number = 6): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
-  const charactersLength = characters.length;
   
   for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   
   return result;
 }
 
 /**
- * Formats a date to a locale string (PT-BR by default)
- * @param date Date to format
- * @param locale Locale to use
- * @returns Formatted date string
+ * Verifica se um CPF é válido
+ * @param cpf String com o CPF a ser validado
+ * @returns boolean indicando se o CPF é válido
  */
-export function formatDate(date: Date, locale: string = 'pt-BR'): string {
-  return date.toLocaleDateString(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}
-
-/**
- * Formats a date with time to a locale string (PT-BR by default)
- * @param date Date to format
- * @param locale Locale to use
- * @returns Formatted date and time string
- */
-export function formatDateTime(date: Date, locale: string = 'pt-BR'): string {
-  return date.toLocaleDateString(locale, {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-}
-
-/**
- * Truncates a string to a specified length
- * @param str String to truncate
- * @param maxLength Maximum length
- * @returns Truncated string
- */
-export function truncateString(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return str.substring(0, maxLength) + '...';
-}
-
-/**
- * Converts first letter of each word to uppercase
- * @param str String to capitalize
- * @returns Capitalized string
- */
-export function toTitleCase(str: string): string {
-  return str.replace(
-    /\w\S*/g,
-    txt => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-  );
-}
-
-/**
- * Returns differences between two objects
- * @param obj1 First object
- * @param obj2 Second object
- * @returns Object containing only the differences
- */
-export function objectDiff(obj1: any, obj2: any): any {
-  const diff: any = {};
+export function isValidCPF(cpf: string): boolean {
+  cpf = cpf.replace(/[^\d]+/g, '');
   
-  // Check keys from obj1
-  Object.keys(obj1).forEach(key => {
-    if (obj2[key] !== obj1[key]) {
-      diff[key] = obj2[key];
-    }
-  });
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
   
-  // Check for new keys in obj2
-  Object.keys(obj2).forEach(key => {
-    if (obj1[key] === undefined) {
-      diff[key] = obj2[key];
-    }
-  });
+  let sum = 0;
+  let remainder;
   
-  return diff;
-}
-
-/**
- * Deep clone an object
- * @param obj Object to clone
- * @returns Cloned object
- */
-export function deepClone<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
-}
-
-/**
- * Validates if a string is a valid UUID
- * @param uuid String to validate
- * @returns True if valid UUID
- */
-export function isValidUuid(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
-
-/**
- * Generates a simple hash code from a string
- * @param str String to hash
- * @returns Hash code
- */
-export function simpleHash(str: string): number {
-  let hash = 0;
-  if (str.length === 0) return hash;
-  
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+  for (let i = 1; i <= 9; i++) {
+    sum = sum + parseInt(cpf.substring(i - 1, i)) * (11 - i);
   }
   
-  return Math.abs(hash);
+  remainder = (sum * 10) % 11;
+  if ((remainder === 10) || (remainder === 11)) remainder = 0;
+  if (remainder !== parseInt(cpf.substring(9, 10))) return false;
+  
+  sum = 0;
+  for (let i = 1; i <= 10; i++) {
+    sum = sum + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+  }
+  
+  remainder = (sum * 10) % 11;
+  if ((remainder === 10) || (remainder === 11)) remainder = 0;
+  if (remainder !== parseInt(cpf.substring(10, 11))) return false;
+  
+  return true;
 }
 
 /**
- * Creates a sleep function that returns a promise
- * @param ms Milliseconds to sleep
- * @returns Promise that resolves after specified milliseconds
+ * Verifica se um CNPJ é válido
+ * @param cnpj String com o CNPJ a ser validado
+ * @returns boolean indicando se o CNPJ é válido
  */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Formats a number as currency
- * @param value Number to format
- * @param locale Locale to use
- * @param currency Currency code
- * @returns Formatted currency string
- */
-export function formatCurrency(value: number, locale: string = 'pt-BR', currency: string = 'BRL'): string {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency
-  }).format(value);
+export function isValidCNPJ(cnpj: string): boolean {
+  cnpj = cnpj.replace(/[^\d]+/g, '');
+  
+  if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+  
+  // Validação do primeiro dígito verificador
+  let tamanho = cnpj.length - 2;
+  let numeros = cnpj.substring(0, tamanho);
+  let digitos = cnpj.substring(tamanho);
+  let soma = 0;
+  let pos = tamanho - 7;
+  
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado !== parseInt(digitos.charAt(0))) return false;
+  
+  // Validação do segundo dígito verificador
+  tamanho = tamanho + 1;
+  numeros = cnpj.substring(0, tamanho);
+  soma = 0;
+  pos = tamanho - 7;
+  
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+  if (resultado !== parseInt(digitos.charAt(1))) return false;
+  
+  return true;
 }
