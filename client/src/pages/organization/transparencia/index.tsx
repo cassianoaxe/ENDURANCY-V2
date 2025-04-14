@@ -302,7 +302,8 @@ const MembrosTab = ({ organizacaoId }: { organizacaoId: string }) => {
         : `/api/public/transparencia/organizacao/${organizacaoId}/membros?tipo=${tipoSelecionado}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Garantir que a resposta seja um array
+      return Array.isArray(response.data) ? response.data : [];
     }
   });
 
@@ -387,7 +388,8 @@ const RelatoriosFinanceirosTab = ({ organizacaoId }: { organizacaoId: string }) 
         : `/api/public/transparencia/organizacao/${organizacaoId}/financeiro?ano=${anoSelecionado}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Garantir que a resposta seja um array
+      return Array.isArray(response.data) ? response.data : [];
     }
   });
 
