@@ -408,6 +408,13 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "Transparência",
+      path: "/organization/transparencia/gerenciar",
+      active: currentPath === "/organization/transparencia/gerenciar" ||
+              currentPath.startsWith("/organization/transparencia/"),
+      icon: <FileSearch size={18} />,
+    },
+    {
       title: "Tarefas",
       path: "/organization/tarefas",
       active: currentPath === "/organization/tarefas" || 
