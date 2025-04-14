@@ -94,7 +94,7 @@ async function criarCertificacoesExemplo() {
       dataValidade: new Date("2025-03-15"),
       visibilidade: "publico" as const,
       criadoPor: adminUserId,
-      arquivoUrl: "/uploads/transparencia/exemplo-certificado.pdf"
+      arquivoUrl: "/uploads/transparencia/abrace-certificado-utilidade-publica.pdf"
     },
     {
       titulo: "Certificado de Organização Social (OS)",
@@ -520,7 +520,7 @@ async function criarDadosAbrace() {
       dataValidade: new Date("2025-05-15"),
       visibilidade: "publico" as const,
       criadoPor: adminUserId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-gmp.pdf"
+      arquivoUrl: "/uploads/transparencia/abrace-gmp.pdf"
     },
     {
       titulo: "Certificado de Cultivo Orgânico",
@@ -533,7 +533,7 @@ async function criarDadosAbrace() {
       dataValidade: new Date("2024-11-10"),
       visibilidade: "publico" as const,
       criadoPor: adminUserId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-organico.pdf"
+      arquivoUrl: "/uploads/transparencia/abrace-organico.pdf"
     },
     {
       titulo: "Autorização Especial para Cultivo e Manipulação",
@@ -546,7 +546,7 @@ async function criarDadosAbrace() {
       dataValidade: new Date("2028-01-20"),
       visibilidade: "publico" as const,
       criadoPor: adminUserId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-autorizacao.pdf"
+      arquivoUrl: "/uploads/transparencia/abrace-autorizacao.pdf"
     },
     {
       titulo: "ISO 17025 - Acreditação de Laboratório",
@@ -559,7 +559,7 @@ async function criarDadosAbrace() {
       dataValidade: new Date("2025-09-05"),
       visibilidade: "publico" as const,
       criadoPor: adminUserId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-iso17025.pdf"
+      arquivoUrl: "/uploads/transparencia/abrace-iso17025.pdf"
     }
   ];
   
@@ -635,7 +635,7 @@ async function criarDadosAbrace() {
       descricao: "Resultados dos testes de qualidade e pureza realizados no primeiro trimestre de 2024",
       categoria: "relatorios" as const,
       organizacaoId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-testes-q1-2024.pdf",
+      arquivoUrl: "/uploads/transparencia/abrace-testes-q1-2024.pdf",
       arquivoTipo: "application/pdf",
       arquivoTamanho: "4.3 MB",
       visibilidade: "publico" as const,
@@ -648,7 +648,7 @@ async function criarDadosAbrace() {
       descricao: "Documentação detalhada do sistema de rastreabilidade do plantio até o produto final",
       categoria: "legal" as const,
       organizacaoId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-rastreabilidade.pdf",
+      arquivoUrl: "/uploads/transparencia/abrace-rastreabilidade.pdf",
       arquivoTipo: "application/pdf",
       arquivoTamanho: "3.7 MB",
       visibilidade: "publico" as const,
@@ -661,7 +661,7 @@ async function criarDadosAbrace() {
       descricao: "Registro da formação do Conselho Consultivo com especialistas em cannabis medicinal",
       categoria: "governanca" as const,
       organizacaoId,
-      arquivoUrl: "/uploads/transparencia/hempmeds-conselho-consultivo.pdf",
+      arquivoUrl: "/uploads/transparencia/abrace-conselho-consultivo.pdf",
       arquivoTipo: "application/pdf",
       arquivoTamanho: "1.6 MB",
       visibilidade: "publico" as const,
