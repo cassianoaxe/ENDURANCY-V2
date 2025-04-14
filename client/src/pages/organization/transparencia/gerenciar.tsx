@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -2927,14 +2927,48 @@ const GerenciarFinanceiros = () => {
 
 // Componente principal de gerenciamento de transparência
 const GerenciarTransparencia = () => {
+  // Função para obter o organizationId atual do usuário logado
+  const [organizationId, setOrganizationId] = useState("1"); // Padrão é 1 (Abrace)
+
+  // Quando o componente montar, tente obter o ID da organização do usuário logado
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('/api/auth/me');
+        if (response.data && response.data.organizationId) {
+          setOrganizationId(response.data.organizationId.toString());
+        }
+      } catch (error) {
+        console.error("Erro ao obter informações do usuário:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Função para abrir o portal de transparência em uma nova janela
+  const abrirPortalTransparencia = () => {
+    window.open(`/organization/transparencia/${organizationId}/sobre`, '_blank');
+  };
+
   return (
     <OrganizationLayout>
       <div className="space-y-6 p-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Portal de Transparência</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie as informações exibidas no portal público de transparência.
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Portal de Transparência</h1>
+            <p className="text-muted-foreground mt-2">
+              Gerencie as informações exibidas no portal público de transparência.
+            </p>
+          </div>
+          <Button 
+            onClick={abrirPortalTransparencia} 
+            variant="outline" 
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Abrir Portal em Nova Janela
+          </Button>
         </div>
 
         <Tabs defaultValue="documentos" className="w-full">
