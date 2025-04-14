@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeMockTickets, ensureOrganizationsExist, ensureAdminUserExists } from "./services/ticketsMockData";
 import { seedHplcTrainings } from "./hplc-training-seed";
+import { seedTransparenciaMockData } from "./transparencia-mock-data";
 import { patientAuthRouter } from "./routes/patient-auth";
 
 const app = express();
@@ -560,6 +561,7 @@ app.use((req, res, next) => {
     await ensureOrganizationsExist();
     await initializeMockTickets();
     await seedHplcTrainings();
+    await seedTransparenciaMockData();
   } catch (error) {
     console.error("Erro ao inicializar dados de exemplo:", error);
   }
