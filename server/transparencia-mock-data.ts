@@ -53,6 +53,20 @@ export async function seedTransparenciaMockData() {
     dadosCriados = true;
   }
   
+  // Verificar se existem dados para a organização "hempmeds" (ID 32)
+  const certHempmeds = await db.select({ count: sql`count(*)` }).from(certificacoesOrganizacao).where(eq(certificacoesOrganizacao.organizacaoId, 32));
+  const docHempmeds = await db.select({ count: sql`count(*)` }).from(documentosTransparencia).where(eq(documentosTransparencia.organizacaoId, 32));
+  
+  console.log(`[Transparência Mock] Verificando dados para organização "hempmeds" (ID 32):`);
+  console.log(`  - Certificações: ${certHempmeds[0].count}`);
+  console.log(`  - Documentos: ${docHempmeds[0].count}`);
+  
+  if (parseInt(certHempmeds[0].count as string) === 0 || parseInt(docHempmeds[0].count as string) === 0) {
+    console.log("[Transparência Mock] Criando dados para organização hempmeds...");
+    await criarDadosHempmeds();
+    dadosCriados = true;
+  }
+  
   if (dadosCriados) {
     console.log("[Transparência Mock] Dados de exemplo criados com sucesso!");
   } else {
@@ -482,5 +496,338 @@ async function criarDocumentosExemplo() {
   for (const documento of documentos) {
     await db.insert(documentosTransparencia).values([documento]);
     console.log(`[Transparência Mock] Documento criado: ${documento.titulo}`);
+  }
+}
+
+/**
+ * Criar dados específicos para a organização "hempmeds" (ID 32)
+ * Proprietário: abraceesperanca@gmail.com (ID 14)
+ */
+async function criarDadosHempmeds() {
+  const organizacaoId = 32; // ID da organização hempmeds
+  const adminUserId = 14; // ID do usuário abraceesperanca@gmail.com
+  
+  // Certificações específicas para hempmeds
+  const certificacoes = [
+    {
+      titulo: "Certificado de Boas Práticas de Fabricação (GMP)",
+      descricao: "Certificação que atesta as boas práticas de fabricação de produtos à base de cannabis medicinal",
+      tipo: "gmp" as const,
+      entidadeCertificadora: "ANVISA",
+      organizacaoId,
+      status: "ativo" as const,
+      dataEmissao: new Date("2023-05-15"),
+      dataValidade: new Date("2025-05-15"),
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-gmp.pdf"
+    },
+    {
+      titulo: "Certificado de Cultivo Orgânico",
+      descricao: "Certificação de produção orgânica sem uso de pesticidas e outros componentes químicos",
+      tipo: "organico" as const,
+      entidadeCertificadora: "IBD Certificações",
+      organizacaoId,
+      status: "ativo" as const,
+      dataEmissao: new Date("2022-11-10"),
+      dataValidade: new Date("2024-11-10"),
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-organico.pdf"
+    },
+    {
+      titulo: "Autorização Especial para Cultivo e Manipulação",
+      descricao: "Autorização para cultivo, extração e manipulação de plantas de cannabis para fins medicinais",
+      tipo: "regulatorio" as const,
+      entidadeCertificadora: "ANVISA",
+      organizacaoId,
+      status: "ativo" as const,
+      dataEmissao: new Date("2023-01-20"),
+      dataValidade: new Date("2028-01-20"),
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-autorizacao.pdf"
+    },
+    {
+      titulo: "ISO 17025 - Acreditação de Laboratório",
+      descricao: "Acreditação internacional para laboratórios de análise e controle de qualidade",
+      tipo: "qualidade" as const,
+      entidadeCertificadora: "INMETRO",
+      organizacaoId,
+      status: "ativo" as const,
+      dataEmissao: new Date("2022-09-05"),
+      dataValidade: new Date("2025-09-05"),
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-iso17025.pdf"
+    }
+  ];
+  
+  // Documentos específicos para hempmeds
+  const documentos = [
+    {
+      titulo: "Estatuto Social - HempMeds Brasil",
+      descricao: "Documento que estabelece as regras fundamentais de funcionamento da organização",
+      categoria: "legal" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-estatuto.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "2.3 MB",
+      visibilidade: "publico" as const,
+      tags: "estatuto, governança, legal",
+      dataDocumento: new Date("2022-02-15"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata da Assembleia Geral Ordinária 2024",
+      descricao: "Registro da Assembleia Geral Ordinária da HempMeds realizada em janeiro de 2024",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-ata-ago-2024.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.5 MB",
+      visibilidade: "publico" as const,
+      tags: "assembleia, deliberações, governança",
+      dataDocumento: new Date("2024-01-30"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Relatório de Sustentabilidade 2023",
+      descricao: "Relatório detalhado das práticas sustentáveis e ações socioambientais realizadas em 2023",
+      categoria: "relatorios" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-sustentabilidade-2023.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "5.2 MB",
+      visibilidade: "publico" as const,
+      tags: "sustentabilidade, meio ambiente, responsabilidade social",
+      dataDocumento: new Date("2024-02-28"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Política de Boas Práticas Agrícolas",
+      descricao: "Documento detalhando os protocolos e práticas de cultivo sustentável da cannabis",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-boas-praticas.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "3.8 MB",
+      visibilidade: "publico" as const,
+      tags: "cultivo, agricultura, procedimentos",
+      dataDocumento: new Date("2023-07-15"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata da Reunião do Comitê Científico",
+      descricao: "Registro das deliberações do Comitê Científico sobre pesquisas e desenvolvimento de produtos",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-comite-cientifico.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "2.1 MB",
+      visibilidade: "publico" as const,
+      tags: "pesquisa, ciência, desenvolvimento",
+      dataDocumento: new Date("2024-03-10"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Relatório de Testes de Qualidade Q1 2024",
+      descricao: "Resultados dos testes de qualidade e pureza realizados no primeiro trimestre de 2024",
+      categoria: "relatorios" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-testes-q1-2024.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "4.3 MB",
+      visibilidade: "publico" as const,
+      tags: "qualidade, testes, laboratório",
+      dataDocumento: new Date("2024-04-05"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Protocolo de Rastreabilidade de Produto",
+      descricao: "Documentação detalhada do sistema de rastreabilidade do plantio até o produto final",
+      categoria: "legal" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-rastreabilidade.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "3.7 MB",
+      visibilidade: "publico" as const,
+      tags: "rastreabilidade, qualidade, procedimentos",
+      dataDocumento: new Date("2023-09-20"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata de Constituição do Conselho Consultivo",
+      descricao: "Registro da formação do Conselho Consultivo com especialistas em cannabis medicinal",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/hempmeds-conselho-consultivo.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.6 MB",
+      visibilidade: "publico" as const,
+      tags: "conselho, governança, gestão",
+      dataDocumento: new Date("2023-05-12"),
+      criadoPor: adminUserId
+    }
+  ];
+  
+  // Inserir certificações para hempmeds
+  for (const certificacao of certificacoes) {
+    await db.insert(certificacoesOrganizacao).values([certificacao]);
+    console.log(`[Transparência Mock] [HempMeds] Certificação criada: ${certificacao.titulo}`);
+  }
+  
+  // Inserir documentos para hempmeds
+  for (const documento of documentos) {
+    await db.insert(documentosTransparencia).values([documento]);
+    console.log(`[Transparência Mock] [HempMeds] Documento criado: ${documento.titulo}`);
+  }
+  
+  // Dados de exemplo para relatórios financeiros da HempMeds
+  const relatorios = [
+    {
+      ano: 2023,
+      mes: null, // Relatório anual
+      organizacaoId,
+      receitaTotal: 3750000, // R$ 3.750.000,00
+      despesaTotal: 3250000, // R$ 3.250.000,00
+      saldo: 500000,
+      receitasPorCategoria: JSON.stringify({
+        "Produtos Medicinais": 2600000,
+        "Produtos Cosméticos": 850000,
+        "Consultoria": 300000
+      }),
+      despesasPorCategoria: JSON.stringify({
+        "Pessoal": 1200000,
+        "Produção": 1000000,
+        "P&D": 450000,
+        "Administrativo": 350000,
+        "Marketing": 250000
+      }),
+      receitasMensais: JSON.stringify({
+        "Jan": 290000, "Fev": 280000, "Mar": 310000, "Abr": 295000, 
+        "Mai": 325000, "Jun": 340000, "Jul": 300000, "Ago": 330000, 
+        "Set": 315000, "Out": 320000, "Nov": 350000, "Dez": 295000
+      }),
+      despesasMensais: JSON.stringify({
+        "Jan": 265000, "Fev": 255000, "Mar": 270000, "Abr": 260000, 
+        "Mai": 280000, "Jun": 290000, "Jul": 265000, "Ago": 275000, 
+        "Set": 270000, "Out": 275000, "Nov": 285000, "Dez": 260000
+      }),
+      visibilidade: "publico" as const,
+      publicado: true,
+      criadoPor: adminUserId
+    },
+    {
+      ano: 2024,
+      mes: 3, // Primeiro trimestre
+      organizacaoId,
+      receitaTotal: 1050000,
+      despesaTotal: 920000,
+      saldo: 130000,
+      receitasPorCategoria: JSON.stringify({
+        "Produtos Medicinais": 720000,
+        "Produtos Cosméticos": 230000,
+        "Consultoria": 100000
+      }),
+      despesasPorCategoria: JSON.stringify({
+        "Pessoal": 340000,
+        "Produção": 280000,
+        "P&D": 120000,
+        "Administrativo": 100000,
+        "Marketing": 80000
+      }),
+      receitasMensais: JSON.stringify({
+        "Jan": 335000, "Fev": 340000, "Mar": 375000
+      }),
+      despesasMensais: JSON.stringify({
+        "Jan": 300000, "Fev": 305000, "Mar": 315000
+      }),
+      visibilidade: "publico" as const,
+      publicado: true,
+      criadoPor: adminUserId
+    }
+  ];
+  
+  // Inserir relatórios financeiros
+  for (const relatorio of relatorios) {
+    await db.insert(relatoriosFinanceirosPublicos).values([relatorio]);
+    console.log(`[Transparência Mock] [HempMeds] Relatório financeiro criado: ${relatorio.ano}${relatorio.mes ? ` (Trimestre ${relatorio.mes})` : ''}`);
+  }
+  
+  // Membros da organização HempMeds
+  const membros = [
+    {
+      nome: "Marina Rodrigues",
+      email: "marina.rodrigues@hempmeds.com.br",
+      tipo: "diretoria" as const,
+      cargo: "presidente",
+      organizacaoId,
+      dataIngresso: new Date("2020-01-15"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    },
+    {
+      nome: "Rafael Oliveira",
+      email: "rafael.oliveira@hempmeds.com.br",
+      tipo: "diretoria" as const,
+      cargo: "diretor_pesquisa",
+      organizacaoId,
+      dataIngresso: new Date("2020-03-10"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    },
+    {
+      nome: "Carla Souza",
+      email: "carla.souza@hempmeds.com.br",
+      tipo: "diretoria" as const,
+      cargo: "diretor_financeiro",
+      organizacaoId,
+      dataIngresso: new Date("2021-02-05"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    },
+    {
+      nome: "Paulo Martins",
+      email: "paulo.martins@hempmeds.com.br",
+      tipo: "diretoria" as const,
+      cargo: "diretor_operacoes",
+      organizacaoId,
+      dataIngresso: new Date("2020-06-15"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    },
+    {
+      nome: "Dra. Lúcia Carvalho",
+      email: "lucia.carvalho@hempmeds.com.br",
+      tipo: "conselho" as const,
+      cargo: "conselheiro_cientifico",
+      organizacaoId,
+      dataIngresso: new Date("2021-05-20"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    },
+    {
+      nome: "Dr. Ricardo Almeida",
+      email: "ricardo.almeida@hempmeds.com.br",
+      tipo: "conselho" as const,
+      cargo: "conselheiro_cientifico",
+      organizacaoId,
+      dataIngresso: new Date("2021-05-20"),
+      status: true,
+      visibilidade: "publico" as const,
+      criadoPor: adminUserId
+    }
+  ];
+  
+  // Inserir membros
+  for (const membro of membros) {
+    await db.insert(membrosTransparencia).values([membro]);
+    console.log(`[Transparência Mock] [HempMeds] Membro criado: ${membro.nome} (${membro.cargo})`);
   }
 }
