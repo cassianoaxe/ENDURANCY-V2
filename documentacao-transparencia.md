@@ -10,20 +10,20 @@ https://[domínio-do-site]/organization/transparencia/[organizationId]
 
 Onde:
 - `[domínio-do-site]` é o domínio do seu site (ex: abrace25.replit.app)
-- `[organizationId]` é o ID da sua organização no sistema (ex: 1 para a Associação Abrace)
+- `[organizationId]` é o ID da sua organização no sistema (ex: 32 para a sua organização)
 
-### Exemplos de links para a Associação Abrace (ID 1):
+### Exemplos de links para sua organização (ID 32):
 
 **Portal completo:**
 ```
-https://abrace25.replit.app/organization/transparencia/1
+https://abrace25.replit.app/organization/transparencia/32
 ```
 
 **Seções específicas:**
-- Documentos: `https://abrace25.replit.app/organization/transparencia/1/documentos`
-- Certificações: `https://abrace25.replit.app/organization/transparencia/1/certificacoes`
-- Membros: `https://abrace25.replit.app/organization/transparencia/1/membros`
-- Relatórios Financeiros: `https://abrace25.replit.app/organization/transparencia/1/financeiro`
+- Documentos: `https://abrace25.replit.app/organization/transparencia/32/documentos`
+- Certificações: `https://abrace25.replit.app/organization/transparencia/32/certificacoes`
+- Membros: `https://abrace25.replit.app/organization/transparencia/32/membros`
+- Relatórios Financeiros: `https://abrace25.replit.app/organization/transparencia/32/financeiro`
 
 ## Funcionalidades do Portal de Transparência
 
