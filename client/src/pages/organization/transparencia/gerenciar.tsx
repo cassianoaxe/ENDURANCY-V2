@@ -581,7 +581,7 @@ const GerenciarDocumentos = () => {
             <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-800">
               Erro ao carregar documentos. Por favor, tente novamente mais tarde.
             </div>
-          ) : documentos && documentos.length > 0 ? (
+          ) : documentos?.data && documentos.data.length > 0 ? (
             <div className="border rounded-md overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50">
