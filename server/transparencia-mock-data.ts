@@ -500,14 +500,14 @@ async function criarDocumentosExemplo() {
 }
 
 /**
- * Criar dados específicos para a organização "hempmeds" (ID 32)
- * Proprietário: abraceesperanca@gmail.com (ID 14)
+ * Criar dados específicos para a organização "abrace" (ID 1)
+ * Organização tipo associacao para portal de transparência
  */
-async function criarDadosHempmeds() {
-  const organizacaoId = 32; // ID da organização hempmeds
-  const adminUserId = 14; // ID do usuário abraceesperanca@gmail.com
+async function criarDadosAbrace() {
+  const organizacaoId = 1; // ID da organização abrace (tipo associacao)
+  const adminUserId = 1; // ID do usuário administrador
   
-  // Certificações específicas para hempmeds
+  // Certificações específicas para associação Abrace
   const certificacoes = [
     {
       titulo: "Certificado de Boas Práticas de Fabricação (GMP)",
@@ -563,11 +563,11 @@ async function criarDadosHempmeds() {
     }
   ];
   
-  // Documentos específicos para hempmeds
+  // Documentos específicos para associação Abrace
   const documentos = [
     {
-      titulo: "Estatuto Social - HempMeds Brasil",
-      descricao: "Documento que estabelece as regras fundamentais de funcionamento da organização",
+      titulo: "Estatuto Social - Associação Abrace",
+      descricao: "Documento que estabelece as regras fundamentais de funcionamento da associação",
       categoria: "legal" as const,
       organizacaoId,
       arquivoUrl: "/uploads/transparencia/hempmeds-estatuto.pdf",
@@ -580,7 +580,7 @@ async function criarDadosHempmeds() {
     },
     {
       titulo: "Ata da Assembleia Geral Ordinária 2024",
-      descricao: "Registro da Assembleia Geral Ordinária da HempMeds realizada em janeiro de 2024",
+      descricao: "Registro da Assembleia Geral Ordinária da Associação Abrace realizada em janeiro de 2024",
       categoria: "governanca" as const,
       organizacaoId,
       arquivoUrl: "/uploads/transparencia/hempmeds-ata-ago-2024.pdf",
@@ -671,19 +671,19 @@ async function criarDadosHempmeds() {
     }
   ];
   
-  // Inserir certificações para hempmeds
+  // Inserir certificações para Abrace
   for (const certificacao of certificacoes) {
     await db.insert(certificacoesOrganizacao).values([certificacao]);
-    console.log(`[Transparência Mock] [HempMeds] Certificação criada: ${certificacao.titulo}`);
+    console.log(`[Transparência Mock] [Abrace] Certificação criada: ${certificacao.titulo}`);
   }
   
-  // Inserir documentos para hempmeds
+  // Inserir documentos para Abrace
   for (const documento of documentos) {
     await db.insert(documentosTransparencia).values([documento]);
-    console.log(`[Transparência Mock] [HempMeds] Documento criado: ${documento.titulo}`);
+    console.log(`[Transparência Mock] [Abrace] Documento criado: ${documento.titulo}`);
   }
   
-  // Dados de exemplo para relatórios financeiros da HempMeds
+  // Dados de exemplo para relatórios financeiros da Abrace
   const relatorios = [
     {
       ano: 2023,
@@ -752,14 +752,14 @@ async function criarDadosHempmeds() {
   // Inserir relatórios financeiros
   for (const relatorio of relatorios) {
     await db.insert(relatoriosFinanceirosPublicos).values([relatorio]);
-    console.log(`[Transparência Mock] [HempMeds] Relatório financeiro criado: ${relatorio.ano}${relatorio.mes ? ` (Trimestre ${relatorio.mes})` : ''}`);
+    console.log(`[Transparência Mock] [Abrace] Relatório financeiro criado: ${relatorio.ano}${relatorio.mes ? ` (Trimestre ${relatorio.mes})` : ''}`);
   }
   
-  // Membros da organização HempMeds
+  // Membros da organização Abrace
   const membros = [
     {
       nome: "Marina Rodrigues",
-      email: "marina.rodrigues@hempmeds.com.br",
+      email: "marina.rodrigues@abrace.org.br",
       tipo: "diretoria" as const,
       cargo: "presidente",
       organizacaoId,
@@ -828,6 +828,6 @@ async function criarDadosHempmeds() {
   // Inserir membros
   for (const membro of membros) {
     await db.insert(membrosTransparencia).values([membro]);
-    console.log(`[Transparência Mock] [HempMeds] Membro criado: ${membro.nome} (${membro.cargo})`);
+    console.log(`[Transparência Mock] [Abrace] Membro criado: ${membro.nome} (${membro.cargo})`);
   }
 }
