@@ -604,7 +604,7 @@ const GerenciarDocumentos = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {Array.isArray(documentos) ? documentos.map((documento: any) => (
+                  {documentos?.data ? documentos.data.map((documento: any) => (
                     <tr key={documento.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{documento.titulo}</div>
