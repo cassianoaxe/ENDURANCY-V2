@@ -212,7 +212,7 @@ const GerenciarDocumentos = () => {
   };
 
   const categorias = [
-    { value: '', label: 'Todas as categorias' },
+    { value: 'todas-categorias', label: 'Todas as categorias' },
     { value: 'estatuto', label: 'Estatuto' },
     { value: 'ata_assembleia', label: 'Ata de Assembleia' },
     { value: 'regimento_interno', label: 'Regimento Interno' },
@@ -225,7 +225,7 @@ const GerenciarDocumentos = () => {
   ];
 
   const visibilidades = [
-    { value: '', label: 'Todas as visibilidades' },
+    { value: 'todas-visibilidades', label: 'Todas as visibilidades' },
     { value: 'publico', label: 'Público' },
     { value: 'privado', label: 'Privado' }
   ];
