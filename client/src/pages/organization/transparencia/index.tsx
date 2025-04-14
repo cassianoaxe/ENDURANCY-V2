@@ -130,7 +130,8 @@ const DocumentosTab = ({ organizacaoId }: { organizacaoId: string }) => {
         : `/api/public/transparencia/organizacao/${organizacaoId}/documentos?categoria=${categoriaSelecionada}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Garantir que a resposta seja um array
+      return Array.isArray(response.data) ? response.data : [];
     }
   });
 
@@ -215,7 +216,8 @@ const CertificacoesTab = ({ organizacaoId }: { organizacaoId: string }) => {
         : `/api/public/transparencia/organizacao/${organizacaoId}/certificacoes?tipo=${tipoSelecionado}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Garantir que a resposta seja um array
+      return Array.isArray(response.data) ? response.data : [];
     }
   });
 
