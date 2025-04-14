@@ -659,7 +659,7 @@ const GerenciarDocumentos = () => {
                         </div>
                       </td>
                     </tr>
-                  ))) : null}
+                  )) : null}
                 </tbody>
               </table>
             </div>
