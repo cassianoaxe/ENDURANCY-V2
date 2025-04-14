@@ -2,328 +2,368 @@ import { relations } from 'drizzle-orm';
 import { 
   pgTable, 
   serial, 
-  integer, 
-  text, 
+  varchar, 
   timestamp, 
+  text, 
+  integer, 
   boolean, 
-  pgEnum, 
-  numeric, 
   date,
-  uuid
+  numeric,
+  pgEnum,
+  uuid,
+  unique
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { users, organizations } from './schema';
+import { usuariosTable } from './schema';
 
-// Enumerações para o módulo financeiro
-export const tipoContaEnum = pgEnum('tipo_conta', [
-  'RECEITA',
-  'DESPESA',
-  'INVESTIMENTO',
-  'TRANSFERENCIA'
+// Enums financeiros
+export const tipoTransacaoEnum = pgEnum('tipo_transacao', [
+  'receita',
+  'despesa',
+  'transferencia'
 ]);
 
-export const statusContaEnum = pgEnum('status_conta', [
-  'PENDENTE',
-  'PAGO',
-  'VENCIDO',
-  'CANCELADO',
-  'PARCELADO'
+export const statusTransacaoEnum = pgEnum('status_transacao', [
+  'pendente',
+  'pago',
+  'atrasado',
+  'cancelado',
+  'estornado'
 ]);
 
 export const recorrenciaEnum = pgEnum('recorrencia', [
-  'UNICA',
-  'DIARIA',
-  'SEMANAL',
-  'QUINZENAL',
-  'MENSAL',
-  'BIMESTRAL',
-  'TRIMESTRAL',
-  'SEMESTRAL',
-  'ANUAL'
+  'unica',
+  'diaria',
+  'semanal',
+  'quinzenal',
+  'mensal',
+  'bimestral',
+  'trimestral',
+  'semestral',
+  'anual'
 ]);
 
-export const tipoFluxoEnum = pgEnum('tipo_fluxo', [
-  'ENTRADA',
-  'SAIDA'
+export const tipoCategoriaEnum = pgEnum('tipo_categoria', [
+  'receita',
+  'despesa',
+  'ambos'
 ]);
 
-// Tabelas principais
+export const tipoContaEnum = pgEnum('tipo_conta', [
+  'corrente',
+  'poupanca',
+  'investimento',
+  'cartao_credito',
+  'cartao_debito',
+  'dinheiro',
+  'outros'
+]);
+
+// Tabelas financeiras
+export const contasFinanceirasTable = pgTable('contas_financeiras', {
+  id: serial('id').primaryKey(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  nome: varchar('nome', { length: 100 }).notNull(),
+  tipo: tipoContaEnum('tipo').notNull(),
+  banco: varchar('banco', { length: 100 }),
+  agencia: varchar('agencia', { length: 20 }),
+  conta: varchar('conta', { length: 30 }),
+  saldoInicial: numeric('saldo_inicial', { precision: 10, scale: 2 }).notNull().default('0'),
+  saldoAtual: numeric('saldo_atual', { precision: 10, scale: 2 }).notNull().default('0'),
+  cor: varchar('cor', { length: 20 }).default('#3B82F6'),
+  ativo: boolean('ativo').notNull().default(true),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
+});
+
 export const categoriasFinanceirasTable = pgTable('categorias_financeiras', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  nome: text('nome').notNull(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  nome: varchar('nome', { length: 100 }).notNull(),
+  tipo: tipoCategoriaEnum('tipo').notNull(),
+  cor: varchar('cor', { length: 20 }).default('#3B82F6'),
+  icone: varchar('icone', { length: 50 }),
+  categoriaParentId: integer('categoria_parent_id'),
+  ativo: boolean('ativo').notNull().default(true),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
+});
+
+export const centrosCustoTable = pgTable('centros_custo', {
+  id: serial('id').primaryKey(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  nome: varchar('nome', { length: 100 }).notNull(),
   descricao: text('descricao'),
-  tipo: tipoContaEnum('tipo').notNull(),
-  cor: text('cor').default('#3b82f6'),
-  icone: text('icone'),
-  ativo: boolean('ativo').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  cor: varchar('cor', { length: 20 }).default('#3B82F6'),
+  ativo: boolean('ativo').notNull().default(true),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
 });
 
-export const contasReceberTable = pgTable('contas_receber', {
+export const transacoesFinanceirasTable = pgTable('transacoes_financeiras', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  categoriaId: integer('categoria_id').references(() => categoriasFinanceirasTable.id),
-  descricao: text('descricao').notNull(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  tipo: tipoTransacaoEnum('tipo').notNull(),
+  descricao: varchar('descricao', { length: 200 }).notNull(),
   valor: numeric('valor', { precision: 10, scale: 2 }).notNull(),
   dataEmissao: date('data_emissao').notNull(),
   dataVencimento: date('data_vencimento').notNull(),
   dataPagamento: date('data_pagamento'),
-  status: statusContaEnum('status').notNull().default('PENDENTE'),
-  recorrencia: recorrenciaEnum('recorrencia').default('UNICA'),
+  status: statusTransacaoEnum('status').notNull().default('pendente'),
+  recorrencia: recorrenciaEnum('recorrencia').notNull().default('unica'),
   observacoes: text('observacoes'),
   anexo: text('anexo'),
-  clienteNome: text('cliente_nome'),
-  clienteId: integer('cliente_id'),
-  numeroDocumento: text('numero_documento'),
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
-
-export const contasPagarTable = pgTable('contas_pagar', {
-  id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  contaId: integer('conta_id').notNull().references(() => contasFinanceirasTable.id),
   categoriaId: integer('categoria_id').references(() => categoriasFinanceirasTable.id),
-  descricao: text('descricao').notNull(),
-  valor: numeric('valor', { precision: 10, scale: 2 }).notNull(),
-  dataEmissao: date('data_emissao').notNull(),
-  dataVencimento: date('data_vencimento').notNull(),
-  dataPagamento: date('data_pagamento'),
-  status: statusContaEnum('status').notNull().default('PENDENTE'),
-  recorrencia: recorrenciaEnum('recorrencia').default('UNICA'),
-  observacoes: text('observacoes'),
-  anexo: text('anexo'),
-  fornecedorNome: text('fornecedor_nome'),
-  fornecedorId: integer('fornecedor_id'),
-  numeroDocumento: text('numero_documento'),
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
-
-export const contasBancariasTable = pgTable('contas_bancarias', {
-  id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  nome: text('nome').notNull(),
-  tipo: text('tipo').notNull(), // corrente, poupança, investimento
-  banco: text('banco'),
-  agencia: text('agencia'),
-  conta: text('conta'),
-  saldoInicial: numeric('saldo_inicial', { precision: 10, scale: 2 }).default('0'),
-  saldoAtual: numeric('saldo_atual', { precision: 10, scale: 2 }).default('0'),
-  ativo: boolean('ativo').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
-
-export const movimentosFinanceirosTable = pgTable('movimentos_financeiros', {
-  id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  contaBancariaId: integer('conta_bancaria_id').references(() => contasBancariasTable.id),
-  categoriaId: integer('categoria_id').references(() => categoriasFinanceirasTable.id),
-  tipo: tipoFluxoEnum('tipo').notNull(),
-  descricao: text('descricao').notNull(),
-  valor: numeric('valor', { precision: 10, scale: 2 }).notNull(),
-  data: date('data').notNull(),
-  observacoes: text('observacoes'),
-  reconciliado: boolean('reconciliado').default(false),
-  contaOrigemId: integer('conta_origem_id'),
-  contaPagarId: integer('conta_pagar_id').references(() => contasPagarTable.id),
-  contaReceberId: integer('conta_receber_id').references(() => contasReceberTable.id),
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  centroCustoId: integer('centro_custo_id').references(() => centrosCustoTable.id),
+  transacaoParentId: integer('transacao_parent_id').references(() => transacoesFinanceirasTable.id),
+  // Em caso de transferência, essa é a conta destino
+  contaDestinoId: integer('conta_destino_id').references(() => contasFinanceirasTable.id),
+  // Para contas a pagar/receber:
+  fornecedorClienteId: integer('fornecedor_cliente_id'),
+  fornecedorClienteNome: varchar('fornecedor_cliente_nome', { length: 100 }),
+  // Controle financeiro
+  reconciliado: boolean('reconciliado').notNull().default(false),
+  criadoPor: integer('criado_por'),
+  atualizadoPor: integer('atualizado_por'),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
 });
 
 export const orcamentosTable = pgTable('orcamentos', {
   id: serial('id').primaryKey(),
-  organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
-  nome: text('nome').notNull(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  nome: varchar('nome', { length: 100 }).notNull(),
   descricao: text('descricao'),
+  anoReferencia: integer('ano_referencia').notNull(),
+  mesReferencia: integer('mes_referencia'),
+  valorTotal: numeric('valor_total', { precision: 10, scale: 2 }).notNull().default('0'),
+  ativo: boolean('ativo').notNull().default(true),
+  criadoPor: integer('criado_por'),
+  atualizadoPor: integer('atualizado_por'),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
+});
+
+export const orcamentosCategoriasTable = pgTable('orcamentos_categorias', {
+  id: serial('id').primaryKey(),
+  orcamentoId: integer('orcamento_id').notNull().references(() => orcamentosTable.id),
+  categoriaId: integer('categoria_id').notNull().references(() => categoriasFinanceirasTable.id),
+  valor: numeric('valor', { precision: 10, scale: 2 }).notNull(),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
+
+  // Garante que cada categoria apareça apenas uma vez por orçamento
+  uniqueCategoriaOrcamento: unique('unique_categoria_orcamento').on(
+    orcamentoId, 
+    categoriaId
+  ),
+});
+
+// Tabela para conciliação bancária
+export const extratosBancariosTable = pgTable('extratos_bancarios', {
+  id: serial('id').primaryKey(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  contaId: integer('conta_id').notNull().references(() => contasFinanceirasTable.id),
+  dataImportacao: timestamp('data_importacao').defaultNow().notNull(),
   dataInicio: date('data_inicio').notNull(),
   dataFim: date('data_fim').notNull(),
-  ativo: boolean('ativo').default(true),
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  saldoInicial: numeric('saldo_inicial', { precision: 10, scale: 2 }).notNull(),
+  saldoFinal: numeric('saldo_final', { precision: 10, scale: 2 }).notNull(),
+  arquivoOriginal: text('arquivo_original'),
+  importadoPor: integer('importado_por'),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
 });
 
-export const itensOrcamentoTable = pgTable('itens_orcamento', {
+export const extratoTransacoesTable = pgTable('extrato_transacoes', {
   id: serial('id').primaryKey(),
-  orcamentoId: integer('orcamento_id').notNull().references(() => orcamentosTable.id, { onDelete: 'cascade' }),
+  extratoId: integer('extrato_id').notNull().references(() => extratosBancariosTable.id),
+  dataTransacao: date('data_transacao').notNull(),
+  descricao: varchar('descricao', { length: 200 }).notNull(),
+  valor: numeric('valor', { precision: 10, scale: 2 }).notNull(),
+  tipo: tipoTransacaoEnum('tipo').notNull(),
+  identificadorBanco: varchar('identificador_banco', { length: 100 }),
+  reconciliado: boolean('reconciliado').notNull().default(false),
+  transacaoId: integer('transacao_id').references(() => transacoesFinanceirasTable.id),
   categoriaId: integer('categoria_id').references(() => categoriasFinanceirasTable.id),
-  tipo: tipoFluxoEnum('tipo').notNull(),
-  descricao: text('descricao').notNull(),
-  valorPrevisto: numeric('valor_previsto', { precision: 10, scale: 2 }).notNull(),
-  valorRealizado: numeric('valor_realizado', { precision: 10, scale: 2 }).default('0'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
 });
 
-// Relacionamentos
-export const categoriasFinanceirasRelations = relations(categoriasFinanceirasTable, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [categoriasFinanceirasTable.organizationId],
-    references: [organizations.id]
-  }),
-  contasReceber: many(contasReceberTable),
-  contasPagar: many(contasPagarTable),
-  movimentos: many(movimentosFinanceirosTable),
-  itensOrcamento: many(itensOrcamentoTable)
+// Tabela para análise financeira
+export const relatoriosFinanceirosTable = pgTable('relatorios_financeiros', {
+  id: serial('id').primaryKey(),
+  organizacaoId: integer('organizacao_id').notNull(),
+  nome: varchar('nome', { length: 100 }).notNull(),
+  tipo: varchar('tipo', { length: 50 }).notNull(), // 'fluxo_caixa', 'dre', 'balanco', etc
+  parametros: text('parametros'), // JSON com parâmetros do relatório
+  dataInicio: date('data_inicio').notNull(),
+  dataFim: date('data_fim').notNull(),
+  geradoPor: integer('gerado_por'),
+  criadoEm: timestamp('criado_em').defaultNow().notNull(),
+  atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
+});
+
+// Definindo relações
+export const contasFinanceirasRelations = relations(contasFinanceirasTable, ({ many }) => ({
+  transacoes: many(transacoesFinanceirasTable, { relationName: 'conta_transacoes' }),
+  transacoesDestino: many(transacoesFinanceirasTable, { relationName: 'conta_destino_transacoes' }),
+  extratos: many(extratosBancariosTable)
 }));
 
-export const contasReceberRelations = relations(contasReceberTable, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [contasReceberTable.organizationId],
-    references: [organizations.id]
-  }),
-  categoria: one(categoriasFinanceirasTable, {
-    fields: [contasReceberTable.categoriaId],
+export const categoriasFinanceirasRelations = relations(categoriasFinanceirasTable, ({ many, one }) => ({
+  transacoes: many(transacoesFinanceirasTable),
+  orcamentos: many(orcamentosCategoriasTable),
+  extratoTransacoes: many(extratoTransacoesTable),
+  categoriaParent: one(categoriasFinanceirasTable, {
+    fields: [categoriasFinanceirasTable.categoriaParentId],
     references: [categoriasFinanceirasTable.id]
   }),
-  createdByUser: one(users, {
-    fields: [contasReceberTable.createdBy],
-    references: [users.id]
-  })
+  subcategorias: many(categoriasFinanceirasTable, { relationName: 'subcategorias' })
 }));
 
-export const contasPagarRelations = relations(contasPagarTable, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [contasPagarTable.organizationId],
-    references: [organizations.id]
+export const centrosCustoRelations = relations(centrosCustoTable, ({ many }) => ({
+  transacoes: many(transacoesFinanceirasTable)
+}));
+
+export const transacoesFinanceirasRelations = relations(transacoesFinanceirasTable, ({ one, many }) => ({
+  conta: one(contasFinanceirasTable, { 
+    fields: [transacoesFinanceirasTable.contaId],
+    references: [contasFinanceirasTable.id],
+    relationName: 'conta_transacoes'
   }),
-  categoria: one(categoriasFinanceirasTable, {
-    fields: [contasPagarTable.categoriaId],
+  contaDestino: one(contasFinanceirasTable, { 
+    fields: [transacoesFinanceirasTable.contaDestinoId],
+    references: [contasFinanceirasTable.id],
+    relationName: 'conta_destino_transacoes'
+  }),
+  categoria: one(categoriasFinanceirasTable, { 
+    fields: [transacoesFinanceirasTable.categoriaId],
     references: [categoriasFinanceirasTable.id]
   }),
-  createdByUser: one(users, {
-    fields: [contasPagarTable.createdBy],
-    references: [users.id]
-  })
+  centroCusto: one(centrosCustoTable, { 
+    fields: [transacoesFinanceirasTable.centroCustoId],
+    references: [centrosCustoTable.id]
+  }),
+  transacaoParent: one(transacoesFinanceirasTable, {
+    fields: [transacoesFinanceirasTable.transacaoParentId],
+    references: [transacoesFinanceirasTable.id]
+  }),
+  transacoesFilhas: many(transacoesFinanceirasTable, { relationName: 'transacoes_filhas' }),
+  extratoTransacoes: many(extratoTransacoesTable)
 }));
 
-export const contasBancariasRelations = relations(contasBancariasTable, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [contasBancariasTable.organizationId],
-    references: [organizations.id]
-  }),
-  movimentos: many(movimentosFinanceirosTable)
+export const orcamentosRelations = relations(orcamentosTable, ({ many }) => ({
+  categorias: many(orcamentosCategoriasTable)
 }));
 
-export const movimentosFinanceirosRelations = relations(movimentosFinanceirosTable, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [movimentosFinanceirosTable.organizationId],
-    references: [organizations.id]
-  }),
-  contaBancaria: one(contasBancariasTable, {
-    fields: [movimentosFinanceirosTable.contaBancariaId],
-    references: [contasBancariasTable.id]
-  }),
-  categoria: one(categoriasFinanceirasTable, {
-    fields: [movimentosFinanceirosTable.categoriaId],
-    references: [categoriasFinanceirasTable.id]
-  }),
-  contaPagar: one(contasPagarTable, {
-    fields: [movimentosFinanceirosTable.contaPagarId],
-    references: [contasPagarTable.id]
-  }),
-  contaReceber: one(contasReceberTable, {
-    fields: [movimentosFinanceirosTable.contaReceberId],
-    references: [contasReceberTable.id]
-  }),
-  createdByUser: one(users, {
-    fields: [movimentosFinanceirosTable.createdBy],
-    references: [users.id]
-  })
-}));
-
-export const orcamentosRelations = relations(orcamentosTable, ({ one, many }) => ({
-  organization: one(organizations, {
-    fields: [orcamentosTable.organizationId],
-    references: [organizations.id]
-  }),
-  itens: many(itensOrcamentoTable),
-  createdByUser: one(users, {
-    fields: [orcamentosTable.createdBy],
-    references: [users.id]
-  })
-}));
-
-export const itensOrcamentoRelations = relations(itensOrcamentoTable, ({ one }) => ({
-  orcamento: one(orcamentosTable, {
-    fields: [itensOrcamentoTable.orcamentoId],
+export const orcamentosCategoriasRelations = relations(orcamentosCategoriasTable, ({ one }) => ({
+  orcamento: one(orcamentosTable, { 
+    fields: [orcamentosCategoriasTable.orcamentoId],
     references: [orcamentosTable.id]
   }),
-  categoria: one(categoriasFinanceirasTable, {
-    fields: [itensOrcamentoTable.categoriaId],
+  categoria: one(categoriasFinanceirasTable, { 
+    fields: [orcamentosCategoriasTable.categoriaId],
     references: [categoriasFinanceirasTable.id]
   })
 }));
 
-// Schemas para validação e tipagem
+export const extratosBancariosRelations = relations(extratosBancariosTable, ({ one, many }) => ({
+  conta: one(contasFinanceirasTable, { 
+    fields: [extratosBancariosTable.contaId],
+    references: [contasFinanceirasTable.id]
+  }),
+  transacoes: many(extratoTransacoesTable)
+}));
 
-// Categorias Financeiras
+export const extratoTransacoesRelations = relations(extratoTransacoesTable, ({ one }) => ({
+  extrato: one(extratosBancariosTable, { 
+    fields: [extratoTransacoesTable.extratoId],
+    references: [extratosBancariosTable.id]
+  }),
+  transacao: one(transacoesFinanceirasTable, { 
+    fields: [extratoTransacoesTable.transacaoId],
+    references: [transacoesFinanceirasTable.id]
+  }),
+  categoria: one(categoriasFinanceirasTable, { 
+    fields: [extratoTransacoesTable.categoriaId],
+    references: [categoriasFinanceirasTable.id]
+  })
+}));
+
+// Schemas para inserção com validação Zod
+export const insertContaFinanceiraSchema = createInsertSchema(contasFinanceirasTable).omit({
+  id: true,
+  criadoEm: true,
+  atualizadoEm: true
+});
+
 export const insertCategoriaFinanceiraSchema = createInsertSchema(categoriasFinanceirasTable).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true
+  criadoEm: true,
+  atualizadoEm: true
 });
-export type InsertCategoriaFinanceira = z.infer<typeof insertCategoriaFinanceiraSchema>;
-export type CategoriaFinanceira = typeof categoriasFinanceirasTable.$inferSelect;
 
-// Contas a Receber
-export const insertContaReceberSchema = createInsertSchema(contasReceberTable).omit({
+export const insertCentroCustoSchema = createInsertSchema(centrosCustoTable).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true
+  criadoEm: true,
+  atualizadoEm: true
 });
-export type InsertContaReceber = z.infer<typeof insertContaReceberSchema>;
-export type ContaReceber = typeof contasReceberTable.$inferSelect;
 
-// Contas a Pagar
-export const insertContaPagarSchema = createInsertSchema(contasPagarTable).omit({
+export const insertTransacaoFinanceiraSchema = createInsertSchema(transacoesFinanceirasTable).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true
+  criadoEm: true,
+  atualizadoEm: true
 });
-export type InsertContaPagar = z.infer<typeof insertContaPagarSchema>;
-export type ContaPagar = typeof contasPagarTable.$inferSelect;
 
-// Contas Bancárias
-export const insertContaBancariaSchema = createInsertSchema(contasBancariasTable).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-export type InsertContaBancaria = z.infer<typeof insertContaBancariaSchema>;
-export type ContaBancaria = typeof contasBancariasTable.$inferSelect;
-
-// Movimentos Financeiros
-export const insertMovimentoFinanceiroSchema = createInsertSchema(movimentosFinanceirosTable).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
-export type InsertMovimentoFinanceiro = z.infer<typeof insertMovimentoFinanceiroSchema>;
-export type MovimentoFinanceiro = typeof movimentosFinanceirosTable.$inferSelect;
-
-// Orçamentos
 export const insertOrcamentoSchema = createInsertSchema(orcamentosTable).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true
+  criadoEm: true,
+  atualizadoEm: true
 });
-export type InsertOrcamento = z.infer<typeof insertOrcamentoSchema>;
-export type Orcamento = typeof orcamentosTable.$inferSelect;
 
-// Itens de Orçamento
-export const insertItemOrcamentoSchema = createInsertSchema(itensOrcamentoTable).omit({
+export const insertOrcamentoCategoriaSchema = createInsertSchema(orcamentosCategoriasTable).omit({
   id: true,
-  createdAt: true,
-  updatedAt: true
+  criadoEm: true,
+  atualizadoEm: true
 });
-export type InsertItemOrcamento = z.infer<typeof insertItemOrcamentoSchema>;
-export type ItemOrcamento = typeof itensOrcamentoTable.$inferSelect;
+
+export const insertExtratoBancarioSchema = createInsertSchema(extratosBancariosTable).omit({
+  id: true,
+  criadoEm: true
+});
+
+export const insertExtratoTransacaoSchema = createInsertSchema(extratoTransacoesTable).omit({
+  id: true,
+  criadoEm: true,
+  atualizadoEm: true
+});
+
+export const insertRelatorioFinanceiroSchema = createInsertSchema(relatoriosFinanceirosTable).omit({
+  id: true,
+  criadoEm: true,
+  atualizadoEm: true
+});
+
+// Types para inserção
+export type InsertContaFinanceira = z.infer<typeof insertContaFinanceiraSchema>;
+export type InsertCategoriaFinanceira = z.infer<typeof insertCategoriaFinanceiraSchema>;
+export type InsertCentroCusto = z.infer<typeof insertCentroCustoSchema>;
+export type InsertTransacaoFinanceira = z.infer<typeof insertTransacaoFinanceiraSchema>;
+export type InsertOrcamento = z.infer<typeof insertOrcamentoSchema>;
+export type InsertOrcamentoCategoria = z.infer<typeof insertOrcamentoCategoriaSchema>;
+export type InsertExtratoBancario = z.infer<typeof insertExtratoBancarioSchema>;
+export type InsertExtratoTransacao = z.infer<typeof insertExtratoTransacaoSchema>;
+export type InsertRelatorioFinanceiro = z.infer<typeof insertRelatorioFinanceiroSchema>;
+
+// Types para seleção
+export type ContaFinanceira = typeof contasFinanceirasTable.$inferSelect;
+export type CategoriaFinanceira = typeof categoriasFinanceirasTable.$inferSelect;
+export type CentroCusto = typeof centrosCustoTable.$inferSelect;
+export type TransacaoFinanceira = typeof transacoesFinanceirasTable.$inferSelect;
+export type Orcamento = typeof orcamentosTable.$inferSelect;
+export type OrcamentoCategoria = typeof orcamentosCategoriasTable.$inferSelect;
+export type ExtratoBancario = typeof extratosBancariosTable.$inferSelect;
+export type ExtratoTransacao = typeof extratoTransacoesTable.$inferSelect;
+export type RelatorioFinanceiro = typeof relatoriosFinanceirosTable.$inferSelect;
