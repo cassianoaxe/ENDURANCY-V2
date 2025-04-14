@@ -553,7 +553,9 @@ app.use((req, res, next) => {
   app.use('/api', patientAuthRouter);
   console.log("Rotas de autenticação de pacientes registradas");
 
-  // Rota de teste para API de transparência - deve ser registrada antes do Vite
+  // Rotas de teste para API de transparência - deve ser registrada antes do Vite
+  
+  // 1. Documentos
   app.get('/api-test/transparencia/documentos/:orgId', async (req, res) => {
     const { orgId } = req.params;
     try {
@@ -561,15 +563,85 @@ app.use((req, res, next) => {
       const { documentosTransparencia } = (await import('../shared/schema-transparencia'));
       const { eq, and } = (await import('drizzle-orm'));
       
-      const documentos = await db.query.documentosTransparencia.findMany({
-        where: eq(documentosTransparencia.organizacaoId, parseInt(orgId, 10))
-      });
+      // Usando select direto ao invés de query builder
+      const documentos = await db.select()
+        .from(documentosTransparencia)
+        .where(eq(documentosTransparencia.organizacaoId, parseInt(orgId, 10)));
       
       console.log(`API Test - Retrieved ${documentos.length} documentos for org ${orgId}`);
       return res.json(documentos);
     } catch (error) {
       console.error('[API TEST] Erro ao buscar documentos:', error);
       return res.status(500).json({ message: 'Erro ao buscar documentos', error: String(error) });
+    }
+  });
+  
+  // 2. Certificações
+  app.get('/api-test/transparencia/certificacoes/:orgId', async (req, res) => {
+    const { orgId } = req.params;
+    try {
+      const db = (await import('./db')).db;
+      const { certificacoesOrganizacao } = (await import('../shared/schema-transparencia'));
+      const { eq, and } = (await import('drizzle-orm'));
+      
+      const certificacoes = await db.select()
+        .from(certificacoesOrganizacao)
+        .where(eq(certificacoesOrganizacao.organizacaoId, parseInt(orgId, 10)));
+      
+      console.log(`API Test - Retrieved ${certificacoes.length} certificações for org ${orgId}`);
+      return res.json(certificacoes);
+    } catch (error) {
+      console.error('[API TEST] Erro ao buscar certificações:', error);
+      return res.status(500).json({ message: 'Erro ao buscar certificações', error: String(error) });
+    }
+  });
+  
+  // 3. Membros
+  app.get('/api-test/transparencia/membros/:orgId', async (req, res) => {
+    const { orgId } = req.params;
+    try {
+      const db = (await import('./db')).db;
+      const { membrosTransparencia } = (await import('../shared/schema-transparencia'));
+      const { eq, and } = (await import('drizzle-orm'));
+      
+      const membros = await db.select()
+        .from(membrosTransparencia)
+        .where(eq(membrosTransparencia.organizacaoId, parseInt(orgId, 10)));
+      
+      console.log(`API Test - Retrieved ${membros.length} membros for org ${orgId}`);
+      return res.json(membros);
+    } catch (error) {
+      console.error('[API TEST] Erro ao buscar membros:', error);
+      return res.status(500).json({ message: 'Erro ao buscar membros', error: String(error) });
+    }
+  });
+  
+  // 4. Relatórios Financeiros
+  app.get('/api-test/transparencia/financeiro/:orgId', async (req, res) => {
+    const { orgId } = req.params;
+    try {
+      const db = (await import('./db')).db;
+      const { relatoriosFinanceirosPublicos } = (await import('../shared/schema-transparencia'));
+      const { eq, and } = (await import('drizzle-orm'));
+      
+      const relatorios = await db.select()
+        .from(relatoriosFinanceirosPublicos)
+        .where(eq(relatoriosFinanceirosPublicos.organizacaoId, parseInt(orgId, 10)));
+      
+      // Processar campos JSON
+      const processedRelatorios = relatorios.map(relatorio => ({
+        ...relatorio,
+        receitasPorCategoria: relatorio.receitasPorCategoria ? JSON.parse(relatorio.receitasPorCategoria) : null,
+        despesasPorCategoria: relatorio.despesasPorCategoria ? JSON.parse(relatorio.despesasPorCategoria) : null,
+        receitasMensais: relatorio.receitasMensais ? JSON.parse(relatorio.receitasMensais) : null,
+        despesasMensais: relatorio.despesasMensais ? JSON.parse(relatorio.despesasMensais) : null
+      }));
+      
+      console.log(`API Test - Retrieved ${processedRelatorios.length} relatórios financeiros for org ${orgId}`);
+      return res.json(processedRelatorios);
+    } catch (error) {
+      console.error('[API TEST] Erro ao buscar relatórios financeiros:', error);
+      return res.status(500).json({ message: 'Erro ao buscar relatórios financeiros', error: String(error) });
     }
   });
 
