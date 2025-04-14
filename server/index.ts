@@ -553,6 +553,26 @@ app.use((req, res, next) => {
   app.use('/api', patientAuthRouter);
   console.log("Rotas de autenticação de pacientes registradas");
 
+  // Rota de teste para API de transparência - deve ser registrada antes do Vite
+  app.get('/api-test/transparencia/documentos/:orgId', async (req, res) => {
+    const { orgId } = req.params;
+    try {
+      const db = (await import('./db')).db;
+      const { documentosTransparencia } = (await import('../shared/schema-transparencia'));
+      const { eq, and } = (await import('drizzle-orm'));
+      
+      const documentos = await db.query.documentosTransparencia.findMany({
+        where: eq(documentosTransparencia.organizacaoId, parseInt(orgId, 10))
+      });
+      
+      console.log(`API Test - Retrieved ${documentos.length} documentos for org ${orgId}`);
+      return res.json(documentos);
+    } catch (error) {
+      console.error('[API TEST] Erro ao buscar documentos:', error);
+      return res.status(500).json({ message: 'Erro ao buscar documentos', error: String(error) });
+    }
+  });
+
   const server = await registerRoutes(app);
 
   // Inicializar dados de exemplo para tickets
