@@ -2,7 +2,8 @@ import { db } from "./db";
 import { 
   certificacoesOrganizacao, 
   membrosTransparencia, 
-  relatoriosFinanceirosPublicos 
+  relatoriosFinanceirosPublicos,
+  documentosTransparencia
 } from "@shared/schema-transparencia";
 import { eq, sql } from "drizzle-orm";
 
@@ -10,15 +11,17 @@ import { eq, sql } from "drizzle-orm";
  * Cria dados de exemplo para certificações, membros e relatórios financeiros de transparência
  */
 export async function seedTransparenciaMockData() {
-  // Verificar se já existem certificações
+  // Verificar se já existem certificações e outros dados
   const certificacoesExistentes = await db.select({ count: sql`count(*)` }).from(certificacoesOrganizacao);
   const membroExistentes = await db.select({ count: sql`count(*)` }).from(membrosTransparencia);
   const relatoriosExistentes = await db.select({ count: sql`count(*)` }).from(relatoriosFinanceirosPublicos);
+  const documentosExistentes = await db.select({ count: sql`count(*)` }).from(documentosTransparencia);
   
   console.log(`[Transparência Mock] Verificando dados de exemplo:`);
   console.log(`  - Certificações: ${certificacoesExistentes[0].count}`);
   console.log(`  - Membros: ${membroExistentes[0].count}`);
   console.log(`  - Relatórios financeiros: ${relatoriosExistentes[0].count}`);
+  console.log(`  - Documentos: ${documentosExistentes[0].count}`);
   
   let dadosCriados = false;
   
@@ -40,6 +43,13 @@ export async function seedTransparenciaMockData() {
   if (parseInt(relatoriosExistentes[0].count as string) < 3) {
     console.log("[Transparência Mock] Criando relatórios financeiros de exemplo...");
     await criarRelatoriosFinanceirosExemplo();
+    dadosCriados = true;
+  }
+  
+  // Verificar se precisamos criar documentos de exemplo
+  if (parseInt(documentosExistentes[0].count as string) < 8) {
+    console.log("[Transparência Mock] Criando documentos de exemplo...");
+    await criarDocumentosExemplo();
     dadosCriados = true;
   }
   
@@ -350,5 +360,127 @@ async function criarRelatoriosFinanceirosExemplo() {
   for (const relatorio of relatorios) {
     await db.insert(relatoriosFinanceirosPublicos).values([relatorio]);
     console.log(`[Transparência Mock] Relatório financeiro criado: ${relatorio.ano}${relatorio.mes ? ` (Trimestre ${relatorio.mes})` : ''}`);
+  }
+}
+
+/**
+ * Criar documentos de exemplo para a organização de demonstração
+ * Inclui atas de reuniões, assembleias, relatórios e outros documentos importantes
+ */
+async function criarDocumentosExemplo() {
+  const organizacaoId = 1; // ID da organização de exemplo
+  const adminUserId = 1; // ID do usuário administrador
+  
+  const documentos = [
+    {
+      titulo: "Ata da Assembleia Geral Ordinária 2024",
+      descricao: "Registro da Assembleia Geral Ordinária realizada em 15 de março de 2024 com a presença de todos os associados.",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/ata-assembleia-2024.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.2 MB",
+      visibilidade: "publico" as const,
+      tags: "assembleia, governança, deliberações",
+      dataDocumento: new Date("2024-03-15"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata da Reunião do Conselho Fiscal - 1º Trimestre 2024",
+      descricao: "Documentação da reunião do Conselho Fiscal para análise das contas do primeiro trimestre de 2024.",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/ata-conselho-fiscal-t1-2024.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "850 KB",
+      visibilidade: "publico" as const,
+      tags: "conselho fiscal, prestação de contas, governança",
+      dataDocumento: new Date("2024-04-10"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Estatuto Social Atualizado",
+      descricao: "Versão atual do Estatuto Social da organização com as alterações aprovadas na Assembleia de 2023.",
+      categoria: "legal" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/estatuto-social-2023.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "2.1 MB",
+      visibilidade: "publico" as const,
+      tags: "estatuto, legal, regimento",
+      dataDocumento: new Date("2023-04-20"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Regimento Interno",
+      descricao: "Regimento Interno da organização que estabelece as normas de funcionamento operacional.",
+      categoria: "legal" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/regimento-interno.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.8 MB",
+      visibilidade: "publico" as const,
+      tags: "regimento, normas, procedimentos",
+      dataDocumento: new Date("2023-05-15"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata de Eleição da Diretoria Atual",
+      descricao: "Registro do processo eleitoral e resultado da eleição da diretoria para o biênio 2023-2025.",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/ata-eleicao-diretoria-2023.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.5 MB",
+      visibilidade: "publico" as const,
+      tags: "eleição, diretoria, governança",
+      dataDocumento: new Date("2023-03-30"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Plano de Atividades 2024",
+      descricao: "Documento estratégico contendo o planejamento de atividades e projetos para o ano de 2024.",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/plano-atividades-2024.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "3.2 MB",
+      visibilidade: "publico" as const,
+      tags: "planejamento, estratégia, projetos",
+      dataDocumento: new Date("2024-01-15"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Relatório Anual de Atividades 2023",
+      descricao: "Relatório detalhado de todas as atividades realizadas pela organização durante o ano de 2023.",
+      categoria: "relatorios" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/relatorio-atividades-2023.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "4.5 MB",
+      visibilidade: "publico" as const,
+      tags: "relatório, atividades, resultados",
+      dataDocumento: new Date("2024-02-10"),
+      criadoPor: adminUserId
+    },
+    {
+      titulo: "Ata da Assembleia Extraordinária - Alteração Estatutária",
+      descricao: "Registro da Assembleia Geral Extraordinária realizada para aprovação de alterações no Estatuto Social.",
+      categoria: "governanca" as const,
+      organizacaoId,
+      arquivoUrl: "/uploads/transparencia/ata-assembleia-extraordinaria-2023.pdf",
+      arquivoTipo: "application/pdf",
+      arquivoTamanho: "1.3 MB",
+      visibilidade: "publico" as const,
+      tags: "assembleia, estatuto, alteração",
+      dataDocumento: new Date("2023-04-05"),
+      criadoPor: adminUserId
+    }
+  ];
+  
+  // Inserir documentos
+  for (const documento of documentos) {
+    await db.insert(documentosTransparencia).values([documento]);
+    console.log(`[Transparência Mock] Documento criado: ${documento.titulo}`);
   }
 }
