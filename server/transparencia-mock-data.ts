@@ -53,17 +53,17 @@ export async function seedTransparenciaMockData() {
     dadosCriados = true;
   }
   
-  // Verificar se existem dados para a organização "hempmeds" (ID 32)
-  const certHempmeds = await db.select({ count: sql`count(*)` }).from(certificacoesOrganizacao).where(eq(certificacoesOrganizacao.organizacaoId, 32));
-  const docHempmeds = await db.select({ count: sql`count(*)` }).from(documentosTransparencia).where(eq(documentosTransparencia.organizacaoId, 32));
+  // Verificar se existem dados para a organização "abrace" (ID 1) - tipo associacao
+  const certAbrace = await db.select({ count: sql`count(*)` }).from(certificacoesOrganizacao).where(eq(certificacoesOrganizacao.organizacaoId, 1));
+  const docAbrace = await db.select({ count: sql`count(*)` }).from(documentosTransparencia).where(eq(documentosTransparencia.organizacaoId, 1));
   
-  console.log(`[Transparência Mock] Verificando dados para organização "hempmeds" (ID 32):`);
-  console.log(`  - Certificações: ${certHempmeds[0].count}`);
-  console.log(`  - Documentos: ${docHempmeds[0].count}`);
+  console.log(`[Transparência Mock] Verificando dados para organização "abrace" (ID 1):`);
+  console.log(`  - Certificações: ${certAbrace[0].count}`);
+  console.log(`  - Documentos: ${docAbrace[0].count}`);
   
-  if (parseInt(certHempmeds[0].count as string) === 0 || parseInt(docHempmeds[0].count as string) === 0) {
-    console.log("[Transparência Mock] Criando dados para organização hempmeds...");
-    await criarDadosHempmeds();
+  if (parseInt(certAbrace[0].count as string) === 0 || parseInt(docAbrace[0].count as string) === 0) {
+    console.log("[Transparência Mock] Criando dados para organização abrace...");
+    await criarDadosAbrace();
     dadosCriados = true;
   }
   
