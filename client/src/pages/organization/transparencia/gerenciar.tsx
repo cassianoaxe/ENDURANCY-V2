@@ -581,7 +581,7 @@ const GerenciarDocumentos = () => {
             <div className="bg-red-50 border border-red-200 rounded-md p-4 text-red-800">
               Erro ao carregar documentos. Por favor, tente novamente mais tarde.
             </div>
-          ) : documentos && documentos.length > 0 ? (
+          ) : documentos && Array.isArray(documentos) && documentos.length > 0 ? (
             <div className="border rounded-md overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -604,7 +604,7 @@ const GerenciarDocumentos = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {documentos.map((documento: any) => (
+                  {documentos && Array.isArray(documentos) ? documentos.map((documento: any) => (
                     <tr key={documento.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{documento.titulo}</div>
@@ -659,7 +659,7 @@ const GerenciarDocumentos = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))) : null}
                 </tbody>
               </table>
             </div>
