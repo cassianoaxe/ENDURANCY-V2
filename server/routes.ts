@@ -19,6 +19,7 @@ import { registerHplcValidationRoutes } from './routes/hplc-validation-routes';
 import { registerHplcTrainingRoutes } from './routes/hplc-training-routes';
 import { registerTrainerRoutes } from './routes/trainer-routes';
 import equipmentRoutes from './routes/equipment-routes';
+import { registerFinanceiroRoutes } from './routes-financeiro';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5360,6 +5361,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Registrando rotas de equipamentos de laboratório");
   app.use('/api/laboratory', equipmentRoutes);
   console.log("Rotas de equipamentos registradas");
+  
+  // Registrar rotas do módulo financeiro
+  console.log("Registrando rotas do módulo financeiro");
+  registerFinanceiroRoutes(app);
+  console.log("Rotas do módulo financeiro registradas");
   
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {
