@@ -821,6 +821,16 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
+    // Rotas do Portal de Transparência
+    const transparenciaPublicaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
+    if (transparenciaPublicaMatch) {
+      return <TransparenciaPublica />;
+    }
+
+    if (currentPath === '/organization/transparencia/gerenciar') {
+      return <GerenciarTransparencia />;
+    }
+
     // Rotas do módulo de Compras e Estoque
     if (currentPath === '/organization/compras') {
       return <OrganizationLayout>
