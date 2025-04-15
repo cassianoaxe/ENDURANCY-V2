@@ -439,7 +439,8 @@ export default function Integracoes() {
                       variant={integracao.status === 'ativa' ? 'outline' : 'default'}
                       onClick={() => {
                         if (integracao.configuracaoUrl) {
-                          navigate(integracao.configuracaoUrl);
+                          // Navegar diretamente pela URL em vez de usar o hook de navegação
+                          window.location.href = integracao.configuracaoUrl;
                         }
                       }}
                     >
