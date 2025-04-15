@@ -237,6 +237,13 @@ export default function OrganizationSidebar() {
       icon: <Users size={18} />
     },
     {
+      title: "Integrações",
+      path: "/organization/integracoes",
+      active: currentPath === "/organization/integracoes" || 
+              currentPath === "/organization/complypay/integracoes",
+      icon: <Puzzle size={18} />
+    },
+    {
       title: "Financeiro",
       path: "/organization/financeiro",
       active: currentPath === "/organization/financeiro" || 
@@ -329,7 +336,6 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/complypay/faturas" ||
               currentPath === "/organization/complypay/transacoes" ||
               currentPath === "/organization/complypay/assinaturas" ||
-              currentPath === "/organization/complypay/integracoes" ||
               currentPath === "/organization/complypay/configuracoes",
       icon: <CreditCardIcon size={18} />,
       isSubmenu: true,

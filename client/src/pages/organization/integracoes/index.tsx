@@ -89,9 +89,29 @@ const getTipoIcon = (tipo: TipoIntegracao) => {
     case 'logistica':
       return <Send className="w-5 h-5" />;
     default:
-      return <Code className="w-5 h-5" />;
+      return <CodeIcon className="w-5 h-5" />;
   }
 };
+
+function CodeIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="16 18 22 12 16 6"></polyline>
+      <polyline points="8 6 2 12 8 18"></polyline>
+    </svg>
+  );
+}
 
 const getTipoText = (tipo: TipoIntegracao) => {
   switch (tipo) {
@@ -459,20 +479,7 @@ export default function Integracoes() {
   );
 }
 
-function Code(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      strokeWidth="2"
-      stroke="currentColor"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-      <path d="M7 8l-4 4l4 4"></path>
+
       <path d="M17 8l4 4l-4 4"></path>
       <path d="M14 4l-4 16"></path>
     </svg>
