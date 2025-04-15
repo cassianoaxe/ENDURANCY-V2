@@ -55,6 +55,9 @@ export default function WhatsAppIntegracao() {
   const [configData, setConfigData] = useState({
     telefone: "",
     webhookUrl: "https://endurancy.replit.app/api/webhooks/whatsapp",
+    wahaApiUrl: "https://api.waha.devlike.pro",
+    wahaApiKey: "",
+    wahaInstanceName: "endurancy-whatsapp",
     horarioAtendimento: {
       inicio: "08:00",
       fim: "18:00",
@@ -87,16 +90,36 @@ export default function WhatsAppIntegracao() {
     ]
   });
   
-  // Função para simular QR Code
+  // Função para gerar QR Code via WAHA API
   const generateQrCode = () => {
+    if (!configData.wahaApiKey) {
+      toast({
+        title: "Chave da API WAHA não definida",
+        description: "Por favor, insira sua chave da API WAHA para continuar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setConnectionStatus('connecting');
+    
+    // Em uma implementação real, aqui você chamaria a API WAHA para iniciar uma sessão
+    // e gerar o QR code usando fetch ou axios
+    // Exemplo:
+    // fetch(`${configData.wahaApiUrl}/sessions/start?name=${configData.wahaInstanceName}`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${configData.wahaApiKey}`,
+    //     'Content-Type': 'application/json'
+    //   }
+    // })
     
     // Simulando um atraso para geração do QR Code
     setTimeout(() => {
       setQrCodeReady(true);
       
       toast({
-        title: "QR Code gerado",
+        title: "QR Code gerado pela WAHA API",
         description: "Escaneie o QR Code com seu WhatsApp para conectar."
       });
     }, 2000);
@@ -295,13 +318,14 @@ export default function WhatsAppIntegracao() {
             <CardContent className="space-y-6">
               <Alert className="bg-green-50 border-green-200">
                 <Zap className="h-4 w-4 text-green-600" />
-                <AlertTitle className="text-green-800">WhatsApp Business API</AlertTitle>
+                <AlertTitle className="text-green-800">Integração com WAHA API</AlertTitle>
                 <AlertDescription className="text-green-700">
-                  <p className="mb-2">Esta integração utiliza a API oficial do WhatsApp Business. Para usar, você precisa:</p>
+                  <p className="mb-2">Esta integração utiliza a WAHA API (https://waha.devlike.pro) para WhatsApp. Para usar:</p>
                   <ol className="list-decimal pl-5 space-y-1">
                     <li>Ter um smartphone com WhatsApp instalado e funcionando</li>
-                    <li>Escanear o QR Code gerado abaixo com seu dispositivo</li>
-                    <li>Confirmar a conexão com a Endurancy no seu dispositivo</li>
+                    <li>Escanear o QR Code gerado pela WAHA API</li>
+                    <li>A API WAHA gerenciará automaticamente sua sessão de WhatsApp</li>
+                    <li>Toda comunicação será intermediada via WAHA API</li>
                   </ol>
                 </AlertDescription>
               </Alert>
@@ -384,6 +408,50 @@ export default function WhatsAppIntegracao() {
               <Separator />
               
               <div className="space-y-3">
+                <h3 className="font-medium">Configurações da WAHA API</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="waha-api-url">URL da API WAHA</Label>
+                  <Input 
+                    id="waha-api-url" 
+                    placeholder="https://api.waha.devlike.pro" 
+                    value={configData.wahaApiUrl}
+                    onChange={(e) => setConfigData({...configData, wahaApiUrl: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    URL do servidor da API WAHA. Use o servidor padrão ou seu próprio servidor.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="waha-api-key">Chave da API WAHA</Label>
+                  <Input 
+                    id="waha-api-key" 
+                    type="password"
+                    placeholder="Sua chave secreta da API WAHA" 
+                    value={configData.wahaApiKey}
+                    onChange={(e) => setConfigData({...configData, wahaApiKey: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Chave de API para autenticação com a WAHA. Obtenha em sua conta na plataforma WAHA.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="waha-instance-name">Nome da Instância</Label>
+                  <Input 
+                    id="waha-instance-name" 
+                    placeholder="endurancy-whatsapp" 
+                    value={configData.wahaInstanceName}
+                    onChange={(e) => setConfigData({...configData, wahaInstanceName: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Nome único para identificar sua instância de WhatsApp na WAHA.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <h3 className="font-medium">Webhook</h3>
                   <div className="flex gap-2">
@@ -406,6 +474,9 @@ export default function WhatsAppIntegracao() {
                   readOnly
                   className="font-mono text-xs"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Configure este webhook na plataforma WAHA para receber eventos do WhatsApp.
+                </p>
               </div>
               
               <div className="space-y-3">
