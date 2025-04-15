@@ -448,46 +448,11 @@ export default function OrganizationSidebar() {
         }
       ]
     },
-    {
-      title: "Compras e Estoque",
-      path: "/organization/compras",
-      active: currentPath === "/organization/compras" || 
-              currentPath.startsWith("/organization/compras/"),
-      icon: <ShoppingCart size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Compras",
-          path: "/organization/compras",
-          active: currentPath === "/organization/compras" && !currentPath.includes("/organization/compras/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Solicitações",
-          path: "/organization/compras/solicitacoes",
-          active: currentPath === "/organization/compras/solicitacoes",
-          icon: <ClipboardList size={16} />
-        },
-        {
-          title: "Pedidos",
-          path: "/organization/compras/pedidos",
-          active: currentPath === "/organization/compras/pedidos",
-          icon: <PackageCheck size={16} />
-        },
-        {
-          title: "Fornecedores",
-          path: "/organization/compras/fornecedores",
-          active: currentPath === "/organization/compras/fornecedores",
-          icon: <Truck size={16} />
-        },
-        {
-          title: "Estoque",
-          path: "/organization/compras/estoque",
-          active: currentPath === "/organization/compras/estoque",
-          icon: <Package size={16} />
-        }
-      ]
-    },
+    /* 
+      Menu Compras e Estoque removido daqui para evitar duplicação.
+      Já existe no array 'enterpriseModules' para evitar a duplicação
+      que causava o problema de menu duplo.
+    */
     {
       title: "RH",
       path: "/organization/rh",
