@@ -111,7 +111,7 @@ export default function NFSeIntegracao() {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => navigate("/organization/integracoes")}
+          onClick={() => window.location.href = "/organization/integracoes"}
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
         </Button>
@@ -259,7 +259,7 @@ export default function NFSeIntegracao() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+            <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
               Cancelar
             </Button>
             <Button onClick={activateIntegration} disabled={isActivating}>
@@ -492,7 +492,7 @@ export default function NFSeIntegracao() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+                  <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
                     Cancelar
                   </Button>
                   <Button onClick={saveConfig} disabled={isSaving}>
@@ -685,7 +685,7 @@ export default function NFSeIntegracao() {
                   <Button variant="outline" onClick={() => setActiveTab("layout")}>
                     Voltar
                   </Button>
-                  <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+                  <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
                     Concluir Mais Tarde
                   </Button>
                 </CardFooter>
