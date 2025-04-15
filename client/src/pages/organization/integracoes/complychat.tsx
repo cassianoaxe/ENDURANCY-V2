@@ -35,7 +35,8 @@ import {
   Lock,
   Copy,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Mail
 } from "lucide-react";
 
 export default function ComplyChatIntegracao() {
