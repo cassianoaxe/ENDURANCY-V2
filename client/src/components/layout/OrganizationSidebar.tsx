@@ -358,7 +358,6 @@ export default function OrganizationSidebar() {
           active: currentPath === "/organization/complypay/assinaturas",
           icon: <RefreshCw size={16} />
         },
-
         {
           title: "Configurações",
           path: "/organization/complypay/configuracoes",
