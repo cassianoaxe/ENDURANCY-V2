@@ -358,12 +358,7 @@ export default function OrganizationSidebar() {
           active: currentPath === "/organization/complypay/assinaturas",
           icon: <RefreshCw size={16} />
         },
-        {
-          title: "Integrações",
-          path: "/organization/complypay/integracoes",
-          active: currentPath === "/organization/complypay/integracoes",
-          icon: <Puzzle size={16} />
-        },
+
         {
           title: "Configurações",
           path: "/organization/complypay/configuracoes",
@@ -474,8 +469,24 @@ export default function OrganizationSidebar() {
     title: "Configurações",
     path: "/organization/settings",
     active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings") || 
-            currentPath.startsWith("/organization/integrations"),
-    icon: <Settings size={18} />
+            currentPath.startsWith("/organization/integrations") ||
+            currentPath === "/organization/settings/integracoes",
+    icon: <Settings size={18} />,
+    isSubmenu: true,
+    subItems: [
+      {
+        title: "Geral",
+        path: "/organization/settings",
+        active: currentPath === "/organization/settings" && !currentPath.includes("/settings/"),
+        icon: <Settings size={16} />
+      },
+      {
+        title: "Integrações",
+        path: "/organization/settings/integracoes",
+        active: currentPath === "/organization/settings/integracoes",
+        icon: <Puzzle size={16} />
+      }
+    ]
   };
   
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
