@@ -109,7 +109,7 @@ const integracoes: Integracao[] = [
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/contaazul.svg',
     status: 'ativa',
     dataCriacao: '2025-03-15',
-    configuracaoUrl: '/organization/complypay/integracoes/contaazul',
+    configuracaoUrl: '/organization/integracoes/contaazul',
   },
   {
     id: 'nfse',
@@ -118,7 +118,7 @@ const integracoes: Integracao[] = [
     tipo: 'contabilidade',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/nfse.svg',
     status: 'configuracao-pendente',
-    configuracaoUrl: '/organization/complypay/integracoes/nfse',
+    configuracaoUrl: '/organization/integracoes/nfse',
   },
   {
     id: 'nfe',
@@ -127,7 +127,7 @@ const integracoes: Integracao[] = [
     tipo: 'contabilidade',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/nfe.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/nfe',
+    configuracaoUrl: '/organization/integracoes/nfe',
   },
   {
     id: 'ecommerce-woo',
@@ -136,7 +136,7 @@ const integracoes: Integracao[] = [
     tipo: 'ecommerce',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/woo.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/woocommerce',
+    configuracaoUrl: '/organization/integracoes/woocommerce',
   },
   {
     id: 'ecommerce-shopify',
@@ -145,7 +145,7 @@ const integracoes: Integracao[] = [
     tipo: 'ecommerce',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/shopify.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/shopify',
+    configuracaoUrl: '/organization/integracoes/shopify',
   },
   {
     id: 'mailchimp',
@@ -154,7 +154,7 @@ const integracoes: Integracao[] = [
     tipo: 'marketing',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/mailchimp.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/mailchimp',
+    configuracaoUrl: '/organization/integracoes/mailchimp',
   },
   {
     id: 'pipefy',
@@ -163,7 +163,7 @@ const integracoes: Integracao[] = [
     tipo: 'crm',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/pipefy.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/pipefy',
+    configuracaoUrl: '/organization/integracoes/pipefy',
   },
   {
     id: 'magento',
@@ -172,7 +172,7 @@ const integracoes: Integracao[] = [
     tipo: 'ecommerce',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/magento.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/magento',
+    configuracaoUrl: '/organization/integracoes/magento',
   },
   {
     id: 'totvs',
@@ -181,7 +181,7 @@ const integracoes: Integracao[] = [
     tipo: 'erp',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/totvs.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/totvs',
+    configuracaoUrl: '/organization/integracoes/totvs',
   },
   {
     id: 'rdstation',
@@ -190,7 +190,7 @@ const integracoes: Integracao[] = [
     tipo: 'marketing',
     logoUrl: 'https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/rdstation.svg',
     status: 'inativa',
-    configuracaoUrl: '/organization/complypay/integracoes/rdstation',
+    configuracaoUrl: '/organization/integracoes/rdstation',
   }
 ];
 
@@ -221,7 +221,7 @@ export default function ComplyPayIntegracoes() {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
-        <p className="text-muted-foreground">Conecte o ComplyPay com outros sistemas e serviços</p>
+        <p className="text-muted-foreground">Conecte sua organização com outros sistemas e serviços</p>
       </div>
 
       <Card>

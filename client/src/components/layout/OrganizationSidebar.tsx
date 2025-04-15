@@ -479,12 +479,6 @@ export default function OrganizationSidebar() {
         path: "/organization/settings",
         active: currentPath === "/organization/settings" && !currentPath.includes("/settings/"),
         icon: <Settings size={16} />
-      },
-      {
-        title: "Integrações",
-        path: "/organization/integracoes",
-        active: currentPath === "/organization/integracoes" || currentPath === "/organization/complypay/integracoes",
-        icon: <Puzzle size={16} />
       }
     ]
   };
