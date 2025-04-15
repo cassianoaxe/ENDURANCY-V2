@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import OrganizationLayout from '@/components/layout/OrganizationLayout';
 import { 
   Card, 
   CardContent, 
@@ -286,176 +285,174 @@ export default function Integracoes() {
   });
 
   return (
-    <OrganizationLayout>
-      <div className="container mx-auto p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
-          <p className="text-muted-foreground">Conecte sua organização com outros sistemas e serviços</p>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+        <p className="text-muted-foreground">Conecte sua organização com outros sistemas e serviços</p>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-            <CardDescription>Utilize os filtros abaixo para encontrar integrações específicas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo</label>
-                <Select value={tipoFilter} onValueChange={setTipoFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os tipos</SelectItem>
-                    <SelectItem value="contabilidade">Contabilidade</SelectItem>
-                    <SelectItem value="erp">ERP</SelectItem>
-                    <SelectItem value="crm">CRM</SelectItem>
-                    <SelectItem value="ecommerce">E-commerce</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="comunicacao">Comunicação</SelectItem>
-                    <SelectItem value="logistica">Logística</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os status</SelectItem>
-                    <SelectItem value="ativa">Ativa</SelectItem>
-                    <SelectItem value="inativa">Inativa</SelectItem>
-                    <SelectItem value="configuracao-pendente">Configuração Pendente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Pesquisar</label>
-                <div className="flex">
-                  <Input 
-                    placeholder="Buscar integração..." 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="rounded-r-none"
-                  />
-                  <Button variant="outline" className="rounded-l-none">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+          <CardDescription>Utilize os filtros abaixo para encontrar integrações específicas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo</label>
+              <Select value={tipoFilter} onValueChange={setTipoFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  <SelectItem value="contabilidade">Contabilidade</SelectItem>
+                  <SelectItem value="erp">ERP</SelectItem>
+                  <SelectItem value="crm">CRM</SelectItem>
+                  <SelectItem value="ecommerce">E-commerce</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="comunicacao">Comunicação</SelectItem>
+                  <SelectItem value="logistica">Logística</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os status</SelectItem>
+                  <SelectItem value="ativa">Ativa</SelectItem>
+                  <SelectItem value="inativa">Inativa</SelectItem>
+                  <SelectItem value="configuracao-pendente">Configuração Pendente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Pesquisar</label>
+              <div className="flex">
+                <Input 
+                  placeholder="Buscar integração..." 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="rounded-r-none"
+                />
+                <Button variant="outline" className="rounded-l-none">
+                  <Search className="h-4 w-4" />
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Tabs defaultValue="todas" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="todas">Todas ({integracoes.length})</TabsTrigger>
-            <TabsTrigger value="ativas">
-              Ativas ({integracoes.filter(i => i.status === 'ativa').length})
-            </TabsTrigger>
-            <TabsTrigger value="pendentes">
-              Pendentes ({integracoes.filter(i => i.status === 'configuracao-pendente').length})
-            </TabsTrigger>
-            <TabsTrigger value="inativas">
-              Inativas ({integracoes.filter(i => i.status === 'inativa').length})
-            </TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="todas" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="todas">Todas ({integracoes.length})</TabsTrigger>
+          <TabsTrigger value="ativas">
+            Ativas ({integracoes.filter(i => i.status === 'ativa').length})
+          </TabsTrigger>
+          <TabsTrigger value="pendentes">
+            Pendentes ({integracoes.filter(i => i.status === 'configuracao-pendente').length})
+          </TabsTrigger>
+          <TabsTrigger value="inativas">
+            Inativas ({integracoes.filter(i => i.status === 'inativa').length})
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value={activeTab} className="space-y-4">
-            {filteredIntegracoes.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="mb-2">Nenhuma integração encontrada com os filtros aplicados.</p>
-                  <Button 
-                    variant="link" 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setTipoFilter('todos');
-                      setStatusFilter('todos');
-                    }}
-                  >
-                    Limpar filtros
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredIntegracoes.map((integracao) => (
-                  <Card key={integracao.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                            {integracao.icon ? (
-                              integracao.icon
-                            ) : integracao.logoUrl ? (
-                              <img 
-                                src={integracao.logoUrl} 
-                                alt={integracao.nome} 
-                                className="w-5 h-5"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                  (e.target as HTMLImageElement).parentElement?.appendChild(
-                                    document.createTextNode(integracao.nome.substring(0, 2).toUpperCase())
-                                  );
-                                }}
-                              />
-                            ) : (
-                              <span>{integracao.nome.substring(0, 2).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <CardTitle className="text-lg">{integracao.nome}</CardTitle>
+        <TabsContent value={activeTab} className="space-y-4">
+          {filteredIntegracoes.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-10">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="mb-2">Nenhuma integração encontrada com os filtros aplicados.</p>
+                <Button 
+                  variant="link" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setTipoFilter('todos');
+                    setStatusFilter('todos');
+                  }}
+                >
+                  Limpar filtros
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredIntegracoes.map((integracao) => (
+                <Card key={integracao.id} className="overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                          {integracao.icon ? (
+                            integracao.icon
+                          ) : integracao.logoUrl ? (
+                            <img 
+                              src={integracao.logoUrl} 
+                              alt={integracao.nome} 
+                              className="w-5 h-5"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).parentElement?.appendChild(
+                                  document.createTextNode(integracao.nome.substring(0, 2).toUpperCase())
+                                );
+                              }}
+                            />
+                          ) : (
+                            <span>{integracao.nome.substring(0, 2).toUpperCase()}</span>
+                          )}
                         </div>
-                        <Badge className={getStatusColor(integracao.status)}>
-                          <span className="flex items-center gap-1">
-                            {getStatusIcon(integracao.status)}
-                            {getStatusText(integracao.status)}
-                          </span>
-                        </Badge>
+                        <CardTitle className="text-lg">{integracao.nome}</CardTitle>
                       </div>
-                      <div className="mt-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {getTipoText(integracao.tipo)}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">{integracao.descricao}</p>
-                    </CardContent>
-                    <CardFooter className="pt-1 flex justify-between">
-                      {integracao.status === 'ativa' ? (
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          Sincronizar
-                        </Button>
-                      ) : null}
-                      <Button 
-                        size="sm" 
-                        className="gap-1 ml-auto"
-                        variant={integracao.status === 'ativa' ? 'outline' : 'default'}
-                        onClick={() => {
-                          if (integracao.configuracaoUrl) {
-                            navigate(integracao.configuracaoUrl);
-                          }
-                        }}
-                      >
-                        {integracao.status === 'ativa' ? 'Configurar' : 'Ativar'}
-                        <ArrowRight className="h-3.5 w-3.5" />
+                      <Badge className={getStatusColor(integracao.status)}>
+                        <span className="flex items-center gap-1">
+                          {getStatusIcon(integracao.status)}
+                          {getStatusText(integracao.status)}
+                        </span>
+                      </Badge>
+                    </div>
+                    <div className="mt-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {getTipoText(integracao.tipo)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{integracao.descricao}</p>
+                  </CardContent>
+                  <CardFooter className="pt-1 flex justify-between">
+                    {integracao.status === 'ativa' ? (
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        Sincronizar
                       </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </OrganizationLayout>
+                    ) : null}
+                    <Button 
+                      size="sm" 
+                      className="gap-1 ml-auto"
+                      variant={integracao.status === 'ativa' ? 'outline' : 'default'}
+                      onClick={() => {
+                        if (integracao.configuracaoUrl) {
+                          navigate(integracao.configuracaoUrl);
+                        }
+                      }}
+                    >
+                      {integracao.status === 'ativa' ? 'Configurar' : 'Ativar'}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
