@@ -95,6 +95,8 @@ import LandingPage from "@/pages/LandingPage";
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
+// Importar página de teste para transparência
+import TransparenciaTest from "@/pages/TransparenciaTest";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import {
