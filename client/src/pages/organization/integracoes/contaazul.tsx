@@ -194,7 +194,7 @@ export default function ContaAzulIntegracao() {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => navigate("/organization/integracoes")}
+          onClick={() => window.location.href = "/organization/integracoes"}
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
         </Button>
