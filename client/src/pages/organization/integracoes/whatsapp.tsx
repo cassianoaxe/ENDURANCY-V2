@@ -54,7 +54,7 @@ export default function WhatsAppIntegracao() {
   // Estado para os dados de configuração
   const [configData, setConfigData] = useState({
     telefone: "",
-    webhookUrl: "https://endurancy25.replit.app/api/webhooks/whatsapp",
+    webhookUrl: "https://endurancy.replit.app/api/webhooks/whatsapp",
     horarioAtendimento: {
       inicio: "08:00",
       fim: "18:00",
