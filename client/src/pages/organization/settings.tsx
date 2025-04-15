@@ -258,64 +258,8 @@ export default function OrganizationSettings() {
     }
   ];
 
-  // Integrations data for the organization
-  const integrations = [
-    {
-      id: "complychat",
-      name: "COMPLYCHAT",
-      category: "Comunicação",
-      description: "Integração com canal de chat para comunicação interna e externa",
-      icon: <MessageSquare size={24} className="text-primary" />,
-      href: "/organization/integrations/complychat",
-      active: true
-    },
-    {
-      id: "whatsapp",
-      name: "WHATSAPP",
-      category: "Comunicação",
-      description: "Envie mensagens automáticas e notificações para pacientes e clientes",
-      icon: <MessageSquare size={24} className="text-primary" />,
-      href: "/organization/integrations/whatsapp",
-      active: false
-    },
-    {
-      id: "melhor-envio",
-      name: "MELHOR ENVIO",
-      category: "Logística",
-      description: "Calcule fretes e gerencie envios com as principais transportadoras",
-      icon: <Send size={24} className="text-primary" />,
-      href: "/organization/integrations/melhor-envio",
-      active: false
-    },
-    {
-      id: "azul-cargo",
-      name: "AZUL CARGO",
-      category: "Logística",
-      description: "Integração direta com a Azul Cargo para envios aéreos rápidos",
-      icon: <Plane size={24} className="text-primary" />,
-      href: "/organization/integrations/azul-cargo", 
-      active: false
-    },
-    {
-      id: "correios",
-      name: "CORREIOS",
-      category: "Logística",
-      description: "Integração com os Correios para cálculo de fretes e rastreamento",
-      icon: <Mailbox size={24} className="text-primary" />,
-      href: "/organization/integrations/correios",
-      active: false
-    }
-  ];
-  
-  // Agrupar integrações por categoria
-  const groupedIntegrations = integrations.reduce((acc: Record<string, any[]>, integration) => {
-    const category = integration.category;
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push(integration);
-    return acc;
-  }, {});
+  // Esta seção de integrações foi movida para a página dedicada: /organization/integracoes
+  // As constantes integrations e groupedIntegrations foram removidas para evitar duplicidade no menu
 
   return (
     <OrganizationLayout>
