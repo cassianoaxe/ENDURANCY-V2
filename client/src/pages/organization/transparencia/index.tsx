@@ -12,11 +12,16 @@ import { useQuery } from '@tanstack/react-query';
 
 // Sobre a Associação
 const SobreAssociacao = ({ organizacaoId }: { organizacaoId: string }) => {
-  // Buscar dados da organização
+  // Buscar dados da organização - Usando a API-test que está funcionando
   const { data: organizacao, isLoading, error } = useQuery({
-    queryKey: ['/api/public/transparencia/organizacao', organizacaoId],
+    queryKey: ['/api-test/transparencia/organizacao', organizacaoId],
     queryFn: async () => {
-      const response = await axios.get(`/api/public/transparencia/organizacao/${organizacaoId}`);
+      const url = `/api-test/transparencia/organizacao/${organizacaoId}`;
+      
+      console.log('Fazendo requisição para API-TEST (organização):', url);
+      const response = await axios.get(url);
+      console.log('Resposta da API-TEST (organização):', response.data);
+      
       return response.data;
     }
   });
@@ -121,20 +126,26 @@ const SobreAssociacao = ({ organizacaoId }: { organizacaoId: string }) => {
 const DocumentosTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('todas');
   
-  // Buscar documentos
+  // Buscar documentos - Usando a API-test que está funcionando
   const { data: documentos, isLoading, error } = useQuery({
-    queryKey: ['/api/public/transparencia/organizacao/documentos', organizacaoId, categoriaSelecionada],
+    queryKey: ['/api-test/transparencia/documentos', organizacaoId, categoriaSelecionada],
     queryFn: async () => {
-      // Corrigido URL da API para acessar os documentos
-      const url = categoriaSelecionada === 'todas'
-        ? `/api/public/transparencia/organizacao/${organizacaoId}/documentos`
-        : `/api/public/transparencia/organizacao/${organizacaoId}/documentos?categoria=${categoriaSelecionada}`;
+      // Usando a rota de teste criada que funciona adequadamente
+      const url = `/api-test/transparencia/documentos/${organizacaoId}`;
       
-      console.log('Fazendo requisição para:', url);
+      console.log('Fazendo requisição para API-TEST (documentos):', url);
       const response = await axios.get(url);
-      console.log('Resposta da API:', response.data);
-      // Garantir que a resposta seja um array
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Resposta da API-TEST (documentos):', response.data);
+      
+      // Filtrar por categoria se necessário
+      let result = Array.isArray(response.data) ? response.data : [];
+      
+      // Filtrar por categoria se não for 'todas'
+      if (categoriaSelecionada !== 'todas') {
+        result = result.filter((doc: any) => doc.categoria === categoriaSelecionada);
+      }
+      
+      return result;
     }
   });
 
@@ -210,20 +221,26 @@ const DocumentosTab = ({ organizacaoId }: { organizacaoId: string }) => {
 const CertificacoesTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const [tipoSelecionado, setTipoSelecionado] = useState('todos');
   
-  // Buscar certificações
+  // Buscar certificações - Usando a API-test que está funcionando
   const { data: certificacoes, isLoading, error } = useQuery({
-    queryKey: ['/api/public/transparencia/organizacao/certificacoes', organizacaoId, tipoSelecionado],
+    queryKey: ['/api-test/transparencia/certificacoes', organizacaoId, tipoSelecionado],
     queryFn: async () => {
-      // Corrigido URL da API para acessar as certificações
-      const url = tipoSelecionado === 'todos'
-        ? `/api/public/transparencia/organizacao/${organizacaoId}/certificacoes`
-        : `/api/public/transparencia/organizacao/${organizacaoId}/certificacoes?tipo=${tipoSelecionado}`;
+      // Usando a rota de teste criada que funciona adequadamente
+      const url = `/api-test/transparencia/certificacoes/${organizacaoId}`;
       
-      console.log('Fazendo requisição para certificações:', url);
+      console.log('Fazendo requisição para API-TEST (certificações):', url);
       const response = await axios.get(url);
-      console.log('Resposta da API de certificações:', response.data);
-      // Garantir que a resposta seja um array
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Resposta da API-TEST (certificações):', response.data);
+      
+      // Filtrar por tipo se necessário
+      let result = Array.isArray(response.data) ? response.data : [];
+      
+      // Filtrar por tipo se não for 'todos'
+      if (tipoSelecionado !== 'todos') {
+        result = result.filter((cert: any) => cert.tipo === tipoSelecionado);
+      }
+      
+      return result;
     }
   });
 
@@ -299,20 +316,26 @@ const CertificacoesTab = ({ organizacaoId }: { organizacaoId: string }) => {
 const MembrosTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const [tipoSelecionado, setTipoSelecionado] = useState('todos');
   
-  // Buscar membros
+  // Buscar membros - Usando a API-test que está funcionando
   const { data: membros, isLoading, error } = useQuery({
-    queryKey: ['/api/public/transparencia/organizacao/membros', organizacaoId, tipoSelecionado],
+    queryKey: ['/api-test/transparencia/membros', organizacaoId, tipoSelecionado],
     queryFn: async () => {
-      // Corrigido URL da API para acessar os membros
-      const url = tipoSelecionado === 'todos'
-        ? `/api/public/transparencia/organizacao/${organizacaoId}/membros`
-        : `/api/public/transparencia/organizacao/${organizacaoId}/membros?tipo=${tipoSelecionado}`;
+      // Usando a rota de teste criada que funciona adequadamente
+      const url = `/api-test/transparencia/membros/${organizacaoId}`;
       
-      console.log('Fazendo requisição para membros:', url);
+      console.log('Fazendo requisição para API-TEST (membros):', url);
       const response = await axios.get(url);
-      console.log('Resposta da API de membros:', response.data);
-      // Garantir que a resposta seja um array
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Resposta da API-TEST (membros):', response.data);
+      
+      // Filtrar por tipo se necessário
+      let result = Array.isArray(response.data) ? response.data : [];
+      
+      // Filtrar por tipo se não for 'todos'
+      if (tipoSelecionado !== 'todos') {
+        result = result.filter((membro: any) => membro.tipo === tipoSelecionado);
+      }
+      
+      return result;
     }
   });
 
@@ -388,20 +411,26 @@ const MembrosTab = ({ organizacaoId }: { organizacaoId: string }) => {
 const RelatoriosFinanceirosTab = ({ organizacaoId }: { organizacaoId: string }) => {
   const [anoSelecionado, setAnoSelecionado] = useState('todos');
   
-  // Buscar relatórios financeiros
+  // Buscar relatórios financeiros - Usando a API-test que está funcionando
   const { data: relatorios, isLoading, error } = useQuery({
-    queryKey: ['/api/public/transparencia/organizacao/financeiro', organizacaoId, anoSelecionado],
+    queryKey: ['/api-test/transparencia/financeiro', organizacaoId, anoSelecionado],
     queryFn: async () => {
-      // Corrigido URL da API para acessar os relatórios financeiros
-      const url = anoSelecionado === 'todos'
-        ? `/api/public/transparencia/organizacao/${organizacaoId}/financeiro`
-        : `/api/public/transparencia/organizacao/${organizacaoId}/financeiro?ano=${anoSelecionado}`;
+      // Usando a rota de teste criada que funciona adequadamente
+      const url = `/api-test/transparencia/financeiro/${organizacaoId}`;
       
-      console.log('Fazendo requisição para relatórios financeiros:', url);
+      console.log('Fazendo requisição para API-TEST (financeiro):', url);
       const response = await axios.get(url);
-      console.log('Resposta da API de relatórios financeiros:', response.data);
-      // Garantir que a resposta seja um array
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Resposta da API-TEST (financeiro):', response.data);
+      
+      // Filtrar por ano se necessário
+      let result = Array.isArray(response.data) ? response.data : [];
+      
+      // Filtrar por ano se não for 'todos'
+      if (anoSelecionado !== 'todos') {
+        result = result.filter((relatorio: any) => relatorio.ano?.toString() === anoSelecionado);
+      }
+      
+      return result;
     }
   });
 
