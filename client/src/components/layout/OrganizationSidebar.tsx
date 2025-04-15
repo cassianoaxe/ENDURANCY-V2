@@ -482,8 +482,8 @@ export default function OrganizationSidebar() {
       },
       {
         title: "Integrações",
-        path: "/organization/settings/integracoes",
-        active: currentPath === "/organization/settings/integracoes",
+        path: "/organization/complypay/integracoes",
+        active: currentPath === "/organization/complypay/integracoes",
         icon: <Puzzle size={16} />
       }
     ]
