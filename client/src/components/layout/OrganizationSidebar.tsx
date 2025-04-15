@@ -467,7 +467,6 @@ export default function OrganizationSidebar() {
       title: "Integrações",
       path: "/organization/integracoes",
       active: currentPath === "/organization/integracoes" || 
-              currentPath === "/organization/complypay/integracoes" ||
               currentPath.startsWith("/organization/integracoes/"),
       icon: <Puzzle size={18} />
     }
