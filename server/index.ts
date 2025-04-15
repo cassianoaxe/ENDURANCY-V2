@@ -555,6 +555,49 @@ app.use((req, res, next) => {
 
   // Rotas de teste para API de transparência - deve ser registrada antes do Vite
   
+  // 0. Informações da Organização
+  app.get('/api-test/transparencia/organizacao/:orgId', async (req, res) => {
+    const { orgId } = req.params;
+    try {
+      const db = (await import('./db')).db;
+      const { organizations } = (await import('../shared/schema'));
+      const { eq } = (await import('drizzle-orm'));
+      
+      const organizacao = await db.select()
+        .from(organizations)
+        .where(eq(organizations.id, parseInt(orgId, 10)))
+        .limit(1);
+      
+      if (organizacao.length === 0) {
+        return res.status(404).json({ message: 'Organização não encontrada' });
+      }
+      
+      console.log(`API Test - Retrieved organization info for org ${orgId}`);
+      // Para segurança, removendo informações sensíveis antes de retornar e fornecendo valores padrão
+      const safeOrganizacao = {
+        id: organizacao[0].id,
+        name: organizacao[0].name,
+        email: organizacao[0].email,
+        phone: organizacao[0].email, // Usando email já que phoneNumber não existe no modelo
+        address: organizacao[0].address || "São Paulo, SP",
+        website: organizacao[0].website,
+        logoUrl: "/assets/images/logo.png", // Logo padrão
+        description: "Associação dedicada ao acesso e pesquisa com cannabis medicinal.", // Descrição padrão
+        socialMediaLinks: null, // Sem redes sociais por padrão
+        founding: "2018", // Ano de fundação padrão
+        mission: "Promoção de pesquisa e acesso a soluções à base de cannabis para tratamentos medicinais",
+        vision: "Ser referência em pesquisa, desenvolvimento e disseminação de conhecimento sobre o uso medicinal da Cannabis no Brasil",
+        tipo: organizacao[0].type || 'associacao',
+        cnpj: organizacao[0].cnpj || "00.000.000/0001-00" // CNPJ padrão ou da organização
+      };
+      
+      return res.json(safeOrganizacao);
+    } catch (error) {
+      console.error('[API TEST] Erro ao buscar informações da organização:', error);
+      return res.status(500).json({ message: 'Erro ao buscar informações da organização', error: String(error) });
+    }
+  });
+  
   // 1. Documentos
   app.get('/api-test/transparencia/documentos/:orgId', async (req, res) => {
     const { orgId } = req.params;
