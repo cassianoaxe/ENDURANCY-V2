@@ -17,7 +17,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 
 // Dados de exemplo
@@ -102,7 +102,7 @@ export default function Promocoes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('todas');
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   // Use React Query para buscar as promoções
   const { data: promocoesData, isLoading } = useQuery({
