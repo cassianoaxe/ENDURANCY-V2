@@ -238,6 +238,7 @@ import IntegracaoMelhorEnvio from "@/pages/organization/integracoes/melhor-envio
 import IntegracaoWhatsApp from "@/pages/organization/integracoes/whatsapp";
 import IntegracaoCorreios from "@/pages/organization/integracoes/correios";
 import IntegracaoNFe from "@/pages/organization/integracoes/nfe";
+import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 
 // Simple AppContent component with no external routing library
@@ -1196,6 +1197,16 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <IntegracaoShopify />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/pipefy') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <PipefyIntegracao />
         </Suspense>
       </OrganizationLayout>;
     }
