@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+// Removido uso de useLocation, pois estamos usando window.location.href para navegação
 import { 
   Card, 
   CardContent, 
@@ -32,10 +32,10 @@ import {
   Lock,
   Shield
 } from "lucide-react";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
+// Removida importação de OrganizationLayout pois já é aplicado na rota
 
 export default function ContaAzulIntegracao() {
-  const [, navigate] = useLocation();
+  // Removido uso de navigate, usando window.location.href em vez disso
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("config");
   const [isSaving, setIsSaving] = useState(false);
