@@ -47,7 +47,7 @@ export default function RDStationIntegracao() {
     clientId: "****************************",
     clientSecret: "****************************",
     refreshToken: "****************************",
-    redirectUri: "https://endurancy25.replit.app/api/integracoes/rdstation/callback",
+    redirectUri: "https://endurancy.replit.app/api/integracoes/rdstation/callback",
     environment: "production",
     autoSync: true,
     syncInterval: "hourly",
