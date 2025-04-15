@@ -2,23 +2,51 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { 
-  LayoutDashboard, Users, User, Package, ClipboardList, 
-  Receipt, Settings, MessageSquare, BellRing, 
-  CalendarDays, FileText, BookOpen, HelpCircle, 
-  Menu, ChevronLeft, ChevronDown, LogOut, Leaf, Loader2,
-  Brain, Truck, ShoppingCart, CreditCard, DollarSign,
-  Landmark, HeartPulse, BadgeHelp, Users2, Briefcase,
-  Scale, LineChart, MessageCircle, Building, TestTube,
-  Clipboard, FileClock, Share2, Send, Network, 
-  Plane, Mailbox, Wallet, Bot, Puzzle, CreditCard as CreditCardIcon,
-  PackageOpen, BadgePercent, Printer, QrCode, Box, Pill,
-  Factory, ShieldCheck, Microscope, FileSearch, Beaker, Droplet,
-  PackageCheck, Tag, PackagePlus, Scissors, ScrollText, Library, Check, Ban,
-  BarChart3, BarChart4, Layers, ArrowRightLeft, FileBarChart, HeartHandshake, Shapes,
-  UserPlus, UserCog, Target, GraduationCap, Video, CircleDollarSign, Home, Map,
-  HandCoins, Bell, Calendar, Radio, Headphones, Phone, X, CalendarCheck, 
-  Stethoscope, Trash2, ArrowUp, ArrowDown, BarChart, BarChart2, CalendarRange, 
-  Building2, Sparkles
+  // Layout e navegação
+  LayoutDashboard, Menu, ChevronLeft, ChevronDown,
+  
+  // Ícones para usuários e dados
+  Users, User, UserPlus, UserCog, Users2,
+  
+  // Ícones financeiros
+  CreditCard, DollarSign, CircleDollarSign, HandCoins, Wallet,
+  ArrowUp, ArrowDown, ArrowRightLeft, LineChart,
+  
+  // Ícones de compras, produtos e logística
+  Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, Truck,
+  
+  // Ícones de documentos
+  Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen,
+  
+  // Ícones de notificações e comunicação
+  BellRing, Bell, MessageSquare, MessageCircle, Send,
+  
+  // Ícones de calendário e tempo
+  CalendarDays, Calendar, CalendarCheck, CalendarRange,
+  
+  // Ícones médicos
+  Pill, HeartPulse, Stethoscope, TestTube, Microscope,
+  
+  // Ícones de indústria e negócios
+  Factory, ShieldCheck, Building, Building2, Landmark, Scale, Briefcase,
+  
+  // Ícones de análise e gráficos
+  BarChart, BarChart2, BarChart3, BarChart4,
+  
+  // Ícones de UI
+  Settings, LogOut, HelpCircle, Loader2, Check, Ban, X, Receipt,
+  
+  // Ícones de natureza
+  Leaf, Brain, Beaker, Droplet,
+  
+  // Ícones diversos
+  Sparkles, BadgeHelp, Tag, RefreshCw, Network, Home, Map,
+  Shapes, Target, GraduationCap, Video, Radio, Headphones, Phone,
+  BadgePercent, Printer, QrCode, Box, Trash2, Puzzle, Bot, 
+  Plane, Mailbox, Share2, Scissors, ScrollText, Library, Layers, HeartHandshake,
+  
+  // Aliases
+  CreditCard as CreditCardIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -296,8 +324,53 @@ export default function OrganizationSidebar() {
     {
       title: "ComplyPay",
       path: "/organization/complypay",
-      active: currentPath === "/organization/complypay",
-      icon: <Wallet size={18} />
+      active: currentPath === "/organization/complypay" || 
+              currentPath === "/organization/complypay/dashboard" ||
+              currentPath === "/organization/complypay/faturas" ||
+              currentPath === "/organization/complypay/transacoes" ||
+              currentPath === "/organization/complypay/assinaturas" ||
+              currentPath === "/organization/complypay/integracoes" ||
+              currentPath === "/organization/complypay/configuracoes",
+      icon: <CreditCardIcon size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard",
+          path: "/organization/complypay",
+          active: currentPath === "/organization/complypay" || currentPath === "/organization/complypay/dashboard",
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Faturas",
+          path: "/organization/complypay/faturas",
+          active: currentPath === "/organization/complypay/faturas",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Transações",
+          path: "/organization/complypay/transacoes",
+          active: currentPath === "/organization/complypay/transacoes",
+          icon: <ArrowRightLeft size={16} />
+        },
+        {
+          title: "Assinaturas",
+          path: "/organization/complypay/assinaturas",
+          active: currentPath === "/organization/complypay/assinaturas",
+          icon: <RefreshCw size={16} />
+        },
+        {
+          title: "Integrações",
+          path: "/organization/complypay/integracoes",
+          active: currentPath === "/organization/complypay/integracoes",
+          icon: <Puzzle size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/complypay/configuracoes",
+          active: currentPath === "/organization/complypay/configuracoes",
+          icon: <Settings size={16} />
+        }
+      ]
     },
     {
       title: "Vendas",
