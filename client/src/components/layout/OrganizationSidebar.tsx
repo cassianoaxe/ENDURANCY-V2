@@ -236,13 +236,7 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/gerenciar-pacientes",
       icon: <Users size={18} />
     },
-    {
-      title: "Integrações",
-      path: "/organization/integracoes",
-      active: currentPath === "/organization/integracoes" || 
-              currentPath === "/organization/complypay/integracoes",
-      icon: <Puzzle size={18} />
-    },
+
     {
       title: "Financeiro",
       path: "/organization/financeiro",
@@ -467,6 +461,15 @@ export default function OrganizationSidebar() {
       path: "/organization/ai",
       active: currentPath === "/organization/ai",
       icon: <Bot size={18} />
+    },
+    
+    {
+      title: "Integrações",
+      path: "/organization/integracoes",
+      active: currentPath === "/organization/integracoes" || 
+              currentPath === "/organization/complypay/integracoes" ||
+              currentPath.startsWith("/organization/integracoes/"),
+      icon: <Puzzle size={18} />
     }
   ];
   
@@ -474,9 +477,7 @@ export default function OrganizationSidebar() {
   const configModule = {
     title: "Configurações",
     path: "/organization/settings",
-    active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings") || 
-            currentPath.startsWith("/organization/integrations") ||
-            currentPath === "/organization/settings/integracoes",
+    active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings"),
     icon: <Settings size={18} />,
     isSubmenu: true,
     subItems: [
