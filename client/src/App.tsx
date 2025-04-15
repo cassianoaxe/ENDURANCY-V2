@@ -1081,7 +1081,7 @@ function AppContent() {
     }
     
     // Redirecionamento direto para a página de integrações unificada
-    if (currentPath === '/organization/complypay/integracoes') {
+    if (currentPath.includes('/organization/complypay/integracoes')) {
       window.history.pushState({}, '', '/organization/integracoes');
       window.dispatchEvent(new Event('popstate'));
       return null;
@@ -1168,8 +1168,10 @@ function AppContent() {
       return <FarmaciaModule />;
     }
     
-    // Rotas de integração da organização
-    if (currentPath.startsWith('/organization/integrations/')) {
+    // Rotas de integração da organização - redirecionamento de várias rotas para a central
+    if (currentPath.startsWith('/organization/integrations/') || 
+        currentPath.startsWith('/organization/settings/integracoes') ||
+        currentPath.includes('/organization/complypay/integracoes')) {
       // Redirecionar para a nova página de integrações
       window.history.pushState({}, '', '/organization/integracoes');
       window.dispatchEvent(new Event('popstate'));
