@@ -640,7 +640,7 @@ function AppContent() {
       return <MeuPlano />;
     }
     
-    if (currentPath === '/organization/settings') {
+    if (currentPath === '/organization/settings' || currentPath === '/organization/settings/integracoes') {
       return <OrganizationSettings />;
     }
     
