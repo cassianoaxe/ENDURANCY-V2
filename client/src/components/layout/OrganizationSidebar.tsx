@@ -449,9 +449,9 @@ export default function OrganizationSidebar() {
       ]
     },
     /* 
-      Menu "Compras e Estoque" removido para resolver conflito com "Vendas" que também usa ShoppingCart
-      Os menus foram unificados para evitar duplicação, já que ambos usavam o mesmo ícone
-      e causavam confusão na UI. Todas as funcionalidades de compras foram integradas em "Vendas".
+      Menu Compras e Estoque removido daqui para evitar duplicação.
+      Já existe no array 'enterpriseModules' para evitar a duplicação
+      que causava o problema de menu duplo.
     */
     {
       title: "RH",
