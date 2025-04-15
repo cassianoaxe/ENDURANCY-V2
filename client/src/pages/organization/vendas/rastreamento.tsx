@@ -17,6 +17,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -76,6 +77,7 @@ export default function Rastreamento() {
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState(pedidosRastreamento[0]);
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   // Use React Query para buscar os dados de rastreamento
   const { data: rastreamentoData, isLoading } = useQuery({
