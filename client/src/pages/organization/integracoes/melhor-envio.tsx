@@ -80,7 +80,7 @@ export default function MelhorEnvioIntegracao() {
     imprimirEtiquetas: "termica", // termica, a4, naoImprimir
     registrarRastreio: true,
     maximoTentativas: "3",
-    destinoFreteGratis: [], // CEPs para frete grátis
+    destinoFreteGratis: [] as string[], // CEPs para frete grátis
     valorMinimoFreteGratis: "200"
   });
   
