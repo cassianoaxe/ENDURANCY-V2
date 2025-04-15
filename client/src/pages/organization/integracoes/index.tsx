@@ -23,7 +23,8 @@ import {
   MessageSquare,
   Send,
   Mailbox,
-  Plane 
+  Plane,
+  Code as CodeIcon
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -92,26 +93,6 @@ const getTipoIcon = (tipo: TipoIntegracao) => {
       return <CodeIcon className="w-5 h-5" />;
   }
 };
-
-function CodeIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="16 18 22 12 16 6"></polyline>
-      <polyline points="8 6 2 12 8 18"></polyline>
-    </svg>
-  );
-}
 
 const getTipoText = (tipo: TipoIntegracao) => {
   switch (tipo) {
@@ -476,12 +457,5 @@ export default function Integracoes() {
         </Tabs>
       </div>
     </OrganizationLayout>
-  );
-}
-
-
-      <path d="M17 8l4 4l-4 4"></path>
-      <path d="M14 4l-4 16"></path>
-    </svg>
   );
 }
