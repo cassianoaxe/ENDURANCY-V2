@@ -58,6 +58,7 @@ export default function WhatsAppIntegracao() {
     wahaApiUrl: "https://api.waha.devlike.pro",
     wahaApiKey: "",
     wahaInstanceName: "endurancy-whatsapp",
+    qrCodeUrl: "", // URL do QR code gerado pela API
     horarioAtendimento: {
       inicio: "08:00",
       fim: "18:00",
@@ -102,27 +103,47 @@ export default function WhatsAppIntegracao() {
     }
     
     setConnectionStatus('connecting');
+    setQrCodeReady(false);
     
-    // Em uma implementação real, aqui você chamaria a API WAHA para iniciar uma sessão
-    // e gerar o QR code usando fetch ou axios
-    // Exemplo:
-    // fetch(`${configData.wahaApiUrl}/sessions/start?name=${configData.wahaInstanceName}`, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${configData.wahaApiKey}`,
-    //     'Content-Type': 'application/json'
-    //   }
-    // })
-    
-    // Simulando um atraso para geração do QR Code
-    setTimeout(() => {
-      setQrCodeReady(true);
-      
+    // Chamando nossa API que interage com a WAHA API
+    fetch('/api/whatsapp/session/start', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        apiUrl: configData.wahaApiUrl,
+        apiKey: configData.wahaApiKey,
+        instanceName: configData.wahaInstanceName
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.qrCode) {
+        setQrCodeReady(true);
+        
+        // Armazenamos o QR code ou a URL do QR code
+        setConfigData({
+          ...configData,
+          qrCodeUrl: data.qrCode
+        });
+        
+        toast({
+          title: "QR Code gerado pela WAHA API",
+          description: "Escaneie o QR Code com seu WhatsApp para conectar."
+        });
+      } else {
+        throw new Error(data.message || "Erro ao gerar QR Code");
+      }
+    })
+    .catch(error => {
+      setConnectionStatus('disconnected');
       toast({
-        title: "QR Code gerado pela WAHA API",
-        description: "Escaneie o QR Code com seu WhatsApp para conectar."
+        title: "Erro ao gerar QR Code",
+        description: error.message || "Não foi possível conectar à API WAHA. Verifique suas credenciais.",
+        variant: "destructive"
       });
-    }, 2000);
+    });
   };
   
   // Função para simular conexão
@@ -355,7 +376,7 @@ export default function WhatsAppIntegracao() {
                         <div>
                           <div className="border-4 border-gray-200 rounded-md p-4 bg-white w-64 h-64 flex items-center justify-center">
                             <img 
-                              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://endurancy-whatsapp-connection-42adf9" 
+                              src={configData.qrCodeUrl || "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=placeholder"}
                               alt="QR Code para conectar WhatsApp" 
                               className="w-full h-full"
                             />

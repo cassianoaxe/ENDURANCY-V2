@@ -6,6 +6,7 @@ import { initializeMockTickets, ensureOrganizationsExist, ensureAdminUserExists 
 import { seedHplcTrainings } from "./hplc-training-seed";
 import { seedTransparenciaMockData } from "./transparencia-mock-data";
 import { patientAuthRouter } from "./routes/patient-auth";
+import { registerWhatsAppRoutes } from "./routes-whatsapp";
 
 const app = express();
 app.use(express.json());
@@ -689,6 +690,9 @@ app.use((req, res, next) => {
   });
 
   const server = await registerRoutes(app);
+  
+  // Registrar rotas de integração com WhatsApp
+  registerWhatsAppRoutes(app);
 
   // Inicializar dados de exemplo para tickets
   try {
