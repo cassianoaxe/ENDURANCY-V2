@@ -1035,6 +1035,73 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    // Rotas do módulo ComplyPay
+    if (currentPath === '/organization/complypay' || currentPath === '/organization/complypay/dashboard') {
+      const ComplyPay = React.lazy(() => import('./pages/organization/complypay'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPay />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/faturas') {
+      const ComplyPayFaturas = React.lazy(() => import('./pages/organization/complypay/faturas'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayFaturas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/transacoes') {
+      const ComplyPayTransacoes = React.lazy(() => import('./pages/organization/complypay/transacoes'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayTransacoes />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/assinaturas') {
+      const ComplyPayAssinaturas = React.lazy(() => import('./pages/organization/complypay/assinaturas'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayAssinaturas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/integracoes') {
+      const ComplyPayIntegracoes = React.lazy(() => import('./pages/organization/complypay/integracoes'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayIntegracoes />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/configuracoes') {
+      const ComplyPayConfiguracoes = React.lazy(() => import('./pages/organization/complypay/configuracoes'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayConfiguracoes />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
     // Rotas para compatibilidade com a estrutura antiga
     if (currentPath === '/organization/pedidos') {
       return <OrganizationLayout>
