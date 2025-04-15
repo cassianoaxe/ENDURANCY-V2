@@ -19,7 +19,7 @@ import {
 } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Archive, Package, ShoppingCart, AlertTriangle, BarChart3, ChevronRight, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Dados de exemplo para o dashboard
 const vendasMensais = [
@@ -125,7 +125,7 @@ const alertas = [
 export default function DashboardVendas() {
   const [activeTab, setActiveTab] = useState('recentes');
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   // Use React Query para buscar os dados do dashboard
   const { data: dashboardData, isLoading } = useQuery({
