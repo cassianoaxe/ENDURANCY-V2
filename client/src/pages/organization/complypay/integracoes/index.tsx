@@ -1,28 +1,25 @@
-import { useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { Loader2 } from 'lucide-react';
+"use client";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 
 /**
- * Componente de redirecionamento para unificar páginas de integração.
- * Este componente redireciona automaticamente o usuário para o caminho centralizado
+ * Componente de redirecionamento
+ * 
+ * Este componente redireciona qualquer tentativa de acesso à 
+ * /organization/complypay/integracoes para a página centralizada
  * de integrações em /organization/integracoes
  */
-export default function ComplyPayIntegracoes() {
-  const [, navigate] = useLocation();
+export default function ComplyPayIntegracoesRedirect() {
+  const [, setLocation] = useLocation();
   
-  // Efeito para redirecionar para a página unificada de integrações
   useEffect(() => {
-    // Redirecionar para a nova página unificada de integrações
-    navigate('/organization/integracoes');
-  }, [navigate]);
-
-  // Mostrar indicador de carregamento durante o redirecionamento
+    // Redirecionamento para a página centralizada de integrações
+    setLocation("/organization/integracoes");
+  }, [setLocation]);
+  
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p>Redirecionando para a página de integrações...</p>
-      </div>
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-gray-500">Redirecionando para Integrações...</p>
     </div>
   );
 }
