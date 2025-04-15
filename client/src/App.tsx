@@ -240,6 +240,7 @@ import IntegracaoCorreios from "@/pages/organization/integracoes/correios";
 import IntegracaoNFe from "@/pages/organization/integracoes/nfe";
 import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
+import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -1207,6 +1208,16 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <PipefyIntegracao />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/rdstation') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <RDStationIntegracao />
         </Suspense>
       </OrganizationLayout>;
     }
