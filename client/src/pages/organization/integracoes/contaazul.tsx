@@ -183,7 +183,7 @@ export default function ContaAzulIntegracao() {
       });
       
       setTimeout(() => {
-        navigate("/organization/integracoes");
+        window.location.href = "/organization/integracoes";
       }, 1500);
     }
   };
@@ -544,7 +544,7 @@ export default function ContaAzulIntegracao() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+              <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
                 Cancelar
               </Button>
               <Button onClick={saveConfig} disabled={isSaving}>
@@ -704,7 +704,7 @@ export default function ContaAzulIntegracao() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+              <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
                 Cancelar
               </Button>
               <Button onClick={saveConfig} disabled={isSaving}>
