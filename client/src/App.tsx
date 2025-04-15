@@ -229,6 +229,17 @@ import ChatGPTIntegration from "@/pages/integracoes/ia/chatgpt";
 import ClaudeIntegration from "@/pages/integracoes/ia/claude";
 import KentroIntegration from "@/pages/integracoes/crm/kentro";
 
+// Import organization integration pages
+import IntegracaoContaAzul from "@/pages/organization/integracoes/contaazul";
+import IntegracaoNFSe from "@/pages/organization/integracoes/nfse";
+import IntegracaoWooCommerce from "@/pages/organization/integracoes/woocommerce";
+import IntegracaoCOMPLYCHAT from "@/pages/organization/integracoes/complychat";
+import IntegracaoMelhorEnvio from "@/pages/organization/integracoes/melhor-envio";
+import IntegracaoWhatsApp from "@/pages/organization/integracoes/whatsapp";
+import IntegracaoCorreios from "@/pages/organization/integracoes/correios";
+import IntegracaoNFe from "@/pages/organization/integracoes/nfe";
+import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
+
 // Simple AppContent component with no external routing library
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -1094,6 +1105,97 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <Integracoes />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rotas específicas para as integrações
+    if (currentPath === '/organization/integracoes/contaazul') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoContaAzul />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/nfse') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoNFSe />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/woocommerce') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoWooCommerce />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/complychat') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoCOMPLYCHAT />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/melhor-envio') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoMelhorEnvio />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/whatsapp') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoWhatsApp />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/correios') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoCorreios />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/nfe') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoNFe />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes/shopify') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <IntegracaoShopify />
         </Suspense>
       </OrganizationLayout>;
     }
