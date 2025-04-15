@@ -1081,12 +1081,15 @@ function AppContent() {
     }
     
     if (currentPath === '/organization/complypay/integracoes') {
-      const ComplyPayIntegracoes = React.lazy(() => import('./pages/organization/complypay/integracoes'));
+      // Redirecionamento para a nova localização da página de integrações
+      window.history.pushState({}, '', '/organization/integracoes');
+      window.dispatchEvent(new Event('popstate'));
+      const Integracoes = React.lazy(() => import('./pages/organization/integracoes'));
       return <OrganizationLayout>
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
-          <ComplyPayIntegracoes />
+          <Integracoes />
         </Suspense>
       </OrganizationLayout>;
     }
