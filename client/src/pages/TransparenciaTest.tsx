@@ -13,31 +13,48 @@ import {
   Info, 
   Globe,
   ExternalLink,
-  Copy
+  Copy,
+  Code,
+  Share2,
+  CheckCircle
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const TransparenciaTest = () => {
   const [orgId, setOrgId] = useState<string>("");
+  const [selectedTab, setSelectedTab] = useState<string>("sobre");
+  const [embedHeight, setEmbedHeight] = useState<string>("600");
   const [_, navigate] = useLocation();
   const { toast } = useToast();
 
-  // Função para copiar link para a área de transferência
-  const copyToClipboard = (url: string) => {
-    const fullUrl = window.location.origin + url;
-    navigator.clipboard.writeText(fullUrl).then(() => {
+  // Função para copiar texto para a área de transferência
+  const copyToClipboard = (text: string) => {
+    // Verifica se o texto parece ser uma URL ou um código HTML
+    const isUrl = text.startsWith('/');
+    const fullText = isUrl ? window.location.origin + text : text;
+    
+    navigator.clipboard.writeText(fullText).then(() => {
       toast({
-        title: "Link copiado!",
-        description: "URL copiada para a área de transferência.",
+        title: isUrl ? "Link copiado!" : "Código copiado!",
+        description: isUrl 
+          ? "URL copiada para a área de transferência." 
+          : "Código de incorporação copiado para a área de transferência.",
         duration: 3000,
       });
     }).catch(err => {
       toast({
-        title: "Erro ao copiar link",
-        description: "Não foi possível copiar o link. Tente novamente.",
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o texto. Tente novamente.",
         variant: "destructive",
         duration: 3000,
       });
@@ -57,6 +74,22 @@ const TransparenciaTest = () => {
       });
     }
   };
+  
+  // Função para gerar código de incorporação (embed)
+  const generateEmbedCode = (organizationId: number, tab: string = "") => {
+    const baseUrl = window.location.origin;
+    const path = `/organization/transparencia/${organizationId}${tab && tab !== 'sobre' ? `/${tab}` : ''}`;
+    
+    return `<iframe 
+  src="${baseUrl}${path}" 
+  width="100%" 
+  height="${embedHeight}px" 
+  frameborder="0" 
+  allowtransparency="true"
+  title="Portal de Transparência - ${organizationId}"
+  style="border: 1px solid #e5e7eb; border-radius: 8px;"
+></iframe>`;
+  };
 
   // Dados das organizações de exemplo
   const orgData = [
@@ -75,7 +108,7 @@ const TransparenciaTest = () => {
   ];
   
   // Ícones para cada aba
-  const tabIcons = {
+  const tabIcons: Record<string, React.ReactNode> = {
     sobre: <Info className="h-4 w-4" />,
     documentos: <FileText className="h-4 w-4" />,
     certificacoes: <Award className="h-4 w-4" />,
@@ -192,6 +225,87 @@ const TransparenciaTest = () => {
                   </div>
                 </div>
               </CardContent>
+              <Accordion type="single" collapsible className="mt-4 mb-4">
+                <AccordionItem value="embed">
+                  <AccordionTrigger className="text-base font-medium">
+                    <div className="flex items-center">
+                      <Code className="mr-2 h-4 w-4" />
+                      Código de Incorporação (Embed)
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Use este código para incorporar o Portal de Transparência no site da sua organização.
+                        Adicione-o em qualquer lugar do seu site onde HTML é suportado.
+                      </p>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <Label htmlFor="embed-tab">Aba para exibir</Label>
+                            <select
+                              id="embed-tab"
+                              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              value={selectedTab}
+                              onChange={(e) => setSelectedTab(e.target.value)}
+                            >
+                              {org.tabs.map((tab) => (
+                                <option key={tab} value={tab}>
+                                  {tab === 'sobre' ? 'Página Principal' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <Label htmlFor="embed-height">Altura (em pixels)</Label>
+                            <Input
+                              id="embed-height"
+                              type="number"
+                              min="300"
+                              value={embedHeight}
+                              onChange={(e) => setEmbedHeight(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <Label htmlFor="embed-code">Código HTML</Label>
+                        <Textarea
+                          id="embed-code"
+                          readOnly
+                          className="h-32 font-mono text-xs"
+                          value={generateEmbedCode(org.id, selectedTab)}
+                        />
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="absolute top-8 right-2"
+                          onClick={() => copyToClipboard(generateEmbedCode(org.id, selectedTab))}
+                        >
+                          <Copy className="h-3.5 w-3.5 mr-1" />
+                          Copiar
+                        </Button>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <Alert variant="default">
+                          <CheckCircle className="h-4 w-4" />
+                          <AlertTitle>Dica de implementação</AlertTitle>
+                          <AlertDescription className="text-xs">
+                            Este código pode ser adicionado à uma página chamada "Transparência" ou "Portal de Transparência" 
+                            no site da sua organização. Também é recomendado adicionar um texto introdutório explicando
+                            o compromisso da organização com a transparência e os dados que estão sendo compartilhados.
+                          </AlertDescription>
+                        </Alert>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+                
               <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={() => window.history.back()}>
                   Voltar
