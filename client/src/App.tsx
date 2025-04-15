@@ -1080,7 +1080,7 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
-    if (currentPath === '/organization/complypay/integracoes') {
+    if (currentPath === '/organization/complypay/integracoes' || currentPath === '/organization/integracoes') {
       const ComplyPayIntegracoes = React.lazy(() => import('./pages/organization/complypay/integracoes'));
       return <OrganizationLayout>
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
