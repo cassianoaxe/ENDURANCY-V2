@@ -843,33 +843,23 @@ function AppContent() {
 
     // Rotas do módulo de Compras e Estoque
     if (currentPath === '/organization/compras') {
-      return <OrganizationLayout>
-        <ComprasDashboard />
-      </OrganizationLayout>;
+      return <ComprasDashboard />;
     }
 
     if (currentPath === '/organization/compras/solicitacoes') {
-      return <OrganizationLayout>
-        <SolicitacoesCompra />
-      </OrganizationLayout>;
+      return <SolicitacoesCompra />;
     }
 
     if (currentPath === '/organization/compras/fornecedores') {
-      return <OrganizationLayout>
-        <Fornecedores />
-      </OrganizationLayout>;
+      return <Fornecedores />;
     }
 
     if (currentPath === '/organization/compras/estoque') {
-      return <OrganizationLayout>
-        <Estoque />
-      </OrganizationLayout>;
+      return <Estoque />;
     }
 
     if (currentPath === '/organization/compras/pedidos') {
-      return <OrganizationLayout>
-        <PedidosCompra />
-      </OrganizationLayout>;
+      return <PedidosCompra />;
     }
     
     // Rotas do módulo Tarefas

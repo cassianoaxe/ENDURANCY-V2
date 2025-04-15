@@ -186,181 +186,179 @@ export default function Fornecedores() {
   });
 
   return (
-    <OrganizationLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Truck className="h-5 w-5 text-blue-600" />
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
-              <p className="text-muted-foreground">
-                Gestão de fornecedores e compras
-              </p>
-            </div>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Truck className="h-5 w-5 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Fornecedores</h1>
+            <p className="text-muted-foreground">
+              Gestão de fornecedores e compras
+            </p>
           </div>
-          <Button onClick={() => setDialogNovoFornecedorAberto(true)} className="gap-2">
-            <Truck className="h-4 w-4" />
-            Novo Fornecedor
-          </Button>
         </div>
+        <Button onClick={() => setDialogNovoFornecedorAberto(true)} className="gap-2">
+          <Truck className="h-4 w-4" />
+          Novo Fornecedor
+        </Button>
+      </div>
 
-        <Tabs defaultValue="fornecedores" value={abaAtiva} onValueChange={setAbaAtiva} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="fornecedores">Fornecedores</TabsTrigger>
-            <TabsTrigger value="pedidos">Pedidos de Compra</TabsTrigger>
-            <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="fornecedores" value={abaAtiva} onValueChange={setAbaAtiva} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="fornecedores">Fornecedores</TabsTrigger>
+          <TabsTrigger value="pedidos">Pedidos de Compra</TabsTrigger>
+          <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="fornecedores" className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar fornecedores..."
-                  className="pl-8"
-                  value={termoBusca}
-                  onChange={(e) => setTermoBusca(e.target.value)}
-                />
-              </div>
-
-              <select
-                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={statusFiltro}
-                onChange={(e) => setStatusFiltro(e.target.value)}
-              >
-                <option value="todos">Todos os Status</option>
-                <option value="ativo">Ativo</option>
-                <option value="inativo">Inativo</option>
-                <option value="bloqueado">Bloqueado</option>
-              </select>
-
-              <select
-                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                value={tipoFiltro}
-                onChange={(e) => setTipoFiltro(e.target.value)}
-              >
-                <option value="todos">Todos os Tipos</option>
-                <option value="distribuidor">Distribuidor</option>
-                <option value="fabricante">Fabricante</option>
-                <option value="prestador_servico">Prestador de Serviço</option>
-                <option value="representante">Representante</option>
-                <option value="outro">Outro</option>
-              </select>
+        <TabsContent value="fornecedores" className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar fornecedores..."
+                className="pl-8"
+                value={termoBusca}
+                onChange={(e) => setTermoBusca(e.target.value)}
+              />
             </div>
 
-            <Card>
-              <CardContent className="p-0">
-                <div className="rounded-md overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="py-3 px-4 text-left font-medium">Fornecedor</th>
-                        <th className="py-3 px-4 text-left font-medium">Tipo</th>
-                        <th className="py-3 px-4 text-left font-medium">Contato</th>
-                        <th className="py-3 px-4 text-left font-medium">Avaliação</th>
-                        <th className="py-3 px-4 text-left font-medium">Status</th>
-                        <th className="py-3 px-4 text-left font-medium">Última Compra</th>
-                        <th className="py-3 px-4 text-left font-medium">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fornecedoresFiltrados.map((fornecedor) => (
-                        <tr key={fornecedor.id} className="border-b">
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9">
-                                <AvatarFallback className="bg-primary/10">
-                                  {fornecedor.iniciais}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{fornecedor.nome}</span>
-                                <span className="text-xs text-muted-foreground">{fornecedor.cnpj}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            {fornecedor.tipo}
-                          </td>
-                          <td className="py-3 px-4">
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={statusFiltro}
+              onChange={(e) => setStatusFiltro(e.target.value)}
+            >
+              <option value="todos">Todos os Status</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              value={tipoFiltro}
+              onChange={(e) => setTipoFiltro(e.target.value)}
+            >
+              <option value="todos">Todos os Tipos</option>
+              <option value="distribuidor">Distribuidor</option>
+              <option value="fabricante">Fabricante</option>
+              <option value="prestador_servico">Prestador de Serviço</option>
+              <option value="representante">Representante</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+
+          <Card>
+            <CardContent className="p-0">
+              <div className="rounded-md overflow-hidden">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="py-3 px-4 text-left font-medium">Fornecedor</th>
+                      <th className="py-3 px-4 text-left font-medium">Tipo</th>
+                      <th className="py-3 px-4 text-left font-medium">Contato</th>
+                      <th className="py-3 px-4 text-left font-medium">Avaliação</th>
+                      <th className="py-3 px-4 text-left font-medium">Status</th>
+                      <th className="py-3 px-4 text-left font-medium">Última Compra</th>
+                      <th className="py-3 px-4 text-left font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fornecedoresFiltrados.map((fornecedor) => (
+                      <tr key={fornecedor.id} className="border-b">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="bg-primary/10">
+                                {fornecedor.iniciais}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="flex flex-col">
-                              <span>{fornecedor.contato.nome}</span>
-                              <span className="text-xs text-blue-600">{fornecedor.contato.email}</span>
+                              <span className="font-medium">{fornecedor.nome}</span>
+                              <span className="text-xs text-muted-foreground">{fornecedor.cnpj}</span>
                             </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <AvaliacaoEstrelas pontuacao={fornecedor.avaliacao} />
-                          </td>
-                          <td className="py-3 px-4">
-                            <StatusBadge status={fornecedor.status} />
-                          </td>
-                          <td className="py-3 px-4">
-                            {formatarData(fornecedor.ultimaCompra)}
-                          </td>
-                          <td className="py-3 px-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Abrir menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                <DropdownMenuItem className="gap-2">
-                                  <Eye className="h-4 w-4" /> Ver detalhes
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2">
-                                  <ClipboardEdit className="h-4 w-4" /> Editar fornecedor
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2">
-                                  <ShoppingCart className="h-4 w-4" /> Novo pedido
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2">
-                                  <Star className="h-4 w-4" /> Avaliar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="gap-2">
-                                  <Phone className="h-4 w-4" /> Contato telefônico
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2">
-                                  <Mail className="h-4 w-4" /> Enviar e-mail
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {fornecedor.tipo}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span>{fornecedor.contato.nome}</span>
+                            <span className="text-xs text-blue-600">{fornecedor.contato.email}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <AvaliacaoEstrelas pontuacao={fornecedor.avaliacao} />
+                        </td>
+                        <td className="py-3 px-4">
+                          <StatusBadge status={fornecedor.status} />
+                        </td>
+                        <td className="py-3 px-4">
+                          {formatarData(fornecedor.ultimaCompra)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Abrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuItem className="gap-2">
+                                <Eye className="h-4 w-4" /> Ver detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2">
+                                <ClipboardEdit className="h-4 w-4" /> Editar fornecedor
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2">
+                                <ShoppingCart className="h-4 w-4" /> Novo pedido
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2">
+                                <Star className="h-4 w-4" /> Avaliar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="gap-2">
+                                <Phone className="h-4 w-4" /> Contato telefônico
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2">
+                                <Mail className="h-4 w-4" /> Enviar e-mail
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="pedidos">
-            <Card>
-              <CardContent className="p-6">
-                <p>A aba de pedidos de compra será implementada em breve.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        <TabsContent value="pedidos">
+          <Card>
+            <CardContent className="p-6">
+              <p>A aba de pedidos de compra será implementada em breve.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <TabsContent value="avaliacoes">
-            <Card>
-              <CardContent className="p-6">
-                <p>A aba de avaliações de fornecedores será implementada em breve.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="avaliacoes">
+          <Card>
+            <CardContent className="p-6">
+              <p>A aba de avaliações de fornecedores será implementada em breve.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <NovoFornecedorDialog 
         open={dialogNovoFornecedorAberto} 
         onOpenChange={setDialogNovoFornecedorAberto} 
       />
-    </OrganizationLayout>
+    </div>
   );
 }
