@@ -110,7 +110,11 @@ function StatusIcon({ status }: { status: string }) {
 
 // Função para renderizar o badge de status
 function StatusBadge({ status }: { status: string }) {
-  const configs = {
+  const configs: Record<string, {
+    label: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    className?: string;
+  }> = {
     pendente: {
       label: 'Pendente',
       variant: 'outline'
@@ -142,11 +146,11 @@ function StatusBadge({ status }: { status: string }) {
     }
   };
 
-  const config = configs[status as keyof typeof configs] || configs.pendente;
+  const config = configs[status] || configs.pendente;
 
   return (
     <Badge 
-      variant={config.variant as any} 
+      variant={config.variant} 
       className={config.className}
     >
       {config.label}
@@ -156,7 +160,11 @@ function StatusBadge({ status }: { status: string }) {
 
 // Função para renderizar o badge de urgência
 function UrgenciaBadge({ urgencia }: { urgencia: string }) {
-  const configs = {
+  const configs: Record<string, {
+    label: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    className: string;
+  }> = {
     baixa: {
       label: 'Baixa',
       variant: 'default',
@@ -174,11 +182,11 @@ function UrgenciaBadge({ urgencia }: { urgencia: string }) {
     }
   };
 
-  const config = configs[urgencia as keyof typeof configs] || configs.media;
+  const config = configs[urgencia] || configs.media;
 
   return (
     <Badge 
-      variant={config.variant as any} 
+      variant={config.variant} 
       className={config.className}
     >
       {config.label}
@@ -217,7 +225,7 @@ export default function SolicitacoesCompra() {
   });
 
   return (
-    <OrganizationLayout>
+    <>
       <div className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -366,6 +374,6 @@ export default function SolicitacoesCompra() {
         open={dialogNovaSolicitacaoAberto} 
         onOpenChange={setDialogNovaSolicitacaoAberto} 
       />
-    </OrganizationLayout>
+    </>
   );
 }

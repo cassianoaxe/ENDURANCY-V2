@@ -62,7 +62,11 @@ const pedidos = [
 
 // Componentes de Status
 function StatusBadge({ status }: { status: string }) {
-  const configs = {
+  const configs: Record<string, {
+    label: string;
+    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    className: string;
+  }> = {
     pendente: {
       label: 'Pendente',
       variant: 'default',
@@ -90,11 +94,11 @@ function StatusBadge({ status }: { status: string }) {
     }
   };
 
-  const config = configs[status as keyof typeof configs] || configs.pendente;
+  const config = configs[status] || configs.pendente;
 
   return (
     <Badge 
-      variant={config.variant as any} 
+      variant={config.variant} 
       className={config.className}
     >
       {config.label}
@@ -134,168 +138,166 @@ export default function PedidosCompra() {
   });
 
   return (
-    <OrganizationLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Pedidos de Compra</h1>
-            <p className="text-muted-foreground">
-              Gerencie os pedidos de compra da organização
-            </p>
-          </div>
-          <Button onClick={() => setDialogNovoAberto(true)} className="gap-2">
-            <Package2 className="h-4 w-4" />
-            Nova Solicitação
-          </Button>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Pedidos de Compra</h1>
+          <p className="text-muted-foreground">
+            Gerencie os pedidos de compra da organização
+          </p>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            variant={statusAtivo === "em_andamento" ? "default" : "outline"}
-            className="gap-2"
-            onClick={() => setStatusAtivo("em_andamento")}
-          >
-            <Clock className="h-4 w-4" /> Em Andamento
-          </Button>
-          <Button 
-            variant={statusAtivo === "recebidos" ? "default" : "outline"}
-            className="gap-2"
-            onClick={() => setStatusAtivo("recebidos")}
-          >
-            <Check className="h-4 w-4" /> Recebidos
-          </Button>
-          <Button 
-            variant={statusAtivo === "rejeitados" ? "default" : "outline"}
-            className="gap-2"
-            onClick={() => setStatusAtivo("rejeitados")}
-          >
-            <Check className="h-4 w-4" /> Rejeitados
-          </Button>
-          <Button 
-            variant={statusAtivo === "todos" ? "default" : "outline"}
-            className="gap-2"
-            onClick={() => setStatusAtivo("todos")}
-          >
-            <ShoppingBag className="h-4 w-4" /> Todos
-          </Button>
-        </div>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Pedidos de Compra</h2>
-              <div className="flex items-center gap-2">
-                <div className="relative w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar pedidos..."
-                    className="pl-8"
-                    value={termoBusca}
-                    onChange={(e) => setTermoBusca(e.target.value)}
-                  />
-                </div>
-                <select
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="todos">Todos os Status</option>
-                  <option value="pendente">Pendente</option>
-                  <option value="aprovado">Aprovado</option>
-                  <option value="aguardando_entrega">Aguardando Entrega</option>
-                  <option value="recebido">Recebido</option>
-                  <option value="cancelado">Cancelado</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="rounded-md border overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="py-3 px-4 text-left font-medium">Número</th>
-                    <th className="py-3 px-4 text-left font-medium">Data</th>
-                    <th className="py-3 px-4 text-left font-medium">Solicitante</th>
-                    <th className="py-3 px-4 text-left font-medium">Fornecedor</th>
-                    <th className="py-3 px-4 text-left font-medium">Valor Total</th>
-                    <th className="py-3 px-4 text-left font-medium">Status</th>
-                    <th className="py-3 px-4 text-left font-medium">Previsão de Entrega</th>
-                    <th className="py-3 px-4 text-left font-medium">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedidosFiltrados.map((pedido) => (
-                    <tr key={pedido.id} className="border-b">
-                      <td className="py-3 px-4 font-medium">
-                        {pedido.codigo}
-                      </td>
-                      <td className="py-3 px-4">
-                        {pedido.data}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <span>{pedido.solicitante.nome}</span>
-                          <span className="text-xs text-muted-foreground">{pedido.solicitante.departamento}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {pedido.fornecedor}
-                      </td>
-                      <td className="py-3 px-4 font-medium">
-                        {pedido.valorTotal}
-                      </td>
-                      <td className="py-3 px-4">
-                        <StatusBadge status={pedido.status} />
-                      </td>
-                      <td className="py-3 px-4">
-                        {pedido.previsaoEntrega || '—'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Abrir menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuItem className="gap-2">
-                                <Eye className="h-4 w-4" /> Ver detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-2">
-                                <Download className="h-4 w-4" /> Exportar PDF
-                              </DropdownMenuItem>
-                              {pedido.status === "pendente" && (
-                                <DropdownMenuItem className="gap-2">
-                                  <Check className="h-4 w-4" /> Aprovar pedido
-                                </DropdownMenuItem>
-                              )}
-                              {pedido.status === "aguardando_entrega" && (
-                                <DropdownMenuItem className="gap-2">
-                                  <Calendar className="h-4 w-4" /> Atualizar previsão
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <Button onClick={() => setDialogNovoAberto(true)} className="gap-2">
+          <Package2 className="h-4 w-4" />
+          Nova Solicitação
+        </Button>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button 
+          variant={statusAtivo === "em_andamento" ? "default" : "outline"}
+          className="gap-2"
+          onClick={() => setStatusAtivo("em_andamento")}
+        >
+          <Clock className="h-4 w-4" /> Em Andamento
+        </Button>
+        <Button 
+          variant={statusAtivo === "recebidos" ? "default" : "outline"}
+          className="gap-2"
+          onClick={() => setStatusAtivo("recebidos")}
+        >
+          <Check className="h-4 w-4" /> Recebidos
+        </Button>
+        <Button 
+          variant={statusAtivo === "rejeitados" ? "default" : "outline"}
+          className="gap-2"
+          onClick={() => setStatusAtivo("rejeitados")}
+        >
+          <Check className="h-4 w-4" /> Rejeitados
+        </Button>
+        <Button 
+          variant={statusAtivo === "todos" ? "default" : "outline"}
+          className="gap-2"
+          onClick={() => setStatusAtivo("todos")}
+        >
+          <ShoppingBag className="h-4 w-4" /> Todos
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Pedidos de Compra</h2>
+            <div className="flex items-center gap-2">
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar pedidos..."
+                  className="pl-8"
+                  value={termoBusca}
+                  onChange={(e) => setTermoBusca(e.target.value)}
+                />
+              </div>
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="todos">Todos os Status</option>
+                <option value="pendente">Pendente</option>
+                <option value="aprovado">Aprovado</option>
+                <option value="aguardando_entrega">Aguardando Entrega</option>
+                <option value="recebido">Recebido</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="rounded-md border overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="py-3 px-4 text-left font-medium">Número</th>
+                  <th className="py-3 px-4 text-left font-medium">Data</th>
+                  <th className="py-3 px-4 text-left font-medium">Solicitante</th>
+                  <th className="py-3 px-4 text-left font-medium">Fornecedor</th>
+                  <th className="py-3 px-4 text-left font-medium">Valor Total</th>
+                  <th className="py-3 px-4 text-left font-medium">Status</th>
+                  <th className="py-3 px-4 text-left font-medium">Previsão de Entrega</th>
+                  <th className="py-3 px-4 text-left font-medium">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pedidosFiltrados.map((pedido) => (
+                  <tr key={pedido.id} className="border-b">
+                    <td className="py-3 px-4 font-medium">
+                      {pedido.codigo}
+                    </td>
+                    <td className="py-3 px-4">
+                      {pedido.data}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-col">
+                        <span>{pedido.solicitante.nome}</span>
+                        <span className="text-xs text-muted-foreground">{pedido.solicitante.departamento}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {pedido.fornecedor}
+                    </td>
+                    <td className="py-3 px-4 font-medium">
+                      {pedido.valorTotal}
+                    </td>
+                    <td className="py-3 px-4">
+                      <StatusBadge status={pedido.status} />
+                    </td>
+                    <td className="py-3 px-4">
+                      {pedido.previsaoEntrega || '—'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Abrir menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuItem className="gap-2">
+                              <Eye className="h-4 w-4" /> Ver detalhes
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-2">
+                              <Download className="h-4 w-4" /> Exportar PDF
+                            </DropdownMenuItem>
+                            {pedido.status === "pendente" && (
+                              <DropdownMenuItem className="gap-2">
+                                <Check className="h-4 w-4" /> Aprovar pedido
+                              </DropdownMenuItem>
+                            )}
+                            {pedido.status === "aguardando_entrega" && (
+                              <DropdownMenuItem className="gap-2">
+                                <Calendar className="h-4 w-4" /> Atualizar previsão
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <NovaSolicitacaoDialog 
         open={dialogNovoAberto} 
         onOpenChange={setDialogNovoAberto} 
       />
-    </OrganizationLayout>
+    </div>
   );
 }
