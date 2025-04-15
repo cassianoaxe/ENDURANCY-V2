@@ -254,7 +254,7 @@ export default function WhatsAppIntegracao() {
       });
       
       setTimeout(() => {
-        navigate("/organization/integracoes");
+        window.location.href = "/organization/integracoes";
       }, 1500);
     }, 2000);
   };
@@ -265,7 +265,7 @@ export default function WhatsAppIntegracao() {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => navigate("/organization/integracoes")}
+          onClick={() => window.location.href = "/organization/integracoes"}
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
         </Button>
@@ -581,7 +581,7 @@ export default function WhatsAppIntegracao() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => navigate("/organization/integracoes")}>
+              <Button variant="outline" onClick={() => window.location.href = "/organization/integracoes"}>
                 Cancelar
               </Button>
               <div className="flex gap-2">
