@@ -321,13 +321,12 @@ export default function OrganizationSettings() {
     <OrganizationLayout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Configurações da Organização</h1>
-        <p className="text-gray-600 mb-8">Configure preferências e integrações para sua organização.</p>
+        <p className="text-gray-600 mb-8">Configure preferências e configurações para sua organização.</p>
 
         <Tabs defaultValue="information" className="space-y-6" onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="information">Informações</TabsTrigger>
             <TabsTrigger value="preferences">Preferências</TabsTrigger>
-            <TabsTrigger value="integrations">Integrações</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
@@ -610,59 +609,7 @@ export default function OrganizationSettings() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="integrations">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Plug className="h-5 w-5 mr-2" />
-                  Integrações
-                </CardTitle>
-                <p className="text-sm text-gray-500 mt-2">
-                  Configure integrações com serviços externos para aumentar a produtividade da sua organização.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
-                  <div key={category} className="space-y-4">
-                    <h3 className="text-lg font-medium">{category}</h3>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {categoryIntegrations.map((integration) => (
-                        <Card key={integration.id} className="hover:shadow-md transition-shadow">
-                          <CardContent className="pt-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center">
-                                {integration.icon}
-                                <div className="ml-3">
-                                  <h4 className="font-medium">{integration.name}</h4>
-                                  <p className="text-xs text-gray-500">{category}</p>
-                                </div>
-                              </div>
-                              <Badge 
-                                variant={integration.active ? "outline" : "secondary"}
-                                className={integration.active ? "bg-green-50 text-green-700" : ""}
-                              >
-                                {integration.active ? "Ativo" : "Inativo"}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-4">{integration.description}</p>
-                            <div className="flex justify-end">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                asChild
-                              >
-                                <Link href={integration.href}>Configurar</Link>
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
+
           
           <TabsContent value="users">
             <Card>

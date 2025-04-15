@@ -1080,13 +1080,24 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
-    if (currentPath === '/organization/complypay/integracoes' || currentPath === '/organization/integracoes') {
+    if (currentPath === '/organization/complypay/integracoes') {
       const ComplyPayIntegracoes = React.lazy(() => import('./pages/organization/complypay/integracoes'));
       return <OrganizationLayout>
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <ComplyPayIntegracoes />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/integracoes') {
+      const Integracoes = React.lazy(() => import('./pages/organization/integracoes'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <Integracoes />
         </Suspense>
       </OrganizationLayout>;
     }
@@ -1163,11 +1174,10 @@ function AppContent() {
     
     // Rotas de integração da organização
     if (currentPath.startsWith('/organization/integrations/')) {
-      // Verificar qual integração específica está sendo acessada
-      // Por enquanto, vamos redirecionar para a página de configurações com a aba de integrações selecionada
-      window.history.pushState({}, '', '/organization/settings');
+      // Redirecionar para a nova página de integrações
+      window.history.pushState({}, '', '/organization/integracoes');
       window.dispatchEvent(new Event('popstate'));
-      return <OrganizationSettings />;
+      return null;
     }
     
     return <NotFound />;
