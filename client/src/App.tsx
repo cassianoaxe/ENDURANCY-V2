@@ -271,7 +271,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -429,6 +429,11 @@ function AppContent() {
       return <Sitemap />;
     }
     
+    // Página de teste para transparência (público)
+    if (currentPath === '/transparencia-test') {
+      return <TransparenciaTest />;
+    }
+    
     // Página esqueceu a senha (público)
     if (currentPath === '/forgot-password') {
       // Aqui você pode substituir isso pelo seu componente real de recuperação de senha
@@ -576,6 +581,12 @@ function AppContent() {
   
   // Handle organization-specific routes
   if (currentPath.startsWith('/organization/')) {
+    // Permitir acesso público ao portal de transparência mesmo sem login
+    const transparenciaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
+    if (transparenciaMatch) {
+      return <TransparenciaPublica />;
+    }
+    
     if (userRole !== 'org_admin') {
       return (
         <Layout>
@@ -823,11 +834,8 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
-    // Rotas do Portal de Transparência
-    const transparenciaPublicaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
-    if (transparenciaPublicaMatch) {
-      return <TransparenciaPublica />;
-    }
+    // Removido código duplicado de tratamento do portal de transparência
+    // (já está implementado no início do bloco de rotas da organização)
 
     if (currentPath === '/organization/transparencia/gerenciar') {
       return <GerenciarTransparencia />;
