@@ -21,7 +21,7 @@ import {
   Plus 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Dados de exemplo
 const pedidos = [
@@ -118,7 +118,7 @@ export default function Pedidos() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   // Use React Query para buscar os pedidos
   const { data: pedidosData, isLoading } = useQuery({

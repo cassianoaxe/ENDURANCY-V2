@@ -20,7 +20,7 @@ import {
   SquarePen
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Dados de exemplo
 const produtos = [
@@ -100,7 +100,7 @@ export default function Produtos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('todos');
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   // Use React Query para buscar os produtos
   const { data: produtosData, isLoading } = useQuery({

@@ -960,32 +960,104 @@ function AppContent() {
       return <GerenciarProdutos />;
     }
 
+    // Módulo de Vendas - Estrutura antiga (mantida para compatibilidade)
     if (currentPath === '/organization/vendas') {
-      return <VendasOrg />;
+      return <OrganizationLayout>
+        <VendasOrg />
+      </OrganizationLayout>;
     }
 
     if (currentPath === '/organization/relatorio-vendas') {
-      return <RelatorioVendas />;
+      return <OrganizationLayout>
+        <RelatorioVendas />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/dashboard-vendas') {
-      return <DashboardVendas />;
+      return <OrganizationLayout>
+        <DashboardVendas />
+      </OrganizationLayout>;
     }
     
+    // Nova estrutura para o módulo de Vendas
+    if (currentPath === '/organization/vendas/dashboard' || currentPath === '/organization/vendas') {
+      const DashboardVendasNovo = React.lazy(() => import('./pages/organization/vendas/index'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <DashboardVendasNovo />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/vendas/pedidos') {
+      const PedidosVendas = React.lazy(() => import('./pages/organization/vendas/pedidos'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <PedidosVendas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/vendas/produtos') {
+      const ProdutosVendas = React.lazy(() => import('./pages/organization/vendas/produtos'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ProdutosVendas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/vendas/promocoes') {
+      const PromocoesVendas = React.lazy(() => import('./pages/organization/vendas/promocoes'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <PromocoesVendas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/vendas/rastreamento') {
+      const RastreamentoVendas = React.lazy(() => import('./pages/organization/vendas/rastreamento'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <RastreamentoVendas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rotas para compatibilidade com a estrutura antiga
     if (currentPath === '/organization/pedidos') {
-      return <Pedidos />;
+      return <OrganizationLayout>
+        <Pedidos />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/produtos') {
-      return <Produtos />;
+      return <OrganizationLayout>
+        <Produtos />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/promocoes') {
-      return <Promocoes />;
+      return <OrganizationLayout>
+        <Promocoes />
+      </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/rastreamento') {
-      return <Rastreamento />;
+      return <OrganizationLayout>
+        <Rastreamento />
+      </OrganizationLayout>;
     }
     
     // Rota para o Portal Médico
