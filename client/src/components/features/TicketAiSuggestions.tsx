@@ -86,8 +86,9 @@ export default function TicketAiSuggestions({
   const { data, isLoading, error, refetch } = useQuery<TicketSuggestions>({
     queryKey: ['/api/tickets', ticketId, 'suggestions'],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/tickets/${ticketId}/suggestions`);
-      return res.json();
+      return await apiRequest(`/api/tickets/${ticketId}/suggestions`, {
+        method: 'GET'
+      });
     },
     staleTime: 5 * 60 * 1000, // 5 minutos (as sugestões não mudam frequentemente)
   });

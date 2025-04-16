@@ -64,36 +64,10 @@ export default function MeuPlano() {
       try {
         console.log("Enviando solicitação de mudança de plano para:", planId);
         
-        // Adicionar mais logs para debug
-        console.log("Detalhes da requisição:", {
-          url: '/api/plan-change-requests',
-          método: 'POST',
-          corpo: { planId },
-          usuário: user
+        return await apiRequest('/api/plan-change-requests', {
+          method: 'POST',
+          data: { planId }
         });
-        
-        const res = await apiRequest('POST', '/api/plan-change-requests', { planId });
-        
-        // Verificar resposta completa para debug
-        console.log("Status da resposta:", res.status);
-        console.log("Headers da resposta:", Object.fromEntries([...res.headers.entries()]));
-        
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("Erro na resposta:", errorText);
-          throw new Error(errorText || 'Erro ao solicitar mudança de plano');
-        }
-        
-        // Tentar fazer parse da resposta com tratamento de erro - clone a resposta para evitar erros
-        const clonedRes = res.clone();
-        try {
-          const text = await clonedRes.text();
-          console.log("Resposta raw:", text);
-          return text ? JSON.parse(text) : { success: true };
-        } catch (parseError) {
-          console.error("Erro ao parsear resposta JSON:", parseError);
-          return { success: true }; // Retornar objeto básico em caso de erro de parse
-        }
       } catch (error) {
         console.error("Erro na solicitação de plano:", error);
         throw error;
@@ -140,8 +114,10 @@ export default function MeuPlano() {
   // Mantendo a mutação original para compatibilidade (usado para planos gratuitos que não precisam de aprovação)
   const changePlanMutation = useMutation({
     mutationFn: async (planId: number) => {
-      const res = await apiRequest('POST', '/api/organizations/change-plan', { planId });
-      return await res.json();
+      return apiRequest('/api/organizations/change-plan', {
+        method: 'POST',
+        data: { planId }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
