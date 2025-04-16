@@ -1,9 +1,35 @@
 import React, { ComponentType, useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { Organization, OrganizationModule } from '@shared/schema';
 import ModuleSubscriptionStatus, { ModuleStatus } from './ModuleSubscriptionStatus';
 import { Loader2 } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+
+// Interface para organização
+interface Organization {
+  id: number;
+  name: string;
+  type: string;
+  adminName?: string;
+  planTier?: string;
+  planId?: number;
+  status?: string;
+  [key: string]: any;
+}
+
+// Interface para módulo de organização
+interface OrganizationModule {
+  id: number;
+  name: string;
+  status: 'active' | 'pending' | 'cancelled';
+  moduleInfo?: {
+    type?: string;
+    slug?: string;
+    [key: string]: any;
+  };
+  active?: boolean;
+  [key: string]: any;
+}
 
 // Interface para as propriedades do HOC
 interface WithModuleAccessProps {
@@ -33,6 +59,29 @@ export const withModuleAccess = <P extends object>(
       }
     }, [retryCount]);
     
+    // Usamos o queryClient para gerenciar as queries
+    const queryClient = useQueryClient();
+    
+    // Função para carregar organização atual
+    const loadOrganization = async (): Promise<Organization> => {
+      try {
+        return await apiRequest('/api/organizations/current', 'GET');
+      } catch (error) {
+        console.error("Erro ao carregar organização:", error);
+        throw error;
+      }
+    };
+    
+    // Função para carregar módulos da organização
+    const loadOrganizationModules = async (): Promise<OrganizationModule[]> => {
+      try {
+        return await apiRequest('/api/modules/organization', 'GET');
+      } catch (error) {
+        console.error("Erro ao carregar módulos:", error);
+        throw error;
+      }
+    };
+    
     // Busca dados da organização com retry em caso de falha
     const { 
       data: organization, 
@@ -40,26 +89,21 @@ export const withModuleAccess = <P extends object>(
       error: orgError,
       refetch: refetchOrg
     } = useQuery<Organization>({
-      queryKey: ['/api/organizations', user?.organizationId],
-      queryFn: async () => {
-        if (!user?.organizationId) throw new Error('ID da organização não fornecido');
-        const response = await fetch(`/api/organizations/${user.organizationId}`);
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar organização: ${response.statusText}`);
-        }
-        return response.json();
-      },
+      queryKey: ['/api/organizations/current'],
+      queryFn: loadOrganization,
       enabled: !!user?.organizationId,
       retry: 3,
-      retryDelay: 1000,
-      onError: (error) => {
-        console.error("Erro ao carregar dados da organização:", error);
-        if (retryCount < 3) {
-          setRetryCount(prev => prev + 1);
-          setTimeout(() => refetchOrg(), 1500);
-        }
-      }
+      retryDelay: 1000
     });
+    
+    // Efetua uma nova tentativa em caso de erro
+    useEffect(() => {
+      if (orgError && retryCount < 3) {
+        setRetryCount(prev => prev + 1);
+        const timer = setTimeout(() => refetchOrg(), 1500);
+        return () => clearTimeout(timer);
+      }
+    }, [orgError, retryCount, refetchOrg]);
     
     // Busca os módulos da organização
     const { 
@@ -68,26 +112,21 @@ export const withModuleAccess = <P extends object>(
       error: modulesError,
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
-      queryKey: [`/api/organization-modules/${user?.organizationId}`],
-      queryFn: async () => {
-        if (!user?.organizationId) throw new Error('ID da organização não fornecido');
-        const response = await fetch(`/api/organization-modules/${user.organizationId}`);
-        if (!response.ok) {
-          throw new Error(`Erro ao buscar módulos: ${response.statusText}`);
-        }
-        return response.json();
-      },
+      queryKey: ['/api/modules/organization'],
+      queryFn: loadOrganizationModules,
       enabled: !!user?.organizationId,
       retry: 3,
-      retryDelay: 1000,
-      onError: (error) => {
-        console.error("Erro ao carregar módulos da organização:", error);
-        if (retryCount < 3) {
-          setRetryCount(prev => prev + 1);
-          setTimeout(() => refetchModules(), 1500);
-        }
-      }
+      retryDelay: 1000
     });
+    
+    // Efetua uma nova tentativa em caso de erro nos módulos
+    useEffect(() => {
+      if (modulesError && retryCount < 3) {
+        setRetryCount(prev => prev + 1);
+        const timer = setTimeout(() => refetchModules(), 1500);
+        return () => clearTimeout(timer);
+      }
+    }, [modulesError, retryCount, refetchModules]);
     
     // Se estiver carregando, exibe um spinner
     if (isOrgLoading || isModulesLoading) {
