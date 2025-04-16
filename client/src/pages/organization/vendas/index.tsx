@@ -277,18 +277,28 @@ export default function DashboardVendas() {
       {/* Pedidos Recentes */}
       <Card>
         <CardHeader className="pb-0">
-          <Tabs defaultValue="recentes" className="w-full" onValueChange={setActiveTab}>
-            <div className="flex justify-between items-center">
-              <CardTitle>Pedidos Recentes</CardTitle>
-              <TabsList>
-                <TabsTrigger value="recentes">Pedidos Recentes</TabsTrigger>
-                <TabsTrigger value="mais-vendidos">Produtos Mais Vendidos</TabsTrigger>
-              </TabsList>
+          <div className="flex justify-between items-center">
+            <CardTitle>Pedidos Recentes</CardTitle>
+            <div className="flex space-x-2">
+              <Button 
+                variant={activeTab === "recentes" ? "default" : "outline"}
+                onClick={() => setActiveTab("recentes")}
+                className="text-sm"
+              >
+                Pedidos Recentes
+              </Button>
+              <Button 
+                variant={activeTab === "mais-vendidos" ? "default" : "outline"}
+                onClick={() => setActiveTab("mais-vendidos")}
+                className="text-sm"
+              >
+                Produtos Mais Vendidos
+              </Button>
             </div>
-          </Tabs>
+          </div>
         </CardHeader>
         <CardContent className="pt-4">
-          <TabsContent value="recentes" className="m-0">
+          {activeTab === "recentes" && (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -325,15 +335,15 @@ export default function DashboardVendas() {
                 </Button>
               </div>
             </div>
-          </TabsContent>
-          <TabsContent value="mais-vendidos" className="m-0">
+          )}
+          {activeTab === "mais-vendidos" && (
             <div className="space-y-4">
               {/* Conteúdo para produtos mais vendidos será adicionado aqui */}
               <p className="text-center text-muted-foreground py-4">
                 Carregando produtos mais vendidos...
               </p>
             </div>
-          </TabsContent>
+          )}
         </CardContent>
       </Card>
 
