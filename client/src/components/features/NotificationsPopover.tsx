@@ -90,8 +90,9 @@ export default function NotificationsPopover() {
   // Marcar notificação como lida
   const markAsReadMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("PATCH", `/api/notifications/${id}/read`);
-      return res.json();
+      return apiRequest(`/api/notifications/${id}/read`, {
+        method: 'PATCH'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -108,8 +109,9 @@ export default function NotificationsPopover() {
   // Marcar todas como lidas
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", '/api/notifications/mark-all-read');
-      return res.json();
+      return apiRequest('/api/notifications/mark-all-read', {
+        method: 'POST'
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
