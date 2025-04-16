@@ -666,7 +666,7 @@ export default function OrganizationSidebar() {
           icon: <Package size={16} />
         },
         {
-          title: "Vendas",
+          title: "Vendas da Farmácia",
           path: "/organization/farmacia/vendas",
           active: currentPath === "/organization/farmacia/vendas",
           icon: <ShoppingCart size={16} />
