@@ -7,11 +7,109 @@ import { seedHplcTrainings } from "./hplc-training-seed";
 import { seedTransparenciaMockData } from "./transparencia-mock-data";
 import { patientAuthRouter } from "./routes/patient-auth";
 import { registerWhatsAppRoutes } from "./routes-whatsapp";
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
 
 const app = express();
+
+// Configuração do Helmet para headers de segurança
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "wss:", "https://api.waha.devlike.pro", "https://waha-api.vercel.app"],
+      frameSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
+// Configuração de limitação de taxa global
+const globalRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  limit: 500, // Limite de 500 requisições por IP a cada 15 minutos
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: 'Muitas requisições deste IP, por favor tente novamente após 15 minutos'
+});
+
+// Aplicar limitação de taxa global
+app.use(globalRateLimit);
+
+// Limitação de taxa mais restritiva para rotas sensíveis
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  limit: 30, // Limite de 30 tentativas por IP para autenticação a cada 15 minutos
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: 'Muitas tentativas de login, por favor tente novamente após 15 minutos'
+});
+
+// Aplicar limitação para rotas específicas
+app.use('/api/auth/login', authRateLimit);
+app.use('/api/auth/forgot-password', authRateLimit);
+app.use('/api/auth/reset-password', authRateLimit);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// Configurar cookie-parser para processamento de cookies
+app.use(cookieParser(process.env.COOKIE_SECRET || 'endurancy-app-secret-key-2025'));
+
+// Configurar proteção CSRF para operações de estado mutável (POST, PUT, DELETE)
+const csrfProtection = csrf({
+  cookie: {
+    key: 'csrf-token',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 3600 // 1 hora em segundos
+  }
+});
+
+// Aplicar proteção CSRF para rotas que alteram estado
+// Rota para obter token CSRF
+app.get('/api/csrf-token', (req, res) => {
+  // Gerar e enviar token CSRF para o cliente
+  const token = req.csrfToken();
+  res.json({ csrfToken: token });
+});
+
+// Função para aplicar CSRF a rotas específicas
+function applyCSRFToRoutes() {
+  // Rotas que precisam de proteção CSRF
+  const csrfProtectedPaths = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/reset-password',
+    '/api/organizations',
+    '/api/users',
+    '/api/documents',
+    '/api/tickets',
+    '/api/transparencia',
+    '/api/financeiro',
+    '/api/compras',
+    '/api/vendas',
+    '/api/complypay',
+    '/api/cultivation'
+  ];
+  
+  // Aplicar proteção CSRF a todas as rotas que começam com os caminhos protegidos
+  csrfProtectedPaths.forEach(path => {
+    app.use(path, csrfProtection);
+  });
+}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -689,6 +787,10 @@ app.use((req, res, next) => {
     }
   });
 
+  // Aplicar proteção CSRF às rotas
+  applyCSRFToRoutes();
+
+  // Registrar todas as rotas da aplicação
   const server = await registerRoutes(app);
   
   // Registrar rotas de integração com WhatsApp
@@ -705,12 +807,40 @@ app.use((req, res, next) => {
     console.error("Erro ao inicializar dados de exemplo:", error);
   }
 
+  // Middleware de tratamento de erros aprimorado
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("Erro na aplicação:", err);
+    
+    // Determinar o código de status HTTP adequado
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    // Configurar mensagem de erro de forma segura
+    // Em produção, não enviar detalhes técnicos de erros 500
+    const isProduction = process.env.NODE_ENV === "production";
+    let message = "Internal Server Error";
+    
+    if (status !== 500 || !isProduction) {
+      message = err.message || "Internal Server Error";
+    }
+    
+    // Evitar detalhes de erro técnicos em respostas
+    const responseBody: any = { 
+      error: {
+        status,
+        message,
+      }
+    };
+    
+    // Incluir stack trace apenas em desenvolvimento
+    if (process.env.NODE_ENV === "development" && err.stack) {
+      responseBody.error.stack = err.stack;
+    }
+    
+    // Garantir que o cabeçalho Content-Type esteja definido
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Enviar resposta
+    res.status(status).json(responseBody);
   });
 
   // importantly only setup vite in development and after
