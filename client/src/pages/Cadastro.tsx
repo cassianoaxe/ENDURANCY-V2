@@ -61,14 +61,22 @@ export default function Cadastro() {
   // Buscar planos
   const { data: plans, isLoading: loadingPlans } = useQuery({
     queryKey: ['/api/plans'],
+    queryFn: async () => {
+      return await apiRequest('/api/plans', {
+        method: 'GET'
+      });
+    }
   });
   
   // Mutação para atualizar status da organização
   const updateOrgStatus = useMutation({
     mutationFn: async ({ id, status, reason }: { id: number, status: string, reason?: string }) => {
       console.log(`Alterando status da organização ${id} para ${status}${reason ? ` com motivo: ${reason}` : ''}`);
-      // Usando apiRequest em vez de axios diretamente
-      return await apiRequest('PUT', `/api/organizations/${id}/status`, { status, reason });
+      // Usando apiRequest com formato atualizado e proteção CSRF
+      return await apiRequest(`/api/organizations/${id}/status`, {
+        method: 'PUT',
+        data: { status, reason }
+      });
     },
     onSuccess: (data) => {
       console.log("Status atualizado com sucesso:", data);
@@ -95,7 +103,9 @@ export default function Cadastro() {
   // Mutação para excluir organização
   const deleteOrganization = useMutation({
     mutationFn: async (id: number) => {
-      return await apiRequest('DELETE', `/api/organizations/${id}`);
+      return await apiRequest(`/api/organizations/${id}`, {
+        method: 'DELETE'
+      });
     },
     onSuccess: () => {
       toast({
@@ -119,7 +129,10 @@ export default function Cadastro() {
   // Mutação para enviar link de pagamento
   const sendPaymentLinkMutation = useMutation({
     mutationFn: async (organizationId: number) => {
-      return await apiRequest('POST', '/api/payment-links/send', { organizationId });
+      return await apiRequest('/api/payment-links/send', {
+        method: 'POST',
+        data: { organizationId }
+      });
     },
     onSuccess: () => {
       toast({
@@ -146,7 +159,10 @@ export default function Cadastro() {
   // Mutação para entrar como administrador da organização
   const loginAsAdminMutation = useMutation({
     mutationFn: async (organizationId: number) => {
-      return await apiRequest('POST', '/api/auth/login-as-admin', { organizationId });
+      return await apiRequest('/api/auth/login-as-admin', {
+        method: 'POST',
+        data: { organizationId }
+      });
     },
     onSuccess: (data) => {
       toast({
