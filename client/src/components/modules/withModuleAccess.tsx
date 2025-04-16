@@ -41,6 +41,14 @@ export const withModuleAccess = <P extends object>(
       refetch: refetchOrg
     } = useQuery<Organization>({
       queryKey: ['/api/organizations', user?.organizationId],
+      queryFn: async () => {
+        if (!user?.organizationId) throw new Error('ID da organização não fornecido');
+        const response = await fetch(`/api/organizations/${user.organizationId}`);
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar organização: ${response.statusText}`);
+        }
+        return response.json();
+      },
       enabled: !!user?.organizationId,
       retry: 3,
       retryDelay: 1000,
@@ -61,6 +69,14 @@ export const withModuleAccess = <P extends object>(
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
       queryKey: [`/api/organization-modules/${user?.organizationId}`],
+      queryFn: async () => {
+        if (!user?.organizationId) throw new Error('ID da organização não fornecido');
+        const response = await fetch(`/api/organization-modules/${user.organizationId}`);
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar módulos: ${response.statusText}`);
+        }
+        return response.json();
+      },
       enabled: !!user?.organizationId,
       retry: 3,
       retryDelay: 1000,
