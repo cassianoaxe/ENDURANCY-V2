@@ -126,6 +126,9 @@ import DataImport from "@/pages/DataImport";
 
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
+import PlantioPage from "@/pages/organization/cultivation/plantio";
+import ColheitaPage from "@/pages/organization/cultivation/colheita";
+import AnalysisModule from "@/pages/organization/cultivation/analises";
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
@@ -664,6 +667,18 @@ function AppContent() {
     // Módulos específicos da organização
     if (currentPath === '/organization/cultivation') {
       return <CultivationModule />;
+    }
+    
+    if (currentPath === '/organization/cultivation/plantio') {
+      return <PlantioPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/colheita') {
+      return <ColheitaPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/analises') {
+      return <AnalysisModule />;
     }
 
     if (currentPath === '/organization/production') {
