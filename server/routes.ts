@@ -237,10 +237,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       pool,
       tableName: 'session', // Table to store sessions
       createTableIfMissing: true,
+      pruneSessionInterval: 60 * 60 // Limpar sessões a cada hora (em segundos)
     }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: true, // Changed to true to ensure session updates
-    saveUninitialized: true, // Changed to true to create session right away
+    resave: false, // Definido como false para reduzir operações de gravação
+    saveUninitialized: false, // Não salva sessões não inicializadas para reduzir overhead
     name: 'connect.sid', // Nome padrão para maximizar compatibilidade
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
@@ -261,19 +262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Garantir que o middleware de sessão seja aplicado corretamente
   app.use(session(sessionConfig));
   
-  // Middleware de debug reduzido para diminuir a sobrecarga no servidor
-  app.use((req, res, next) => {
-    // Verificar apenas para rotas específicas que não são frequentes
-    if (!req.path.startsWith('/api/auth/me') && 
-        !req.path.startsWith('/api/notifications') && 
-        !req.path.startsWith('/api/organizations') &&
-        !req.path.startsWith('/assets') &&
-        !req.path.startsWith('/uploads')) {
-      // Log reduzido apenas para sessão
-      console.log("Session ID:", req.sessionID);
-    }
-    next();
-  });
+  // Remover middleware de debug que estava causando muitos logs
+  // Isso evita sobrecarga no servidor e reduz o número de requisições
   
   // Initialize user table with admin and other default users if they don't exist
   const initializeDefaultUsers = async () => {
