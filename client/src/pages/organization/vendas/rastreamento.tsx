@@ -139,14 +139,36 @@ export default function Rastreamento() {
               <CardTitle>Filtros</CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="todos" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-4 w-full">
-                  <TabsTrigger value="todos">Todos</TabsTrigger>
-                  <TabsTrigger value="em-transporte">Em Transporte</TabsTrigger>
-                  <TabsTrigger value="entregues">Entregues</TabsTrigger>
-                  <TabsTrigger value="com-problemas">Problemas</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="flex flex-wrap gap-1 w-full">
+                <Button 
+                  variant={activeTab === "todos" ? "default" : "outline"} 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setActiveTab("todos")}>
+                  Todos
+                </Button>
+                <Button 
+                  variant={activeTab === "em-transporte" ? "default" : "outline"} 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setActiveTab("em-transporte")}>
+                  Em Transporte
+                </Button>
+                <Button 
+                  variant={activeTab === "entregues" ? "default" : "outline"} 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setActiveTab("entregues")}>
+                  Entregues
+                </Button>
+                <Button 
+                  variant={activeTab === "com-problemas" ? "default" : "outline"} 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setActiveTab("com-problemas")}>
+                  Problemas
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

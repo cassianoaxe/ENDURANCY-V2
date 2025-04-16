@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Removido import para Tabs que não está mais sendo usado
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Search, 
@@ -199,14 +199,28 @@ export default function Produtos() {
                 className="pl-8"
               />
             </div>
-            <Tabs defaultValue="todos" className="w-full md:w-auto" onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="todos">Todos</TabsTrigger>
-                <TabsTrigger value="ativos">Ativos</TabsTrigger>
-                <TabsTrigger value="estoque-baixo">Estoque Baixo</TabsTrigger>
-                <TabsTrigger value="esgotados">Esgotados</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex">
+              <Button variant="ghost" 
+                className={`${activeTab === 'todos' ? 'bg-muted' : ''}`}
+                onClick={() => setActiveTab('todos')}>
+                Todos
+              </Button>
+              <Button variant="ghost" 
+                className={`${activeTab === 'ativos' ? 'bg-muted' : ''}`}
+                onClick={() => setActiveTab('ativos')}>
+                Ativos
+              </Button>
+              <Button variant="ghost"
+                className={`${activeTab === 'estoque-baixo' ? 'bg-muted' : ''}`}
+                onClick={() => setActiveTab('estoque-baixo')}>
+                Estoque Baixo
+              </Button>
+              <Button variant="ghost"
+                className={`${activeTab === 'esgotados' ? 'bg-muted' : ''}`}
+                onClick={() => setActiveTab('esgotados')}>
+                Esgotados
+              </Button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
