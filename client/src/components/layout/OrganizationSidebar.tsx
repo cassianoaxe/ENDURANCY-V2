@@ -370,45 +370,38 @@ export default function OrganizationSidebar() {
       title: "Vendas Online",
       path: "/organization/vendas",
       active: currentPath === "/organization/vendas" || 
-              currentPath === "/organization/sales" ||
-              currentPath === "/organization/gerenciar-produtos" ||
-              currentPath === "/organization/dashboard-vendas" || 
-              currentPath === "/organization/relatorio-vendas" ||
-              currentPath === "/organization/pedidos" || 
-              currentPath === "/organization/produtos" || 
-              currentPath === "/organization/promocoes" || 
-              currentPath === "/organization/rastreamento",
+              currentPath.startsWith("/organization/vendas/"),
       icon: <ShoppingCart size={18} />,
       isSubmenu: true,
       subItems: [
         {
           title: "Dashboard Vendas",
-          path: "/organization/dashboard-vendas",
-          active: currentPath === "/organization/dashboard-vendas",
+          path: "/organization/vendas/dashboard",
+          active: currentPath === "/organization/vendas" || currentPath === "/organization/vendas/dashboard",
           icon: <LayoutDashboard size={16} />
         },
         {
           title: "Pedidos",
-          path: "/organization/pedidos",
-          active: currentPath === "/organization/pedidos",
+          path: "/organization/vendas/pedidos",
+          active: currentPath === "/organization/vendas/pedidos",
           icon: <PackageOpen size={16} />
         },
         {
           title: "Produtos",
-          path: "/organization/produtos",
-          active: currentPath === "/organization/produtos",
+          path: "/organization/vendas/produtos",
+          active: currentPath === "/organization/vendas/produtos",
           icon: <Package size={16} />
         },
         {
           title: "Promoções",
-          path: "/organization/promocoes",
-          active: currentPath === "/organization/promocoes",
+          path: "/organization/vendas/promocoes",
+          active: currentPath === "/organization/vendas/promocoes",
           icon: <BadgePercent size={16} />
         },
         {
           title: "Rastreamento",
-          path: "/organization/rastreamento",
-          active: currentPath === "/organization/rastreamento",
+          path: "/organization/vendas/rastreamento",
+          active: currentPath === "/organization/vendas/rastreamento",
           icon: <Truck size={16} />
         }
       ]

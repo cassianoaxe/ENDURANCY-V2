@@ -1001,9 +1001,18 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    // Redirecionar as antigas URLs para as novas URLs no padrão /organization/vendas/...
     if (currentPath === '/organization/dashboard-vendas') {
+      // Redirecionar para a nova URL
+      useEffect(() => {
+        window.history.pushState({}, '', '/organization/vendas/dashboard');
+        window.dispatchEvent(new Event('navigation'));
+      }, []);
+      
       return <OrganizationLayout>
-        <DashboardVendas />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </OrganizationLayout>;
     }
     
@@ -1248,28 +1257,60 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
-    // Rotas para compatibilidade com a estrutura antiga
+    // Rotas para compatibilidade com a estrutura antiga - redirecionamentos
     if (currentPath === '/organization/pedidos') {
+      // Redirecionar para a nova URL
+      useEffect(() => {
+        window.history.pushState({}, '', '/organization/vendas/pedidos');
+        window.dispatchEvent(new Event('navigation'));
+      }, []);
+      
       return <OrganizationLayout>
-        <Pedidos />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/produtos') {
+      // Redirecionar para a nova URL
+      useEffect(() => {
+        window.history.pushState({}, '', '/organization/vendas/produtos');
+        window.dispatchEvent(new Event('navigation'));
+      }, []);
+      
       return <OrganizationLayout>
-        <Produtos />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/promocoes') {
+      // Redirecionar para a nova URL
+      useEffect(() => {
+        window.history.pushState({}, '', '/organization/vendas/promocoes');
+        window.dispatchEvent(new Event('navigation'));
+      }, []);
+      
       return <OrganizationLayout>
-        <Promocoes />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/rastreamento') {
+      // Redirecionar para a nova URL
+      useEffect(() => {
+        window.history.pushState({}, '', '/organization/vendas/rastreamento');
+        window.dispatchEvent(new Event('navigation'));
+      }, []);
+      
       return <OrganizationLayout>
-        <Rastreamento />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </OrganizationLayout>;
     }
     
