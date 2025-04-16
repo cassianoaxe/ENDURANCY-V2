@@ -1,9 +1,8 @@
-import React, { ComponentType, useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import React, { ComponentType } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import ModuleSubscriptionStatus, { ModuleStatus } from './ModuleSubscriptionStatus';
 import { Loader2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
 // Interface para organização
 interface Organization {
@@ -47,40 +46,6 @@ export const withModuleAccess = <P extends object>(
   // Componente de wrapper
   return function WithModuleAccessWrapper(props: P) {
     const { user } = useAuth();
-    const [retryCount, setRetryCount] = useState(0);
-    
-    // Efeito para tentar novamente em caso de falha nas requisições
-    useEffect(() => {
-      if (retryCount > 0) {
-        const timer = setTimeout(() => {
-          console.log(`Tentando carregar dados novamente (tentativa ${retryCount})...`);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }, [retryCount]);
-    
-    // Usamos o queryClient para gerenciar as queries
-    const queryClient = useQueryClient();
-    
-    // Função para carregar organização atual
-    const loadOrganization = async (): Promise<Organization> => {
-      try {
-        return await apiRequest('/api/organizations/current', 'GET');
-      } catch (error) {
-        console.error("Erro ao carregar organização:", error);
-        throw error;
-      }
-    };
-    
-    // Função para carregar módulos da organização
-    const loadOrganizationModules = async (): Promise<OrganizationModule[]> => {
-      try {
-        return await apiRequest('/api/modules/organization', 'GET');
-      } catch (error) {
-        console.error("Erro ao carregar módulos:", error);
-        throw error;
-      }
-    };
     
     // Busca dados da organização com retry em caso de falha
     const { 
@@ -90,20 +55,18 @@ export const withModuleAccess = <P extends object>(
       refetch: refetchOrg
     } = useQuery<Organization>({
       queryKey: ['/api/organizations/current'],
-      queryFn: loadOrganization,
+      queryFn: async () => {
+        const response = await fetch('/api/organizations/current');
+        if (!response.ok) throw new Error(`Erro ao buscar organização: ${response.statusText}`);
+        return response.json();
+      },
       enabled: !!user?.organizationId,
-      retry: 3,
-      retryDelay: 1000
+      retry: 1,
+      retryDelay: 3000,
+      staleTime: 60000, // Cache válido por 1 minuto
+      refetchOnWindowFocus: false, // Não refaz a consulta ao focar a janela
+      refetchOnMount: false // Não refaz a consulta ao montar o componente novamente
     });
-    
-    // Efetua uma nova tentativa em caso de erro
-    useEffect(() => {
-      if (orgError && retryCount < 3) {
-        setRetryCount(prev => prev + 1);
-        const timer = setTimeout(() => refetchOrg(), 1500);
-        return () => clearTimeout(timer);
-      }
-    }, [orgError, retryCount, refetchOrg]);
     
     // Busca os módulos da organização
     const { 
@@ -113,20 +76,22 @@ export const withModuleAccess = <P extends object>(
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
       queryKey: ['/api/modules/organization'],
-      queryFn: loadOrganizationModules,
-      enabled: !!user?.organizationId,
-      retry: 3,
-      retryDelay: 1000
+      queryFn: async () => {
+        // Só busca os módulos se tiver a organização
+        if (!organization?.id) {
+          return [];
+        }
+        const response = await fetch('/api/modules/organization');
+        if (!response.ok) throw new Error(`Erro ao buscar módulos: ${response.statusText}`);
+        return response.json();
+      },
+      enabled: !!organization?.id, // Só executa se tiver dados da organização
+      retry: 1,
+      retryDelay: 3000,
+      staleTime: 60000, // Cache válido por 1 minuto
+      refetchOnWindowFocus: false, // Não refaz a consulta ao focar a janela
+      refetchOnMount: false // Não refaz a consulta ao montar o componente novamente
     });
-    
-    // Efetua uma nova tentativa em caso de erro nos módulos
-    useEffect(() => {
-      if (modulesError && retryCount < 3) {
-        setRetryCount(prev => prev + 1);
-        const timer = setTimeout(() => refetchModules(), 1500);
-        return () => clearTimeout(timer);
-      }
-    }, [modulesError, retryCount, refetchModules]);
     
     // Se estiver carregando, exibe um spinner
     if (isOrgLoading || isModulesLoading) {
@@ -139,7 +104,7 @@ export const withModuleAccess = <P extends object>(
     }
     
     // Trata erros de carregamento
-    if ((orgError || modulesError) && retryCount >= 3) {
+    if (orgError || modulesError) {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center">
@@ -150,7 +115,6 @@ export const withModuleAccess = <P extends object>(
             </p>
             <button 
               onClick={() => {
-                setRetryCount(0);
                 refetchOrg();
                 refetchModules();
               }}
@@ -163,31 +127,6 @@ export const withModuleAccess = <P extends object>(
       );
     }
     
-    // Quando não há organização mas o usuário tem um ID de organização, estamos enfrentando um problema
-    // de cookies ou sessão. Vamos tratar especificamente este caso.
-    if (!organization && user?.organizationId) {
-      console.log("Organizacao não encontrada, mas usuário tem organizationId:", user.organizationId);
-      
-      // Tenta obter a organização diretamente via fetch em vez de usar o React Query
-      if (retryCount < 3) {
-        // Incrementa o contador de tentativas
-        setRetryCount(prev => prev + 1);
-        
-        // Tenta novamente com as queries
-        setTimeout(() => {
-          refetchOrg();
-          refetchModules();
-        }, 1000);
-        
-        return (
-          <div className="min-h-screen flex flex-col items-center justify-center">
-            <Loader2 className="h-10 w-10 animate-spin text-green-500 mb-4" />
-            <p className="text-gray-600">Carregando informações do módulo (tentativa {retryCount}/3)...</p>
-          </div>
-        );
-      }
-    }
-    
     // Verifica se a organização existe
     if (!organization || !user?.organizationId) {
       return (
@@ -197,7 +136,6 @@ export const withModuleAccess = <P extends object>(
             <p className="mt-2 text-gray-600">Não foi possível carregar os dados da organização.</p>
             <button 
               onClick={() => {
-                setRetryCount(0);
                 refetchOrg();
                 refetchModules();
               }}
@@ -214,14 +152,12 @@ export const withModuleAccess = <P extends object>(
     let moduleStatus: ModuleStatus = "not_contracted";
     
     if (organizationModules && Array.isArray(organizationModules)) {
-      console.log("Verificando módulos disponíveis:", organizationModules);
       const foundModule = organizationModules.find((m: any) => {
         // Verificar se o moduleInfo existe e se o tipo corresponde
         return m.moduleInfo && (m.moduleInfo.type === moduleType || m.moduleInfo.slug === moduleType);
       });
       
       if (foundModule) {
-        console.log("Módulo encontrado:", foundModule);
         if (foundModule.status === 'active' || foundModule.active === true) {
           moduleStatus = "active";
         } else if (foundModule.status === 'pending') {
@@ -236,14 +172,9 @@ export const withModuleAccess = <P extends object>(
     }
     
     // Caso contrário, exibe o componente de status de assinatura
-    console.log("Renderizando ModuleSubscriptionStatus com organizationId:", organization?.id);
-    
-    // Vamos garantir que o ID da organização seja passado corretamente
     const orgId = organization?.id;
     
     if (!orgId) {
-      console.error("Erro: ID da organização não disponível:", organization);
-      
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center">
@@ -251,7 +182,6 @@ export const withModuleAccess = <P extends object>(
             <p className="mt-2 text-gray-600">Não foi possível identificar a organização.</p>
             <button 
               onClick={() => {
-                setRetryCount(0);
                 refetchOrg();
                 refetchModules();
               }}
