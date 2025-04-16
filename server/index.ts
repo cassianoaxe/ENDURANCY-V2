@@ -14,6 +14,9 @@ import csrf from 'csurf';
 
 const app = express();
 
+// Configurar o Express para confiar no cabeçalho X-Forwarded-For para rate limiting
+app.set('trust proxy', 1);
+
 // Configuração do Helmet para headers de segurança
 app.use(helmet({
   contentSecurityPolicy: {
