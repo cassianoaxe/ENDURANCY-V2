@@ -100,8 +100,9 @@ export default function DataImport() {
   const { data: organizations, isLoading: isLoadingOrganizations } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/organizations');
-      return response.json();
+      return await apiRequest('/api/organizations', {
+        method: 'GET'
+      });
     }
   });
 
@@ -332,8 +333,10 @@ export default function DataImport() {
       }, 500);
 
       // Chamar API de importação
-      const response = await apiRequest('POST', '/api/admin/import', formData);
-      const result = await response.json();
+      const result = await apiRequest('/api/admin/import', {
+        method: 'POST',
+        data: formData
+      });
 
       clearInterval(intervalId);
       setImportProgress(100);

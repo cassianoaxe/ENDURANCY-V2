@@ -44,17 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     setIsLoading(true);
     try {
-      const res = await apiRequest('GET', '/api/auth/me');
+      const userData = await apiRequest('/api/auth/me', {
+        method: 'GET'
+      });
       
-      if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
-        // Guarda informação no localStorage para uso em componentes que não têm acesso ao contexto
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        setUser(null);
-        localStorage.removeItem('user');
-      }
+      setUser(userData);
+      // Guarda informação no localStorage para uso em componentes que não têm acesso ao contexto
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error);
       setUser(null);
@@ -72,21 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? '/api/auth/org-login'
         : '/api/auth/login';
       
-      const data = {
-        username, 
-        password,
-        ...(userType && { role: userType }),
-        ...(orgCode && { orgCode })
-      };
+      const userData = await apiRequest(endpoint, {
+        method: 'POST',
+        data: {
+          username, 
+          password,
+          ...(userType && { role: userType }),
+          ...(orgCode && { orgCode })
+        }
+      });
       
-      const res = await apiRequest('POST', endpoint, data);
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Falha ao realizar login');
-      }
-      
-      const userData = await res.json();
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       
@@ -108,7 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Função de logout
   const logout = async () => {
     try {
-      await apiRequest('POST', '/api/auth/logout');
+      await apiRequest('/api/auth/logout', {
+        method: 'POST'
+      });
       setUser(null);
       localStorage.removeItem('user');
       
