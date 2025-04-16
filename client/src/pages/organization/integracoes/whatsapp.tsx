@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Card, 
   CardContent, 
@@ -105,19 +106,15 @@ export default function WhatsAppIntegracao() {
     setConnectionStatus('connecting');
     setQrCodeReady(false);
     
-    // Chamando nossa API que interage com a WAHA API
-    fetch('/api/whatsapp/session/start', {
+    // Chamando nossa API que interage com a WAHA API usando apiRequest com proteção CSRF
+    apiRequest('/api/whatsapp/session/start', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
+      data: {
         apiUrl: configData.wahaApiUrl,
         apiKey: configData.wahaApiKey,
         instanceName: configData.wahaInstanceName
-      })
+      }
     })
-    .then(response => response.json())
     .then(data => {
       if (data.success && data.qrCode) {
         setQrCodeReady(true);
