@@ -491,6 +491,41 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "Cultivo",
+      path: "/organization/cultivation",
+      active: currentPath === "/organization/cultivation" || 
+              currentPath.startsWith("/organization/cultivation/"),
+      icon: <Leaf size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Cultivo",
+          path: "/organization/cultivation",
+          active: currentPath === "/organization/cultivation" && 
+                  !currentPath.includes("/organization/cultivation/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Plantio",
+          path: "/organization/cultivation/plantio",
+          active: currentPath === "/organization/cultivation/plantio",
+          icon: <Leaf size={16} />
+        },
+        {
+          title: "Colheita",
+          path: "/organization/cultivation/colheita",
+          active: currentPath === "/organization/cultivation/colheita",
+          icon: <Scissors size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/cultivation/analises",
+          active: currentPath === "/organization/cultivation/analises",
+          icon: <LineChart size={16} />
+        }
+      ]
+    },
+    {
       title: "Transparência",
       path: "/organization/transparencia/gerenciar",
       active: currentPath === "/organization/transparencia/gerenciar" ||
