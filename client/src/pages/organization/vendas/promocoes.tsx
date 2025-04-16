@@ -178,14 +178,32 @@ export default function Promocoes() {
                 className="pl-8"
               />
             </div>
-            <Tabs defaultValue="todas" className="w-full md:w-auto" onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="todas">Todas</TabsTrigger>
-                <TabsTrigger value="ativas">Ativas</TabsTrigger>
-                <TabsTrigger value="agendadas">Agendadas</TabsTrigger>
-                <TabsTrigger value="expiradas">Expiradas</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex space-x-1 border rounded-md bg-muted/30 p-1">
+              <Button 
+                variant={activeTab === "todas" ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("todas")}>
+                Todas
+              </Button>
+              <Button 
+                variant={activeTab === "ativas" ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("ativas")}>
+                Ativas
+              </Button>
+              <Button 
+                variant={activeTab === "agendadas" ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("agendadas")}>
+                Agendadas
+              </Button>
+              <Button 
+                variant={activeTab === "expiradas" ? "default" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("expiradas")}>
+                Expiradas
+              </Button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
