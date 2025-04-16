@@ -367,7 +367,7 @@ export default function OrganizationSidebar() {
       ]
     },
     {
-      title: "Vendas",
+      title: "Vendas Online",
       path: "/organization/vendas",
       active: currentPath === "/organization/vendas" || 
               currentPath === "/organization/sales" ||
