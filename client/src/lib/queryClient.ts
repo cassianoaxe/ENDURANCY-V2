@@ -10,7 +10,7 @@ export const queryClient = new QueryClient({
 });
 
 interface ApiRequestOptions {
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   data?: any;
   headers?: Record<string, string>;
   includeCredentials?: boolean;
@@ -37,7 +37,7 @@ async function fetchCsrfToken(): Promise<string> {
     }
     
     const data = await response.json();
-    if (data.csrfToken) {
+    if (data && typeof data.csrfToken === 'string') {
       csrfToken = data.csrfToken;
       return csrfToken;
     }
@@ -68,7 +68,9 @@ export async function apiRequest(url: string, options: ApiRequestOptions) {
   if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
     try {
       const token = await fetchCsrfToken();
-      requestHeaders['CSRF-Token'] = token;
+      if (token) {
+        requestHeaders['CSRF-Token'] = token;
+      }
     } catch (error) {
       console.error('Erro ao obter token CSRF para requisição:', error);
       // Continua a requisição mesmo sem o token CSRF em caso de erro

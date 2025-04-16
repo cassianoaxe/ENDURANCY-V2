@@ -6,12 +6,13 @@ import { Plan } from '@shared/schema';
  */
 export const createSubscription = async (planId: number, organizationId: number) => {
   try {
-    const response = await apiRequest('POST', '/api/subscriptions/create', { 
-      planId, 
-      organizationId 
+    return await apiRequest('/api/subscriptions/create', { 
+      method: 'POST',
+      data: {
+        planId, 
+        organizationId 
+      }
     });
-    const data = await response.json();
-    return data;
   } catch (error) {
     console.error('Erro ao criar assinatura:', error);
     throw error;
@@ -23,10 +24,12 @@ export const createSubscription = async (planId: number, organizationId: number)
  */
 export const cancelSubscription = async (subscriptionId: string) => {
   try {
-    const response = await apiRequest('POST', '/api/subscriptions/cancel', { 
-      subscriptionId 
+    const data = await apiRequest('/api/subscriptions/cancel', { 
+      method: 'POST',
+      data: {
+        subscriptionId 
+      }
     });
-    const data = await response.json();
     return data.success;
   } catch (error) {
     console.error('Erro ao cancelar assinatura:', error);
@@ -39,12 +42,13 @@ export const cancelSubscription = async (subscriptionId: string) => {
  */
 export const updateSubscriptionPlan = async (subscriptionId: string, planId: number) => {
   try {
-    const response = await apiRequest('POST', '/api/subscriptions/update', { 
-      subscriptionId,
-      planId
+    return await apiRequest('/api/subscriptions/update', { 
+      method: 'POST',
+      data: {
+        subscriptionId,
+        planId
+      }
     });
-    const data = await response.json();
-    return data;
   } catch (error) {
     console.error('Erro ao atualizar plano da assinatura:', error);
     throw error;
@@ -56,8 +60,9 @@ export const updateSubscriptionPlan = async (subscriptionId: string, planId: num
  */
 export const fetchPlans = async (): Promise<Plan[]> => {
   try {
-    const response = await apiRequest('GET', '/api/plans');
-    return await response.json();
+    return await apiRequest('/api/plans', {
+      method: 'GET'
+    });
   } catch (error) {
     console.error('Erro ao buscar planos:', error);
     throw error;
