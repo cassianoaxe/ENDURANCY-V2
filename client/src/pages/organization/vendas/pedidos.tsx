@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -204,6 +204,10 @@ export default function GerenciamentoPedidos() {
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<PatientOrder | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState("");
+  const [trackingCode, setTrackingCode] = useState("");
+  const [statusNote, setStatusNote] = useState("");
   const [searchQuery, setSearchQuery] = useState('');
   
   const { toast } = useToast();
@@ -218,14 +222,30 @@ export default function GerenciamentoPedidos() {
 
   // Buscar pedidos de pacientes
   const { data: pedidosPacientes, isLoading: isLoadingPacientes, error: errorPacientes } = useQuery<PatientOrder[]>({
-    queryKey: ['/api/organization/orders'],
+    queryKey: ['/api/organization/orders', { type: 'patient' }],
     queryFn: async () => {
-      const response = await fetch('/api/organization/orders', {
+      const response = await fetch('/api/organization/orders?type=patient', {
         credentials: 'include',
       });
       
       if (!response.ok) {
         throw new Error('Erro ao buscar pedidos de pacientes');
+      }
+      
+      return response.json();
+    }
+  });
+  
+  // Buscar pedidos para expedição (pedidos confirmados que precisam ser preparados/enviados)
+  const { data: pedidosExpedicao, isLoading: isLoadingExpedicao, error: errorExpedicao } = useQuery<any[]>({
+    queryKey: ['/api/organization/orders/expedition'],
+    queryFn: async () => {
+      const response = await fetch('/api/organization/orders/expedition', {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar pedidos para expedição');
       }
       
       return response.json();
