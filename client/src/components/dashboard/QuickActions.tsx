@@ -232,29 +232,34 @@ export function OrgAdminQuickActions({ onAction }: { onAction: (action: string) 
 
 // Ações rápidas para pacientes
 export function PatientQuickActions({ onAction }: { onAction: (action: string) => void }) {
+  // Função para navegação direta
+  const navigateTo = (path: string) => {
+    window.location.href = path;
+  };
+  
   const actions: QuickAction[] = [
     {
       label: 'Novo Pedido',
       icon: <ShoppingBag className="h-5 w-5 text-green-500" />,
-      onClick: () => onAction('novo-pedido'),
+      onClick: () => navigateTo('/patient/produtos'),
       className: 'border-green-100 hover:border-green-200 hover:bg-green-50'
     },
     {
       label: 'Enviar Prescrição',
       icon: <FileText className="h-5 w-5 text-blue-500" />,
-      onClick: () => onAction('enviar-prescricao'),
+      onClick: () => navigateTo('/patient/prescricoes/nova'),
       className: 'border-blue-100 hover:border-blue-200 hover:bg-blue-50'
     },
     {
       label: 'Rastrear Pedido',
       icon: <Package className="h-5 w-5 text-orange-500" />,
-      onClick: () => onAction('rastrear-pedido'),
+      onClick: () => navigateTo('/patient/pedidos/rastreamento'),
       className: 'border-orange-100 hover:border-orange-200 hover:bg-orange-50'
     },
     {
       label: 'Meus Pagamentos',
       icon: <CreditCard className="h-5 w-5 text-purple-500" />,
-      onClick: () => onAction('meus-pagamentos'),
+      onClick: () => navigateTo('/patient/pagamentos'),
       className: 'border-purple-100 hover:border-purple-200 hover:bg-purple-50'
     }
   ];

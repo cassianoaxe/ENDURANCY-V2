@@ -16,8 +16,7 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
   
   // Função para navegar para uma rota específica
   const navigateTo = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new Event('popstate'));
+    window.location.href = path;
   };
   
   // Função para deslogar o usuário
@@ -30,8 +29,7 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
     
     // Redirecionar para a página de login após logout
     setTimeout(() => {
-      window.history.pushState({}, '', '/patient/login');
-      window.dispatchEvent(new Event('popstate'));
+      window.location.href = '/patient/login';
     }, 1000);
   };
   
