@@ -211,7 +211,7 @@ const ProdutosPage: React.FC = () => {
     }
     
     // Filtrar por marca
-    if (filterBrand) {
+    if (filterBrand && filterBrand !== 'all') {
       filteredProducts = filteredProducts.filter(
         product => product.brand === filterBrand
       );
@@ -441,7 +441,7 @@ const ProdutosPage: React.FC = () => {
                 <SelectValue placeholder="Marca" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as marcas</SelectItem>
+                <SelectItem value="all">Todas as marcas</SelectItem>
                 {brandOptions.map((brand) => (
                   <SelectItem key={brand} value={brand}>{brand}</SelectItem>
                 ))}
