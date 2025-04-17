@@ -576,7 +576,7 @@ const ProdutosPage: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-16">
-              <SearchIcon className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <Search className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
               <p className="text-gray-500 max-w-md mx-auto">
                 Não conseguimos encontrar produtos que correspondam aos seus critérios de pesquisa.
