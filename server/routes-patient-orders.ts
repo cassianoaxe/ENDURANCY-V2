@@ -3,7 +3,7 @@
  */
 import { Express, Request, Response } from 'express';
 import { db } from './db';
-import { authenticate } from './middleware/auth';
+import { authenticate } from './routes';
 import { orders } from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
