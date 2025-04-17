@@ -421,17 +421,19 @@ const CheckoutPage: React.FC = () => {
           </Card>
         ) : (
           // Formulário de checkout
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+            <div className="lg:col-span-2 space-y-6">
               <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Checkout</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Checkout</h1>
                 <Button 
                   variant="ghost" 
-                  className="flex items-center text-sm" 
+                  size="sm"
+                  className="flex items-center text-xs md:text-sm" 
                   onClick={backToProducts}
                 >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Voltar para produtos
+                  <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                  <span className="hidden sm:inline">Voltar para produtos</span>
+                  <span className="sm:hidden">Voltar</span>
                 </Button>
               </div>
               
@@ -470,12 +472,12 @@ const CheckoutPage: React.FC = () => {
               </div>
               
               {/* Formulário da Etapa Atual */}
-              <Card>
+              <Card className="border-0 md:border shadow-none md:shadow">
                 {step === 1 && (
                   /* Etapa 1: Informações de Entrega */
                   <>
-                    <CardHeader>
-                      <CardTitle>Informações de Entrega</CardTitle>
+                    <CardHeader className="px-3 md:px-6">
+                      <CardTitle className="text-lg md:text-xl">Informações de Entrega</CardTitle>
                       <CardDescription>
                         Escolha o método de entrega e informe seu endereço
                       </CardDescription>
@@ -1020,12 +1022,12 @@ const CheckoutPage: React.FC = () => {
               </Card>
             </div>
             
-            {/* Resumo do Pedido (Coluna Direita) */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <ShoppingBag className="mr-2 h-5 w-5" />
+            {/* Resumo do Pedido (Coluna Direita) - Visível apenas em telas grandes em layout de coluna */}
+            <div className="space-y-4 lg:space-y-6 order-first lg:order-last mb-6 lg:mb-0">
+              <Card className="sticky top-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center text-lg">
+                    <ShoppingBag className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                     Resumo do Pedido
                   </CardTitle>
                 </CardHeader>
