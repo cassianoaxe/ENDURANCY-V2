@@ -272,7 +272,7 @@ const CheckoutPage: React.FC = () => {
   };
   
   // Função para concluir o pedido
-  const finalizeOrder = () => {
+  const finalizeOrder = async () => {
     if (!checkout.termsAccepted) {
       toast({
         title: "Termos não aceitos",
@@ -284,17 +284,72 @@ const CheckoutPage: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Simulação de envio do pedido
-    setTimeout(() => {
+    try {
+      // Obter endereço selecionado
+      const selectedAddress = addresses.find(addr => addr.isDefault) || addresses[0];
+      
+      // Calcular total do pedido
+      const total = cartItems.reduce((sum, item) => {
+        const price = item.discountPrice !== undefined ? item.discountPrice : item.price;
+        return sum + (price * item.quantity);
+      }, 0);
+      
+      // Preparar dados do pedido
+      const orderData = {
+        items: cartItems,
+        customerName: "Paciente Teste", // Em uma aplicação real, viria do perfil do usuário
+        customerEmail: "paciente@email.com", // Em uma aplicação real, viria do perfil do usuário
+        total: total,
+        deliveryMethod: checkout.deliveryMethod,
+        shippingAddress: selectedAddress,
+        paymentMethod: checkout.paymentMethod,
+        paymentDetails: {
+          cardLastDigits: checkout.cardNumber.slice(-4),
+          installments: checkout.installments,
+        },
+        organizationId: 1, // Em uma aplicação real, seria o ID da organização selecionada
+        notes: checkout.orderNotes,
+        requiredPrescription: cartItems.some(item => item.id === '3'), // Exemplo: produto ID 3 requer prescrição
+        prescriptionId: cartItems.some(item => item.id === '3') ? '1' : undefined, // ID da prescrição se necessário
+      };
+      
+      // Enviar pedido para o backend
+      const response = await fetch('/api/patient/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao processar pedido');
+      }
+      
+      // Processar resposta
+      const data = await response.json();
+      
+      // Atualizar UI com sucesso
       setIsSubmitting(false);
       setOrderComplete(true);
-      setOrderId("PED" + Math.floor(10000 + Math.random() * 90000)); // ID aleatório
+      setOrderId(data.order.id.toString());
       
       toast({
         title: "Pedido realizado com sucesso!",
-        description: "Você receberá uma confirmação por e-mail.",
+        description: `Pedido #${data.order.orderNumber} confirmado. Você receberá uma confirmação por e-mail.`,
       });
-    }, 2000);
+    } catch (error: any) {
+      console.error('Erro ao finalizar pedido:', error);
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Erro ao finalizar pedido",
+        description: error.message || "Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Função para retornar à página de produtos
