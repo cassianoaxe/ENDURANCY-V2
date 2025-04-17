@@ -4,7 +4,8 @@ import React from 'react';
 import { 
   Plus, FileText, Users, Settings, Package, Calendar, 
   CreditCard, MessageSquare, Bell, Briefcase, Database,
-  Download, BarChart, PlusCircle, Search, Clock
+  Download, BarChart, PlusCircle, Search, Clock,
+  ShoppingBag
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -233,24 +234,30 @@ export function OrgAdminQuickActions({ onAction }: { onAction: (action: string) 
 export function PatientQuickActions({ onAction }: { onAction: (action: string) => void }) {
   const actions: QuickAction[] = [
     {
-      label: 'Agendar Consulta',
-      icon: <Calendar className="h-5 w-5 text-blue-500" />,
-      onClick: () => onAction('agendar-consulta'),
-      className: 'border-blue-100 hover:border-blue-200 hover:bg-blue-50'
-    },
-    {
-      label: 'Mensagens',
-      icon: <MessageSquare className="h-5 w-5 text-green-500" />,
-      onClick: () => onAction('mensagens'),
+      label: 'Novo Pedido',
+      icon: <ShoppingBag className="h-5 w-5 text-green-500" />,
+      onClick: () => onAction('novo-pedido'),
       className: 'border-green-100 hover:border-green-200 hover:bg-green-50'
     },
     {
-      label: 'Histórico Médico',
-      icon: <FileText className="h-5 w-5 text-purple-500" />,
-      onClick: () => onAction('historico-medico'),
+      label: 'Enviar Prescrição',
+      icon: <FileText className="h-5 w-5 text-blue-500" />,
+      onClick: () => onAction('enviar-prescricao'),
+      className: 'border-blue-100 hover:border-blue-200 hover:bg-blue-50'
+    },
+    {
+      label: 'Rastrear Pedido',
+      icon: <Package className="h-5 w-5 text-orange-500" />,
+      onClick: () => onAction('rastrear-pedido'),
+      className: 'border-orange-100 hover:border-orange-200 hover:bg-orange-50'
+    },
+    {
+      label: 'Meus Pagamentos',
+      icon: <CreditCard className="h-5 w-5 text-purple-500" />,
+      onClick: () => onAction('meus-pagamentos'),
       className: 'border-purple-100 hover:border-purple-200 hover:bg-purple-50'
     }
   ];
 
-  return <QuickActions actions={actions} />;
+  return <QuickActions actions={actions} columns={4} />;
 }
