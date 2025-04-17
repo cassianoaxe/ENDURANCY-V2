@@ -893,7 +893,7 @@ export default function GerenciamentoPedidos() {
                       <Button variant="outline" onClick={() => setDetailsOpen(false)}>
                         Fechar
                       </Button>
-                      <Button>
+                      <Button onClick={() => openStatusModal(selectedOrder, "in_preparation")}>
                         Atualizar Status
                       </Button>
                     </div>
