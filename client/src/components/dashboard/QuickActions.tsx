@@ -14,7 +14,7 @@ export type QuickAction = {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
-  variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link';
   className?: string;
 };
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import {
   Card,
   CardContent,
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowUp, ArrowDown, Clock, AlertCircle, CheckCircle, Activity, Beaker, FileCheck } from "lucide-react";
+import { LaboratoryQuickActions } from "@/components/dashboard/QuickActions";
 
 // Cores para status de amostras
 const SAMPLE_STATUS_COLORS = {
@@ -161,6 +163,7 @@ const formatProcessingTimeData = (data: any) => {
 };
 
 export default function LaboratoryDashboard() {
+  const [, setLocation] = useLocation();
   const { data: dashboardData = {}, isLoading, error } = useQuery({
     queryKey: ['/api/lab-dashboard'],
     queryFn: async () => {
@@ -500,41 +503,65 @@ export default function LaboratoryDashboard() {
         </Card>
       </div>
 
-      {/* Alertas e ações necessárias */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Alertas e Ações</CardTitle>
-          <CardDescription>
-            Tarefas que precisam de atenção
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {dashboardData.samplesPendingTooLong > 0 ? (
-            <div className="bg-orange-50 p-4 rounded-md border border-orange-200 flex items-start gap-3 mb-3">
-              <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-orange-700">Amostras com atraso</h3>
-                <p className="text-orange-600 text-sm">
-                  Existem {dashboardData.samplesPendingTooLong} amostras pendentes há mais de 7 dias.
-                </p>
-                <Button variant="outline" size="sm" className="mt-2">
-                  Ver amostras
-                </Button>
+      {/* Ações rápidas */}
+      <div className="grid gap-4 grid-cols-1">
+        <LaboratoryQuickActions 
+          onAction={(action) => {
+            switch (action) {
+              case 'nova-amostra':
+                setLocation('/laboratory/samples/new');
+                break;
+              case 'pesquisar-amostras':
+                setLocation('/laboratory/samples');
+                break;
+              case 'agendar-teste':
+                setLocation('/laboratory/schedule');
+                break;
+              case 'amostras-pendentes':
+                setLocation('/laboratory/samples?status=pending');
+                break;
+              default:
+                console.log('Ação não implementada:', action);
+            }
+          }} 
+        />
+
+        {/* Alertas e ações necessárias */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Alertas e Ações</CardTitle>
+            <CardDescription>
+              Tarefas que precisam de atenção
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {dashboardData.samplesPendingTooLong > 0 ? (
+              <div className="bg-orange-50 p-4 rounded-md border border-orange-200 flex items-start gap-3 mb-3">
+                <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-orange-700">Amostras com atraso</h3>
+                  <p className="text-orange-600 text-sm">
+                    Existem {dashboardData.samplesPendingTooLong} amostras pendentes há mais de 7 dias.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-2">
+                    Ver amostras
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-green-50 p-4 rounded-md border border-green-200 flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-green-700">Nenhum alerta crítico</h3>
-                <p className="text-green-600 text-sm">
-                  Todas as amostras estão sendo processadas dentro do prazo esperado.
-                </p>
+            ) : (
+              <div className="bg-green-50 p-4 rounded-md border border-green-200 flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-green-700">Nenhum alerta crítico</h3>
+                  <p className="text-green-600 text-sm">
+                    Todas as amostras estão sendo processadas dentro do prazo esperado.
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
