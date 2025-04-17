@@ -541,7 +541,7 @@ export default function Trainings() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nenhum</SelectItem>
+                              <SelectItem value="nenhum">Nenhum</SelectItem>
                               {procedures && procedures.map((procedure: any) => (
                                 <SelectItem key={procedure.id} value={procedure.id.toString()}>
                                   {procedure.title}
@@ -569,7 +569,7 @@ export default function Trainings() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nenhum</SelectItem>
+                              <SelectItem value="nenhum">Nenhum</SelectItem>
                               {equipments && equipments.map((equipment: any) => (
                                 <SelectItem key={equipment.id} value={equipment.id.toString()}>
                                   {equipment.name} ({equipment.model})
