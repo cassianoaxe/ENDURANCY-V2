@@ -195,7 +195,7 @@ const OrderStatus: React.FC<{ status: string }> = ({ status }) => {
   );
 };
 
-export default function PedidosUnificados() {
+export default function GerenciamentoPedidos() {
   // Estados compartilhados
   const [activeTab, setActiveTab] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
