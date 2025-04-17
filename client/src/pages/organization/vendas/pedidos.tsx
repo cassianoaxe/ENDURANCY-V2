@@ -115,7 +115,7 @@ const getStatusColor = (status: string) => {
 
 export default function Pedidos() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('todos');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -147,7 +147,7 @@ export default function Pedidos() {
       pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = selectedStatus === '' || 
+    const matchesStatus = selectedStatus === 'todos' || 
       pedido.status === selectedStatus;
     
     return matchesSearch && matchesStatus;
@@ -222,7 +222,7 @@ export default function Pedidos() {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="Entregue">Entregue</SelectItem>
                 <SelectItem value="Processando">Processando</SelectItem>
                 <SelectItem value="Enviado">Enviado</SelectItem>
