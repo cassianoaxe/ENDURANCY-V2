@@ -904,5 +904,76 @@ export default function GerenciamentoPedidos() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Atualização de Status */}
+      {selectedOrder && (
+        <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Atualizar Status do Pedido</DialogTitle>
+              <DialogDescription>
+                Atualize o status do pedido #{selectedOrder.orderNumber} para {currentStatus === 'shipped' ? 'enviado' : currentStatus === 'delivered' ? 'entregue' : currentStatus === 'canceled' ? 'cancelado' : 'em preparação'}.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              {currentStatus === 'shipped' && (
+                <div className="space-y-2">
+                  <label htmlFor="tracking-code" className="text-sm font-medium">
+                    Código de Rastreamento
+                  </label>
+                  <Input
+                    id="tracking-code"
+                    placeholder="Digite o código de rastreamento..."
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    O código de rastreamento será enviado ao cliente por e-mail.
+                  </p>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <label htmlFor="status-note" className="text-sm font-medium">
+                  Observações (opcional)
+                </label>
+                <Input
+                  id="status-note"
+                  placeholder="Adicione informações adicionais sobre este status..."
+                  value={statusNote}
+                  onChange={(e) => setStatusNote(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setStatusModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => {
+                  updateOrderStatusMutation.mutate({
+                    orderId: selectedOrder.id,
+                    status: currentStatus,
+                    trackingCode: currentStatus === 'shipped' ? trackingCode : undefined,
+                    note: statusNote || undefined
+                  });
+                }}
+                disabled={updateOrderStatusMutation.isPending || (currentStatus === 'shipped' && !trackingCode)}
+              >
+                {updateOrderStatusMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Atualizando...
+                  </>
+                ) : (
+                  <>Atualizar Status</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
   );
 }
