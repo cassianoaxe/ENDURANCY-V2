@@ -116,21 +116,21 @@ interface Order {
 
 // Componente para exibir status do pedido
 const OrderStatus: React.FC<{ status: string }> = ({ status }) => {
-  const statusMap: Record<string, { label: string; variant: 'default' | 'outline' | 'secondary' | 'destructive' | 'success' }> = {
+  const statusMap: Record<string, { label: string; variant: string }> = {
     pending: { label: 'Pendente', variant: 'outline' },
     processing: { label: 'Em processamento', variant: 'secondary' },
     shipped: { label: 'Enviado', variant: 'secondary' },
-    delivered: { label: 'Entregue', variant: 'success' },
+    delivered: { label: 'Entregue', variant: 'secondary' },
     canceled: { label: 'Cancelado', variant: 'destructive' },
     refunded: { label: 'Reembolsado', variant: 'destructive' },
     awaiting_payment: { label: 'Aguardando pagamento', variant: 'outline' },
-    payment_confirmed: { label: 'Pagamento confirmado', variant: 'success' },
+    payment_confirmed: { label: 'Pagamento confirmado', variant: 'secondary' },
   };
 
   const statusInfo = statusMap[status] || { label: status, variant: 'default' };
 
   return (
-    <Badge variant={statusInfo.variant}>
+    <Badge variant={statusInfo.variant as any}>
       {statusInfo.label}
     </Badge>
   );
