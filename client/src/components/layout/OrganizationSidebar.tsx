@@ -384,14 +384,8 @@ export default function OrganizationSidebar() {
         {
           title: "Pedidos",
           path: "/organization/vendas/pedidos",
-          active: currentPath === "/organization/vendas/pedidos",
+          active: currentPath === "/organization/vendas/pedidos" || currentPath === "/organization/pedidos/pacientes",
           icon: <PackageOpen size={16} />
-        },
-        {
-          title: "Pedidos de Pacientes",
-          path: "/organization/pedidos/pacientes",
-          active: currentPath === "/organization/pedidos/pacientes",
-          icon: <User size={16} />
         },
         {
           title: "Produtos",
