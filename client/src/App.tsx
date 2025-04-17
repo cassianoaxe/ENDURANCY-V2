@@ -287,7 +287,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -1968,6 +1968,16 @@ function AppContent() {
       return (
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
           <PagamentosPage />
+        </Suspense>
+      );
+    }
+    
+    // Rota de checkout
+    if (currentPath.startsWith('/patient/checkout')) {
+      const CheckoutPage = React.lazy(() => import('@/pages/patient/checkout'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <CheckoutPage />
         </Suspense>
       );
     }
