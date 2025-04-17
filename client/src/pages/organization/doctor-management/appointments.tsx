@@ -468,7 +468,7 @@ function AppointmentsPage() {
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="todos">Todos os status</SelectItem>
                   <SelectItem value="confirmed">Confirmado</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="cancelled">Cancelado</SelectItem>
@@ -481,7 +481,7 @@ function AppointmentsPage() {
                   <SelectValue placeholder="Filtrar por médico" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os médicos</SelectItem>
+                  <SelectItem value="todos">Todos os médicos</SelectItem>
                   {doctors?.map((doctor: Doctor) => (
                     <SelectItem key={doctor.id} value={doctor.id.toString()}>
                       {doctor.name}
