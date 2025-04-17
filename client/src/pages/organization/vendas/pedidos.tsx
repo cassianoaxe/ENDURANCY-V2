@@ -213,7 +213,8 @@ export default function GerenciamentoPedidos() {
   // Buscar pedidos gerais (mock por enquanto)
   const { data: pedidosGeraisData, isLoading: isLoadingGerais } = useQuery({
     queryKey: ['/api/vendas/pedidos'],
-    enabled: false, // Desabilitado temporariamente
+    enabled: false, // Desabilitado temporariamente,
+    initialData: pedidosGerais // Usar dados simulados como fallback
   });
 
   // Buscar pedidos de pacientes
@@ -242,14 +243,14 @@ export default function GerenciamentoPedidos() {
   };
 
   const handleSelectAll = () => {
-    if (selectedItems.length === pedidosGerais.length) {
+    if (selectedItems.length === pedidosGeraisData?.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(pedidosGerais.map(pedido => pedido.id));
+      setSelectedItems(pedidosGeraisData?.map(pedido => pedido.id) || []);
     }
   };
 
-  const filteredPedidosGerais = pedidosGerais.filter(pedido => {
+  const filteredPedidosGerais = pedidosGeraisData?.filter(pedido => {
     const matchesSearch = searchTerm === '' || 
       pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase());
@@ -272,11 +273,11 @@ export default function GerenciamentoPedidos() {
     }
     
     // Filtrar por pesquisa
-    if (searchQuery.trim()) {
+    if (searchQuery && searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(order => 
-        order.orderNumber.toLowerCase().includes(query) ||
-        order.customerName.toLowerCase().includes(query) ||
+        order.orderNumber?.toLowerCase().includes(query) ||
+        order.customerName?.toLowerCase().includes(query) ||
         order.additionalInfo?.customerEmail?.toLowerCase().includes(query)
       );
     }
@@ -404,7 +405,7 @@ export default function GerenciamentoPedidos() {
                       <tr className="border-b">
                         <th className="py-3 px-2 text-left">
                           <Checkbox 
-                            checked={selectedItems.length === pedidosGerais.length && pedidosGerais.length > 0}
+                            checked={selectedItems.length === pedidosGeraisData?.length && (pedidosGeraisData?.length || 0) > 0}
                             onCheckedChange={handleSelectAll}
                           />
                         </th>
@@ -459,7 +460,7 @@ export default function GerenciamentoPedidos() {
                           </td>
                         </tr>
                       ))}
-                      {filteredPedidosGerais.length === 0 && (
+                      {(!filteredPedidosGerais || filteredPedidosGerais.length === 0) && (
                         <tr>
                           <td colSpan={8} className="py-6 text-center text-muted-foreground">
                             Nenhum pedido encontrado com os filtros selecionados.
