@@ -22,14 +22,16 @@ export default function RedirectToPedidosUnificados() {
   }, [navigate]);
   
   return (
-    <div className="container flex flex-col items-center justify-center min-h-[70vh]">
-      <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-      <h2 className="text-2xl font-bold mb-2">Redirecionando...</h2>
-      <p className="text-muted-foreground text-center">
-        Esta página foi movida para o novo gerenciador unificado de pedidos.
-        <br />
-        Você será redirecionado automaticamente.
-      </p>
-    </div>
+    <OrganizationLayout>
+      <div className="container flex flex-col items-center justify-center min-h-[70vh]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Redirecionando...</h2>
+        <p className="text-muted-foreground text-center">
+          Esta página foi movida para o novo gerenciador unificado de pedidos.
+          <br />
+          Você será redirecionado automaticamente.
+        </p>
+      </div>
+    </OrganizationLayout>
   );
 }
