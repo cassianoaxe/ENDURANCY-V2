@@ -1,946 +1,600 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import axios from 'axios';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState } from 'react';
 import {
-  ArrowLeft,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
   CreditCard,
-  CircleDollarSign,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  Plus,
   Wallet,
-  Receipt,
-  FileText,
+  Clock,
+  CheckCircle2,
   ArrowUpRight,
-  Banknote,
-  Landmark,
-  QrCode,
-  Rotate3D,
-  CreditCardIcon,
+  Download,
+  AlertCircle,
+  Filter,
+  Calendar,
   Copy,
-  Clipboard,
-  Search,
-  Loader2
-} from 'lucide-react';
+  Receipt,
+  PlusCircle,
+  XCircle,
+  Share2
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import PatientLayout from '@/components/layout/PatientLayout';
 
 // Interfaces
-interface CartaoCredito {
+interface PaymentMethod {
   id: string;
-  ultimos4Digitos: string;
-  bandeira: string;
-  nomeNoCartao: string;
-  expiracao: string;
-  padrao: boolean;
+  type: 'credit' | 'pix' | 'boleto';
+  label: string;
+  info: string;
+  default?: boolean;
+  expiryDate?: string;
+  icon: React.ReactNode;
 }
 
-interface Pagamento {
+interface Transaction {
   id: string;
-  tipo: 'cartao' | 'boleto' | 'pix';
-  status: 'pendente' | 'aprovado' | 'rejeitado' | 'estornado';
-  valor: number;
-  data: string;
-  pedidoId: string;
-  numeroPedido: string;
-  detalhes: {
-    cartao?: {
-      ultimos4Digitos: string;
-      bandeira: string;
-    };
-    boleto?: {
-      codigoBarras: string;
-      dataVencimento: string;
-      linkBoleto: string;
-    };
-    pix?: {
-      chave: string;
-      qrCode: string;
-      copiaCola: string;
-      expiracao: string;
-    };
-  };
+  description: string;
+  date: string;
+  amount: number;
+  status: 'pending' | 'completed' | 'failed';
+  orderNumber?: string;
+  paymentMethod: 'credit' | 'pix' | 'boleto';
 }
 
-interface Assinatura {
+interface Invoice {
   id: string;
-  plano: string;
-  valor: number;
-  status: 'ativa' | 'inativa' | 'cancelada';
-  dataInicio: string;
-  proximoFaturamento: string;
-  metodoPagamento: {
-    tipo: 'cartao' | 'boleto';
-    detalhes: string;
-  };
+  orderNumber: string;
+  date: string;
+  dueDate: string;
+  amount: number;
+  status: 'paid' | 'pending' | 'overdue';
+  items: {
+    name: string;
+    quantity: number;
+    price: number;
+  }[];
 }
 
-const PagamentosPage = () => {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [cartoes, setCartoes] = useState<CartaoCredito[]>([]);
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
-  const [assinaturas, setAssinaturas] = useState<Assinatura[]>([]);
-  const [tipoHistoricoAtivo, setTipoHistoricoAtivo] = useState<string>('todos');
-  const [mostrarFormularioCartao, setMostrarFormularioCartao] = useState(false);
-  const [novoCartao, setNovoCartao] = useState({
-    numero: '',
-    nomeNoCartao: '',
-    expiracao: '',
-    cvv: '',
-    padrao: false
-  });
-  
-  // Verificar se o usuário está logado
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      console.log("Usuário não autenticado. Redirecionando para o login...");
-      window.location.href = '/patient/login';
-    }
-  }, [authLoading, isAuthenticated]);
-  
-  // Carregar dados de pagamentos
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Em um ambiente real, faria chamadas API:
-        // const cartoesResponse = await axios.get('/api/patient/pagamentos/cartoes');
-        // const pagamentosResponse = await axios.get('/api/patient/pagamentos/historico');
-        // const assinaturasResponse = await axios.get('/api/patient/pagamentos/assinaturas');
-        // setCartoes(cartoesResponse.data);
-        // setPagamentos(pagamentosResponse.data);
-        // setAssinaturas(assinaturasResponse.data);
-        
-        // Dados de exemplo para demonstração
-        const cartoesExemplo: CartaoCredito[] = [
-          {
-            id: '1',
-            ultimos4Digitos: '4242',
-            bandeira: 'Visa',
-            nomeNoCartao: 'JOAO SILVA',
-            expiracao: '12/28',
-            padrao: true
-          },
-          {
-            id: '2',
-            ultimos4Digitos: '5555',
-            bandeira: 'Mastercard',
-            nomeNoCartao: 'JOAO SILVA',
-            expiracao: '08/26',
-            padrao: false
-          }
-        ];
-        
-        const pagamentosExemplo: Pagamento[] = [
-          {
-            id: '1',
-            tipo: 'cartao',
-            status: 'aprovado',
-            valor: 259.90,
-            data: '2024-05-20',
-            pedidoId: '1',
-            numeroPedido: 'PED-200524-001',
-            detalhes: {
-              cartao: {
-                ultimos4Digitos: '4242',
-                bandeira: 'Visa'
-              }
-            }
-          },
-          {
-            id: '2',
-            tipo: 'boleto',
-            status: 'aprovado',
-            valor: 129.90,
-            data: '2024-04-19',
-            pedidoId: '2',
-            numeroPedido: 'PED-200419-002',
-            detalhes: {
-              boleto: {
-                codigoBarras: '34191.79001 01043.510047 91020.150008 9 91330026000',
-                dataVencimento: '2024-04-21',
-                linkBoleto: '#'
-              }
-            }
-          },
-          {
-            id: '3',
-            tipo: 'pix',
-            status: 'aprovado',
-            valor: 89.90,
-            data: '2024-05-10',
-            pedidoId: '3',
-            numeroPedido: 'PED-200510-003',
-            detalhes: {
-              pix: {
-                chave: 'cbd-store@example.com',
-                qrCode: '#',
-                copiaCola: '00020126580014br.gov.bcb.pix01151234567890123454',
-                expiracao: '2024-05-10T12:30:00'
-              }
-            }
-          },
-          {
-            id: '4',
-            tipo: 'cartao',
-            status: 'pendente',
-            valor: 149.90,
-            data: '2024-05-24',
-            pedidoId: '4',
-            numeroPedido: 'PED-240524-004',
-            detalhes: {
-              cartao: {
-                ultimos4Digitos: '5555',
-                bandeira: 'Mastercard'
-              }
-            }
-          }
-        ];
-        
-        const assinaturasExemplo: Assinatura[] = [
-          {
-            id: '1',
-            plano: 'Plano Mensal CBD Premium',
-            valor: 79.90,
-            status: 'ativa',
-            dataInicio: '2024-03-15',
-            proximoFaturamento: '2024-06-15',
-            metodoPagamento: {
-              tipo: 'cartao',
-              detalhes: 'Visa terminado em 4242'
-            }
-          }
-        ];
-        
-        setCartoes(cartoesExemplo);
-        setPagamentos(pagamentosExemplo);
-        setAssinaturas(assinaturasExemplo);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Erro ao carregar dados de pagamentos:", error);
-        toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível recuperar suas informações de pagamento. Tente novamente mais tarde.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [toast]);
-  
-  // Filtrar pagamentos por tipo
-  const getPagamentosFiltrados = () => {
-    if (tipoHistoricoAtivo === 'todos') {
-      return pagamentos;
-    }
-    return pagamentos.filter(pagamento => pagamento.tipo === tipoHistoricoAtivo);
-  };
-  
-  // Formatar data para dd/mm/yyyy
-  const formatarData = (dataString: string): string => {
-    const data = new Date(dataString);
-    return `${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}/${data.getFullYear()}`;
-  };
-  
-  // Obter cor e texto para o status de pagamento
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'aprovado':
-        return {
-          label: 'Aprovado',
-          color: 'bg-green-100 text-green-800'
-        };
-      case 'pendente':
-        return {
-          label: 'Pendente',
-          color: 'bg-yellow-100 text-yellow-800'
-        };
-      case 'rejeitado':
-        return {
-          label: 'Recusado',
-          color: 'bg-red-100 text-red-800'
-        };
-      case 'estornado':
-        return {
-          label: 'Estornado',
-          color: 'bg-purple-100 text-purple-800'
-        };
-      case 'ativa':
-        return {
-          label: 'Ativa',
-          color: 'bg-green-100 text-green-800'
-        };
-      case 'inativa':
-        return {
-          label: 'Inativa',
-          color: 'bg-gray-100 text-gray-800'
-        };
-      case 'cancelada':
-        return {
-          label: 'Cancelada',
-          color: 'bg-red-100 text-red-800'
-        };
-      default:
-        return {
-          label: 'Desconhecido',
-          color: 'bg-gray-100 text-gray-800'
-        };
-    }
-  };
-  
-  // Obter ícone para o tipo de pagamento
-  const getPagamentoIcon = (tipo: string) => {
-    switch (tipo) {
-      case 'cartao':
-        return <CreditCardIcon className="h-5 w-5 text-blue-500" />;
-      case 'boleto':
-        return <Receipt className="h-5 w-5 text-gray-500" />;
-      case 'pix':
-        return <QrCode className="h-5 w-5 text-green-500" />;
-      default:
-        return <CircleDollarSign className="h-5 w-5 text-gray-500" />;
-    }
-  };
-  
-  // Obter nome do tipo de pagamento
-  const getPagamentoNome = (tipo: string) => {
-    switch (tipo) {
-      case 'cartao':
-        return 'Cartão de Crédito';
-      case 'boleto':
-        return 'Boleto Bancário';
-      case 'pix':
-        return 'PIX';
-      default:
-        return 'Pagamento';
-    }
-  };
-  
-  // Função para adicionar um novo cartão
-  const adicionarNovoCartao = () => {
-    // Validação básica
-    if (!novoCartao.numero || !novoCartao.nomeNoCartao || !novoCartao.expiracao || !novoCartao.cvv) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha todos os campos do cartão.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validar número do cartão (formato simples)
-    if (!/^\d{16}$/.test(novoCartao.numero.replace(/\s/g, ''))) {
-      toast({
-        title: "Número de cartão inválido",
-        description: "O número do cartão deve conter 16 dígitos.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validar data de expiração (formato MM/YY)
-    if (!/^\d{2}\/\d{2}$/.test(novoCartao.expiracao)) {
-      toast({
-        title: "Data de expiração inválida",
-        description: "Use o formato MM/AA (ex: 12/28).",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validar CVV
-    if (!/^\d{3,4}$/.test(novoCartao.cvv)) {
-      toast({
-        title: "Código de segurança inválido",
-        description: "O código de segurança deve ter 3 ou 4 dígitos.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Em um ambiente real, faria uma chamada API para salvar o cartão
-    // await axios.post('/api/patient/pagamentos/cartoes', novoCartao);
-    
-    // Simulação de adição de cartão
-    const ultimosDigitos = novoCartao.numero.slice(-4);
-    const bandeira = novoCartao.numero.startsWith('4') ? 'Visa' : 
-                     novoCartao.numero.startsWith('5') ? 'Mastercard' : 
-                     'Outra';
-    
-    const novoCartaoSalvo: CartaoCredito = {
-      id: (cartoes.length + 1).toString(),
-      ultimos4Digitos: ultimosDigitos,
-      bandeira,
-      nomeNoCartao: novoCartao.nomeNoCartao.toUpperCase(),
-      expiracao: novoCartao.expiracao,
-      padrao: novoCartao.padrao
-    };
-    
-    // Se o novo cartão for definido como padrão, atualizar os outros cartões
-    if (novoCartao.padrao) {
-      setCartoes(cartoesAtuais => 
-        cartoesAtuais.map(cartao => ({
-          ...cartao,
-          padrao: false
-        }))
-      );
-    }
-    
-    // Adicionar o novo cartão à lista
-    setCartoes(cartoesAtuais => [...cartoesAtuais, novoCartaoSalvo]);
-    
-    // Limpar formulário e fechar
-    setNovoCartao({
-      numero: '',
-      nomeNoCartao: '',
-      expiracao: '',
-      cvv: '',
-      padrao: false
-    });
-    setMostrarFormularioCartao(false);
-    
-    toast({
-      title: "Cartão adicionado com sucesso",
-      description: `Cartão ${bandeira} terminado em ${ultimosDigitos} foi adicionado.`,
-    });
-  };
-  
-  // Função para definir um cartão como padrão
-  const definirCartaoPadrao = (cartaoId: string) => {
-    setCartoes(cartoesAtuais => 
-      cartoesAtuais.map(cartao => ({
-        ...cartao,
-        padrao: cartao.id === cartaoId
-      }))
-    );
-    
-    toast({
-      title: "Cartão padrão atualizado",
-      description: "Seu cartão padrão foi atualizado com sucesso.",
-    });
-  };
-  
-  // Função para remover um cartão
-  const removerCartao = (cartaoId: string) => {
-    const cartaoParaRemover = cartoes.find(c => c.id === cartaoId);
-    
-    if (!cartaoParaRemover) {
-      return;
-    }
-    
-    // Verificar se é o cartão padrão
-    if (cartaoParaRemover.padrao && cartoes.length > 1) {
-      toast({
-        title: "Operação não permitida",
-        description: "Não é possível remover o cartão padrão. Defina outro cartão como padrão primeiro.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Em um ambiente real, faria uma chamada API para remover o cartão
-    // await axios.delete(`/api/patient/pagamentos/cartoes/${cartaoId}`);
-    
-    // Remover o cartão da lista
-    setCartoes(cartoesAtuais => cartoesAtuais.filter(cartao => cartao.id !== cartaoId));
-    
-    toast({
-      title: "Cartão removido",
-      description: `Cartão terminado em ${cartaoParaRemover.ultimos4Digitos} foi removido.`,
-    });
-  };
-  
-  // Função para cancelar uma assinatura
-  const cancelarAssinatura = (assinaturaId: string) => {
-    // Em um ambiente real, faria uma chamada API para cancelar a assinatura
-    // await axios.post(`/api/patient/pagamentos/assinaturas/${assinaturaId}/cancelar`);
-    
-    // Atualizar a assinatura na lista
-    setAssinaturas(assinaturasAtuais => 
-      assinaturasAtuais.map(assinatura => 
-        assinatura.id === assinaturaId 
-          ? { ...assinatura, status: 'cancelada' } 
-          : assinatura
-      )
-    );
-    
-    toast({
-      title: "Assinatura cancelada",
-      description: "Sua assinatura foi cancelada com sucesso.",
-    });
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        <span className="ml-3 text-lg">Carregando informações de pagamento...</span>
-      </div>
-    );
+// Mock data
+const paymentMethods: PaymentMethod[] = [
+  {
+    id: '1',
+    type: 'credit',
+    label: 'Cartão de crédito principal',
+    info: 'Mastercard •••• 4589',
+    default: true,
+    expiryDate: '12/2027',
+    icon: <CreditCard className="h-5 w-5" />
+  },
+  {
+    id: '2',
+    type: 'credit',
+    label: 'Cartão secundário',
+    info: 'Visa •••• 1234',
+    expiryDate: '05/2026',
+    icon: <CreditCard className="h-5 w-5" />
+  },
+  {
+    id: '3',
+    type: 'pix',
+    label: 'PIX',
+    info: 'CPF: •••.123.456-••',
+    icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11.6666 2.66669L14.3333 5.33335L11.6666 8.00002" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1.66663 13.3334V9.33335C1.66663 8.27234 2.07901 7.25472 2.81294 6.52079C3.54687 5.78686 4.5645 5.37335 5.62536 5.37335H14.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  },
+  {
+    id: '4',
+    type: 'boleto',
+    label: 'Boleto Bancário',
+    info: 'Gerar novo código',
+    icon: <Receipt className="h-5 w-5" />
   }
+];
+
+const transactions: Transaction[] = [
+  {
+    id: '1',
+    description: 'Compra de medicamentos',
+    date: '16/04/2025',
+    amount: 289.99,
+    status: 'completed',
+    orderNumber: 'PED-001-2025',
+    paymentMethod: 'credit'
+  },
+  {
+    id: '2',
+    description: 'Compra de óleo CBD 1500mg',
+    date: '10/04/2025',
+    amount: 179.99,
+    status: 'completed',
+    orderNumber: 'PED-002-2025',
+    paymentMethod: 'pix'
+  },
+  {
+    id: '3',
+    description: 'Compra de produtos variados',
+    date: '15/04/2025',
+    amount: 239.98,
+    status: 'pending',
+    orderNumber: 'PED-003-2025',
+    paymentMethod: 'boleto'
+  },
+  {
+    id: '4',
+    description: 'Tentativa de compra - cartão recusado',
+    date: '14/04/2025',
+    amount: 99.99,
+    status: 'failed',
+    paymentMethod: 'credit'
+  }
+];
+
+const invoices: Invoice[] = [
+  {
+    id: '1',
+    orderNumber: 'PED-001-2025',
+    date: '05/04/2025',
+    dueDate: '05/04/2025',
+    amount: 489.97,
+    status: 'paid',
+    items: [
+      { name: 'Full Spectrum 3000mg', quantity: 1, price: 289.99 },
+      { name: 'Pomada CBD 500mg', quantity: 2, price: 99.99 }
+    ]
+  },
+  {
+    id: '2',
+    orderNumber: 'PED-002-2025',
+    date: '10/04/2025',
+    dueDate: '10/04/2025',
+    amount: 179.99,
+    status: 'paid',
+    items: [
+      { name: 'Broad Spectrum 1500mg', quantity: 1, price: 179.99 }
+    ]
+  },
+  {
+    id: '3',
+    orderNumber: 'PED-003-2025',
+    date: '15/04/2025',
+    dueDate: '20/04/2025',
+    amount: 239.98,
+    status: 'pending',
+    items: [
+      { name: 'Isolado CBD 1000mg', quantity: 1, price: 149.99 },
+      { name: 'Spray Sublingual 500mg', quantity: 1, price: 89.99 }
+    ]
+  }
+];
+
+// Componente para o card de método de pagamento
+const PaymentMethodCard: React.FC<{ method: PaymentMethod, onRemove: () => void }> = ({ method, onRemove }) => {
+  return (
+    <Card className={`relative ${method.default ? 'border-primary' : ''}`}>
+      {method.default && (
+        <div className="absolute top-0 right-0 transform translate-x-1/3 -translate-y-1/3">
+          <Badge className="bg-primary text-primary-foreground">
+            Padrão
+          </Badge>
+        </div>
+      )}
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              {method.icon}
+            </div>
+            <div>
+              <CardTitle className="text-base">{method.label}</CardTitle>
+              <CardDescription>{method.info}</CardDescription>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pb-0">
+        {method.expiryDate && (
+          <div className="text-sm text-muted-foreground">
+            Validade: {method.expiryDate}
+          </div>
+        )}
+      </CardContent>
+      <CardFooter className="justify-between pt-4">
+        {!method.default ? (
+          <Button variant="outline" size="sm">
+            Definir como padrão
+          </Button>
+        ) : (
+          <div></div>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="19" cy="12" r="1" />
+                <circle cx="5" cy="12" r="1" />
+              </svg>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {method.type !== 'boleto' && method.type !== 'pix' && (
+              <DropdownMenuItem>Editar</DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={onRemove} className="text-destructive">
+              Remover
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardFooter>
+    </Card>
+  );
+};
+
+// Componente para a página de pagamentos
+const PagamentosPage: React.FC = () => {
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<string>("methods");
+  const [paymentMethodsList, setPaymentMethodsList] = useState<PaymentMethod[]>(paymentMethods);
+
+  // Função para remover um método de pagamento
+  const handleRemovePaymentMethod = (id: string) => {
+    toast({
+      title: "Método de pagamento removido",
+      description: "O método de pagamento foi removido com sucesso.",
+    });
+    setPaymentMethodsList(paymentMethodsList.filter(method => method.id !== id));
+  };
+
+  const handleAddPaymentMethod = () => {
+    toast({
+      title: "Adicionar método de pagamento",
+      description: "Funcionalidade não implementada neste protótipo.",
+    });
+  };
+
+  // Função para copiar código de boleto
+  const handleCopyCode = () => {
+    toast({
+      title: "Código copiado!",
+      description: "O código foi copiado para a área de transferência.",
+    });
+  };
+
+  // Função para baixar comprovante
+  const handleDownloadReceipt = (id: string) => {
+    toast({
+      title: "Download iniciado",
+      description: "O comprovante está sendo baixado.",
+    });
+  };
+
+  // Função para compartilhar comprovante
+  const handleShareReceipt = (id: string) => {
+    toast({
+      title: "Compartilhar comprovante",
+      description: "Funcionalidade não implementada neste protótipo.",
+    });
+  };
+
+  // Status das transações com ícones e cores
+  const getTransactionStatusInfo = (status: Transaction['status']) => {
+    switch (status) {
+      case 'completed':
+        return { icon: <CheckCircle2 className="h-4 w-4" />, label: 'Concluído', color: 'bg-green-500' };
+      case 'pending':
+        return { icon: <Clock className="h-4 w-4" />, label: 'Pendente', color: 'bg-yellow-500' };
+      case 'failed':
+        return { icon: <XCircle className="h-4 w-4" />, label: 'Falhou', color: 'bg-red-500' };
+    }
+  };
+
+  // Status das faturas com ícones e cores
+  const getInvoiceStatusInfo = (status: Invoice['status']) => {
+    switch (status) {
+      case 'paid':
+        return { icon: <CheckCircle2 className="h-4 w-4" />, label: 'Pago', color: 'bg-green-500' };
+      case 'pending':
+        return { icon: <Clock className="h-4 w-4" />, label: 'Pendente', color: 'bg-yellow-500' };
+      case 'overdue':
+        return { icon: <AlertCircle className="h-4 w-4" />, label: 'Atrasado', color: 'bg-red-500' };
+    }
+  };
+
+  // Renderiza ícone pelo tipo de pagamento
+  const getPaymentMethodIcon = (method: Transaction['paymentMethod']) => {
+    switch (method) {
+      case 'credit':
+        return <CreditCard className="h-4 w-4" />;
+      case 'pix':
+        return <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11.6666 2.66669L14.3333 5.33335L11.6666 8.00002" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M1.66663 13.3334V9.33335C1.66663 8.27234 2.07901 7.25472 2.81294 6.52079C3.54687 5.78686 4.5645 5.37335 5.62536 5.37335H14.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>;
+      case 'boleto':
+        return <Receipt className="h-4 w-4" />;
+    }
+  };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Cabeçalho da página */}
-        <div className="mb-6">
-          <div className="flex items-center mb-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setLocation('/patient/dashboard')}
-              className="mr-2"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Meus Pagamentos
-            </h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gerencie seus métodos de pagamento, veja assinaturas e histórico de pagamentos
-          </p>
-        </div>
+    <PatientLayout>
+      <div className="container mx-auto py-6">
+        <h1 className="text-3xl font-bold mb-6">Pagamentos</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            {/* Métodos de Pagamento */}
-            <Card className="mb-6">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle>Métodos de Pagamento</CardTitle>
-                  <CardDescription>
-                    Seus cartões e métodos de pagamento salvos
-                  </CardDescription>
-                </div>
-                <Button 
-                  onClick={() => setMostrarFormularioCartao(!mostrarFormularioCartao)}
-                  variant="outline"
-                  size="sm"
-                >
-                  {mostrarFormularioCartao ? (
-                    'Cancelar'
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adicionar cartão
-                    </>
-                  )}
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {mostrarFormularioCartao ? (
-                  <div className="border rounded-lg p-4 mb-4">
-                    <h3 className="font-medium mb-3">Novo Cartão de Crédito</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label htmlFor="numero-cartao" className="block text-sm font-medium mb-1">
-                          Número do Cartão
-                        </label>
-                        <Input
-                          id="numero-cartao"
-                          placeholder="1234 5678 9012 3456"
-                          value={novoCartao.numero}
-                          onChange={(e) => setNovoCartao({...novoCartao, numero: e.target.value})}
-                        />
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="nome-cartao" className="block text-sm font-medium mb-1">
-                          Nome no Cartão
-                        </label>
-                        <Input
-                          id="nome-cartao"
-                          placeholder="Como aparece no cartão"
-                          value={novoCartao.nomeNoCartao}
-                          onChange={(e) => setNovoCartao({...novoCartao, nomeNoCartao: e.target.value})}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label htmlFor="expiracao" className="block text-sm font-medium mb-1">
-                            Data de Expiração
-                          </label>
-                          <Input
-                            id="expiracao"
-                            placeholder="MM/AA"
-                            value={novoCartao.expiracao}
-                            onChange={(e) => setNovoCartao({...novoCartao, expiracao: e.target.value})}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="cvv" className="block text-sm font-medium mb-1">
-                            Código de Segurança (CVV)
-                          </label>
-                          <Input
-                            id="cvv"
-                            placeholder="123"
-                            type="password"
-                            maxLength={4}
-                            value={novoCartao.cvv}
-                            onChange={(e) => setNovoCartao({...novoCartao, cvv: e.target.value})}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id="cartao-padrao"
-                          checked={novoCartao.padrao}
-                          onChange={(e) => setNovoCartao({...novoCartao, padrao: e.target.checked})}
-                          className="rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <label htmlFor="cartao-padrao" className="text-sm">
-                          Definir como cartão padrão
-                        </label>
-                      </div>
-                      
-                      <Button onClick={adicionarNovoCartao} className="w-full">
-                        Salvar Cartão
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-                
-                {cartoes.length === 0 ? (
-                  <div className="text-center py-6">
-                    <CreditCard className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                      Nenhum método de pagamento
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Adicione um cartão de crédito para facilitar suas compras.
-                    </p>
-                    <div className="mt-4">
-                      <Button onClick={() => setMostrarFormularioCartao(true)}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Adicionar cartão
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {cartoes.map((cartao) => (
-                      <div 
-                        key={cartao.id}
-                        className={`border p-4 rounded-lg relative ${cartao.padrao ? 'border-primary bg-primary/5' : ''}`}
-                      >
-                        {cartao.padrao && (
-                          <Badge className="absolute top-2 right-2 bg-primary">
-                            Padrão
-                          </Badge>
-                        )}
-                        
-                        <div className="flex items-center mb-2">
-                          {cartao.bandeira === 'Visa' ? (
-                            <div className="h-8 w-12 bg-blue-100 rounded flex items-center justify-center text-xs font-bold text-blue-800">
-                              VISA
-                            </div>
-                          ) : cartao.bandeira === 'Mastercard' ? (
-                            <div className="h-8 w-12 bg-red-100 rounded flex items-center justify-center text-xs font-bold text-red-800">
-                              MC
-                            </div>
-                          ) : (
-                            <div className="h-8 w-12 bg-gray-100 rounded flex items-center justify-center text-xs font-bold text-gray-800">
-                              CARD
-                            </div>
-                          )}
-                          <div className="ml-3">
-                            <div className="font-medium">{cartao.bandeira}</div>
-                            <div className="text-sm text-gray-500">•••• {cartao.ultimos4Digitos}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 text-sm">
-                          <div>
-                            <span className="text-gray-500">Titular:</span> {cartao.nomeNoCartao}
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Exp:</span> {cartao.expiracao}
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3 flex justify-end space-x-2">
-                          {!cartao.padrao && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => definirCartaoPadrao(cartao.id)}
-                            >
-                              Definir como padrão
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => removerCartao(cartao.id)}
-                          >
-                            Remover
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Assinaturas */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Rotate3D className="mr-2 h-5 w-5" />
-                  Assinaturas Ativas
-                </CardTitle>
-                <CardDescription>
-                  Gerencie suas assinaturas e planos recorrentes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {assinaturas.length === 0 ? (
-                  <div className="text-center py-6">
-                    <Calendar className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                      Nenhuma assinatura ativa
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Você não possui nenhuma assinatura ou plano recorrente.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {assinaturas.map((assinatura) => (
-                      <div 
-                        key={assinatura.id}
-                        className="border p-4 rounded-lg"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h3 className="font-medium">{assinatura.plano}</h3>
-                            <p className="text-sm text-gray-500">
-                              Início em {formatarData(assinatura.dataInicio)}
-                            </p>
-                          </div>
-                          <Badge className={getStatusInfo(assinatura.status).color}>
-                            {getStatusInfo(assinatura.status).label}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div className="text-sm">
-                            <span className="text-gray-500">Valor Mensal:</span> R$ {assinatura.valor.toFixed(2)}
-                          </div>
-                          <div className="text-sm">
-                            <span className="text-gray-500">Próx. Cobrança:</span> {formatarData(assinatura.proximoFaturamento)}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center text-sm mb-3">
-                          <CreditCard className="h-4 w-4 mr-1 text-gray-500" />
-                          <span>{assinatura.metodoPagamento.detalhes}</span>
-                        </div>
-                        
-                        {assinatura.status === 'ativa' && (
-                          <div className="flex justify-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-red-500 hover:text-red-700"
-                              onClick={() => cancelarAssinatura(assinatura.id)}
-                            >
-                              Cancelar Assinatura
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="methods">Métodos de Pagamento</TabsTrigger>
+            <TabsTrigger value="transactions">Histórico de Transações</TabsTrigger>
+            <TabsTrigger value="invoices">Faturas</TabsTrigger>
+          </TabsList>
           
-          <div className="lg:col-span-1">
-            {/* Histórico de Pagamentos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Receipt className="mr-2 h-5 w-5" />
-                  Histórico de Pagamentos
-                </CardTitle>
-                <CardDescription>
-                  Seus pagamentos recentes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger 
-                    value="todos" 
-                    className="flex-1"
-                    onClick={() => setTipoHistoricoAtivo('todos')}
-                    data-state={tipoHistoricoAtivo === 'todos' ? 'active' : ''}
-                  >
-                    Todos
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="cartao" 
-                    className="flex-1"
-                    onClick={() => setTipoHistoricoAtivo('cartao')}
-                    data-state={tipoHistoricoAtivo === 'cartao' ? 'active' : ''}
-                  >
-                    Cartão
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="boleto" 
-                    className="flex-1"
-                    onClick={() => setTipoHistoricoAtivo('boleto')}
-                    data-state={tipoHistoricoAtivo === 'boleto' ? 'active' : ''}
-                  >
-                    Boleto
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="pix" 
-                    className="flex-1"
-                    onClick={() => setTipoHistoricoAtivo('pix')}
-                    data-state={tipoHistoricoAtivo === 'pix' ? 'active' : ''}
-                  >
-                    PIX
-                  </TabsTrigger>
-                </TabsList>
-                
-                {getPagamentosFiltrados().length === 0 ? (
-                  <div className="text-center py-6">
-                    <FileText className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                      Nenhum pagamento encontrado
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      Não há histórico de pagamentos para os filtros selecionados.
-                    </p>
+          {/* Métodos de Pagamento */}
+          <TabsContent value="methods">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+              {paymentMethodsList.map((method) => (
+                <PaymentMethodCard 
+                  key={method.id} 
+                  method={method} 
+                  onRemove={() => handleRemovePaymentMethod(method.id)} 
+                />
+              ))}
+              
+              <Card className="flex flex-col items-center justify-center h-full min-h-[160px] border-dashed cursor-pointer hover:bg-muted/50 transition-colors" onClick={handleAddPaymentMethod}>
+                <div className="p-6 text-center">
+                  <PlusCircle className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                  <h3 className="font-medium">Adicionar novo método de pagamento</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Cartão de crédito, PIX ou boleto
+                  </p>
+                </div>
+              </Card>
+            </div>
+            
+            {/* Pagamento pendente */}
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Pagamento Pendente</h2>
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle>Pedido PED-003-2025</CardTitle>
+                      <CardDescription>Aguardando pagamento via boleto</CardDescription>
+                    </div>
+                    <Badge className="bg-yellow-500">Pendente</Badge>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {getPagamentosFiltrados().map((pagamento) => (
-                      <div 
-                        key={pagamento.id}
-                        className="border p-3 rounded-lg"
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center">
-                            {getPagamentoIcon(pagamento.tipo)}
-                            <span className="ml-2 font-medium">
-                              {getPagamentoNome(pagamento.tipo)}
-                            </span>
-                          </div>
-                          <Badge className={getStatusInfo(pagamento.status).color}>
-                            {getStatusInfo(pagamento.status).label}
-                          </Badge>
-                        </div>
-                        
-                        <div className="text-sm text-gray-500 mb-1">
-                          {formatarData(pagamento.data)} • Pedido {pagamento.numeroPedido}
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <div className="font-medium">
-                            R$ {pagamento.valor.toFixed(2)}
-                          </div>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setLocation(`/patient/pedidos/rastreamento`)}
-                            className="text-primary hover:text-primary/90"
-                          >
-                            Ver pedido
-                            <ArrowUpRight className="ml-1 h-3 w-3" />
-                          </Button>
-                        </div>
-                        
-                        {/* Detalhes específicos baseados no tipo de pagamento */}
-                        {pagamento.tipo === 'cartao' && pagamento.detalhes.cartao && (
-                          <div className="mt-2 text-xs text-gray-500">
-                            {pagamento.detalhes.cartao.bandeira} •••• {pagamento.detalhes.cartao.ultimos4Digitos}
-                          </div>
-                        )}
-                        
-                        {pagamento.tipo === 'boleto' && pagamento.detalhes.boleto && (
-                          <div className="mt-2 flex">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => window.open(pagamento.detalhes.boleto?.linkBoleto, '_blank')}
-                              className="text-xs"
-                            >
-                              <Download className="mr-1 h-3 w-3" />
-                              2ª via do boleto
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {pagamento.tipo === 'pix' && pagamento.detalhes.pix && pagamento.status === 'pendente' && (
-                          <div className="mt-2 flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-xs flex-1"
-                            >
-                              <QrCode className="mr-1 h-3 w-3" />
-                              Ver QR Code
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="text-xs flex-1"
-                              onClick={() => {
-                                navigator.clipboard.writeText(pagamento.detalhes.pix?.copiaCola || '');
-                                toast({
-                                  title: "Código PIX copiado",
-                                  description: "O código PIX foi copiado para a área de transferência.",
-                                });
-                              }}
-                            >
-                              <Copy className="mr-1 h-3 w-3" />
-                              Copiar código
-                            </Button>
-                          </div>
-                        )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor total</p>
+                        <p className="text-lg font-bold">R$ 239,98</p>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-sm text-muted-foreground">Vencimento</p>
+                        <p className="font-medium">20/04/2025</p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 bg-muted rounded-md">
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-medium">Código de barras</span>
+                        <Button variant="ghost" size="icon" onClick={handleCopyCode}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm font-mono">23790.12345 67890.101112 13141.516171 8 19202122</p>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-              {getPagamentosFiltrados().length > 0 && (
-                <CardFooter className="px-4 py-3 border-t text-center">
-                  <Button 
-                    variant="link" 
-                    onClick={() => setLocation('/patient/pagamentos/historico')}
-                  >
-                    Ver histórico completo
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline" onClick={handleCopyCode}>
+                    Copiar código
+                  </Button>
+                  <Button>
+                    <Download className="mr-2 h-4 w-4" />
+                    Baixar boleto
                   </Button>
                 </CardFooter>
-              )}
-            </Card>
-          </div>
-        </div>
+              </Card>
+            </div>
+          </TabsContent>
+          
+          {/* Histórico de Transações */}
+          <TabsContent value="transactions">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Histórico de Transações</h2>
+              <Button variant="outline" size="sm">
+                <Filter className="mr-2 h-4 w-4" />
+                Filtrar
+              </Button>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Forma de pagamento</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction) => {
+                    const statusInfo = getTransactionStatusInfo(transaction.status);
+                    
+                    return (
+                      <TableRow key={transaction.id}>
+                        <TableCell className="font-medium">
+                          {transaction.description}
+                          {transaction.orderNumber && (
+                            <div className="text-xs text-muted-foreground">
+                              Pedido: {transaction.orderNumber}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>{transaction.date}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {getPaymentMethodIcon(transaction.paymentMethod)}
+                            <span className="ml-2">
+                              {transaction.paymentMethod === 'credit' && 'Cartão de crédito'}
+                              {transaction.paymentMethod === 'pix' && 'PIX'}
+                              {transaction.paymentMethod === 'boleto' && 'Boleto'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${statusInfo.color} text-white flex w-fit items-center`}>
+                            {statusInfo.icon}
+                            <span className="ml-1">{statusInfo.label}</span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          R$ {transaction.amount.toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          {transaction.status === 'completed' && (
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDownloadReceipt(transaction.id)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleShareReceipt(transaction.id)}
+                              >
+                                <Share2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                          {transaction.status === 'failed' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Detalhes
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          
+          {/* Faturas */}
+          <TabsContent value="invoices">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Faturas</h2>
+              <Button variant="outline" size="sm">
+                <Calendar className="mr-2 h-4 w-4" />
+                Filtrar por data
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {invoices.map((invoice) => {
+                const statusInfo = getInvoiceStatusInfo(invoice.status);
+                
+                return (
+                  <Card key={invoice.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg">
+                            Pedido {invoice.orderNumber}
+                          </CardTitle>
+                          <CardDescription>
+                            Emitido em {invoice.date}
+                          </CardDescription>
+                        </div>
+                        <Badge className={`${statusInfo.color} text-white flex items-center`}>
+                          {statusInfo.icon}
+                          <span className="ml-1">{statusInfo.label}</span>
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Valor total:</span>
+                          <span className="font-bold">R$ {invoice.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Data de vencimento:</span>
+                          <span>{invoice.dueDate}</span>
+                        </div>
+                        <Separator />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Itens:</p>
+                          {invoice.items.map((item, index) => (
+                            <div key={index} className="flex justify-between text-sm">
+                              <span>{item.quantity}x {item.name}</span>
+                              <span>R$ {(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between">
+                      {invoice.status === 'pending' ? (
+                        <Button>Pagar agora</Button>
+                      ) : (
+                        <Button variant="outline" onClick={() => handleDownloadReceipt(invoice.id)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Baixar comprovante
+                        </Button>
+                      )}
+                      <Button variant="ghost" onClick={() => handleShareReceipt(invoice.id)}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Compartilhar
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </PatientLayout>
   );
 };
 
