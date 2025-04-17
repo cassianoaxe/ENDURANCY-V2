@@ -346,6 +346,67 @@ export default function GerenciamentoPedidos() {
     setSelectedOrder(order);
     setDetailsOpen(true);
   };
+  
+  // Query client para invalidações
+  const queryClient = useQueryClient();
+  
+  // Mutation para atualizar status do pedido
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, status, trackingCode, note }: { 
+      orderId: number; 
+      status: string; 
+      trackingCode?: string;
+      note?: string;
+    }) => {
+      const response = await fetch(`/api/organization/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status,
+          trackingCode,
+          note
+        }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar status do pedido');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidar cache para recarregar pedidos
+      queryClient.invalidateQueries({ queryKey: ['/api/organization/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/organization/orders/expedition'] });
+      
+      // Fechar modal de status e limpar campos
+      setStatusModalOpen(false);
+      setTrackingCode('');
+      setStatusNote('');
+      
+      toast({
+        title: 'Status atualizado',
+        description: 'O status do pedido foi atualizado com sucesso',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao atualizar status',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+  
+  // Abrir modal para atualizar status
+  const openStatusModal = (order: PatientOrder, newStatus: string) => {
+    setSelectedOrder(order);
+    setCurrentStatus(newStatus);
+    setStatusModalOpen(true);
+  };
 
   // Formatar preço
   const formatPrice = (price: number) => {
@@ -628,9 +689,40 @@ export default function GerenciamentoPedidos() {
                                   <Eye className="mr-2 h-4 w-4" />
                                   Ver detalhes
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Truck className="mr-2 h-4 w-4" />
-                                  Atualizar status
+                                {/* Mostrar opções de status baseadas no status atual */}
+                                {order.status === 'payment_confirmed' && (
+                                  <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    openStatusModal(order, 'in_preparation');
+                                  }}>
+                                    <Package className="h-4 w-4 mr-2" />
+                                    <span>Iniciar Preparação</span>
+                                  </DropdownMenuItem>
+                                )}
+                                {(order.status === 'payment_confirmed' || order.status === 'in_preparation') && (
+                                  <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    openStatusModal(order, 'shipped');
+                                  }}>
+                                    <Truck className="h-4 w-4 mr-2" />
+                                    <span>Marcar como Enviado</span>
+                                  </DropdownMenuItem>
+                                )}
+                                {order.status === 'shipped' && (
+                                  <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    openStatusModal(order, 'delivered');
+                                  }}>
+                                    <Check className="h-4 w-4 mr-2" />
+                                    <span>Marcar como Entregue</span>
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  openStatusModal(order, 'canceled');
+                                }} className="text-red-600">
+                                  <Trash className="h-4 w-4 mr-2" />
+                                  <span>Cancelar Pedido</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   <FileText className="mr-2 h-4 w-4" />
