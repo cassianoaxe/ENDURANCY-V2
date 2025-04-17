@@ -382,7 +382,7 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Pedidos",
+          title: "Pedidos de Venda",
           path: "/organization/vendas/pedidos",
           active: currentPath === "/organization/vendas/pedidos" || 
                  currentPath === "/organization/pedidos/pacientes" || 
@@ -426,7 +426,7 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Preparação de Pedidos",
+          title: "Preparação de Envios",
           path: "/organization/expedicao/pedidos",
           active: currentPath === "/organization/expedicao/pedidos",
           icon: <ClipboardList size={16} />
@@ -795,7 +795,7 @@ export default function OrganizationSidebar() {
           icon: <ClipboardList size={16} />
         },
         {
-          title: "Pedidos",
+          title: "Pedidos de Compra",
           path: "/organization/compras/pedidos",
           active: currentPath === "/organization/compras/pedidos",
           icon: <PackageCheck size={16} />
