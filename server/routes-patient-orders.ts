@@ -3,9 +3,9 @@
  */
 import { Express, Request, Response } from 'express';
 import { db } from './db';
-import { authenticate } from './routes';
+import { authenticate, AuthenticatedRequest } from './routes';
 import { orders } from '../shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Schema de validação para novos pedidos
@@ -46,10 +46,10 @@ type OrderData = z.infer<typeof orderSchema>;
 
 export function registerPatientOrdersRoutes(app: Express) {
   // Endpoint para criar um novo pedido
-  app.post('/api/patient/orders', authenticate, async (req: Request, res: Response) => {
+  app.post('/api/patient/orders', authenticate, async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Verificar permissões
-      if (req.user?.role !== 'patient') {
+      if (req.user.role !== 'patient') {
         return res.status(403).json({
           error: 'Apenas pacientes podem fazer pedidos'
         });
