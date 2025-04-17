@@ -287,7 +287,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -1930,6 +1930,46 @@ function AppContent() {
       // Verificação de autenticação agora é feita no componente
       // Isto permite o acesso mesmo vindo de qualquer rota de login
       return <PatientDashboardPage />;
+    }
+    
+    // Rotas de produtos e pedidos
+    if (currentPath.startsWith('/patient/produtos')) {
+      const ProdutosPage = React.lazy(() => import('@/pages/patient/produtos'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <ProdutosPage />
+        </Suspense>
+      );
+    }
+    
+    // Rota de prescrições
+    if (currentPath.startsWith('/patient/prescricoes/nova')) {
+      const NovaPrescricaoPage = React.lazy(() => import('@/pages/patient/prescricoes/nova'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <NovaPrescricaoPage />
+        </Suspense>
+      );
+    }
+    
+    // Rota de rastreamento de pedidos
+    if (currentPath.startsWith('/patient/pedidos/rastreamento')) {
+      const RastreamentoPedidosPage = React.lazy(() => import('@/pages/patient/pedidos/rastreamento'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <RastreamentoPedidosPage />
+        </Suspense>
+      );
+    }
+    
+    // Rota de pagamentos
+    if (currentPath.startsWith('/patient/pagamentos')) {
+      const PagamentosPage = React.lazy(() => import('@/pages/patient/pagamentos'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <PagamentosPage />
+        </Suspense>
+      );
     }
     
     // Primeiro verificar se é a página de login do paciente (acessível sem autenticação)
