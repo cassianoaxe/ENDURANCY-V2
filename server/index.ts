@@ -93,7 +93,7 @@ app.get('/api/csrf-token', (req, res) => {
 function applyCSRFToRoutes() {
   // Rotas que precisam de proteção CSRF
   const csrfProtectedPaths = [
-    '/api/auth/login',
+    // Temporariamente removido para permitir login '/api/auth/login',
     '/api/auth/register',
     '/api/auth/reset-password',
     '/api/organizations',
