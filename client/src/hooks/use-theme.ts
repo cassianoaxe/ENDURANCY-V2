@@ -1,35 +1,44 @@
-// Simples hook para controle de tema
 import { useState, useEffect } from 'react';
 
+// Tipo do tema
 type Theme = 'light' | 'dark' | 'system';
 
-export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>('light');
-  
-  useEffect(() => {
-    // Recuperar tema do localStorage se disponível
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
+// Opções de mídia para detectar preferência do sistema
+const MEDIA = '(prefers-color-scheme: dark)';
+
+/**
+ * Hook para gerenciar o tema da aplicação (claro/escuro)
+ * Armazena a preferência no localStorage e sincroniza com as classes do DOM
+ */
+export function useTheme() {
+  // Define o estado inicial com base no localStorage ou preferência do sistema
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const storedTheme = window.localStorage.getItem('theme') as Theme;
+      return storedTheme || 'light';
     }
-  }, []);
-  
-  // Função para alterar o tema
-  const changeTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    return 'light';
+  });
+
+  // Efeito para aplicar o tema escolhido
+  useEffect(() => {
+    const root = window.document.documentElement;
     
-    // Aplicar classes ao elemento root
-    const root = document.documentElement;
+    // Remove todas as classes de tema
     root.classList.remove('light', 'dark');
     
-    if (newTheme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Aplica a classe do tema selecionado
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia(MEDIA).matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
     } else {
-      root.classList.add(newTheme);
+      root.classList.add(theme);
     }
-  };
+    
+    // Salva a preferência no localStorage
+    window.localStorage.setItem('theme', theme);
+  }, [theme]);
   
-  return { theme, setTheme: changeTheme };
-};
+  // Retorna o tema atual e função para alterá-lo
+  return { theme, setTheme };
+}
