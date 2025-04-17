@@ -3,10 +3,20 @@
  */
 import { Express, Request, Response } from 'express';
 import { db } from './db';
-import { authenticate, AuthenticatedRequest } from './routes';
+import { authenticate } from './routes';
 import { orders } from '../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { z } from 'zod';
+
+// Define nossa própria interface para solicitações autenticadas
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: number;
+    username: string;
+    role: string;
+    organizationId?: number;
+  };
+}
 
 // Schema de validação para novos pedidos
 const orderSchema = z.object({
@@ -117,10 +127,10 @@ export function registerPatientOrdersRoutes(app: Express) {
   });
 
   // Endpoint para listar pedidos do paciente logado
-  app.get('/api/patient/orders', authenticate, async (req: Request, res: Response) => {
+  app.get('/api/patient/orders', authenticate, async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Verificar permissões
-      if (req.user?.role !== 'patient') {
+      if (req.user.role !== 'patient') {
         return res.status(403).json({
           error: 'Acesso não autorizado'
         });
@@ -167,7 +177,7 @@ export function registerPatientOrdersRoutes(app: Express) {
   });
 
   // Endpoint para buscar detalhes de um pedido específico
-  app.get('/api/patient/orders/:id', authenticate, async (req: Request, res: Response) => {
+  app.get('/api/patient/orders/:id', authenticate, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const orderId = parseInt(req.params.id);
       
@@ -178,7 +188,7 @@ export function registerPatientOrdersRoutes(app: Express) {
       }
       
       // Verificar permissões
-      if (req.user?.role !== 'patient') {
+      if (req.user.role !== 'patient') {
         return res.status(403).json({
           error: 'Acesso não autorizado'
         });
@@ -230,18 +240,18 @@ export function registerPatientOrdersRoutes(app: Express) {
   });
 
   // Endpoint para listar os pedidos de uma organização
-  app.get('/api/organization/orders', authenticate, async (req: Request, res: Response) => {
+  app.get('/api/organization/orders', authenticate, async (req: AuthenticatedRequest, res: Response) => {
     try {
       // Verificar permissões
-      if (!['org_admin', 'admin', 'pharmacist'].includes(req.user?.role || '')) {
+      if (!['org_admin', 'admin', 'pharmacist'].includes(req.user.role)) {
         return res.status(403).json({
           error: 'Acesso não autorizado'
         });
       }
       
-      const organizationId = req.user?.organizationId;
+      const organizationId = req.user.organizationId;
       
-      if (!organizationId && req.user?.role !== 'admin') {
+      if (!organizationId && req.user.role !== 'admin') {
         return res.status(400).json({
           error: 'Organização não especificada'
         });
@@ -250,7 +260,7 @@ export function registerPatientOrdersRoutes(app: Express) {
       // Buscar pedidos da organização
       let organizationOrders;
       
-      if (req.user?.role === 'admin' && !organizationId) {
+      if (req.user.role === 'admin' && !organizationId) {
         // Admin pode ver todos os pedidos
         organizationOrders = await db.select().from(orders);
       } else {
