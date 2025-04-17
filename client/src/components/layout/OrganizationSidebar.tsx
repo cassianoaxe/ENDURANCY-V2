@@ -370,7 +370,8 @@ export default function OrganizationSidebar() {
       title: "Vendas Online",
       path: "/organization/vendas",
       active: currentPath === "/organization/vendas" || 
-              currentPath.startsWith("/organization/vendas/"),
+              currentPath.startsWith("/organization/vendas/") ||
+              currentPath.startsWith("/organization/pedidos/"),
       icon: <ShoppingCart size={18} />,
       isSubmenu: true,
       subItems: [
@@ -385,6 +386,12 @@ export default function OrganizationSidebar() {
           path: "/organization/vendas/pedidos",
           active: currentPath === "/organization/vendas/pedidos",
           icon: <PackageOpen size={16} />
+        },
+        {
+          title: "Pedidos de Pacientes",
+          path: "/organization/pedidos/pacientes",
+          active: currentPath === "/organization/pedidos/pacientes",
+          icon: <User size={16} />
         },
         {
           title: "Produtos",
