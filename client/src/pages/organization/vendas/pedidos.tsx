@@ -43,7 +43,6 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import OrganizationLayout from '@/components/layout/OrganizationLayout';
 
 // Interface para os dados dos pedidos de pacientes
 interface OrderItem {
@@ -343,7 +342,6 @@ export default function GerenciamentoPedidos() {
   };
 
   return (
-    <OrganizationLayout>
       <div className="container py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -794,6 +792,5 @@ export default function GerenciamentoPedidos() {
           </TabsContent>
         </Tabs>
       </div>
-    </OrganizationLayout>
   );
 }
