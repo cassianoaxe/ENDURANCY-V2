@@ -7,6 +7,7 @@ import { seedHplcTrainings } from "./hplc-training-seed";
 import { seedTransparenciaMockData } from "./transparencia-mock-data";
 import { patientAuthRouter } from "./routes/patient-auth";
 import { registerWhatsAppRoutes } from "./routes-whatsapp";
+import { registerPatientOrdersRoutes } from "./routes-patient-orders";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -798,6 +799,9 @@ app.use((req, res, next) => {
   
   // Registrar rotas de integração com WhatsApp
   registerWhatsAppRoutes(app);
+  
+  // Registrar rotas de pedidos de pacientes
+  registerPatientOrdersRoutes(app);
 
   // Inicializar dados de exemplo para tickets
   try {
