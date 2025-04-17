@@ -10,6 +10,7 @@ import {
   CalendarClock, Phone, Home, Mail, Globe, MapPin, Bell, Upload, File, 
   FilePlus, FileCheck, Trash2, AlertCircle, Download, Loader2
 } from 'lucide-react';
+import { PatientQuickActions } from '@/components/dashboard/QuickActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
@@ -623,6 +624,33 @@ const PatientDashboard = () => {
           </Card>
         </div>
 
+        {/* Seção de ações rápidas */}
+        <div className="mb-8">
+          <PatientQuickActions 
+            onAction={(action) => {
+              switch (action) {
+                case 'agendar-consulta':
+                  setLocation('/patient/appointments/schedule');
+                  break;
+                case 'mensagens':
+                  setLocation('/patient/messages');
+                  break;
+                case 'historico-medico':
+                  setLocation('/patient/medical-history');
+                  break;
+                default:
+                  console.log('Ação não implementada:', action);
+                  // Feedback para ações não implementadas
+                  toast({
+                    title: "Funcionalidade em desenvolvimento",
+                    description: "Esta funcionalidade estará disponível em breve.",
+                    variant: "default"
+                  });
+              }
+            }} 
+          />
+        </div>
+
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="bg-gray-100 dark:bg-gray-800 p-1 rounded-md border">
@@ -848,29 +876,33 @@ const PatientDashboard = () => {
           {/* Conteúdo da Aba de Visão Geral (padrão) */}
           <TabsContent value="visao-geral" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Ações Rápidas */}
+              {/* Informações de Tratamento */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Ações Rápidas</CardTitle>
+                  <CardTitle>Informações de Tratamento</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start">
-                      <ShoppingBag className="mr-2 h-4 w-4" />
-                      Fazer um Pedido
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <FileEdit className="mr-2 h-4 w-4" />
-                      Enviar Nova Prescrição
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <CalendarClock className="mr-2 h-4 w-4" />
-                      Agendar Consulta
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <Phone className="mr-2 h-4 w-4" />
-                      Contatar Médico
-                    </Button>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-gray-600">Consultas realizadas:</span>
+                      <span className="font-medium">12</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-gray-600">Prescrições ativas:</span>
+                      <span className="font-medium">{treatmentStatus.activeMedications}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-b pb-2">
+                      <span className="text-gray-600">Próxima consulta:</span>
+                      <span className="font-medium">
+                        {nextAppointment 
+                          ? `${formatDate(nextAppointment.data)} - ${nextAppointment.horario}`
+                          : 'Nenhuma agendada'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Tempo de tratamento:</span>
+                      <span className="font-medium">{treatmentStatus.months} meses</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
