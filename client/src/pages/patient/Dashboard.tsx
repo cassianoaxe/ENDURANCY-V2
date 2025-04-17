@@ -629,14 +629,17 @@ const PatientDashboard = () => {
           <PatientQuickActions 
             onAction={(action) => {
               switch (action) {
-                case 'agendar-consulta':
-                  setLocation('/patient/appointments/schedule');
+                case 'novo-pedido':
+                  setLocation('/patient/produtos');
                   break;
-                case 'mensagens':
-                  setLocation('/patient/messages');
+                case 'enviar-prescricao':
+                  setLocation('/patient/prescricoes/nova');
                   break;
-                case 'historico-medico':
-                  setLocation('/patient/medical-history');
+                case 'rastrear-pedido':
+                  setLocation('/patient/pedidos/rastreamento');
+                  break;
+                case 'meus-pagamentos':
+                  setLocation('/patient/pagamentos');
                   break;
                 default:
                   console.log('Ação não implementada:', action);
