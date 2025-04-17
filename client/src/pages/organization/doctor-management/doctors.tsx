@@ -333,7 +333,7 @@ function DoctorManagementPage() {
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="todos">Todos os status</SelectItem>
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="inactive">Inativo</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
@@ -346,7 +346,7 @@ function DoctorManagementPage() {
               <SelectValue placeholder="Filtrar por especialidade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as especialidades</SelectItem>
+              <SelectItem value="todas">Todas as especialidades</SelectItem>
               {availableSpecialties.map((specialty) => (
                 <SelectItem key={specialty} value={specialty}>
                   {specialty}
