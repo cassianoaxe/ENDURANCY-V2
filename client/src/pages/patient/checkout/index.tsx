@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { 
   ShoppingBag, CreditCard, Landmark, QrCode, Truck, MapPin, ArrowLeft, 
-  Clock, Calendar, AlertCircle, Check, Loader2, Package, Home
+  Clock, Calendar, AlertCircle, Check, Loader2, Package, Home, MessageSquare
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -1135,7 +1135,7 @@ const CheckoutPage: React.FC = () => {
                 <p className="text-sm font-medium mb-1">Precisa de ajuda?</p>
                 <p className="text-xs text-gray-600 mb-3">Nossa equipe está disponível para tirar suas dúvidas.</p>
                 <Button variant="outline" size="sm" className="w-full">
-                  <Phone className="h-4 w-4 mr-2" />
+                  <MessageSquare className="h-4 w-4 mr-2" />
                   Entrar em Contato
                 </Button>
               </div>
