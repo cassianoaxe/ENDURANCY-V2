@@ -961,6 +961,50 @@ export default function OrganizationSidebar() {
           icon: <Users size={16} />
         }
       ]
+    },
+    {
+      title: "Pesquisa Científica",
+      path: "/organization/pesquisa",
+      active: currentPath === "/organization/pesquisa" || 
+              currentPath.startsWith("/organization/pesquisa/"),
+      icon: <FlaskConical size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Pesquisa",
+          path: "/organization/pesquisa",
+          active: currentPath === "/organization/pesquisa" && !currentPath.includes("/organization/pesquisa/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Estudos",
+          path: "/organization/pesquisa/estudos",
+          active: currentPath === "/organization/pesquisa/estudos" || 
+                  currentPath.includes("/organization/pesquisa/estudos/") &&
+                  !currentPath.includes("/organization/pesquisa/estudos/novo"),
+          icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Novo Estudo",
+          path: "/organization/pesquisa/estudos/novo",
+          active: currentPath === "/organization/pesquisa/estudos/novo",
+          icon: <FilePlus size={16} />
+        },
+        {
+          title: "Publicações",
+          path: "/organization/pesquisa/publicacoes",
+          active: currentPath === "/organization/pesquisa/publicacoes" ||
+                  currentPath.includes("/organization/pesquisa/publicacoes/"),
+          icon: <BookText size={16} />
+        },
+        {
+          title: "Colaborações",
+          path: "/organization/pesquisa/colaboracoes",
+          active: currentPath === "/organization/pesquisa/colaboracoes" ||
+                  currentPath.includes("/organization/pesquisa/colaboracoes/"),
+          icon: <Users size={16} />
+        }
+      ]
     }
   ];
   
