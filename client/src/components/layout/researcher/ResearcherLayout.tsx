@@ -132,20 +132,20 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
       <ScrollArea className="flex-1 overflow-auto py-2">
         <nav className="grid gap-1 px-2">
           {sidebarItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <div
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 cursor-pointer",
-                  location === item.href
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "hover:bg-gray-100"
-                )}
-              >
-                {item.icon}
-                <span>{item.title}</span>
-                {item.badge}
-              </div>
-            </Link>
+            <div
+              key={item.href}
+              onClick={() => setLocation(item.href)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 cursor-pointer",
+                location === item.href
+                  ? "bg-gray-100 text-gray-900 font-medium"
+                  : "hover:bg-gray-100"
+              )}
+            >
+              {item.icon}
+              <span>{item.title}</span>
+              {item.badge}
+            </div>
           ))}
         </nav>
       </ScrollArea>
