@@ -10,6 +10,7 @@ import DoctorLayout from "@/components/layout/doctor/DoctorLayout";
 import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
+import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
