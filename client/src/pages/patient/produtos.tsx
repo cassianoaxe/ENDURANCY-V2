@@ -9,7 +9,7 @@ export default function ProdutosRedirector() {
   
   useEffect(() => {
     // Redirecionar para a página correta de produtos
-    window.location.href = '/patient/produtos/index';
+    window.location.href = '/patient/produtos';
     
     // Mostrar notificação de redirecionamento
     toast({
