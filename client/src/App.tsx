@@ -1384,6 +1384,17 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    if (currentPath === '/organization/patrimonio/ativos/novo') {
+      const NovoAtivoPage = React.lazy(() => import('./pages/organization/patrimonio/ativos/novo'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <NovoAtivoPage />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
     if (currentPath === '/organization/patrimonio/instalacoes') {
       return <OrganizationLayout>
         <InstalacoesPage />
