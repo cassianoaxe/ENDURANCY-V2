@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Bell, Home, LogOut, Package, FileText, CreditCard, ShoppingCart, User, Settings, LifeBuoy } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PatientLayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface PatientLayoutProps {
 
 const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
   const { toast } = useToast();
+  const { logout } = useAuth();
   
   // Função para navegar para uma rota específica
   const navigateTo = (path: string) => {
@@ -20,17 +22,20 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
   };
   
   // Função para deslogar o usuário
-  const handleLogout = () => {
-    // Simulação de logout - na implementação real, chamaria a API de logout
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu da sua conta com sucesso.",
-    });
-    
-    // Redirecionar para a página de login após logout
-    setTimeout(() => {
-      window.location.href = '/patient/login';
-    }, 1000);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logout realizado",
+        description: "Você saiu da sua conta com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao realizar logout",
+        description: "Ocorreu um erro ao tentar sair. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
