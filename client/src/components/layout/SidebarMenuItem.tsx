@@ -67,11 +67,11 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              {React.cloneElement(item.icon as React.ReactElement, { 
+              {item.icon ? React.cloneElement(item.icon as React.ReactElement, { 
                 className: item.active 
                   ? "text-green-600 dark:text-green-400" 
                   : "text-gray-500 dark:text-gray-400" 
-              })}
+              }) : null}
               <span className={cn(
                 "text-sm", // Menor tamanho de fonte
                 item.active && "font-medium" // Médio em vez de semibold
@@ -136,11 +136,11 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    {React.cloneElement(subItem.icon as React.ReactElement, { 
+                    {subItem.icon ? React.cloneElement(subItem.icon as React.ReactElement, { 
                       className: subItem.active
                         ? "text-green-600 dark:text-green-400" 
                         : "text-gray-500 dark:text-gray-400"
-                    })}
+                    }) : null}
                     <span className={cn(
                       "truncate", 
                       subItem.active && "font-medium"
@@ -179,12 +179,12 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
           }}
           title={item.title}
         >
-          {React.cloneElement(item.icon as React.ReactElement, { 
+          {item.icon ? React.cloneElement(item.icon as React.ReactElement, { 
             size: 20,
             className: item.active 
               ? "text-green-600 dark:text-green-400" 
               : "text-gray-600 dark:text-gray-300" 
-          })}
+          }) : null}
         </div>
       )}
     </div>
