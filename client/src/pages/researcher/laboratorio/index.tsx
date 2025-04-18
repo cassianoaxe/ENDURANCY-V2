@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
-import ResearcherLayout from '@/components/layout/researcher/ResearcherLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -179,7 +178,6 @@ export default function ResearcherLaboratorio() {
   };
 
   return (
-    <ResearcherLayout>
       <div className="container p-4 mx-auto">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -590,6 +588,5 @@ export default function ResearcherLaboratorio() {
           </Card>
         </div>
       </div>
-    </ResearcherLayout>
   );
 }
