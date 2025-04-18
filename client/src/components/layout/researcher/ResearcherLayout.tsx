@@ -6,7 +6,7 @@ import {
   LayoutDashboard, 
   Menu, 
   Microscope, 
-  Flask, 
+  FlaskConical, 
   Building, 
   Calendar, 
   BookOpen, 
@@ -70,7 +70,7 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
     },
     {
       title: "Plantas e Cepas",
-      icon: <Flask className="h-5 w-5" />,
+      icon: <FlaskConical className="h-5 w-5" />,
       href: "/researcher/plantas",
       badge: null,
     },
