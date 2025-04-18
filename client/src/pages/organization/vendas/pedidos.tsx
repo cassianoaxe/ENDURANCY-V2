@@ -1,50 +1,22 @@
-'use client';
+import React, { useState } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { AlertCircle, Check, Download, Edit, Eye, FileText, Filter, Loader2, MoreVertical, Package, Plus, Printer, Search, Trash } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 
-import { 
-  Search, 
-  Filter, 
-  MoreVertical,
-  ChevronDown, 
-  Eye, 
-  Edit, 
-  Trash, 
-  Download, 
-  FileText, 
-  Printer,
-  Plus,
-  Package,
-  AlertCircle,
-  Loader2,
-  User,
-  ShoppingBag,
-  CreditCard,
-  Truck,
-  Banknote,
-  Check,
-  Calendar,
-  ArrowDownUp
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
-
-// Interface para os dados dos pedidos de pacientes
 interface OrderItem {
   id: string;
   name: string;
@@ -86,7 +58,6 @@ interface PatientOrder {
   };
 }
 
-// Interface para os pedidos gerais
 interface GeneralOrder {
   id: string;
   cliente: string;
@@ -96,96 +67,45 @@ interface GeneralOrder {
   observacao: string;
 }
 
-// Dados de exemplo dos pedidos gerais
-const pedidosGerais: GeneralOrder[] = [
-  {
-    id: 'P2350001',
-    cliente: 'Maria Silva',
-    data: '10/05/2023, 17:30',
-    status: 'Entregue',
-    total: 'R$ 350,00',
-    observacao: 'Entregue no período da tarde'
-  },
-  {
-    id: 'P2350002',
-    cliente: 'João Santos',
-    data: '12/06/2023, 08:45',
-    status: 'Processando',
-    total: 'R$ 125,50',
-    observacao: 'Juntar com pedido P2350006 do mesmo cliente'
-  },
-  {
-    id: 'P2350003',
-    cliente: 'Ana Costa',
-    data: '15/06/2023, 09:20',
-    status: 'Enviado',
-    total: 'R$ 645,00',
-    observacao: 'Cliente solicitou embalagem discreta'
-  },
-  {
-    id: 'P2350004',
-    cliente: 'Roberto Alves',
-    data: '17/06/2023, 13:10',
-    status: 'Cancelado',
-    total: 'R$ 780,20',
-    observacao: 'Pedido cancelado a pedido do cliente'
-  },
-  {
-    id: 'P2350005',
-    cliente: 'João Santos',
-    data: '18/06/2023, 07:30',
-    status: 'Pendente',
-    total: 'R$ 430,80',
-    observacao: 'Cliente solicitou juntar com pedido anterior P2350002'
-  },
-  {
-    id: 'P2350006',
-    cliente: 'Carla Mendes',
-    data: '20/06/2023, 17:20',
-    status: 'Aguardando Pagamento',
-    total: 'R$ 100,00',
-    observacao: ''
-  },
-  {
-    id: 'P2350007',
-    cliente: 'Paulo Rodrigues',
-    data: '22/06/2023, 08:15',
-    status: 'Aprovado',
-    total: 'R$ 890,50',
-    observacao: ''
-  },
-  {
-    id: 'P2350008',
-    cliente: 'Fernanda Lima',
-    data: '23/06/2023, 09:30',
-    status: 'Entregue',
-    total: 'R$ 320,00',
-    observacao: ''
-  },
-];
-
-// Componente para exibir status do pedido
-const OrderStatus: React.FC<{ status: string }> = ({ status }) => {
-  const statusMap: Record<string, { label: string; variant: string }> = {
-    pending: { label: 'Pendente', variant: 'outline' },
-    processing: { label: 'Em processamento', variant: 'secondary' },
-    shipped: { label: 'Enviado', variant: 'secondary' },
-    delivered: { label: 'Entregue', variant: 'secondary' },
-    canceled: { label: 'Cancelado', variant: 'destructive' },
-    refunded: { label: 'Reembolsado', variant: 'destructive' },
-    awaiting_payment: { label: 'Aguardando pagamento', variant: 'outline' },
-    payment_confirmed: { label: 'Pagamento confirmado', variant: 'secondary' },
-    // Status dos pedidos gerais
-    'Entregue': { label: 'Entregue', variant: 'secondary' },
-    'Processando': { label: 'Processando', variant: 'secondary' },
-    'Enviado': { label: 'Enviado', variant: 'secondary' },
-    'Cancelado': { label: 'Cancelado', variant: 'destructive' },
-    'Pendente': { label: 'Pendente', variant: 'outline' },
-    'Aguardando Pagamento': { label: 'Aguardando pagamento', variant: 'outline' },
-    'Aprovado': { label: 'Aprovado', variant: 'secondary' },
+// Status do pedido
+const OrderStatus = ({ status }: { status: string }) => {
+  let statusInfo = {
+    label: "",
+    variant: ""
   };
 
-  const statusInfo = statusMap[status] || { label: status, variant: 'default' };
+  switch (status) {
+    case "pending":
+    case "Pendente":
+      statusInfo = { label: "Pendente", variant: "outline" };
+      break;
+    case "processing":
+    case "Processando":
+      statusInfo = { label: "Processando", variant: "secondary" };
+      break;
+    case "shipped":
+    case "Enviado":
+      statusInfo = { label: "Enviado", variant: "secondary" };
+      break;
+    case "delivered":
+    case "Entregue":
+      statusInfo = { label: "Entregue", variant: "success" };
+      break;
+    case "canceled":
+    case "Cancelado":
+      statusInfo = { label: "Cancelado", variant: "destructive" };
+      break;
+    case "waiting_payment":
+    case "Aguardando Pagamento":
+      statusInfo = { label: "Aguardando Pagamento", variant: "warning" };
+      break;
+    case "approved":
+    case "Aprovado":
+      statusInfo = { label: "Aprovado", variant: "success" };
+      break;
+    default:
+      statusInfo = { label: status, variant: "outline" };
+  }
 
   return (
     <Badge variant={statusInfo.variant as any}>
@@ -200,6 +120,7 @@ export default function GerenciamentoPedidos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('todos');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  
   // Pagina de pedidos de pacientes
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<PatientOrder | null>(null);
@@ -210,219 +131,151 @@ export default function GerenciamentoPedidos() {
   const [statusNote, setStatusNote] = useState("");
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { toast } = useToast();
-  const [, navigate] = useLocation();
+  // Query client
+  const queryClient = useQueryClient();
 
-  // Buscar pedidos gerais (mock por enquanto)
-  const { data: pedidosGeraisData, isLoading: isLoadingGerais } = useQuery({
-    queryKey: ['/api/vendas/pedidos'],
-    enabled: false, // Desabilitado temporariamente,
-    initialData: pedidosGerais // Usar dados simulados como fallback
+  const { data: pedidosGeraisData = [] } = useQuery<GeneralOrder[]>({
+    queryKey: ['/api/orders/general'],
+    enabled: activeTab === 'todos',
   });
 
-  // Buscar pedidos de pacientes
-  const { data: pedidosPacientes, isLoading: isLoadingPacientes, error: errorPacientes } = useQuery<PatientOrder[]>({
-    queryKey: ['/api/organization/orders', { type: 'patient' }],
-    queryFn: async () => {
-      const response = await fetch('/api/organization/orders?type=patient', {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao buscar pedidos de pacientes');
-      }
-
-      return response.json();
-    }
+  const { data: pedidosPacientesData = [], isLoading: isLoadingPacientes, error: errorPacientes } = useQuery<PatientOrder[]>({
+    queryKey: ['/api/patient/orders'],
+    enabled: activeTab === 'pacientes',
   });
 
-  // Buscar pedidos para expedição (pedidos confirmados que precisam ser preparados/enviados)
-  const { data: pedidosExpedicao, isLoading: isLoadingExpedicao, error: errorExpedicao } = useQuery<any[]>({
-    queryKey: ['/api/organization/orders/expedition'],
-    queryFn: async () => {
-      const response = await fetch('/api/organization/orders/expedition', {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao buscar pedidos para expedição');
-      }
-
-      return response.json();
-    }
-  });
-
-  // Manipulação dos pedidos gerais
-  const handleSelectItem = (id: string) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedItems.length === pedidosGeraisData?.length) {
-      setSelectedItems([]);
-    } else {
-      setSelectedItems(pedidosGeraisData?.map(pedido => pedido.id) || []);
-    }
-  };
-
-  const filteredPedidosGerais = pedidosGeraisData?.filter(pedido => {
+  // Filtrado com base no termo de busca e status
+  const filteredPedidosGerais = pedidosGeraisData.filter(pedido => {
     const matchesSearch = searchTerm === '' || 
       pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus = selectedStatus === 'todos' || 
-      pedido.status === selectedStatus;
-
+    
+    const matchesStatus = selectedStatus === 'todos' || pedido.status === selectedStatus;
+    
     return matchesSearch && matchesStatus;
   });
 
-  // Manipulação dos pedidos de pacientes
-  const filteredPedidosPacientes = React.useMemo(() => {
-    if (!pedidosPacientes) return [];
-
-    let filtered = pedidosPacientes;
-
-    // Filtrar por status
+  // Filtrado com base na aba e termo de busca
+  const filteredPedidosPacientes = pedidosPacientesData.filter(order => {
+    // Filter by tab
     if (selectedTab !== 'all') {
-      filtered = filtered.filter(order => order.status === selectedTab);
+      if (selectedTab === 'pending' && order.status !== 'pending') return false;
+      if (selectedTab === 'processing' && order.status !== 'processing') return false;
+      if (selectedTab === 'delivered' && order.status !== 'delivered') return false;
     }
-
-    // Filtrar por pesquisa
-    if (searchQuery && searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(order => 
-        order.orderNumber?.toLowerCase().includes(query) ||
-        order.customerName?.toLowerCase().includes(query) ||
-        order.additionalInfo?.customerEmail?.toLowerCase().includes(query)
-      );
+    
+    // Filter by search
+    if (searchQuery && !order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !order.customerName.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
     }
+    
+    return true;
+  });
 
-    return filtered;
-  }, [pedidosPacientes, selectedTab, searchQuery]);
+  // Mutations
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async (variables: { orderId: number, status: string, trackingCode?: string, note?: string }) => {
+      return apiRequest(`/api/organization/orders/${variables.orderId}/status`, {
+        method: 'PATCH',
+        data: {
+          status: variables.status,
+          trackingCode: variables.trackingCode,
+          note: variables.note
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/patient/orders'] });
+      setStatusModalOpen(false);
+      toast({
+        title: "Status atualizado",
+        description: "O status do pedido foi atualizado com sucesso",
+        variant: "success",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao atualizar status",
+        description: "Ocorreu um erro ao atualizar o status do pedido",
+        variant: "destructive",
+      });
+    },
+  });
 
-  // Funções compartilhadas
+  // Funções
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems(filteredPedidosGerais.map(pedido => pedido.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectItem = (id: string) => {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter(item => item !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+
+  const handleBulkAction = (action: string) => {
+    toast({
+      title: `Ação em lote: ${action}`,
+      description: `Executando ${action} para ${selectedItems.length} pedidos`,
+    });
+    // Implementar as ações em lote
+  };
+
+  const novoPedido = () => {
+    toast({
+      title: "Novo pedido",
+      description: "Funcionalidade em desenvolvimento",
+    });
+  };
+
   const handleViewPedido = (id: string) => {
     toast({
-      title: "Visualizando pedido",
-      description: `Abrindo detalhes do pedido ${id}`,
+      title: "Visualizar pedido",
+      description: `Visualizando pedido ${id}`,
     });
   };
 
   const handleEditPedido = (id: string) => {
     toast({
-      title: "Editando pedido",
+      title: "Editar pedido",
       description: `Editando pedido ${id}`,
     });
   };
 
   const handleDeletePedido = (id: string) => {
     toast({
-      title: "Confirmação necessária",
-      description: `Deseja realmente excluir o pedido ${id}?`,
-      variant: "destructive",
+      title: "Excluir pedido",
+      description: `Pedido ${id} excluído com sucesso`,
     });
   };
 
-  const handleBulkAction = (action: string) => {
-    toast({
-      title: `${action} em lote`,
-      description: `Ação ${action} aplicada a ${selectedItems.length} pedidos`,
-    });
-  };
-
-  const novoPedido = () => {
-    toast({
-      title: "Novo pedido",
-      description: "Criando novo pedido",
-    });
-  };
-
-  // Abrir detalhes do pedido de paciente
   const openOrderDetails = (order: PatientOrder) => {
     setSelectedOrder(order);
     setDetailsOpen(true);
   };
 
-  // Query client para invalidações
-  const queryClient = useQueryClient();
-
-  // Mutation para atualizar status do pedido
-  const updateOrderStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status, trackingCode, note }: { 
-      orderId: number; 
-      status: string; 
-      trackingCode?: string;
-      note?: string;
-    }) => {
-      const response = await fetch(`/api/organization/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status,
-          trackingCode,
-          note
-        }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao atualizar status do pedido');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      // Invalidar cache para recarregar pedidos
-      queryClient.invalidateQueries({ queryKey: ['/api/organization/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/organization/orders/expedition'] });
-
-      // Fechar modal de status e limpar campos
-      setStatusModalOpen(false);
-      setTrackingCode('');
-      setStatusNote('');
-
-      toast({
-        title: 'Status atualizado',
-        description: 'O status do pedido foi atualizado com sucesso',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erro ao atualizar status',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  });
-
-  // Abrir modal para atualizar status
   const openStatusModal = (order: PatientOrder, newStatus: string) => {
     setSelectedOrder(order);
     setCurrentStatus(newStatus);
+    setTrackingCode("");
+    setStatusNote("");
     setStatusModalOpen(true);
   };
 
-  // Formatar preço
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(price);
-  };
-
-  // Formatar data
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, 'dd/MM/yyyy HH:mm', { locale: ptBR });
   };
 
   return (
+    <div>
       <div className="container py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -655,25 +508,25 @@ export default function GerenciamentoPedidos() {
                           </TableCell>
                           <TableCell>
                             {order.additionalInfo?.paymentMethod === 'credit' && (
-                              <div className="flex items-center">
-                                <CreditCard className="h-4 w-4 mr-1" />
-                                <span>Cartão de Crédito</span>
-                              </div>
+                              <span className="text-sm">
+                                Cartão ****{order.additionalInfo.paymentDetails?.cardLastDigits || '0000'}
+                                {order.additionalInfo.paymentDetails?.installments && 
+                                  ` (${order.additionalInfo.paymentDetails.installments}x)`}
+                              </span>
                             )}
                             {order.additionalInfo?.paymentMethod === 'pix' && (
-                              <div className="flex items-center">
-                                <img src="/icons/pix.svg" alt="PIX" className="h-4 w-4 mr-1" />
-                                <span>PIX</span>
-                              </div>
+                              <span className="text-sm">PIX</span>
                             )}
-                            {order.additionalInfo?.paymentMethod === 'bankslip' && (
-                              <div className="flex items-center">
-                                <Banknote className="h-4 w-4 mr-1" />
-                                <span>Boleto</span>
-                              </div>
+                            {order.additionalInfo?.paymentMethod === 'boleto' && (
+                              <span className="text-sm">Boleto</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-right">{formatPrice(order.total)}</TableCell>
+                          <TableCell className="text-right">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(order.total)}
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -684,49 +537,31 @@ export default function GerenciamentoPedidos() {
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={(e) => {
                                   e.stopPropagation();
-                                  openOrderDetails(order);
+                                  openStatusModal(order, 'processing');
                                 }}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Ver detalhes
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  <span>Processando</span>
                                 </DropdownMenuItem>
-                                {/* Mostrar opções de status baseadas no status atual */}
-                                {order.status === 'payment_confirmed' && (
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    openStatusModal(order, 'in_preparation');
-                                  }}>
-                                    <Package className="h-4 w-4 mr-2" />
-                                    <span>Iniciar Preparação</span>
-                                  </DropdownMenuItem>
-                                )}
-                                {(order.status === 'payment_confirmed' || order.status === 'in_preparation') && (
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    openStatusModal(order, 'shipped');
-                                  }}>
-                                    <Truck className="h-4 w-4 mr-2" />
-                                    <span>Marcar como Enviado</span>
-                                  </DropdownMenuItem>
-                                )}
-                                {order.status === 'shipped' && (
-                                  <DropdownMenuItem onClick={(e) => {
-                                    e.stopPropagation();
-                                    openStatusModal(order, 'delivered');
-                                  }}>
-                                    <Check className="h-4 w-4 mr-2" />
-                                    <span>Marcar como Entregue</span>
-                                  </DropdownMenuItem>
-                                )}
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  openStatusModal(order, 'shipped');
+                                }}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  <span>Enviado</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  openStatusModal(order, 'delivered');
+                                }}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  <span>Entregue</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={(e) => {
                                   e.stopPropagation();
                                   openStatusModal(order, 'canceled');
                                 }} className="text-red-600">
-                                  <Trash className="h-4 w-4 mr-2" />
-                                  <span>Cancelar Pedido</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <FileText className="mr-2 h-4 w-4" />
-                                  Gerar nota fiscal
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  <span>Cancelado</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -739,164 +574,245 @@ export default function GerenciamentoPedidos() {
               </CardContent>
             </Card>
 
-            {/* Diálogo de Detalhes do Pedido */}
+            {/* Modal de Detalhes do Pedido */}
             {selectedOrder && (
               <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-                <DialogContent className="max-w-3xl">
+                <DialogContent className="max-w-4xl">
                   <DialogHeader>
-                    <DialogTitle className="flex justify-between items-center">
-                      <span>Detalhes do Pedido #{selectedOrder.orderNumber}</span>
-                      <OrderStatus status={selectedOrder.status} />
-                    </DialogTitle>
+                    <DialogTitle>Detalhes do Pedido #{selectedOrder.orderNumber}</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-6 md:grid-cols-3">
+                    {/* Informações do Pedido */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Informações do Pedido</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <div className="mt-1">
+                            <OrderStatus status={selectedOrder.status} />
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Data do pedido:</span>
+                          <p className="font-medium">{formatDate(selectedOrder.createdAt)}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Cliente:</span>
+                          <p className="font-medium">{selectedOrder.customerName}</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Email:</span>
+                          <p className="font-medium truncate">{selectedOrder.additionalInfo?.customerEmail}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Pagamento e Entrega */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Pagamento e Entrega</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <span className="text-muted-foreground">Método de pagamento:</span>
+                          <p className="font-medium">
+                            {selectedOrder.additionalInfo?.paymentMethod === 'credit' && 'Cartão de Crédito'}
+                            {selectedOrder.additionalInfo?.paymentMethod === 'pix' && 'PIX'}
+                            {selectedOrder.additionalInfo?.paymentMethod === 'boleto' && 'Boleto'}
+                          </p>
+                          {selectedOrder.additionalInfo?.paymentMethod === 'credit' && (
+                            <p className="text-sm text-muted-foreground">
+                              Final {selectedOrder.additionalInfo.paymentDetails?.cardLastDigits} - 
+                              {selectedOrder.additionalInfo.paymentDetails?.installments || '1'}x
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <span className="text-muted-foreground">Método de entrega:</span>
+                          <p className="font-medium">
+                            {selectedOrder.additionalInfo?.deliveryMethod === 'express' && 'Entrega Expressa (1-2 dias úteis)'}
+                            {selectedOrder.additionalInfo?.deliveryMethod === 'standard' && 'Entrega Padrão (5-7 dias úteis)'}
+                            {selectedOrder.additionalInfo?.deliveryMethod === 'pickup' && 'Retirada na Loja'}
+                          </p>
+                        </div>
+
+                        {selectedOrder.additionalInfo?.requiredPrescription && (
+                          <div>
+                            <span className="text-muted-foreground">Prescrição médica:</span>
+                            <p className="font-medium flex items-center">
+                              <Check className="h-4 w-4 text-green-600 mr-1" />
+                              Requerida (ID: {selectedOrder.additionalInfo.prescriptionId})
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Itens do Pedido */}
+                    <Card className="md:col-span-1">
+                      <CardHeader>
+                        <CardTitle className="text-base">Resumo do Pedido</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <span className="text-muted-foreground">Itens:</span>
+                          <p className="font-medium">{selectedOrder.items.length} produto(s)</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Subtotal:</span>
+                          <p className="font-medium">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(selectedOrder.total * 0.9)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Frete:</span>
+                          <p className="font-medium">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(selectedOrder.total * 0.1)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Total:</span>
+                          <p className="text-lg font-bold text-primary">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL',
+                            }).format(selectedOrder.total)}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium mb-4">Itens do Pedido</h3>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Produto</TableHead>
+                            <TableHead className="text-right">Quantidade</TableHead>
+                            <TableHead className="text-right">Preço</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedOrder.items.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item}</TableCell>
+                              <TableCell className="text-right">1</TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL',
+                                }).format(selectedOrder.total / selectedOrder.items.length)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {new Intl.NumberFormat('pt-BR', {
+                                  style: 'currency',
+                                  currency: 'BRL',
+                                }).format(selectedOrder.total / selectedOrder.items.length)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button onClick={() => setDetailsOpen(false)}>Fechar</Button>
+                    {selectedOrder.status === 'pending' && (
+                      <Button onClick={() => openStatusModal(selectedOrder, 'processing')} className="ml-2">
+                        Iniciar Processamento
+                      </Button>
+                    )}
+                    {selectedOrder.status === 'processing' && (
+                      <Button onClick={() => openStatusModal(selectedOrder, 'shipped')} className="ml-2">
+                        Marcar como Enviado
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Modal de Atualização de Status */}
+            {selectedOrder && (
+              <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Atualizar Status do Pedido</DialogTitle>
                     <DialogDescription>
-                      Pedido realizado em {formatDate(selectedOrder.createdAt)}
+                      Atualize o status do pedido #{selectedOrder?.orderNumber} para {currentStatus === 'shipped' ? 'enviado' : currentStatus === 'delivered' ? 'entregue' : currentStatus === 'canceled' ? 'cancelado' : 'em preparação'}.
                     </DialogDescription>
                   </DialogHeader>
-
-                  <ScrollArea className="max-h-[70vh] pr-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Informações do Cliente */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg flex items-center">
-                            <User className="mr-2 h-5 w-5 text-muted-foreground" />
-                            Informações do Cliente
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Nome:</span>
-                            <p className="font-medium">{selectedOrder.customerName}</p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Email:</span>
-                            <p className="font-medium">{selectedOrder.additionalInfo?.customerEmail}</p>
-                          </div>
-                          {selectedOrder.additionalInfo?.shippingAddress && (
-                            <div>
-                              <span className="text-muted-foreground">Endereço:</span>
-                              <p className="font-medium">
-                                {selectedOrder.additionalInfo.shippingAddress.street}, {selectedOrder.additionalInfo.shippingAddress.number}
-                                {selectedOrder.additionalInfo.shippingAddress.complement && `, ${selectedOrder.additionalInfo.shippingAddress.complement}`}
-                              </p>
-                              <p className="font-medium">
-                                {selectedOrder.additionalInfo.shippingAddress.neighborhood} - {selectedOrder.additionalInfo.shippingAddress.city}/{selectedOrder.additionalInfo.shippingAddress.state}
-                              </p>
-                              <p className="font-medium">
-                                CEP: {selectedOrder.additionalInfo.shippingAddress.zipCode}
-                              </p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Informações de Pagamento e Entrega */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg flex items-center">
-                            <CreditCard className="mr-2 h-5 w-5 text-muted-foreground" />
-                            Pagamento e Entrega
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Método de pagamento:</span>
-                            <p className="font-medium">
-                              {selectedOrder.additionalInfo?.paymentMethod === 'credit' && 'Cartão de Crédito'}
-                              {selectedOrder.additionalInfo?.paymentMethod === 'pix' && 'PIX'}
-                              {selectedOrder.additionalInfo?.paymentMethod === 'bankslip' && 'Boleto Bancário'}
-
-                              {selectedOrder.additionalInfo?.paymentMethod === 'credit' && 
-                                selectedOrder.additionalInfo?.paymentDetails?.installments && 
-                                ` (${selectedOrder.additionalInfo.paymentDetails.installments}x)`}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Método de entrega:</span>
-                            <p className="font-medium">
-                              {selectedOrder.additionalInfo?.deliveryMethod === 'express' && 'Entrega Expressa (1-2 dias úteis)'}
-                              {selectedOrder.additionalInfo?.deliveryMethod === 'standard' && 'Entrega Padrão (5-7 dias úteis)'}
-                              {selectedOrder.additionalInfo?.deliveryMethod === 'pickup' && 'Retirada na Loja'}
-                            </p>
-                          </div>
-
-                          {selectedOrder.additionalInfo?.requiredPrescription && (
-                            <div>
-                              <span className="text-muted-foreground">Prescrição médica:</span>
-                              <p className="font-medium flex items-center">
-                                <Check className="h-4 w-4 text-green-600 mr-1" />
-                                Requerida (ID: {selectedOrder.additionalInfo.prescriptionId})
-                              </p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-
-                      {/* Itens do Pedido */}
-                      <Card className="md:col-span-2">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-lg flex items-center">
-                            <ShoppingBag className="mr-2 h-5 w-5 text-muted-foreground" />
-                            Itens do Pedido
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Produto</TableHead>
-                                <TableHead className="text-right">Preço</TableHead>
-                                <TableHead className="text-center">Qtd</TableHead>
-                                <TableHead className="text-right">Subtotal</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {selectedOrder.items.map((itemString, index) => {
-                                try {
-                                  const item = JSON.parse(itemString) as OrderItem;
-                                  const price = item.discountPrice !== undefined ? item.discountPrice : item.price;
-                                  return (
-                                    <TableRow key={index}>
-                                      <TableCell>
-                                        <div className="font-medium">{item.name}</div>
-                                      </TableCell>
-                                      <TableCell className="text-right">{formatPrice(price)}</TableCell>
-                                      <TableCell className="text-center">{item.quantity}</TableCell>
-                                      <TableCell className="text-right">{formatPrice(price * item.quantity)}</TableCell>
-                                    </TableRow>
-                                  );
-                                } catch (e) {
-                                  console.error('Erro ao processar item do pedido:', e);
-                                  return null;
-                                }
-                              })}
-                              <TableRow>
-                                <TableCell colSpan={3} className="text-right font-bold">
-                                  Total
-                                </TableCell>
-                                <TableCell className="text-right font-bold">
-                                  {formatPrice(selectedOrder.total)}
-                                </TableCell>
-                              </TableRow>
-                            </TableBody>
-                          </Table>
-                        </CardContent>
-                      </Card>
+                  
+                  <div className="space-y-4 py-4">
+                    {currentStatus === 'shipped' && (
+                      <div className="space-y-2">
+                        <label htmlFor="tracking-code" className="text-sm font-medium">
+                          Código de Rastreamento
+                        </label>
+                        <Input
+                          id="tracking-code"
+                          placeholder="Digite o código de rastreamento..."
+                          value={trackingCode}
+                          onChange={(e) => setTrackingCode(e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          O código de rastreamento será enviado ao cliente por e-mail.
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="status-note" className="text-sm font-medium">
+                        Observações (opcional)
+                      </label>
+                      <Input
+                        id="status-note"
+                        placeholder="Adicione informações adicionais sobre este status..."
+                        value={statusNote}
+                        onChange={(e) => setStatusNote(e.target.value)}
+                      />
                     </div>
-                  </ScrollArea>
-
-                  <DialogFooter className="flex justify-between items-center mt-6">
-                    <span className="text-sm text-muted-foreground">
-                      ID do Pedido: {selectedOrder.id}
-                    </span>
-                    <div className="flex gap-2">
-                      <Button variant="outline" onClick={() => setDetailsOpen(false)}>
-                        Fechar
-                      </Button>
-                      <Button onClick={() => openStatusModal(selectedOrder, "in_preparation")}>
-                        Atualizar Status
-                      </Button>
-                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setStatusModalOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (selectedOrder) {
+                          updateOrderStatusMutation.mutate({
+                            orderId: selectedOrder.id,
+                            status: currentStatus,
+                            trackingCode: currentStatus === 'shipped' ? trackingCode : undefined,
+                            note: statusNote || undefined
+                          });
+                        }
+                      }}
+                      disabled={updateOrderStatusMutation.isPending || (currentStatus === 'shipped' && !trackingCode)}
+                    >
+                      {updateOrderStatusMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Atualizando...
+                        </>
+                      ) : (
+                        <>Atualizar Status</>
+                      )}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -904,13 +820,6 @@ export default function GerenciamentoPedidos() {
           </TabsContent>
         </Tabs>
       </div>
-
-      <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Atualizar Status do Pedido</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+    </div>
   );
 }
