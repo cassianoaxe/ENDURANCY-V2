@@ -26,7 +26,7 @@ export default function PatientDashboardPage() {
     
     // Navegação direta para outras páginas
     if (tabValue === 'produtos') {
-      navigateTo('/patient/produtos');
+      navigateTo('/patient/produtos/');
     } 
     else if (tabValue === 'meus-pedidos') {
       navigateTo('/patient/pedidos/rastreamento');
