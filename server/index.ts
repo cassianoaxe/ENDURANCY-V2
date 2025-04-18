@@ -9,6 +9,7 @@ import { patientAuthRouter } from "./routes/patient-auth";
 import { registerWhatsAppRoutes } from "./routes-whatsapp";
 import { registerPatientOrdersRoutes } from "./routes-patient-orders";
 import { registerPatrimonioRoutes } from "./routes-patrimonio";
+import { registerPesquisaCientificaRoutes } from "./routes-pesquisa";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -804,6 +805,7 @@ app.use((req, res, next) => {
   // Registrar rotas de pedidos de pacientes
   registerPatientOrdersRoutes(app);
   registerPatrimonioRoutes(app);
+  registerPesquisaCientificaRoutes(app);
 
   // Inicializar dados de exemplo para tickets
   try {
