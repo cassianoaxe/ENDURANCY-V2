@@ -864,6 +864,19 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
+    // Rotas do módulo de Patrimônio
+    if (currentPath === '/organization/patrimonio') {
+      return <OrganizationLayout>
+        <PatrimonioIndex />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/patrimonio/depreciacao/calculadora') {
+      return <OrganizationLayout>
+        <DepreciacaoCalculadora />
+      </OrganizationLayout>;
+    }
+
     // Removido código duplicado de tratamento do portal de transparência
     // (já está implementado no início do bloco de rotas da organização)
 
