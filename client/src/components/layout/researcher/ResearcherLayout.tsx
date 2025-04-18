@@ -6,13 +6,15 @@ import {
   LayoutDashboard, 
   Menu, 
   Microscope, 
-  FlaskConical, 
   Building, 
-  Calendar, 
-  BookOpen, 
-  Settings,
   FileSearch,
-  LogOut
+  LogOut,
+  FilePlus,
+  Activity,
+  Database,
+  Users,
+  Clipboard,
+  BarChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
