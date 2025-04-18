@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { 
   BarChart, 
   FileText, 
-  Flask, 
+  FlaskConical, 
   ChevronRight, 
   BookOpen, 
   Building, 
@@ -24,15 +24,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import Layout from '@/components/layout/Layout';
+import ResearcherLayout from '@/components/layout/researcher/ResearcherLayout';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 export default function ResearcherDashboard() {
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [activeStudies, setActiveStudies] = useState([]);
   const [registeredPlants, setRegisteredPlants] = useState([]);
@@ -143,7 +143,7 @@ export default function ResearcherDashboard() {
   };
 
   return (
-    <Layout>
+    <ResearcherLayout>
       <div className="container mx-auto p-4 md:p-6">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -153,15 +153,15 @@ export default function ResearcherDashboard() {
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => navigate('/researcher/estudos/novo')} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={() => setLocation('/researcher/estudos/novo')} className="bg-green-600 hover:bg-green-700">
                 <FilePlus className="h-4 w-4 mr-2" />
                 Novo Estudo
               </Button>
-              <Button variant="outline" onClick={() => navigate('/researcher/organizacoes')}>
+              <Button variant="outline" onClick={() => setLocation('/researcher/organizacoes')}>
                 <Building className="h-4 w-4 mr-2" />
                 Organizações
               </Button>
-              <Button variant="outline" onClick={() => navigate('/researcher/plantas')}>
+              <Button variant="outline" onClick={() => setLocation('/researcher/plantas')}>
                 <Microscope className="h-4 w-4 mr-2" />
                 Registro de Plantas
               </Button>
@@ -192,7 +192,7 @@ export default function ResearcherDashboard() {
                 ) : activeStudies.length > 0 ? (
                   <div className="space-y-5">
                     {activeStudies.map((study) => (
-                      <div key={study.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => navigate(`/researcher/estudos/${study.id}`)}>
+                      <div key={study.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setLocation(`/researcher/estudos/${study.id}`)}>
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
                             <h3 className="font-medium text-gray-900">{study.title}</h3>
@@ -222,7 +222,7 @@ export default function ResearcherDashboard() {
                     <Button 
                       variant="outline" 
                       className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                      onClick={() => navigate('/researcher/estudos')}
+                      onClick={() => setLocation('/researcher/estudos')}
                     >
                       Ver todos os estudos
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -235,7 +235,7 @@ export default function ResearcherDashboard() {
                     <p className="text-gray-500 text-sm mb-4">
                       Você ainda não tem estudos científicos registrados.
                     </p>
-                    <Button onClick={() => navigate('/researcher/estudos/novo')}>
+                    <Button onClick={() => setLocation('/researcher/estudos/novo')}>
                       Criar primeiro estudo
                     </Button>
                   </div>
@@ -295,7 +295,7 @@ export default function ResearcherDashboard() {
                     <Button 
                       variant="outline" 
                       className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                      onClick={() => navigate('/researcher/plantas')}
+                      onClick={() => setLocation('/researcher/plantas')}
                     >
                       Ver todas as plantas
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -303,12 +303,12 @@ export default function ResearcherDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <Flask className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                    <FlaskConical className="h-10 w-10 text-gray-300 mx-auto mb-2" />
                     <h3 className="text-gray-700 font-medium mb-1">Nenhuma planta registrada</h3>
                     <p className="text-gray-500 text-sm mb-3">
                       Registre cepas para suas pesquisas
                     </p>
-                    <Button size="sm" onClick={() => navigate('/researcher/plantas/novo')}>
+                    <Button size="sm" onClick={() => setLocation('/researcher/plantas/novo')}>
                       Registrar planta
                     </Button>
                   </div>
@@ -510,6 +510,6 @@ export default function ResearcherDashboard() {
           </div>
         </div>
       </div>
-    </Layout>
+    </ResearcherLayout>
   );
 }

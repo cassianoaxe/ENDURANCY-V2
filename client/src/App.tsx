@@ -56,6 +56,7 @@ import VendasAdmin from "@/pages/Vendas";
 import Cadastro from "@/pages/Cadastro";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
+import ResearcherDashboard from "@/pages/researcher/dashboard";
 import Tickets from "@/pages/Tickets";
 import TicketDetail from "@/pages/TicketDetail";
 import CreateTicket from "@/pages/CreateTicket";
@@ -2141,6 +2142,135 @@ function AppContent() {
       );
     }
     
+    return <NotFound />;
+  }
+  
+  // Check for researcher routes
+  if (currentPath.startsWith('/researcher/')) {
+    // Verificando se o usuário tem permissão para acessar
+    // Permitimos acesso de admin, org_admin e usuários do tipo researcher
+    if (userRole !== 'admin' && userRole !== 'org_admin' && userRole !== 'researcher') {
+      return (
+        <Layout>
+          <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
+            <h1 className="text-2xl font-bold mb-2">Acesso Restrito</h1>
+            <p className="text-gray-500 mb-4">
+              Você não tem permissão para acessar o portal do pesquisador. Esta área é reservada para pesquisadores cadastrados.
+            </p>
+            <button 
+              onClick={() => {
+                window.history.pushState({}, '', '/');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              Voltar para a página inicial
+            </button>
+          </div>
+        </Layout>
+      );
+    }
+    
+    // Rotas específicas do pesquisador
+    if (currentPath === '/researcher/dashboard') {
+      return (
+        <ResearcherLayout>
+          <ResearcherDashboard />
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath.startsWith('/researcher/estudos')) {
+      return (
+        <ResearcherLayout>
+          {currentPath === '/researcher/estudos' ? (
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Estudos Científicos</h1>
+              <p className="text-gray-500 mb-6">Lista de todos os seus estudos científicos e colaborações</p>
+              <div className="border rounded-lg p-10 text-center">
+                <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+                <button 
+                  onClick={() => navigate('/researcher/dashboard')}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Voltar para o Dashboard
+                </button>
+              </div>
+            </div>
+          ) : currentPath === '/researcher/estudos/novo' ? (
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Novo Estudo Científico</h1>
+              <p className="text-gray-500 mb-6">Cadastre um novo estudo ou projeto de pesquisa</p>
+              <div className="border rounded-lg p-10 text-center">
+                <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
+                <button 
+                  onClick={() => navigate('/researcher/dashboard')}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Voltar para o Dashboard
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-4">Detalhes do Estudo</h1>
+              <p className="text-gray-500 mb-6">Visualizando detalhes do estudo</p>
+              <div className="border rounded-lg p-10 text-center">
+                <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+                <button 
+                  onClick={() => navigate('/researcher/dashboard')}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Voltar para o Dashboard
+                </button>
+              </div>
+            </div>
+          )}
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/plantas' || currentPath === '/researcher/plantas/novo') {
+      return (
+        <ResearcherLayout>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Registro de Plantas</h1>
+            <p className="text-gray-500 mb-6">Cadastro e gerenciamento de cepas para pesquisa</p>
+            <div className="border rounded-lg p-10 text-center">
+              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+              <button 
+                onClick={() => navigate('/researcher/dashboard')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Voltar para o Dashboard
+              </button>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/organizacoes') {
+      return (
+        <ResearcherLayout>
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Organizações Colaboradoras</h1>
+            <p className="text-gray-500 mb-6">Gerencie suas parcerias e encontre novas instituições</p>
+            <div className="border rounded-lg p-10 text-center">
+              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+              <button 
+                onClick={() => navigate('/researcher/dashboard')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Voltar para o Dashboard
+              </button>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
+    // Se nenhuma rota específica for encontrada, retorne NotFound
     return <NotFound />;
   }
   
