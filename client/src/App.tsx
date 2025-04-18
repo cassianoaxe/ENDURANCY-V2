@@ -1993,6 +1993,16 @@ function AppContent() {
     
     // Primeiro verificar se é a página de login do paciente (acessível sem autenticação)
     if (currentPath === '/patient/login') {
+      const PatientLoginPage = React.lazy(() => import('@/pages/patient/login'));
+      return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="animate-spin h-8 w-8 border-t-2 border-primary rounded-full"></div></div>}>
+          <PatientLoginPage />
+        </Suspense>
+      );
+    }
+    
+    // Este código não será alcançado após o retorno acima, então podemos remover
+    if (false) {
       // Extrair organizationId do query parameter 
       const url = new URL(window.location.href);
       const orgId = url.searchParams.get('orgId') || url.searchParams.get('organizationId');

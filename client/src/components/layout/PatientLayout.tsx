@@ -39,9 +39,9 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
           description: "Você saiu da sua conta com sucesso.",
         });
         
-        // Redirecionar para a página de login
+        // Redirecionar para a página inicial
         setTimeout(() => {
-          window.location.href = '/patient/login';
+          window.location.href = '/';
         }, 500);
       } else {
         throw new Error('Falha ao fazer logout');
