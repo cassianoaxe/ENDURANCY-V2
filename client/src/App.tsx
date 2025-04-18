@@ -2177,33 +2177,35 @@ function AppContent() {
     }
     
     // Rotas do laboratório
-    if (currentPath === '/researcher/laboratorio' || 
-        currentPath === '/researcher/laboratorio/amostras' ||
-        currentPath === '/researcher/laboratorio/equipamentos' ||
-        currentPath === '/researcher/laboratorio/resultados') {
-      
-      let LabComponent;
-      
-      if (currentPath === '/researcher/laboratorio') {
-        const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
-        LabComponent = <LaboratorioPage />;
-      } else if (currentPath === '/researcher/laboratorio/amostras') {
-        const AmostrasList = React.lazy(() => import('./pages/researcher/laboratorio/amostras/index'));
-        LabComponent = <AmostrasList />;
-      } else if (currentPath === '/researcher/laboratorio/equipamentos') {
-        const EquipamentosList = React.lazy(() => import('./pages/researcher/laboratorio/equipamentos/index'));
-        LabComponent = <EquipamentosList />;
-      } else if (currentPath === '/researcher/laboratorio/resultados') {
-        const ResultadosList = React.lazy(() => import('./pages/researcher/laboratorio/resultados/index'));
-        LabComponent = <ResultadosList />;
-      }
-      
+    // Componentes do laboratório
+    const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
+    const AmostrasList = React.lazy(() => import('./pages/researcher/laboratorio/amostras/index'));
+    const EquipamentosList = React.lazy(() => import('./pages/researcher/laboratorio/equipamentos/index'));
+    const ResultadosList = React.lazy(() => import('./pages/researcher/laboratorio/resultados/index'));
+    
+    if (currentPath.startsWith('/researcher/laboratorio')) {
       return (
         <ResearcherLayout>
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>}>
-            {LabComponent}
+            <Switch>
+              <Route path="/researcher/laboratorio" exact>
+                <LaboratorioPage />
+              </Route>
+              <Route path="/researcher/laboratorio/amostras">
+                <AmostrasList />
+              </Route>
+              <Route path="/researcher/laboratorio/equipamentos">
+                <EquipamentosList />
+              </Route>
+              <Route path="/researcher/laboratorio/resultados">
+                <ResultadosList />
+              </Route>
+              <Route>
+                <Redirect to="/researcher/laboratorio" />
+              </Route>
+            </Switch>
           </Suspense>
         </ResearcherLayout>
       );
