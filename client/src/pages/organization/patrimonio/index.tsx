@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,10 +21,17 @@ import {
   Clock,
   Landmark,
   MapPin,
-  FileText
+  FileText,
+  HelpCircle
 } from 'lucide-react';
 
+// Importando o componente de tour
+import PatrimonioTour from './components/patrimonio-tour';
+
 export default function PatrimonioPage() {
+  // Estado para controlar a exibição do tour
+  const [tourOpen, setTourOpen] = useState(false);
+  
   // Consulta de estatísticas do módulo
   const {
     data: stats,
@@ -33,8 +40,18 @@ export default function PatrimonioPage() {
     queryKey: ['/api/patrimonio/dashboard'],
   });
 
+  // Função para iniciar o tour
+  const startTour = () => {
+    setTourOpen(true);
+  };
+
+  // Função para fechar o tour
+  const closeTour = () => {
+    setTourOpen(false);
+  };
+
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6" data-tour="patrimonio-dashboard">
       <PageHeader
         heading="Gestão de Patrimônio"
         text="Gerencie todos os ativos, instalações e depreciações da sua organização."
@@ -45,8 +62,19 @@ export default function PatrimonioPage() {
               <PlusCircle className="mr-2 h-4 w-4" /> Novo Ativo
             </Link>
           </Button>
+          
+          <Button variant="outline" onClick={startTour}>
+            <HelpCircle className="mr-2 h-4 w-4" /> Tour Guiado
+          </Button>
         </div>
       </PageHeader>
+      
+      {/* Tour guiado do módulo */}
+      <PatrimonioTour 
+        isOpen={tourOpen}
+        onClose={closeTour}
+        startStep="dashboard"
+      />
 
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:w-[600px]">
@@ -57,7 +85,7 @@ export default function PatrimonioPage() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" data-tour="patrimonio-estatisticas">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
@@ -389,7 +417,7 @@ export default function PatrimonioPage() {
         </TabsContent>
         
         <TabsContent value="assets" className="mt-6">
-          <Card>
+          <Card data-tour="patrimonio-ativos-card">
             <CardHeader>
               <CardTitle>Ativos e Equipamentos</CardTitle>
               <CardDescription>
@@ -439,7 +467,7 @@ export default function PatrimonioPage() {
         </TabsContent>
         
         <TabsContent value="facilities" className="mt-6">
-          <Card>
+          <Card data-tour="patrimonio-instalacoes-card">
             <CardHeader>
               <CardTitle>Instalações e Imóveis</CardTitle>
               <CardDescription>
