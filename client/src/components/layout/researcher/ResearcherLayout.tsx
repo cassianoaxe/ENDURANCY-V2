@@ -114,6 +114,12 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
       href: "/researcher/nova-pesquisa",
       badge: null,
     },
+    {
+      title: "Página de Teste",
+      icon: <FileText className="h-5 w-5" />,
+      href: "/researcher/test",
+      badge: <Badge className="ml-auto" variant="outline">TESTE</Badge>,
+    },
   ];
 
   const SidebarContent = () => (
