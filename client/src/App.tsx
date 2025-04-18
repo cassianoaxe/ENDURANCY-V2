@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from "react";
+import { useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -261,6 +262,7 @@ import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 function AppContent() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [, setLocation] = useLocation();
   const userRole = user?.role;
   
   // Log para depuração
