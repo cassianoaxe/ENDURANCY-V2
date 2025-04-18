@@ -362,7 +362,7 @@ export default function ResearcherDashboard() {
                           variant={org.collaborationStatus === 'active' ? 'outline' : 'default'}
                           onClick={() => {
                             if (org.collaborationStatus === 'active') {
-                              navigate(`/researcher/organizacoes/${org.id}`);
+                              setLocation(`/researcher/organizacoes/${org.id}`);
                             } else {
                               toast({
                                 title: "Solicitação enviada",
@@ -383,7 +383,7 @@ export default function ResearcherDashboard() {
               <Button 
                 variant="outline" 
                 className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
-                onClick={() => navigate('/researcher/organizacoes')}
+                onClick={() => setLocation('/researcher/organizacoes')}
               >
                 Ver todas as organizações
                 <ChevronRight className="h-4 w-4 ml-1" />
