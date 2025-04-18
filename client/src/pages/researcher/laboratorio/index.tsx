@@ -10,10 +10,11 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Users,
+  Beaker,
   Search,
   Plus,
   Microscope,
+  FlaskConical,
   FileText,
   AlertCircle,
   Download,
@@ -23,12 +24,8 @@ import {
   CheckCircle2,
   XCircle,
   CircleAlertIcon,
-  Filter,
-  HeartPulse,
-  Brain,
-  ActivitySquare,
-  BookOpen,
-  FileBarChart2
+  ChevronDown,
+  Filter
 } from 'lucide-react';
 
 export default function ResearcherLaboratorio() {
@@ -37,128 +34,117 @@ export default function ResearcherLaboratorio() {
   const [isLoading, setIsLoading] = useState(true);
   const [filtro, setFiltro] = useState('');
   const [visualizacao, setVisualizacao] = useState('todas');
-  const [estudos, setEstudos] = useState<any[]>([]);
-  const [participantes, setParticipantes] = useState<any[]>([]);
+  const [amostras, setAmostras] = useState<any[]>([]);
+  const [equipamentos, setEquipamentos] = useState<any[]>([]);
   const [resultados, setResultados] = useState<any[]>([]);
 
-  // Dados de exemplo para simulação - serão substituídos por dados reais
+  // Exemplo de dados para simulação
   useEffect(() => {
     // Simular carregamento
     const timer = setTimeout(() => {
-      setEstudos([
+      // Dados de exemplo
+      setAmostras([
         {
-          id: 'EST-2025-001',
-          titulo: 'Eficácia e segurança de produtos à base de Cannabis em pacientes com dor crônica',
-          tipo: 'Observacional Prospectivo',
-          status: 'em_andamento',
-          dataInicio: new Date(2025, 2, 15),
-          participantes: 758,
-          doenca: 'Dor crônica',
-          responsavel: 'Dra. Maria Silva'
+          id: 'AM-2025-041',
+          nome: 'Cannabis Sativa Strain A - Lote 001',
+          tipo: 'Flor',
+          status: 'em_analise',
+          dataEnvio: new Date(2025, 3, 10),
+          resultadosPendentes: 2,
+          resultadosConcluidos: 1,
+          observacoes: 'Amostra com alta concentração esperada de CBD'
         },
         {
-          id: 'EST-2025-002',
-          titulo: 'Uso de Cannabis medicinal no tratamento da ansiedade - Estudo de Mundo Real',
-          tipo: 'Observacional Retrospectivo',
-          status: 'rascunho',
-          dataInicio: null,
-          participantes: 0,
-          doenca: 'Transtornos de Ansiedade',
-          responsavel: 'Dr. João Santos'
+          id: 'AM-2025-039',
+          nome: 'Extrato de CBD 20% - Lote XR2',
+          tipo: 'Extrato',
+          status: 'concluida',
+          dataEnvio: new Date(2025, 3, 8),
+          resultadosPendentes: 0,
+          resultadosConcluidos: 3,
+          observacoes: 'Extrato utilizado para pesquisa de eficácia terapêutica'
         },
         {
-          id: 'EST-2024-015',
-          titulo: 'Avaliação do uso de Cannabis medicinal em pacientes com epilepsia refratária',
-          tipo: 'Observacional Prospectivo',
-          status: 'concluido',
-          dataInicio: new Date(2024, 8, 10),
-          dataFim: new Date(2025, 2, 10),
-          participantes: 325,
-          doenca: 'Epilepsia Refratária',
-          responsavel: 'Dra. Ana Costa'
+          id: 'AM-2025-038',
+          nome: 'Óleo Full Spectrum - Lote 2025-05',
+          tipo: 'Óleo',
+          status: 'aguardando',
+          dataEnvio: new Date(2025, 3, 6),
+          resultadosPendentes: 3,
+          resultadosConcluidos: 0,
+          observacoes: 'Aguardando disponibilidade do laboratório'
         }
       ]);
 
-      setParticipantes([
+      setEquipamentos([
         {
-          id: 'PAC-45678',
-          nome: 'José da Silva (anonimizado)',
-          idade: 52,
-          genero: 'Masculino',
-          cidade: 'São Paulo, SP',
-          diagnostico: 'Dor crônica neuropática',
-          cid: 'G89.4',
-          dataInclusao: new Date(2025, 2, 18),
-          estudo: 'EST-2025-001',
-          status: 'ativo'
+          id: 'HPLC-001',
+          nome: 'HPLC Agilent 1260 Infinity II',
+          tipo: 'HPLC',
+          status: 'disponivel',
+          proximaManutencao: new Date(2025, 5, 15),
+          ultimaCalibracao: new Date(2025, 2, 15),
+          responsavel: 'Lab Central - São Paulo'
         },
         {
-          id: 'PAC-45679',
-          nome: 'Maria Oliveira (anonimizado)',
-          idade: 45,
-          genero: 'Feminino',
-          cidade: 'Rio de Janeiro, RJ',
-          diagnostico: 'Fibromialgia',
-          cid: 'M79.7',
-          dataInclusao: new Date(2025, 2, 20),
-          estudo: 'EST-2025-001',
-          status: 'ativo'
+          id: 'GC-003',
+          nome: 'GC-MS Shimadzu GCMS-QP2020 NX',
+          tipo: 'GC-MS',
+          status: 'em_uso',
+          proximaManutencao: new Date(2025, 6, 10),
+          ultimaCalibracao: new Date(2025, 3, 5),
+          responsavel: 'Lab Central - São Paulo'
         },
         {
-          id: 'PAC-45680',
-          nome: 'Carlos Souza (anonimizado)',
-          idade: 38,
-          genero: 'Masculino',
-          cidade: 'Belo Horizonte, MG',
-          diagnostico: 'Ansiedade generalizada',
-          cid: 'F41.1',
-          dataInclusao: new Date(2025, 2, 19),
-          estudo: 'EST-2025-001',
-          status: 'pendente'
+          id: 'UPLC-002',
+          nome: 'UPLC Waters Acquity',
+          tipo: 'UPLC',
+          status: 'manutencao',
+          proximaManutencao: null,
+          ultimaCalibracao: new Date(2025, 1, 10),
+          responsavel: 'Lab Satélite - Rio de Janeiro'
         }
       ]);
 
       setResultados([
         {
-          id: 'RES-2025-001',
-          estudo: 'EST-2024-015',
-          titulo: 'Resultados preliminares - Epilepsia refratária',
-          tipo: 'Preliminar',
-          dataCriacao: new Date(2024, 11, 15),
-          amostras: 212,
-          metricas: {
-            eficaciaPercebida: 7.8,
-            reducaoConvulsoes: '68%',
-            efeitosColaterais: '23%',
-            reducaoOutrosMedicamentos: '52%'
+          id: 'RES-2025-067',
+          amostraId: 'AM-2025-041',
+          amostraNome: 'Cannabis Sativa Strain A - Lote 001',
+          tipo: 'Teor de Canabinoides',
+          status: 'concluido',
+          dataAnalise: new Date(2025, 3, 11),
+          equipamento: 'HPLC-001',
+          resultados: {
+            CBD: 18.5,
+            THC: 0.2,
+            CBG: 0.8,
+            CBN: 0.1,
           }
         },
         {
-          id: 'RES-2025-002',
-          estudo: 'EST-2024-015',
-          titulo: 'Relatório Final - Epilepsia refratária',
-          tipo: 'Final',
-          dataCriacao: new Date(2025, 2, 15),
-          amostras: 325,
-          metricas: {
-            eficaciaPercebida: 7.5,
-            reducaoConvulsoes: '65%',
-            efeitosColaterais: '18%',
-            reducaoOutrosMedicamentos: '58%'
-          }
+          id: 'RES-2025-066',
+          amostraId: 'AM-2025-041',
+          amostraNome: 'Cannabis Sativa Strain A - Lote 001',
+          tipo: 'Perfil Terpênico',
+          status: 'em_andamento',
+          dataAnalise: new Date(2025, 3, 12),
+          equipamento: 'GC-003',
+          resultados: null
         },
         {
-          id: 'RES-2025-003',
-          estudo: 'EST-2025-001',
-          titulo: 'Monitoramento mensal - Dor Crônica',
-          tipo: 'Parcial',
-          dataCriacao: new Date(2025, 3, 1),
-          amostras: 348,
-          metricas: {
-            eficaciaPercebida: 6.9,
-            reducaoDor: '62%',
-            efeitosColaterais: '14%',
-            reducaoOutrosMedicamentos: '47%'
+          id: 'RES-2025-065',
+          amostraId: 'AM-2025-039',
+          amostraNome: 'Extrato de CBD 20% - Lote XR2',
+          tipo: 'Teor de Canabinoides',
+          status: 'concluido',
+          dataAnalise: new Date(2025, 3, 9),
+          equipamento: 'HPLC-001',
+          resultados: {
+            CBD: 20.3,
+            THC: 0.1,
+            CBG: 0.4,
+            CBN: 0.05,
           }
         }
       ]);
@@ -171,20 +157,23 @@ export default function ResearcherLaboratorio() {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, JSX.Element> = {
-      'em_andamento': <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Em andamento</Badge>,
+      'em_analise': <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Em análise</Badge>,
+      'concluida': <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Concluída</Badge>,
+      'aguardando': <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Aguardando</Badge>,
+      'cancelada': <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelada</Badge>,
+      'disponivel': <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Disponível</Badge>,
+      'em_uso': <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Em uso</Badge>,
+      'manutencao': <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Em manutenção</Badge>,
+      'indisponivel': <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Indisponível</Badge>,
       'concluido': <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Concluído</Badge>,
-      'rascunho': <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">Rascunho</Badge>,
-      'pausado': <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Pausado</Badge>,
-      'cancelado': <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelado</Badge>,
-      'ativo': <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Ativo</Badge>,
+      'em_andamento': <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Em andamento</Badge>,
       'pendente': <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Pendente</Badge>,
-      'inativo': <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Inativo</Badge>,
     };
     
     return statusMap[status] || <Badge>Desconhecido</Badge>;
   };
 
-  const formatarData = (data: Date | null) => {
+  const formatarData = (data: Date) => {
     if (!data) return 'N/A';
     return data.toLocaleDateString('pt-BR');
   };
@@ -195,45 +184,45 @@ export default function ResearcherLaboratorio() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Laboratório de Pesquisa Clínica</h1>
-              <p className="text-gray-500 mt-1">Estudos de mundo real, participantes e resultados de pesquisas</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Laboratório</h1>
+              <p className="text-gray-500 mt-1">Gerencie amostras, análises e resultados laboratoriais</p>
             </div>
             
             <div className="flex flex-wrap gap-3">
-              <Button onClick={() => setLocation('/researcher/estudos/novo')} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={() => setLocation('/researcher/laboratorio/amostras/nova')} className="bg-green-600 hover:bg-green-700">
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Novo Estudo
+                Nova Amostra
               </Button>
-              <Button variant="outline" onClick={() => setLocation('/researcher/laboratorio/relatorios')}>
-                <FileBarChart2 className="h-4 w-4 mr-2" />
-                Gerar Relatório
+              <Button variant="outline" onClick={() => setLocation('/researcher/laboratorio/resultados')}>
+                <FileText className="h-4 w-4 mr-2" />
+                Ver Resultados
               </Button>
             </div>
           </div>
           
-          <Tabs defaultValue="estudos" className="w-full">
+          <Tabs defaultValue="amostras" className="w-full">
             <TabsList className="w-full md:w-auto justify-start">
-              <TabsTrigger value="estudos" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+              <TabsTrigger value="amostras" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
+                <Beaker className="h-4 w-4 mr-2" />
+                Amostras
+              </TabsTrigger>
+              <TabsTrigger value="equipamentos" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">
+                <Microscope className="h-4 w-4 mr-2" />
+                Equipamentos
+              </TabsTrigger>
+              <TabsTrigger value="resultados" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
                 <FileText className="h-4 w-4 mr-2" />
-                Estudos
-              </TabsTrigger>
-              <TabsTrigger value="participantes" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
-                <Users className="h-4 w-4 mr-2" />
-                Participantes
-              </TabsTrigger>
-              <TabsTrigger value="resultados" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">
-                <FileBarChart2 className="h-4 w-4 mr-2" />
                 Resultados
               </TabsTrigger>
             </TabsList>
             
-            {/* Painel de Estudos */}
-            <TabsContent value="estudos" className="mt-4">
+            {/* Painel de Amostras */}
+            <TabsContent value="amostras" className="mt-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Estudos de Mundo Real</CardTitle>
+                  <CardTitle className="text-xl">Amostras para Análise</CardTitle>
                   <CardDescription>
-                    Gerencie estudos clínicos observacionais com grandes grupos de pacientes
+                    Gerencie as amostras enviadas para análise laboratorial
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -241,7 +230,7 @@ export default function ResearcherLaboratorio() {
                     <div className="relative max-w-md">
                       <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
                       <Input 
-                        placeholder="Buscar estudos..." 
+                        placeholder="Buscar amostras..." 
                         className="pl-10" 
                         value={filtro}
                         onChange={(e) => setFiltro(e.target.value)}
@@ -256,10 +245,10 @@ export default function ResearcherLaboratorio() {
                         onChange={(e) => setVisualizacao(e.target.value)}
                         className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                       >
-                        <option value="todas">Todos os estudos</option>
-                        <option value="em_andamento">Em andamento</option>
-                        <option value="concluido">Concluídos</option>
-                        <option value="rascunho">Rascunhos</option>
+                        <option value="todas">Todas as amostras</option>
+                        <option value="em_analise">Em análise</option>
+                        <option value="concluida">Concluídas</option>
+                        <option value="aguardando">Aguardando</option>
                       </select>
                     </div>
                   </div>
@@ -277,98 +266,75 @@ export default function ResearcherLaboratorio() {
                         </div>
                       ))}
                     </div>
-                  ) : estudos.length > 0 ? (
+                  ) : amostras.length > 0 ? (
                     <div className="space-y-4">
-                      {estudos
-                        .filter(estudo => 
-                          (visualizacao === 'todas' || estudo.status === visualizacao) &&
+                      {amostras
+                        .filter(amostra => 
+                          (visualizacao === 'todas' || amostra.status === visualizacao) &&
                           (filtro === '' || 
-                            estudo.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
-                            estudo.id.toLowerCase().includes(filtro.toLowerCase()) ||
-                            estudo.doenca.toLowerCase().includes(filtro.toLowerCase()))
+                            amostra.nome.toLowerCase().includes(filtro.toLowerCase()) ||
+                            amostra.id.toLowerCase().includes(filtro.toLowerCase()))
                         )
-                        .map((estudo) => (
+                        .map((amostra) => (
                           <div 
-                            key={estudo.id} 
+                            key={amostra.id} 
                             className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                            onClick={() => setLocation(`/researcher/estudos/${estudo.id}`)}
+                            onClick={() => setLocation(`/researcher/laboratorio/amostras/${amostra.id}`)}
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div>
                                 <h3 className="font-medium text-gray-900 flex items-center">
-                                  {estudo.titulo}
-                                  {estudo.status === 'em_andamento' && (
+                                  {amostra.nome}
+                                  {amostra.status === 'em_analise' && (
                                     <CircleAlertIcon className="h-4 w-4 text-blue-500 ml-2" />
                                   )}
                                 </h3>
                                 <p className="text-sm text-gray-500 mb-1">
-                                  {estudo.id} • {estudo.tipo}
+                                  {amostra.id} • {amostra.tipo}
                                 </p>
                               </div>
                               <div className="flex flex-col items-end">
-                                {getStatusBadge(estudo.status)}
+                                {getStatusBadge(amostra.status)}
                                 <span className="text-xs text-gray-500 mt-1">
-                                  {estudo.status === 'rascunho' 
-                                    ? 'Não iniciado' 
-                                    : `Iniciado em ${formatarData(estudo.dataInicio)}`}
+                                  Enviada em {formatarData(amostra.dataEnvio)}
                                 </span>
                               </div>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 my-2">
-                              <div className="flex items-center text-gray-600 text-sm">
-                                <HeartPulse className="h-4 w-4 mr-1 text-rose-500" />
-                                <span>Doença: {estudo.doenca}</span>
-                              </div>
-                              <div className="flex items-center text-gray-600 text-sm">
-                                <Users className="h-4 w-4 mr-1 text-blue-500" />
-                                <span>Participantes: {estudo.participantes}</span>
-                              </div>
-                              <div className="flex items-center text-gray-600 text-sm">
-                                <ActivitySquare className="h-4 w-4 mr-1 text-emerald-500" />
-                                <span>Resp.: {estudo.responsavel}</span>
-                              </div>
-                            </div>
-                            
                             <div className="flex justify-between mt-3 text-sm">
-                              {estudo.status === 'em_andamento' && (
-                                <Button 
-                                  variant="outline" 
-                                  className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs h-8"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setLocation(`/researcher/estudos/${estudo.id}/questionarios`);
-                                  }}
-                                >
-                                  Gerenciar questionários
-                                </Button>
-                              )}
-                              {estudo.status === 'concluido' && (
-                                <Button 
-                                  variant="outline" 
-                                  className="text-green-600 border-green-200 hover:bg-green-50 text-xs h-8"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setLocation(`/researcher/estudos/${estudo.id}/relatorios`);
-                                  }}
-                                >
-                                  Ver relatórios
-                                </Button>
-                              )}
-                              <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center text-green-600">
+                                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                                  <span>{amostra.resultadosConcluidos} concluídos</span>
+                                </div>
+                                <div className="flex items-center text-amber-600">
+                                  <CalendarClock className="h-4 w-4 mr-1" />
+                                  <span>{amostra.resultadosPendentes} pendentes</span>
+                                </div>
+                              </div>
+                              <ChevronRight className="h-4 w-4 text-gray-400" />
                             </div>
                           </div>
                         ))}
+                      
+                      <Button 
+                        variant="outline" 
+                        className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                        onClick={() => setLocation('/researcher/laboratorio/amostras')}
+                      >
+                        Ver todas as amostras
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <h3 className="text-gray-700 font-medium mb-1">Nenhum estudo encontrado</h3>
+                      <Beaker className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-gray-700 font-medium mb-1">Nenhuma amostra encontrada</h3>
                       <p className="text-gray-500 text-sm mb-4">
-                        Você ainda não tem estudos cadastrados
+                        Você ainda não tem amostras enviadas para análise
                       </p>
-                      <Button onClick={() => setLocation('/researcher/estudos/novo')}>
-                        Criar primeiro estudo
+                      <Button onClick={() => setLocation('/researcher/laboratorio/amostras/nova')}>
+                        Enviar primeira amostra
                       </Button>
                     </div>
                   )}
@@ -376,20 +342,20 @@ export default function ResearcherLaboratorio() {
               </Card>
             </TabsContent>
             
-            {/* Painel de Participantes */}
-            <TabsContent value="participantes" className="mt-4">
+            {/* Painel de Equipamentos */}
+            <TabsContent value="equipamentos" className="mt-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Participantes da Pesquisa</CardTitle>
+                  <CardTitle className="text-xl">Equipamentos Laboratoriais</CardTitle>
                   <CardDescription>
-                    Gerencie participantes dos estudos clínicos de mundo real
+                    Verifique disponibilidade e detalhes dos equipamentos
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="relative max-w-md mb-4">
                     <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
                     <Input 
-                      placeholder="Buscar participantes..." 
+                      placeholder="Buscar equipamentos..." 
                       className="pl-10" 
                       value={filtro}
                       onChange={(e) => setFiltro(e.target.value)}
@@ -409,84 +375,61 @@ export default function ResearcherLaboratorio() {
                         </div>
                       ))}
                     </div>
-                  ) : participantes.length > 0 ? (
+                  ) : equipamentos.length > 0 ? (
                     <div className="space-y-4">
-                      {participantes
-                        .filter(p => 
+                      {equipamentos
+                        .filter(equip => 
                           filtro === '' || 
-                          p.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-                          p.id.toLowerCase().includes(filtro.toLowerCase()) ||
-                          p.diagnostico.toLowerCase().includes(filtro.toLowerCase()) ||
-                          p.cid.toLowerCase().includes(filtro.toLowerCase())
+                          equip.nome.toLowerCase().includes(filtro.toLowerCase()) ||
+                          equip.id.toLowerCase().includes(filtro.toLowerCase()) ||
+                          equip.tipo.toLowerCase().includes(filtro.toLowerCase())
                         )
-                        .map((p) => (
+                        .map((equip) => (
                           <div 
-                            key={p.id} 
+                            key={equip.id} 
                             className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                            onClick={() => setLocation(`/researcher/participantes/${p.id}`)}
+                            onClick={() => setLocation(`/researcher/laboratorio/equipamentos/${equip.id}`)}
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <h3 className="font-medium text-gray-900">{p.nome}</h3>
+                                <h3 className="font-medium text-gray-900">{equip.nome}</h3>
                                 <p className="text-sm text-gray-500 mb-1">
-                                  {p.id} • {p.idade} anos, {p.genero}
+                                  {equip.id} • {equip.tipo}
                                 </p>
                               </div>
-                              <div className="flex flex-col items-end">
-                                {getStatusBadge(p.status)}
-                                <span className="text-xs text-gray-500 mt-1">
-                                  Incluído em {formatarData(p.dataInclusao)}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 my-2">
-                              <div className="flex items-start text-gray-600 text-sm">
-                                <Brain className="h-4 w-4 mr-1 text-violet-500 mt-0.5" />
-                                <div>
-                                  <span className="block">Diagnóstico: {p.diagnostico}</span>
-                                  <span className="text-xs text-gray-500">CID: {p.cid}</span>
-                                </div>
-                              </div>
-                              <div className="flex items-center text-gray-600 text-sm">
-                                <span className="ml-5">Localização: {p.cidade}</span>
+                              <div>
+                                {getStatusBadge(equip.status)}
                               </div>
                             </div>
                             
                             <div className="flex justify-between mt-3 text-sm">
-                              <div className="text-xs text-blue-600">
-                                Estudo: {p.estudo}
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-gray-600">
+                                <div>
+                                  <span className="text-xs font-medium">Responsável:</span>
+                                  <p>{equip.responsavel}</p>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium">Última calibração:</span>
+                                  <p>{formatarData(equip.ultimaCalibracao)}</p>
+                                </div>
+                                {equip.proximaManutencao && (
+                                  <div className="col-span-2">
+                                    <span className="text-xs font-medium">Próxima manutenção:</span>
+                                    <p>{formatarData(equip.proximaManutencao)}</p>
+                                  </div>
+                                )}
                               </div>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs h-7"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setLocation(`/researcher/participantes/${p.id}/questionarios`);
-                                }}
-                              >
-                                Ver questionários
-                              </Button>
+                              <ChevronRight className="h-4 w-4 text-gray-400 self-center" />
                             </div>
                           </div>
                         ))}
-                      
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                        onClick={() => setLocation('/researcher/participantes')}
-                      >
-                        Ver todos os participantes
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <h3 className="text-gray-700 font-medium mb-1">Nenhum participante encontrado</h3>
+                      <Microscope className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <h3 className="text-gray-700 font-medium mb-1">Nenhum equipamento encontrado</h3>
                       <p className="text-gray-500 text-sm mb-4">
-                        Ainda não há participantes cadastrados nos estudos
+                        Não há equipamentos laboratoriais disponíveis
                       </p>
                     </div>
                   )}
@@ -498,9 +441,9 @@ export default function ResearcherLaboratorio() {
             <TabsContent value="resultados" className="mt-4">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Resultados de Estudos</CardTitle>
+                  <CardTitle className="text-xl">Resultados de Análises</CardTitle>
                   <CardDescription>
-                    Acesse relatórios e resultados dos estudos de mundo real (RWE)
+                    Visualize e baixe relatórios e resultados de análises
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -532,86 +475,73 @@ export default function ResearcherLaboratorio() {
                       {resultados
                         .filter(res => 
                           filtro === '' || 
-                          res.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+                          res.amostraNome.toLowerCase().includes(filtro.toLowerCase()) ||
                           res.id.toLowerCase().includes(filtro.toLowerCase()) ||
-                          res.estudo.toLowerCase().includes(filtro.toLowerCase())
+                          res.tipo.toLowerCase().includes(filtro.toLowerCase())
                         )
                         .map((res) => (
                           <div 
                             key={res.id} 
                             className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                            onClick={() => setLocation(`/researcher/resultados/${res.id}`)}
+                            onClick={() => setLocation(`/researcher/laboratorio/resultados/${res.id}`)}
                           >
                             <div className="flex justify-between items-start mb-2">
                               <div>
-                                <h3 className="font-medium text-gray-900">{res.titulo}</h3>
+                                <h3 className="font-medium text-gray-900">{res.tipo}</h3>
                                 <p className="text-sm text-gray-500 mb-1">
-                                  {res.id} • Estudo: {res.estudo}
+                                  {res.id} • Amostra: {res.amostraNome}
                                 </p>
                               </div>
                               <div className="flex flex-col items-end">
-                                <Badge className={`
-                                  ${res.tipo === 'Final' ? 'bg-green-100 text-green-700' : 
-                                    res.tipo === 'Preliminar' ? 'bg-blue-100 text-blue-700' : 
-                                    'bg-amber-100 text-amber-700'}
-                                  hover:bg-opacity-90
-                                `}>
-                                  Relatório {res.tipo}
-                                </Badge>
+                                {getStatusBadge(res.status)}
                                 <span className="text-xs text-gray-500 mt-1">
-                                  Gerado em {formatarData(res.dataCriacao)}
+                                  Análise em {formatarData(res.dataAnalise)}
                                 </span>
                               </div>
                             </div>
                             
-                            <div className="my-3 pt-2 border-t">
-                              <p className="text-xs font-medium text-gray-500 mb-2">Resultados principais:</p>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                {Object.entries(res.metricas).map(([key, value]) => (
-                                  <div key={key} className="bg-gray-50 p-2 rounded border">
-                                    <p className="text-xs font-medium">{
-                                      key === 'eficaciaPercebida' ? 'Eficácia percebida' :
-                                      key === 'reducaoConvulsoes' ? 'Redução convulsões' :
-                                      key === 'reducaoDor' ? 'Redução da dor' :
-                                      key === 'efeitosColaterais' ? 'Efeitos colaterais' :
-                                      key === 'reducaoOutrosMedicamentos' ? 'Redução outros medicamentos' :
-                                      key
-                                    }</p>
-                                    <p className="text-sm">{value}</p>
-                                  </div>
-                                ))}
+                            <div className="flex justify-between mt-3">
+                              <div className="text-sm text-gray-600">
+                                <span className="text-xs font-medium">Equipamento:</span>
+                                <p>{res.equipamento}</p>
                               </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-center mt-3">
-                              <span className="text-sm text-gray-600">
-                                <Users className="h-4 w-4 inline mr-1" />
-                                Tamanho da amostra: <b>{res.amostras}</b> participantes
-                              </span>
                               
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="text-blue-600 border-blue-200" 
-                                onClick={(e) => {
+                              {res.status === 'concluido' ? (
+                                <Button variant="outline" size="sm" className="text-blue-600 border-blue-200" onClick={(e) => {
                                   e.stopPropagation();
                                   toast({
                                     title: "Relatório baixado",
                                     description: `O relatório ${res.id} foi baixado com sucesso.`,
                                   });
-                                }}
-                              >
-                                <Download className="h-4 w-4 mr-1" />
-                                Baixar PDF
-                              </Button>
+                                }}>
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Baixar Relatório
+                                </Button>
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-400 self-center" />
+                              )}
                             </div>
+                            
+                            {res.status === 'concluido' && res.resultados && (
+                              <div className="mt-3 pt-3 border-t">
+                                <p className="text-xs font-medium text-gray-500 mb-2">Resumo dos resultados:</p>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {Object.entries(res.resultados).map(([key, value]) => (
+                                    <div key={key} className="bg-gray-50 p-2 rounded border">
+                                      <p className="text-xs font-medium">{key}</p>
+                                      <p className="text-sm">{value}%</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       
                       <Button 
                         variant="outline" 
                         className="w-full mt-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                        onClick={() => setLocation('/researcher/resultados')}
+                        onClick={() => setLocation('/researcher/laboratorio/resultados')}
                       >
                         Ver todos os resultados
                         <ChevronRight className="h-4 w-4 ml-1" />
@@ -619,10 +549,10 @@ export default function ResearcherLaboratorio() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <FileBarChart2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                       <h3 className="text-gray-700 font-medium mb-1">Nenhum resultado encontrado</h3>
                       <p className="text-gray-500 text-sm mb-4">
-                        Ainda não há resultados disponíveis para seus estudos
+                        Você ainda não tem resultados de análises
                       </p>
                     </div>
                   )}
@@ -635,26 +565,26 @@ export default function ResearcherLaboratorio() {
             <CardHeader className="pb-2">
               <CardTitle className="text-xl flex items-center">
                 <AlertCircle className="h-5 w-5 text-amber-500 mr-2" />
-                Informações sobre Pesquisa de Mundo Real
+                Informações Importantes
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm">
                 <p className="text-gray-600">
-                  <span className="font-medium">Real World Evidence (RWE):</span> são dados clínicos obtidos fora do ambiente controlado de ensaios clínicos tradicionais, refletindo o uso de tratamentos na prática médica cotidiana.
+                  <span className="font-medium">Envio de amostras:</span> Amostras físicas devem ser enviadas para o laboratório central com pelo menos 48h de antecedência da análise programada.
                 </p>
                 <p className="text-gray-600">
-                  <span className="font-medium">Grandes bancos de dados:</span> Para obter resultados significativos, recomenda-se grupos com mais de 700 participantes, permitindo análises estatísticas robustas.
+                  <span className="font-medium">Preparação das amostras:</span> Certifique-se de seguir os protocolos de amostragem disponíveis na seção de documentos para garantir resultados precisos.
                 </p>
                 <p className="text-gray-600">
-                  <span className="font-medium">Relatórios e dashboards:</span> Todos os dados são processados e apresentados em relatórios detalhados e painéis interativos para facilitar a interpretação dos resultados.
+                  <span className="font-medium">Resultados e relatórios:</span> Os relatórios completos ficam disponíveis em até 72h após a conclusão da análise e podem ser baixados diretamente da plataforma.
                 </p>
               </div>
             </CardContent>
             <CardFooter className="pt-0">
-              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setLocation('/researcher/documentos/metodologia')}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Acessar Guia Metodológico
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setLocation('/researcher/documentos/laboratorio')}>
+                <FileText className="h-4 w-4 mr-2" />
+                Acessar Protocolos de Laboratório
               </Button>
             </CardFooter>
           </Card>
