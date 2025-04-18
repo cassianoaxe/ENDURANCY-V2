@@ -1,9 +1,10 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "wouter";
-import { Eye, Edit, Clock, MoreHorizontal } from "lucide-react";
+'use client';
+
+import React from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,39 +12,37 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Edit, Trash, Calculator, Eye } from 'lucide-react';
+import { Link } from 'wouter';
 
-// Definição do tipo de ativo
+// Tipo dos ativos
 export type Asset = {
   id: number;
-  name: string;
-  description?: string;
-  serialNumber?: string;
-  model?: string;
-  manufacturer?: string;
-  type: string;
+  nome: string;
+  tipo: string;
+  numeroSerie?: string;
+  marca?: string;
+  modelo?: string;
+  dataAquisicao: string;
+  valorAquisicao: number;
+  vidaUtilAnos: number;
   status: string;
-  acquisitionDate?: string;
-  acquisitionValue?: number;
-  currentValue?: number;
-  installationId?: number;
-  installationName?: string;
-  usefulLifeYears?: number;
-  depreciationRate?: number;
-  depreciationMethod?: string;
+  localizacao?: string;
+  departamento?: string;
 };
 
 export const columns: ColumnDef<Asset>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Selecionar tudo"
+        aria-label="Selecionar todos"
       />
     ),
     cell: ({ row }) => (
@@ -57,39 +56,55 @@ export const columns: ColumnDef<Asset>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
-    header: "Nome",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
-    ),
+    accessorKey: 'id',
+    header: 'ID',
+    cell: ({ row }) => <div className="text-xs">{row.getValue('id')}</div>,
   },
   {
-    accessorKey: "serialNumber",
-    header: "Nº Série",
-    cell: ({ row }) => (
-      <div>{row.getValue("serialNumber") || "N/A"}</div>
-    ),
+    accessorKey: 'nome',
+    header: 'Nome',
+    cell: ({ row }) => <div className="font-medium">{row.getValue('nome')}</div>,
   },
   {
-    accessorKey: "type",
-    header: "Tipo",
-    cell: ({ row }) => <div>{row.getValue("type")}</div>,
+    accessorKey: 'tipo',
+    header: 'Tipo',
+    cell: ({ row }) => <div>{row.getValue('tipo')}</div>,
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'dataAquisicao',
+    header: 'Data Aquisição',
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const date = new Date(row.getValue('dataAquisicao'));
+      return <div>{date.toLocaleDateString('pt-BR')}</div>;
+    },
+  },
+  {
+    accessorKey: 'valorAquisicao',
+    header: 'Valor Aquisição',
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('valorAquisicao'));
+      const formatted = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(amount);
+      return <div className="font-medium">{formatted}</div>;
+    },
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const status = row.getValue('status') as string;
       return (
         <Badge
           variant={
-            status === "ativo"
-              ? "success"
-              : status === "em_manutenção"
-              ? "warning"
-              : status === "inativo"
-              ? "secondary"
-              : "destructive"
+            status === 'Ativo'
+              ? 'default'
+              : status === 'Em Manutenção'
+              ? 'warning'
+              : status === 'Inativo'
+              ? 'destructive'
+              : 'secondary'
           }
         >
           {status}
@@ -98,51 +113,14 @@ export const columns: ColumnDef<Asset>[] = [
     },
   },
   {
-    accessorKey: "installationName",
-    header: "Instalação",
-    cell: ({ row }) => (
-      <div>{row.getValue("installationName") || "Não alocado"}</div>
-    ),
+    accessorKey: 'localizacao',
+    header: 'Localização',
+    cell: ({ row }) => <div>{row.getValue('localizacao')}</div>,
   },
   {
-    accessorKey: "acquisitionValue",
-    header: "Valor (R$)",
-    cell: ({ row }) => {
-      const value = row.getValue("acquisitionValue") as number;
-      return (
-        <div>
-          {value
-            ? new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(value)
-            : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "currentValue",
-    header: "Valor Atual (R$)",
-    cell: ({ row }) => {
-      const value = row.getValue("currentValue") as number;
-      return (
-        <div>
-          {value
-            ? new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(value)
-            : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
       const asset = row.original;
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -153,26 +131,25 @@ export const columns: ColumnDef<Asset>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem>
               <Link to={`/organization/patrimonio/ativos/${asset.id}`}>
-                <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+                <Eye className="mr-2 h-4 w-4" /> Visualizar
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/organization/patrimonio/ativos/${asset.id}/editar`}>
+            <DropdownMenuItem>
+              <Link to={`/organization/patrimonio/ativos/editar/${asset.id}`}>
                 <Edit className="mr-2 h-4 w-4" /> Editar
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to={`/organization/patrimonio/ativos/${asset.id}/manutencoes`}>
-                <Clock className="mr-2 h-4 w-4" /> Histórico de manutenções
+            <DropdownMenuItem>
+              <Link to={`/organization/patrimonio/ativos/${asset.id}/calcular-depreciacao`}>
+                <Calculator className="mr-2 h-4 w-4" /> Calcular Depreciação
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/organization/patrimonio/ativos/${asset.id}/depreciacao`}>
-                Calcular depreciação
-              </Link>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">
+              <Trash className="mr-2 h-4 w-4" /> Excluir
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
