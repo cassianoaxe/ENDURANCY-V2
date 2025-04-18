@@ -47,7 +47,7 @@ export default function ResearcherLaboratorio() {
   interface Equipamento {
     id: string;
     nome: string;
-    modelo: string;
+    modelo?: string; // Tornando opcional
     tipo: string;
     status: string;
     proximaManutencao: Date | null;
@@ -67,7 +67,7 @@ export default function ResearcherLaboratorio() {
     status: string;
     dataAnalise: Date;
     equipamento: string;
-    resultados: ResultadoItem;
+    resultados: ResultadoItem | null;
   }
   
   const [amostras, setAmostras] = useState<Amostra[]>([]);
@@ -116,6 +116,7 @@ export default function ResearcherLaboratorio() {
         {
           id: 'HPLC-001',
           nome: 'HPLC Agilent 1260 Infinity II',
+          modelo: 'Agilent 1260',
           tipo: 'HPLC',
           status: 'disponivel',
           proximaManutencao: new Date(2025, 5, 15),
@@ -125,6 +126,7 @@ export default function ResearcherLaboratorio() {
         {
           id: 'GC-003',
           nome: 'GC-MS Shimadzu GCMS-QP2020 NX',
+          modelo: 'GCMS-QP2020 NX',
           tipo: 'GC-MS',
           status: 'em_uso',
           proximaManutencao: new Date(2025, 6, 10),
@@ -134,6 +136,7 @@ export default function ResearcherLaboratorio() {
         {
           id: 'UPLC-002',
           nome: 'UPLC Waters Acquity',
+          modelo: 'Acquity',
           tipo: 'UPLC',
           status: 'manutencao',
           proximaManutencao: null,
