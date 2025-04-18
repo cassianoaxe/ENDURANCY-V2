@@ -33,7 +33,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory';
+type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -139,6 +139,16 @@ export default function Login() {
         password: 'paciente123'
       },
       color: 'bg-rose-50 text-rose-700 border-rose-100'
+    },
+    researcher: {
+      label: 'Pesquisador',
+      icon: <Beaker className="h-5 w-5" />,
+      description: 'Acesse como pesquisador científico',
+      credentials: {
+        username: 'pesquisador@science.org',
+        password: 'pesquisa123'
+      },
+      color: 'bg-sky-50 text-sky-700 border-sky-100'
     }
   };
 
@@ -182,6 +192,9 @@ export default function Login() {
         window.dispatchEvent(new Event('popstate'));
       } else if (userType === 'laboratory') {
         window.history.pushState({}, '', '/laboratory/dashboard');
+        window.dispatchEvent(new Event('popstate'));
+      } else if (userType === 'researcher') {
+        window.history.pushState({}, '', '/researcher/dashboard');
         window.dispatchEvent(new Event('popstate'));
       }
       
