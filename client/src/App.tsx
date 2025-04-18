@@ -2176,6 +2176,7 @@ function AppContent() {
       );
     }
     
+    // Rota principal do laboratório
     if (currentPath === '/researcher/laboratorio') {
       const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
       return (
@@ -2183,6 +2184,42 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <LaboratorioPage />
+        </Suspense>
+      );
+    }
+
+    // Rota para amostras do laboratório
+    if (currentPath === '/researcher/laboratorio/amostras') {
+      const AmostrasList = React.lazy(() => import('./pages/researcher/laboratorio/amostras/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <AmostrasList />
+        </Suspense>
+      );
+    }
+
+    // Rota para equipamentos do laboratório
+    if (currentPath === '/researcher/laboratorio/equipamentos') {
+      const EquipamentosList = React.lazy(() => import('./pages/researcher/laboratorio/equipamentos/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <EquipamentosList />
+        </Suspense>
+      );
+    }
+
+    // Rota para resultados do laboratório
+    if (currentPath === '/researcher/laboratorio/resultados') {
+      const ResultadosList = React.lazy(() => import('./pages/researcher/laboratorio/resultados/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ResultadosList />
         </Suspense>
       );
     }
