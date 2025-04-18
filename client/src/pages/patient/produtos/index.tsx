@@ -99,7 +99,7 @@ export default function ProdutosPage() {
       ? products.map(product => product.category)
       : [];
     // Extrair categorias únicas manualmente para evitar problemas de compatibilidade
-    const uniqueCategories = [];
+    const uniqueCategories: string[] = [];
     allCategories.forEach(category => {
       if (!uniqueCategories.includes(category)) {
         uniqueCategories.push(category);
