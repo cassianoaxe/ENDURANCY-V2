@@ -1,403 +1,534 @@
 import { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  Plus,
+import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
+import ResearcherLayout from '@/components/layout/researcher/ResearcherLayout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
   Search,
-  Brain,
-  Activity,
+  Filter,
+  Plus,
+  BookOpen,
+  Clock,
+  Users,
   ListFilter,
-  Eye
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+  FileText,
+  Database,
+  BarChart,
+  ChevronRight,
+  PlusCircle,
+  LinkIcon,
+  Download,
+  Microscope,
+  Heart,
+  Brain,
+  HeartPulse,
+  Activity
+} from 'lucide-react';
 import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from "@/components/ui/tabs";
-import ResearcherLayout from '@/components/layout/researcher/ResearcherLayout';
-import { useToast } from "@/hooks/use-toast";
-import { useLocation } from 'wouter';
-
-interface Sintoma {
-  nome: string;
-  extras?: number;
-}
-
-interface TratamentoCannabis {
-  tipo: string;
-  eficacia: 'Alta Eficácia' | 'Eficácia Moderada' | 'Baixa Eficácia';
-}
+import { Separator } from '@/components/ui/separator';
 
 interface Doenca {
-  id: number;
+  id: string;
   nome: string;
-  cid: string;
-  area: string;
   descricao: string;
-  sintomas: Sintoma[];
-  tratamentosCannabis: TratamentoCannabis[];
+  categoria: string;
+  gravidade: 'leve' | 'moderada' | 'grave' | 'terminal';
+  estudosRelacionados: number;
+  pacientesRegistrados: number;
+  ultimaAtualizacao: Date;
+  iconeTipo?: 'cerebral' | 'cardiaco' | 'pulmonar' | 'outro';
+}
+
+interface PesquisadorEnvolvido {
+  id: string;
+  nome: string;
+  instituicao: string;
+  cargo: string;
+  avatar?: string;
+  estudos: number;
 }
 
 export default function DoencasCondicoes() {
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [areaFilter, setAreaFilter] = useState('');
-  const [viewMode, setViewMode] = useState('cards');
   const [doencas, setDoencas] = useState<Doenca[]>([]);
-  
+  const [pesquisadores, setPesquisadores] = useState<PesquisadorEnvolvido[]>([]);
+  const [filtro, setFiltro] = useState('');
+  const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+
   useEffect(() => {
     // Simulação de carregamento para demonstração
     const timer = setTimeout(() => {
       // Dados de exemplo para demonstração
       setDoencas([
         {
-          id: 1,
-          nome: 'Epilepsia',
-          cid: 'G40',
-          area: 'neurologia',
-          descricao: 'Distúrbio em que a atividade cerebral se torna anormal, causando convulsões ou períodos de comportamento e sensações incomuns.',
-          sintomas: [
-            { nome: 'Convulsões' },
-            { nome: 'Espasmos musculares' },
-            { nome: 'Perda de consciência', extras: 2 }
-          ],
-          tratamentosCannabis: [
-            { tipo: 'CBD isolado', eficacia: 'Alta Eficácia' },
-            { tipo: 'Espectro Completo', eficacia: 'Eficácia Moderada' }
-          ]
+          id: 'DOE-001',
+          nome: 'Epilepsia Refratária',
+          descricao: 'Condição neurológica caracterizada por convulsões recorrentes que não respondem adequadamente aos tratamentos convencionais.',
+          categoria: 'Neurológica',
+          gravidade: 'moderada',
+          estudosRelacionados: 8,
+          pacientesRegistrados: 124,
+          ultimaAtualizacao: new Date(2025, 3, 15),
+          iconeTipo: 'cerebral'
         },
         {
-          id: 2,
-          nome: 'Dor crônica',
-          cid: 'R52',
-          area: 'neurologia',
-          descricao: 'Dor persistente ou recorrente que dura mais que o tempo normal de cura (geralmente 3 meses). Pode ser causada por diversas condições.',
-          sintomas: [
-            { nome: 'Dor persistente' },
-            { nome: 'Limitação de movimentos' },
-            { nome: 'Rigidez muscular', extras: 3 }
-          ],
-          tratamentosCannabis: [
-            { tipo: 'THC:CBD balanceado', eficacia: 'Alta Eficácia' },
-            { tipo: 'CBD predominante', eficacia: 'Eficácia Moderada' }
-          ]
+          id: 'DOE-002',
+          nome: 'Dor Crônica Neuropática',
+          descricao: 'Dor persistente causada por lesão ou disfunção do sistema nervoso, frequentemente resistente a analgésicos convencionais.',
+          categoria: 'Dor',
+          gravidade: 'moderada',
+          estudosRelacionados: 12,
+          pacientesRegistrados: 203,
+          ultimaAtualizacao: new Date(2025, 3, 10)
         },
         {
-          id: 3,
+          id: 'DOE-003',
           nome: 'Esclerose Múltipla',
-          cid: 'G35',
-          area: 'neurologia',
-          descricao: 'Doença autoimune crônica que afeta o sistema nervoso central, danificando a bainha de mielina que recobre os nervos.',
-          sintomas: [
-            { nome: 'Fadiga' },
-            { nome: 'Dificuldade de mobilidade' },
-            { nome: 'Problemas de coordenação', extras: 4 }
-          ],
-          tratamentosCannabis: [
-            { tipo: 'THC:CBD balanceado', eficacia: 'Alta Eficácia' },
-            { tipo: 'CBD predominante', eficacia: 'Eficácia Moderada' }
-          ]
+          descricao: 'Doença autoimune que afeta o sistema nervoso central, causando inflamação e degeneração da mielina.',
+          categoria: 'Autoimune',
+          gravidade: 'grave',
+          estudosRelacionados: 15,
+          pacientesRegistrados: 187,
+          ultimaAtualizacao: new Date(2025, 3, 12),
+          iconeTipo: 'cerebral'
+        },
+        {
+          id: 'DOE-004',
+          nome: 'Doença de Parkinson',
+          descricao: 'Distúrbio neurodegenerativo progressivo que afeta o movimento, causando tremores, rigidez e dificuldades motoras.',
+          categoria: 'Neurológica',
+          gravidade: 'grave',
+          estudosRelacionados: 10,
+          pacientesRegistrados: 156,
+          ultimaAtualizacao: new Date(2025, 3, 5),
+          iconeTipo: 'cerebral'
+        },
+        {
+          id: 'DOE-005',
+          nome: 'Ansiedade Severa',
+          descricao: 'Transtorno de ansiedade caracterizado por preocupação excessiva, tensão muscular e sintomas físicos que afetam significativamente a qualidade de vida.',
+          categoria: 'Psiquiátrica',
+          gravidade: 'moderada',
+          estudosRelacionados: 6,
+          pacientesRegistrados: 245,
+          ultimaAtualizacao: new Date(2025, 3, 8),
+          iconeTipo: 'cerebral'
+        },
+        {
+          id: 'DOE-006',
+          nome: 'Fibromialgia',
+          descricao: 'Síndrome caracterizada por dor musculoesquelética generalizada, fadiga, distúrbios do sono e problemas cognitivos.',
+          categoria: 'Dor',
+          gravidade: 'moderada',
+          estudosRelacionados: 9,
+          pacientesRegistrados: 178,
+          ultimaAtualizacao: new Date(2025, 3, 7)
+        },
+        {
+          id: 'DOE-007',
+          nome: 'Insônia Crônica',
+          descricao: 'Distúrbio persistente do sono caracterizado por dificuldade em iniciar ou manter o sono, com impacto significativo no funcionamento diurno.',
+          categoria: 'Sono',
+          gravidade: 'leve',
+          estudosRelacionados: 5,
+          pacientesRegistrados: 312,
+          ultimaAtualizacao: new Date(2025, 3, 3)
+        },
+        {
+          id: 'DOE-008',
+          nome: 'Síndrome do Intestino Irritável',
+          descricao: 'Distúrbio funcional do trato gastrointestinal caracterizado por dor abdominal recorrente, alterações nos hábitos intestinais e desconforto.',
+          categoria: 'Gastrointestinal',
+          gravidade: 'leve',
+          estudosRelacionados: 4,
+          pacientesRegistrados: 197,
+          ultimaAtualizacao: new Date(2025, 3, 2)
         }
       ]);
-      
+
+      setPesquisadores([
+        {
+          id: 'PESQ-001',
+          nome: 'Dra. Ana Ribeiro',
+          instituicao: 'Universidade de São Paulo',
+          cargo: 'Neurologista Pesquisadora',
+          estudos: 12,
+          avatar: 'https://randomuser.me/api/portraits/women/45.jpg'
+        },
+        {
+          id: 'PESQ-002',
+          nome: 'Dr. Carlos Mendes',
+          instituicao: 'Instituto de Neurociências',
+          cargo: 'Neurocientista',
+          estudos: 8,
+          avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+        },
+        {
+          id: 'PESQ-003',
+          nome: 'Dra. Luciana Costa',
+          instituicao: 'Hospital Albert Einstein',
+          cargo: 'Especialista em Dor',
+          estudos: 15,
+          avatar: 'https://randomuser.me/api/portraits/women/68.jpg'
+        },
+        {
+          id: 'PESQ-004',
+          nome: 'Dr. Marcelo Souza',
+          instituicao: 'UNIFESP',
+          cargo: 'Psiquiatra Pesquisador',
+          estudos: 9,
+          avatar: 'https://randomuser.me/api/portraits/men/55.jpg'
+        }
+      ]);
+
       setIsLoading(false);
-    }, 1000);
-    
+    }, 1200);
+
     return () => clearTimeout(timer);
   }, []);
 
-  const getEficaciaBadge = (eficacia: 'Alta Eficácia' | 'Eficácia Moderada' | 'Baixa Eficácia') => {
-    const styles = {
-      'Alta Eficácia': 'bg-green-100 text-green-700',
-      'Eficácia Moderada': 'bg-blue-100 text-blue-700',
-      'Baixa Eficácia': 'bg-gray-100 text-gray-700'
+  const getGravidadeBadge = (gravidade: string) => {
+    const gravidadeMap: Record<string, JSX.Element> = {
+      'leve': <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Leve</Badge>,
+      'moderada': <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Moderada</Badge>,
+      'grave': <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Grave</Badge>,
+      'terminal': <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">Terminal</Badge>,
     };
     
-    return <Badge className={styles[eficacia]}>{eficacia}</Badge>;
+    return gravidadeMap[gravidade] || <Badge>Desconhecido</Badge>;
   };
 
-  const getAreaBadge = (area: string) => {
-    return <Badge className="bg-black text-white">{area}</Badge>;
-  };
-
-  const filteredDoencas = doencas.filter(doenca => {
-    const matchesSearch = doenca.nome.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           doenca.cid.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesArea = areaFilter ? doenca.area === areaFilter : true;
+  const getIconeDoenca = (tipo?: string) => {
+    const iconMap: Record<string, JSX.Element> = {
+      'cerebral': <Brain className="h-6 w-6 text-blue-500" />,
+      'cardiaco': <Heart className="h-6 w-6 text-red-500" />,
+      'pulmonar': <Activity className="h-6 w-6 text-purple-500" />,
+    };
     
-    return matchesSearch && matchesArea;
+    return tipo && iconMap[tipo] ? iconMap[tipo] : <HeartPulse className="h-6 w-6 text-indigo-500" />;
+  };
+
+  const formatarData = (data: Date) => {
+    if (!data) return 'N/A';
+    return data.toLocaleDateString('pt-BR');
+  };
+
+  const doencasFiltradas = doencas.filter(doenca => {
+    // Filtro de busca
+    const termoBusca = filtro.toLowerCase();
+    const correspondeAoBuscar = 
+      doenca.nome.toLowerCase().includes(termoBusca) ||
+      doenca.descricao.toLowerCase().includes(termoBusca) ||
+      doenca.categoria.toLowerCase().includes(termoBusca);
+    
+    // Filtro por categoria
+    const correspondeCategoria = categoriaFiltro === 'todas' || doenca.categoria.toLowerCase() === categoriaFiltro.toLowerCase();
+    
+    return correspondeAoBuscar && correspondeCategoria;
   });
 
-  const areas = ['neurologia', 'psiquiatria', 'reumatologia', 'oncologia', 'dermatologia'];
+  const categorias = Array.from(new Set(doencas.map(d => d.categoria))).sort();
 
   return (
     <ResearcherLayout>
-      <div className="container mx-auto p-6">
-        <div className="flex flex-col space-y-6">
-          {/* Cabeçalho */}
-          <div className="flex justify-between items-center">
+      <div className="container p-4 mx-auto">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold">Doenças e Condições</h1>
-              <p className="text-gray-500">Base de conhecimento sobre condições tratadas com cannabis medicinal</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Doenças e Condições Médicas</h1>
+              <p className="text-gray-500 mt-1">Base de conhecimento e pesquisa sobre condições médicas</p>
             </div>
-            <Button className="bg-green-600 hover:bg-green-700" onClick={() => setLocation('/researcher/doencas/nova')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Condição
-            </Button>
-          </div>
-
-          {/* Filtros e Visualização */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por nome ou CID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="flex gap-3">
-              <Select value={areaFilter} onValueChange={setAreaFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Todas as Áreas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas as Áreas</SelectItem>
-                  {areas.map(area => (
-                    <SelectItem key={area} value={area}>{area}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Tabs defaultValue="cards" value={viewMode} onValueChange={setViewMode} className="w-[180px]">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="cards">Cards</TabsTrigger>
-                  <TabsTrigger value="table">Tabela</TabsTrigger>
-                </TabsList>
-              </Tabs>
+            
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" onClick={() => toast({ title: "Exportando dados", description: "Os dados serão exportados em CSV" })}>
+                <Download className="h-4 w-4 mr-2" />
+                Exportar Dados
+              </Button>
+              <Button className="bg-green-600 hover:bg-green-700" onClick={() => toast({ title: "Adicionar nova condição", description: "Funcionalidade em desenvolvimento" })}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Nova Condição
+              </Button>
             </div>
           </div>
-
-          {/* Lista de Doenças */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse bg-white rounded-lg p-6 border">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="h-5 bg-gray-200 rounded w-24 mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl">Catálogo de Doenças e Condições</CardTitle>
+                  <CardDescription>
+                    Base de dados de condições médicas para pesquisa com canabinoioides
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
+                    <div className="relative max-w-md">
+                      <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                      <Input 
+                        placeholder="Buscar doenças e condições..." 
+                        className="pl-10" 
+                        value={filtro}
+                        onChange={(e) => setFiltro(e.target.value)}
+                      />
                     </div>
-                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-gray-500" />
+                      <select 
+                        value={categoriaFiltro}
+                        onChange={(e) => setCategoriaFiltro(e.target.value)}
+                        className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      >
+                        <option value="todas">Todas as categorias</option>
+                        {categorias.map(categoria => (
+                          <option key={categoria} value={categoria.toLowerCase()}>
+                            {categoria}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
-                  <div className="space-y-2 mb-4">
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <TabsContent value="cards" className="mt-0">
-              {filteredDoencas.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {filteredDoencas.map((doenca) => (
-                    <Card key={doenca.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Brain className="h-5 w-5 text-purple-500" />
-                              <h3 className="text-xl font-semibold">{doenca.nome}</h3>
-                            </div>
-                            <p className="text-sm text-gray-500">CID: {doenca.cid}</p>
-                          </div>
-                          {getAreaBadge(doenca.area)}
-                        </div>
-                        
-                        <p className="text-sm text-gray-700 mt-3 mb-4 line-clamp-3">{doenca.descricao}</p>
-                        
-                        <div className="mb-4">
-                          <p className="font-medium text-sm mb-2">Principais Sintomas</p>
-                          <div className="flex flex-wrap gap-2">
-                            {doenca.sintomas.map((sintoma, index) => (
-                              <div key={index} className="inline-flex gap-1">
-                                <Badge variant="outline" className="border-gray-200 text-gray-700">
-                                  {sintoma.nome}
-                                </Badge>
-                                {sintoma.extras && (
-                                  <Badge variant="outline" className="border-gray-200 text-gray-500">
-                                    +{sintoma.extras}
-                                  </Badge>
-                                )}
-                              </div>
-                            ))}
+                  
+                  {isLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="border rounded-lg p-4 animate-pulse">
+                          <div className="h-5 bg-gray-200 rounded w-1/4 mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded w-full mb-3"></div>
+                          <div className="flex justify-between">
+                            <div className="h-4 bg-gray-200 rounded w-1/5"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/6"></div>
                           </div>
                         </div>
-                        
-                        <div>
-                          <p className="font-medium text-sm mb-2">Tratamentos com Cannabis</p>
-                          <div className="space-y-2">
-                            {doenca.tratamentosCannabis.map((tratamento, index) => (
-                              <div key={index} className="flex justify-between items-center">
-                                <span className="text-sm">{tratamento.tipo}</span>
-                                {getEficaciaBadge(tratamento.eficacia)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <Button 
-                          variant="outline" 
-                          className="w-full mt-4"
+                      ))}
+                    </div>
+                  ) : doencasFiltradas.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      {doencasFiltradas.map((doenca) => (
+                        <Card 
+                          key={doenca.id} 
+                          className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                           onClick={() => setLocation(`/researcher/doencas/${doenca.id}`)}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Ver Detalhes
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 bg-white rounded-lg border">
-                  <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  {searchTerm || areaFilter ? (
-                    <>
+                          <div className="flex p-4">
+                            <div className="mr-4">
+                              {getIconeDoenca(doenca.iconeTipo)}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                <h3 className="font-medium text-lg">{doenca.nome}</h3>
+                                {getGravidadeBadge(doenca.gravidade)}
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{doenca.descricao}</p>
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 px-4 py-2 flex justify-between items-center border-t">
+                            <div className="flex items-center text-sm text-gray-500">
+                              <FileText className="h-3.5 w-3.5 mr-1" />
+                              <span>{doenca.estudosRelacionados} estudos</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Users className="h-3.5 w-3.5 mr-1" />
+                              <span>{doenca.pacientesRegistrados} pacientes</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Clock className="h-3.5 w-3.5 mr-1" />
+                              <span title={formatarData(doenca.ultimaAtualizacao)}>
+                                {new Date().getFullYear() === doenca.ultimaAtualizacao.getFullYear() ? 
+                                  formatarData(doenca.ultimaAtualizacao).split('/').slice(0, 2).join('/') :
+                                  formatarData(doenca.ultimaAtualizacao)
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                       <h3 className="text-gray-700 font-medium mb-1">Nenhuma condição encontrada</h3>
                       <p className="text-gray-500 text-sm mb-4">
-                        Nenhum resultado corresponde aos filtros aplicados. Tente ajustar sua busca.
+                        Não foram encontradas condições médicas com os critérios selecionados
                       </p>
-                      <Button onClick={() => {
-                        setSearchTerm('');
-                        setAreaFilter('');
-                      }}>
+                      <Button 
+                        onClick={() => {
+                          setFiltro('');
+                          setCategoriaFiltro('todas');
+                        }}
+                      >
                         Limpar filtros
                       </Button>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="text-gray-700 font-medium mb-1">Nenhuma condição cadastrada</h3>
-                      <p className="text-gray-500 text-sm mb-4">
-                        Você ainda não tem condições médicas registradas.
-                      </p>
-                      <Button onClick={() => setLocation('/researcher/doencas/nova')}>
-                        Adicionar primeira condição
-                      </Button>
-                    </>
+                    </div>
                   )}
-                </div>
-              )}
-            </TabsContent>
-          )}
-
-          <TabsContent value="table" className="mt-0">
-            {filteredDoencas.length > 0 ? (
+                </CardContent>
+                {!isLoading && doencasFiltradas.length > 0 && (
+                  <CardFooter className="pt-0 flex justify-center">
+                    <Button variant="outline" size="sm" onClick={() => toast({ title: "Carregando mais", description: "Carregando mais resultados..." })}>
+                      Ver mais condições
+                    </Button>
+                  </CardFooter>
+                )}
+              </Card>
+              
               <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-4">Nome</th>
-                          <th className="text-left p-4">CID</th>
-                          <th className="text-left p-4">Área</th>
-                          <th className="text-left p-4">Sintomas</th>
-                          <th className="text-left p-4">Tratamentos</th>
-                          <th className="text-left p-4">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredDoencas.map((doenca) => (
-                          <tr key={doenca.id} className="border-b hover:bg-gray-50">
-                            <td className="p-4 font-medium">{doenca.nome}</td>
-                            <td className="p-4">{doenca.cid}</td>
-                            <td className="p-4">{getAreaBadge(doenca.area)}</td>
-                            <td className="p-4">
-                              <div className="flex flex-wrap gap-1">
-                                {doenca.sintomas.slice(0, 2).map((sintoma, index) => (
-                                  <Badge key={index} variant="outline">{sintoma.nome}</Badge>
-                                ))}
-                                {doenca.sintomas.length > 2 && (
-                                  <Badge variant="outline">+{doenca.sintomas.length - 2}</Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              {doenca.tratamentosCannabis.map((tratamento, index) => (
-                                <div key={index} className="flex items-center gap-2 mb-1">
-                                  <span className="text-xs">{tratamento.tipo}</span>
-                                  {getEficaciaBadge(tratamento.eficacia)}
-                                </div>
-                              ))}
-                            </td>
-                            <td className="p-4">
-                              <Button 
-                                size="sm" 
-                                onClick={() => setLocation(`/researcher/doencas/${doenca.id}`)}
-                              >
-                                Ver
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Estatísticas de Pesquisa</CardTitle>
+                  <CardDescription>
+                    Análise de dados sobre estudos e resultados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-6 border rounded-md bg-gray-50">
+                    <BarChart className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500">Visualizações estatísticas em desenvolvimento</p>
+                    <p className="text-xs text-gray-400 mt-1">Esta funcionalidade estará disponível em breve</p>
                   </div>
                 </CardContent>
               </Card>
-            ) : (
-              <div className="text-center py-12 bg-white rounded-lg border">
-                <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                {searchTerm || areaFilter ? (
-                  <>
-                    <h3 className="text-gray-700 font-medium mb-1">Nenhuma condição encontrada</h3>
-                    <p className="text-gray-500 text-sm mb-4">
-                      Nenhum resultado corresponde aos filtros aplicados. Tente ajustar sua busca.
-                    </p>
-                    <Button onClick={() => {
-                      setSearchTerm('');
-                      setAreaFilter('');
-                    }}>
-                      Limpar filtros
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-gray-700 font-medium mb-1">Nenhuma condição cadastrada</h3>
-                    <p className="text-gray-500 text-sm mb-4">
-                      Você ainda não tem condições médicas registradas.
-                    </p>
-                    <Button onClick={() => setLocation('/researcher/doencas/nova')}>
-                      Adicionar primeira condição
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-          </TabsContent>
+            </div>
+            
+            <div className="space-y-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">
+                    <div className="flex items-center">
+                      <Microscope className="h-5 w-5 text-green-600 mr-2" />
+                      Áreas de Pesquisa
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+                      <div className="flex items-center">
+                        <Brain className="h-5 w-5 text-blue-500 mr-3" />
+                        <div>
+                          <p className="font-medium">Neurológicas</p>
+                          <p className="text-xs text-gray-500">23 condições catalogadas</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+                      <div className="flex items-center">
+                        <Activity className="h-5 w-5 text-purple-500 mr-3" />
+                        <div>
+                          <p className="font-medium">Dor Crônica</p>
+                          <p className="text-xs text-gray-500">18 condições catalogadas</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+                      <div className="flex items-center">
+                        <HeartPulse className="h-5 w-5 text-red-500 mr-3" />
+                        <div>
+                          <p className="font-medium">Autoimunes</p>
+                          <p className="text-xs text-gray-500">15 condições catalogadas</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
+                      <div className="flex items-center">
+                        <Brain className="h-5 w-5 text-amber-500 mr-3" />
+                        <div>
+                          <p className="font-medium">Psiquiátricas</p>
+                          <p className="text-xs text-gray-500">12 condições catalogadas</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
+                  
+                  <Button variant="ghost" size="sm" className="w-full mt-4">
+                    Ver todas as áreas
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Pesquisadores Ativos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {pesquisadores.map((pesquisador) => (
+                      <div key={pesquisador.id} className="flex items-center gap-3 pb-3 border-b last:border-0 last:pb-0">
+                        <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
+                          {pesquisador.avatar ? (
+                            <img src={pesquisador.avatar} alt={pesquisador.nome} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary">
+                              {pesquisador.nome.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">{pesquisador.nome}</p>
+                              <p className="text-xs text-gray-500">{pesquisador.cargo}</p>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {pesquisador.estudos} estudos
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{pesquisador.instituicao}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Recursos Úteis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center border rounded-md p-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <Database className="h-4 w-4 text-blue-500 mr-2" />
+                      <div>
+                        <p className="font-medium text-sm">Base de Conhecimento Médico</p>
+                        <p className="text-xs text-gray-500">Literatura e publicações</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center border rounded-md p-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <LinkIcon className="h-4 w-4 text-green-500 mr-2" />
+                      <div>
+                        <p className="font-medium text-sm">Associações de Pacientes</p>
+                        <p className="text-xs text-gray-500">Grupos de apoio e contatos</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center border rounded-md p-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                      <FileText className="h-4 w-4 text-amber-500 mr-2" />
+                      <div>
+                        <p className="font-medium text-sm">Protocolos de Pesquisa</p>
+                        <p className="text-xs text-gray-500">Modelos e referências</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </ResearcherLayout>
