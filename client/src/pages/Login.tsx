@@ -386,29 +386,38 @@ export default function Login() {
             >
               {!isOrgLogin && (
                 <div className="px-6">
-                  <TabsList className="flex w-full gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                  <h3 className="text-base font-medium mb-3">Selecione o tipo de acesso</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                     {Object.entries(userTypeInfo).map(([role, info]) => (
-                      <TabsTrigger
+                      <button
                         key={role}
-                        value={role}
+                        type="button"
+                        onClick={() => setUserType(role as UserRole)}
                         className={cn(
-                          "min-w-[120px] h-20 flex flex-col items-center justify-center gap-1.5 rounded-xl",
-                          "data-[state=active]:bg-gray-50 data-[state=active]:border-gray-200",
-                          "border border-transparent hover:border-gray-200 px-2"
+                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          role === userType 
+                            ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         )}
                       >
                         <div 
                           className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center",
+                            "w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0",
                             role === userType ? 'bg-[#4CAF50]/20 text-[#4CAF50]' : 'bg-gray-100 text-gray-500'
                           )}
                         >
                           {info.icon}
                         </div>
-                        <span className="text-xs font-medium">{info.label}</span>
-                      </TabsTrigger>
+                        <div className="text-left">
+                          <div className="text-sm font-medium">{info.label}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[120px]">
+                            {role === userType && <div className="h-1 w-1 rounded-full bg-[#4CAF50] inline-block mr-1.5"></div>}
+                            {role === userType ? "Selecionado" : "Clique para selecionar"}
+                          </div>
+                        </div>
+                      </button>
                     ))}
-                  </TabsList>
+                  </div>
                 </div>
               )}
               
