@@ -1,181 +1,281 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Building, Warehouse, Wrench, Calculator, BarChart3, Clock, FileText, Plus,
-  Settings, List, Grid, ArrowUpRight, CalendarDays
-} from 'lucide-react';
-import { PageHeader, PageSubHeader } from '@/components/page-header';
-import { DataTable } from '@/components/data-table';
+import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { columns as installationColumns } from './columns/installation-columns';
-import { columns as assetColumns } from './columns/asset-columns';
+import { Link } from 'wouter';
+import { 
+  Building, 
+  Wrench, 
+  Package, 
+  Calculator, 
+  BarChart3, 
+  PlusCircle, 
+  AlertTriangle,
+  Calendar,
+  Clock,
+  Landmark,
+  MapPin,
+  FileText
+} from 'lucide-react';
 
 export default function PatrimonioPage() {
-  const [view, setView] = useState<'table' | 'grid'>('table');
-  const [activeTab, setActiveTab] = useState('ativos');
-
-  // Consulta de instalações
+  // Consulta de estatísticas do módulo
   const {
-    data: instalacoes,
-    isLoading: isLoadingInstalacoes
+    data: stats,
+    isLoading: isLoadingStats
   } = useQuery({
-    queryKey: ['/api/patrimonio/instalacoes'],
-    enabled: activeTab === 'instalacoes',
+    queryKey: ['/api/patrimonio/dashboard'],
   });
-
-  // Consulta de ativos
-  const {
-    data: ativos,
-    isLoading: isLoadingAtivos
-  } = useQuery({
-    queryKey: ['/api/patrimonio/ativos'],
-    enabled: activeTab === 'ativos',
-  });
-
-  // Consulta de manutenções
-  const {
-    data: manutencoes,
-    isLoading: isLoadingManutencoes
-  } = useQuery({
-    queryKey: ['/api/patrimonio/manutencoes'],
-    enabled: activeTab === 'manutencoes',
-  });
-
-  // Consulta do resumo para o dashboard
-  const {
-    data: resumo,
-    isLoading: isLoadingResumo
-  } = useQuery({
-    queryKey: ['/api/patrimonio/dashboard-resumo'],
-    enabled: activeTab === 'dashboard',
-  });
-
-  const resumoDados = resumo || {
-    totalAtivos: 0,
-    valorTotal: 0,
-    depreciacao: 0,
-    valorAtual: 0,
-    totalInstalacoes: 0,
-    manutencoesPendentes: 0,
-    proximasManutencoes: []
-  };
 
   return (
     <div className="container mx-auto py-6">
       <PageHeader
-        heading="Gerenciamento de Patrimônio"
-        text="Controle e acompanhe todos os seus ativos e instalações."
+        heading="Gestão de Patrimônio"
+        text="Gerencie todos os ativos, instalações e depreciações da sua organização."
       >
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => setView(view === 'table' ? 'grid' : 'table')}>
-            {view === 'table' ? <Grid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button asChild>
-            <Link to={activeTab === 'ativos' ? '/organization/patrimonio/ativos/novo' : 
-                     activeTab === 'instalacoes' ? '/organization/patrimonio/instalacoes/nova' :
-                     activeTab === 'manutencoes' ? '/organization/patrimonio/manutencoes/nova' : '#'}>
-              <Plus className="mr-2 h-4 w-4" /> {
-                activeTab === 'ativos' ? 'Novo Ativo' :
-                activeTab === 'instalacoes' ? 'Nova Instalação' :
-                activeTab === 'manutencoes' ? 'Nova Manutenção' : 'Novo'
-              }
+            <Link to="/organization/patrimonio/ativos/novo">
+              <PlusCircle className="mr-2 h-4 w-4" /> Novo Ativo
             </Link>
           </Button>
         </div>
       </PageHeader>
 
-      <Tabs defaultValue="ativos" className="mt-6" onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="dashboard">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="ativos">
-            <Wrench className="h-4 w-4 mr-2" />
-            Ativos
-          </TabsTrigger>
-          <TabsTrigger value="instalacoes">
-            <Building className="h-4 w-4 mr-2" />
-            Instalações
-          </TabsTrigger>
-          <TabsTrigger value="manutencoes">
-            <Clock className="h-4 w-4 mr-2" />
-            Manutenções
-          </TabsTrigger>
-          <TabsTrigger value="depreciacao">
-            <Calculator className="h-4 w-4 mr-2" />
-            Depreciação
-          </TabsTrigger>
-          <TabsTrigger value="relatorios">
-            <FileText className="h-4 w-4 mr-2" />
-            Relatórios
-          </TabsTrigger>
+      <Tabs defaultValue="overview" className="mt-6">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:w-[600px]">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="assets">Ativos</TabsTrigger>
+          <TabsTrigger value="facilities">Instalações</TabsTrigger>
+          <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-4">
-          <PageSubHeader
-            heading="Dashboard de Patrimônio"
-            text="Resumo geral dos seus ativos e instalações."
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        
+        <TabsContent value="overview" className="space-y-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Total de Ativos</CardTitle>
                 <CardDescription>Quantidade de equipamentos cadastrados</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingResumo ? (
-                  <Skeleton className="h-12 w-24" />
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-20" />
                 ) : (
-                  <div className="text-3xl font-bold">{resumoDados.totalAtivos}</div>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Distribuídos em {resumoDados.totalInstalacoes} instalações
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Valor Total do Patrimônio</CardTitle>
-                <CardDescription>Valor de aquisição de todos os ativos</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingResumo ? (
-                  <Skeleton className="h-12 w-32" />
-                ) : (
-                  <div className="text-3xl font-bold">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(resumoDados.valorTotal)}
+                  <div className="text-2xl font-bold">
+                    {stats?.totalAssets || 0}
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Depreciação acumulada: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(resumoDados.depreciacao)}
-                </p>
               </CardContent>
+              <CardFooter className="pt-0">
+                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                  <Link to="/organization/patrimonio/ativos">
+                    <Package className="mr-2 h-4 w-4" /> Ver Ativos
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Manutenções Pendentes</CardTitle>
-                <CardDescription>Manutenções programadas e em andamento</CardDescription>
+                <CardTitle className="text-sm font-medium">Instalações</CardTitle>
+                <CardDescription>Imóveis e instalações físicas</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingResumo ? (
-                  <Skeleton className="h-12 w-24" />
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-20" />
                 ) : (
-                  <div className="text-3xl font-bold">{resumoDados.manutencoesPendentes}</div>
+                  <div className="text-2xl font-bold">
+                    {stats?.totalFacilities || 0}
+                  </div>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Próxima manutenção em {resumoDados.proximasManutencoes?.[0]?.diasRestantes || 0} dias
-                </p>
+              </CardContent>
+              <CardFooter className="pt-0">
+                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                  <Link to="/organization/patrimonio/instalacoes">
+                    <Building className="mr-2 h-4 w-4" /> Ver Instalações
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Manutenções</CardTitle>
+                <CardDescription>Agendadas para os próximos 30 dias</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {stats?.upcomingMaintenance || 0}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="pt-0">
+                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                  <Link to="/organization/patrimonio/manutencoes">
+                    <Wrench className="mr-2 h-4 w-4" /> Ver Manutenções
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Valor Patrimonial</CardTitle>
+                <CardDescription>Total atual após depreciação</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingStats ? (
+                  <Skeleton className="h-8 w-28" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(stats?.totalAssetValue || 0)}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="pt-0">
+                <Button variant="ghost" size="sm" asChild className="w-full justify-start">
+                  <Link to="/organization/patrimonio/depreciacao">
+                    <Calculator className="mr-2 h-4 w-4" /> Ver Depreciação
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Ativos por Estado</CardTitle>
+                <CardDescription>
+                  Distribuição dos equipamentos por status
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingStats ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-green-500" />
+                          <span>Ativos</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByStatus?.active || 0}</span>
+                      </div>
+                      <Progress value={70} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-orange-500" />
+                          <span>Em Manutenção</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByStatus?.maintenance || 0}</span>
+                      </div>
+                      <Progress value={15} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-red-500" />
+                          <span>Inativos</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByStatus?.inactive || 0}</span>
+                      </div>
+                      <Progress value={10} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-blue-500" />
+                          <span>Em Garantia</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByStatus?.warranty || 0}</span>
+                      </div>
+                      <Progress value={5} className="h-2 bg-muted" />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Ativos por Categoria</CardTitle>
+                <CardDescription>
+                  Distribuição dos principais tipos de ativos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingStats ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-violet-500" />
+                          <span>Laboratoriais</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByType?.lab || 0}</span>
+                      </div>
+                      <Progress value={40} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                          <span>Cultivo</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByType?.cultivation || 0}</span>
+                      </div>
+                      <Progress value={25} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-amber-500" />
+                          <span>Tecnologia</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByType?.tech || 0}</span>
+                      </div>
+                      <Progress value={20} className="h-2 bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="h-3 w-3 rounded-full bg-gray-500" />
+                          <span>Outros</span>
+                        </div>
+                        <span className="font-medium">{stats?.assetsByType?.others || 0}</span>
+                      </div>
+                      <Progress value={15} className="h-2 bg-muted" />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -183,38 +283,57 @@ export default function PatrimonioPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Próximas Manutenções</CardTitle>
-                <CardDescription>Manutenções programadas para os próximos 30 dias</CardDescription>
+                <CardTitle>Manutenções Próximas</CardTitle>
+                <CardDescription>
+                  Agendadas para os próximos 30 dias
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingResumo ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                {isLoadingStats ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
                   </div>
-                ) : resumoDados.proximasManutencoes?.length > 0 ? (
-                  <ul className="space-y-2">
-                    {resumoDados.proximasManutencoes.slice(0, 5).map((manutencao: any, idx: number) => (
-                      <li key={idx} className="flex justify-between items-center p-2 border rounded-md">
-                        <div>
-                          <p className="font-medium">{manutencao.ativoNome}</p>
-                          <p className="text-sm text-muted-foreground">{manutencao.tipoManutencao} - {manutencao.data}</p>
+                ) : stats?.upcomingMaintenances && stats.upcomingMaintenances.length > 0 ? (
+                  <div className="space-y-4">
+                    {stats.upcomingMaintenances.map((maintenance: any, index: number) => (
+                      <div key={index} className="flex items-start justify-between border-b pb-3">
+                        <div className="space-y-1">
+                          <p className="font-medium">{maintenance.title}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{new Date(maintenance.scheduledDate).toLocaleDateString('pt-BR')}</span>
+                            <span className="h-1 w-1 rounded-full bg-muted-foreground" />
+                            <span>{maintenance.assetName}</span>
+                          </div>
                         </div>
-                        <Badge variant={manutencao.diasRestantes < 7 ? "destructive" : "outline"}>
-                          {manutencao.diasRestantes} dias
-                        </Badge>
-                      </li>
+                        <div className={`flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                          maintenance.priority === 'alta' 
+                            ? 'bg-red-100 text-red-700'
+                            : maintenance.priority === 'média'
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          {maintenance.priority.charAt(0).toUpperCase() + maintenance.priority.slice(1)}
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 ) : (
-                  <p className="text-center py-8 text-muted-foreground">Nenhuma manutenção programada para os próximos 30 dias</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Calendar className="h-10 w-10 text-muted-foreground mb-2" />
+                    <h3 className="font-medium">Sem manutenções agendadas</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Não há manutenções programadas para os próximos 30 dias
+                    </p>
+                  </div>
                 )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline" asChild className="w-full">
+                <Button variant="outline" size="sm" asChild className="w-full">
                   <Link to="/organization/patrimonio/manutencoes">
-                    Ver todas as manutenções <ArrowUpRight className="ml-2 h-4 w-4" />
+                    Ver todas as manutenções
                   </Link>
                 </Button>
               </CardFooter>
@@ -222,469 +341,201 @@ export default function PatrimonioPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Ativos com Maior Depreciação</CardTitle>
-                <CardDescription>Ativos com maior taxa de depreciação mensal</CardDescription>
+                <CardTitle>Alertas de Patrimônio</CardTitle>
+                <CardDescription>
+                  Itens que precisam de atenção
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingResumo ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                {isLoadingStats ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
+                  </div>
+                ) : stats?.alerts && stats.alerts.length > 0 ? (
+                  <div className="space-y-4">
+                    {stats.alerts.map((alert: any, index: number) => (
+                      <div key={index} className="flex items-start space-x-4 border-b pb-3">
+                        <div className="rounded-full p-1 bg-amber-100">
+                          <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium">{alert.title}</p>
+                          <p className="text-sm text-muted-foreground">{alert.description}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
-                  <ul className="space-y-2">
-                    {(resumo?.ativosComMaiorDepreciacao || []).map((ativo: any, idx: number) => (
-                      <li key={idx} className="flex justify-between items-center p-2 border rounded-md">
-                        <div>
-                          <p className="font-medium">{ativo.name}</p>
-                          <p className="text-sm text-muted-foreground">Taxa: {ativo.depreciationRate}% ao mês</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ativo.currentValue)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Valor atual</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Landmark className="h-10 w-10 text-muted-foreground mb-2" />
+                    <h3 className="font-medium">Nenhum alerta ativo</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Seu patrimônio está em dia e sem alertas pendentes
+                    </p>
+                  </div>
                 )}
               </CardContent>
               <CardFooter>
-                <Button variant="outline" asChild className="w-full">
-                  <Link to="/organization/patrimonio/depreciacao">
-                    Calcular depreciação <ArrowUpRight className="ml-2 h-4 w-4" />
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <Link to="/organization/patrimonio/relatorios">
+                    Ver relatórios completos
                   </Link>
                 </Button>
               </CardFooter>
             </Card>
           </div>
         </TabsContent>
-
-        <TabsContent value="ativos">
-          <PageSubHeader
-            heading="Ativos e Equipamentos"
-            text="Visualize e gerencie todos os seus ativos."
-          />
-          
-          {isLoadingAtivos ? (
-            <div className="space-y-2 mt-6">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : view === 'table' ? (
-            <DataTable columns={assetColumns} data={ativos || []} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(ativos || []).map((ativo: any) => (
-                <Card key={ativo.id} className="overflow-hidden">
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{ativo.name}</CardTitle>
-                      <Badge variant={
-                        ativo.status === 'ativo' ? 'success' :
-                        ativo.status === 'em_manutenção' ? 'warning' :
-                        ativo.status === 'inativo' ? 'secondary' : 'destructive'
-                      }>
-                        {ativo.status}
-                      </Badge>
-                    </div>
-                    <CardDescription>{ativo.description || 'Sem descrição'}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Tipo:</p>
-                        <p>{ativo.type}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Nº de Série:</p>
-                        <p>{ativo.serialNumber || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Valor:</p>
-                        <p>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ativo.acquisitionValue || 0)}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Valor Atual:</p>
-                        <p>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ativo.currentValue || 0)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <div className="flex justify-between w-full">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/ativos/${ativo.id}`}>
-                          Detalhes
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/ativos/${ativo.id}/editar`}>
-                          Editar
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="instalacoes">
-          <PageSubHeader
-            heading="Instalações"
-            text="Gerencie todas as suas instalações e localidades."
-          />
-          
-          {isLoadingInstalacoes ? (
-            <div className="space-y-2 mt-6">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : view === 'table' ? (
-            <DataTable columns={installationColumns} data={instalacoes || []} />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(instalacoes || []).map((instalacao: any) => (
-                <Card key={instalacao.id} className="overflow-hidden">
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{instalacao.name}</CardTitle>
-                      <Badge variant={
-                        instalacao.status === 'ativo' ? 'success' :
-                        instalacao.status === 'em_manutenção' ? 'warning' :
-                        instalacao.status === 'inativo' ? 'secondary' : 'destructive'
-                      }>
-                        {instalacao.status}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      {instalacao.type} - {instalacao.city}, {instalacao.state}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Endereço:</p>
-                        <p>{instalacao.address}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Área Total:</p>
-                        <p>{instalacao.totalArea} m²</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Capacidade:</p>
-                        <p>{instalacao.capacity || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Ocupação:</p>
-                        <p>{(instalacao.occupancyRate || 0)}%</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <div className="flex justify-between w-full">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/instalacoes/${instalacao.id}`}>
-                          Detalhes
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/instalacoes/${instalacao.id}/editar`}>
-                          Editar
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="manutencoes">
-          <PageSubHeader
-            heading="Manutenções"
-            text="Programação e histórico de manutenções de equipamentos."
-          />
-          
-          {isLoadingManutencoes ? (
-            <div className="space-y-2 mt-6">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(manutencoes || []).map((manutencao: any) => (
-                <Card key={manutencao.id} className="overflow-hidden">
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">Manutenção #{manutencao.id}</CardTitle>
-                      <Badge variant={
-                        manutencao.status === 'concluída' ? 'success' :
-                        manutencao.status === 'em_andamento' ? 'warning' :
-                        manutencao.status === 'agendada' ? 'secondary' : 'destructive'
-                      }>
-                        {manutencao.status}
-                      </Badge>
-                    </div>
-                    <CardDescription>
-                      {manutencao.maintenanceType} - {manutencao.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <p className="text-muted-foreground">Ativo:</p>
-                        <p>{manutencao.assetName || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Prioridade:</p>
-                        <p>{manutencao.priority}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Data Programada:</p>
-                        <p>{new Date(manutencao.scheduledDate).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Custo:</p>
-                        <p>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(manutencao.cost || 0)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <div className="flex justify-between w-full">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/manutencoes/${manutencao.id}`}>
-                          Detalhes
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/organization/patrimonio/manutencoes/${manutencao.id}/editar`}>
-                          Editar
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="depreciacao">
-          <PageSubHeader
-            heading="Cálculo de Depreciação"
-            text="Calcule a depreciação dos seus ativos e gere relatórios."
-          />
-          
+        
+        <TabsContent value="assets" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Calculadora de Depreciação Anual</CardTitle>
+              <CardTitle>Ativos e Equipamentos</CardTitle>
               <CardDescription>
-                Calcule a depreciação dos ativos pelo método linear, soma dos dígitos ou outros métodos.
+                Gerencie todos os seus equipamentos, máquinas e outros ativos físicos
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center py-6">
-                <Button asChild>
-                  <Link to="/organization/patrimonio/depreciacao/calculadora">
-                    <Calculator className="mr-2 h-4 w-4" />
-                    Acessar Calculadora de Depreciação
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/ativos">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Package className="h-8 w-8" />
+                      <span className="text-sm font-medium">Listar todos os ativos</span>
+                    </div>
                   </Link>
                 </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Relatórios de Depreciação</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      <li>
-                        <Button variant="outline" className="w-full justify-start" asChild>
-                          <Link to="/organization/patrimonio/relatorios/depreciacao-mensal">
-                            <CalendarDays className="mr-2 h-4 w-4" />
-                            Depreciação Mensal
-                          </Link>
-                        </Button>
-                      </li>
-                      <li>
-                        <Button variant="outline" className="w-full justify-start" asChild>
-                          <Link to="/organization/patrimonio/relatorios/depreciacao-anual">
-                            <BarChart3 className="mr-2 h-4 w-4" />
-                            Depreciação Anual
-                          </Link>
-                        </Button>
-                      </li>
-                      <li>
-                        <Button variant="outline" className="w-full justify-start" asChild>
-                          <Link to="/organization/patrimonio/relatorios/projecao-depreciacoes">
-                            <ArrowUpRight className="mr-2 h-4 w-4" />
-                            Projeção de Depreciações
-                          </Link>
-                        </Button>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Configurações de Depreciação</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      <li>
-                        <Button variant="outline" className="w-full justify-start" asChild>
-                          <Link to="/organization/patrimonio/configuracoes/metodos-depreciacao">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Métodos de Depreciação
-                          </Link>
-                        </Button>
-                      </li>
-                      <li>
-                        <Button variant="outline" className="w-full justify-start" asChild>
-                          <Link to="/organization/patrimonio/configuracoes/taxas-depreciacao">
-                            <Calculator className="mr-2 h-4 w-4" />
-                            Taxas de Depreciação
-                          </Link>
-                        </Button>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/ativos/novo">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <PlusCircle className="h-8 w-8" />
+                      <span className="text-sm font-medium">Cadastrar novo ativo</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/ativos/categorias">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <BarChart3 className="h-8 w-8" />
+                      <span className="text-sm font-medium">Categorias de ativos</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/ativos/inventario">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Landmark className="h-8 w-8" />
+                      <span className="text-sm font-medium">Inventário patrimonial</span>
+                    </div>
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="relatorios">
-          <PageSubHeader
-            heading="Relatórios"
-            text="Gere relatórios detalhados sobre seus ativos e instalações."
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios de Ativos</CardTitle>
-                <CardDescription>
-                  Relatórios relacionados aos ativos e equipamentos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/inventario-ativos">
-                        <List className="mr-2 h-4 w-4" />
-                        Inventário de Ativos
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/ativos-por-instalacao">
-                        <Building className="mr-2 h-4 w-4" />
-                        Ativos por Instalação
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/ativos-por-tipo">
-                        <Wrench className="mr-2 h-4 w-4" />
-                        Ativos por Tipo
-                      </Link>
-                    </Button>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios de Manutenção</CardTitle>
-                <CardDescription>
-                  Relatórios relacionados às manutenções e serviços
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/historico-manutencoes">
-                        <Clock className="mr-2 h-4 w-4" />
-                        Histórico de Manutenções
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/custos-manutencao">
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        Custos de Manutenção
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/planejamento-manutencoes">
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        Planejamento de Manutenções
-                      </Link>
-                    </Button>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios Financeiros</CardTitle>
-                <CardDescription>
-                  Relatórios relacionados aos aspectos financeiros do patrimônio
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/valor-patrimonio">
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        Valor do Patrimônio
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/depreciacao">
-                        <Calculator className="mr-2 h-4 w-4" />
-                        Depreciação
-                      </Link>
-                    </Button>
-                  </li>
-                  <li>
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/organization/patrimonio/relatorios/custos-operacionais">
-                        <BarChart3 className="mr-2 h-4 w-4" />
-                        Custos Operacionais
-                      </Link>
-                    </Button>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+        
+        <TabsContent value="facilities" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Instalações e Imóveis</CardTitle>
+              <CardDescription>
+                Gerencie suas instalações físicas, terrenos e edificações
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/instalacoes">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Building className="h-8 w-8" />
+                      <span className="text-sm font-medium">Listar instalações</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/instalacoes/nova">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <PlusCircle className="h-8 w-8" />
+                      <span className="text-sm font-medium">Nova instalação</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/instalacoes/mapa">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <MapPin className="h-8 w-8" />
+                      <span className="text-sm font-medium">Mapa de localidades</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/instalacoes/documentos">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <FileText className="h-8 w-8" />
+                      <span className="text-sm font-medium">Documentação legal</span>
+                    </div>
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="maintenance" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manutenções</CardTitle>
+              <CardDescription>
+                Planeje e acompanhe as manutenções de seus ativos e instalações
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/manutencoes">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Wrench className="h-8 w-8" />
+                      <span className="text-sm font-medium">Todas as manutenções</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/manutencoes/nova">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <PlusCircle className="h-8 w-8" />
+                      <span className="text-sm font-medium">Agendar manutenção</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/manutencoes/calendario">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Calendar className="h-8 w-8" />
+                      <span className="text-sm font-medium">Calendário</span>
+                    </div>
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" className="h-auto py-4 justify-start" asChild>
+                  <Link to="/organization/patrimonio/depreciacao">
+                    <div className="flex flex-col items-center justify-center w-full space-y-2">
+                      <Calculator className="h-8 w-8" />
+                      <span className="text-sm font-medium">Depreciação</span>
+                    </div>
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

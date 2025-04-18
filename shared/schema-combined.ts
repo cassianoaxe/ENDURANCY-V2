@@ -50,3 +50,4 @@ export * from './schema-compras';
 export * from './schema-tarefas';
 export * from './schema-financeiro';
 export * from './schema-transparencia';
+export * from './schema-patrimonio';
