@@ -2187,6 +2187,91 @@ function AppContent() {
       return <DoencasCondicoes />;
     }
     
+    // Novas rotas para o menu do pesquisador
+    if (currentPath === '/researcher/estatisticas') {
+      return (
+        <ResearcherLayout>
+          <div className="container p-4 mx-auto">
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Estatísticas de Pesquisa</h1>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <BarChart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-medium mb-1">Página em desenvolvimento</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      As estatísticas de pesquisa serão implementadas em breve.
+                    </p>
+                    <Button 
+                      onClick={() => setLocation('/researcher/dashboard')}
+                    >
+                      Voltar para o Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/grupos') {
+      return (
+        <ResearcherLayout>
+          <div className="container p-4 mx-auto">
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Grupos de Pesquisa</h1>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-medium mb-1">Página em desenvolvimento</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      O gerenciamento de grupos de pesquisa será implementado em breve.
+                    </p>
+                    <Button 
+                      onClick={() => setLocation('/researcher/dashboard')}
+                    >
+                      Voltar para o Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/nova-pesquisa') {
+      return (
+        <ResearcherLayout>
+          <div className="container p-4 mx-auto">
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Nova Pesquisa</h1>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <FilePlus className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-medium mb-1">Página em desenvolvimento</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      O formulário de nova pesquisa será implementado em breve.
+                    </p>
+                    <Button 
+                      onClick={() => setLocation('/researcher/dashboard')}
+                    >
+                      Voltar para o Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
     if (currentPath === '/researcher/laboratorio') {
       const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
       return (
