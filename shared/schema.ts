@@ -1,6 +1,7 @@
 import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import * as patrimonioSchema from './schema-patrimonio';
 
 // Define a role enum para os diferentes tipos de usuário
 export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory']);
@@ -1272,6 +1273,9 @@ export type InsertUserGroupMembership = z.infer<typeof insertUserGroupMembership
 export type UserInvitation = typeof userInvitations.$inferSelect;
 export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
 
+// Re-exportar schemas do módulo de patrimônio para inclusão na migração
+export * from './schema-patrimonio';
+
 // Importações dos schemas de equipamentos de laboratório para combinar todos os schemas
 import {
   labEquipments,
@@ -1294,34 +1298,4 @@ import {
   equipmentCertificatesRelations
 } from './schema-lab-equipment';
 
-// Importações do módulo de patrimônio
-import {
-  installations,
-  assets,
-  assetMaintenances,
-  assetDepreciations,
-  installationTypeEnum,
-  installationStatusEnum,
-  assetTypeEnum,
-  assetStatusEnum,
-  assetMaintenanceTypeEnum,
-  assetMaintenanceStatusEnum,
-  assetMaintenancePriorityEnum,
-  depreciationMethodEnum,
-  insertInstallationSchema,
-  insertAssetSchema,
-  insertAssetMaintenanceSchema,
-  insertAssetDepreciationSchema,
-  Installation,
-  Asset,
-  AssetMaintenance,
-  AssetDepreciation,
-  InsertInstallation,
-  InsertAsset,
-  InsertAssetMaintenance,
-  InsertAssetDepreciation,
-  installationsRelations,
-  assetsRelations,
-  assetMaintenancesRelations,
-  assetDepreciationsRelations
-} from './schema-patrimonio';
+// O módulo de patrimônio já está sendo importado via 'export * from' acima
