@@ -995,7 +995,7 @@ export default function OrganizationSidebar() {
           path: "/organization/pesquisa/publicacoes",
           active: currentPath === "/organization/pesquisa/publicacoes" ||
                   currentPath.includes("/organization/pesquisa/publicacoes/"),
-          icon: <BookText size={16} />
+          icon: <BookOpen size={16} />
         },
         {
           title: "Colaborações",
