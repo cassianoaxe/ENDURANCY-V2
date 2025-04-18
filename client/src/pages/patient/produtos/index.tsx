@@ -32,9 +32,10 @@ export default function ProdutosPage() {
   const [sortBy, setSortBy] = useState('name');
   const [cart, setCart] = useState<{productId: number, quantity: number}[]>([]);
   
-  // Consulta de produtos
+  // Consulta de produtos - usando dados mockados diretamente em vez de chamar a API
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['/api/products'],
+    queryFn: () => Promise.resolve([]), // Retorna uma promise vazia, vamos usar os mockProducts
     refetchOnWindowFocus: false,
   });
   
