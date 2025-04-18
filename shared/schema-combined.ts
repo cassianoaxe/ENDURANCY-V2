@@ -25,6 +25,9 @@ import * as financeiroSchema from './schema-financeiro';
 // Importando o schema de transparência
 import * as transparenciaSchema from './schema-transparencia';
 
+// Importando o schema de patrimônio
+import * as patrimonioSchema from './schema-patrimonio';
+
 // Combinando todos os schemas em um objeto único
 export const combinedSchema = {
   ...baseSchema,
@@ -34,7 +37,8 @@ export const combinedSchema = {
   ...comprasSchema,
   ...tarefasSchema,
   ...financeiroSchema,
-  ...transparenciaSchema
+  ...transparenciaSchema,
+  ...patrimonioSchema
 };
 
 // Exportando todos os tipos e enums
