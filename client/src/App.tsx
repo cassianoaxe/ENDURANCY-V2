@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Beaker, ChevronRight } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
