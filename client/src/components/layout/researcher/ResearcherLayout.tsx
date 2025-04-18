@@ -1,22 +1,11 @@
 import { useState, ReactNode } from "react";
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { 
-  FileText, 
-  LayoutDashboard, 
   Menu, 
   Microscope, 
-  Building, 
-  FileSearch,
   LogOut,
-  FilePlus,
-  Activity,
-  Database,
-  Users,
-  Clipboard,
-  BarChart
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { ResearcherNav } from "./ResearcherNav";
 
 interface ResearcherLayoutProps {
   children: ReactNode;
@@ -59,68 +49,7 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
     }
   };
 
-  const sidebarItems = [
-    {
-      title: "Dashboard Pesquisa",
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      href: "/researcher/dashboard",
-      badge: null,
-    },
-    {
-      title: "Catálogo de Pesquisas",
-      icon: <FileSearch className="h-5 w-5" />,
-      href: "/researcher/catalogo",
-      badge: null,
-    },
-    {
-      title: "Banco de Pacientes",
-      icon: <Database className="h-5 w-5" />,
-      href: "/researcher/pacientes",
-      badge: null,
-    },
-    {
-      title: "Doenças e Condições",
-      icon: <Activity className="h-5 w-5" />,
-      href: "/researcher/doencas",
-      badge: null,
-    },
-    {
-      title: "Estatísticas",
-      icon: <BarChart className="h-5 w-5" />,
-      href: "/researcher/estatisticas",
-      badge: null,
-    },
-    {
-      title: "Grupos de Pesquisa",
-      icon: <Users className="h-5 w-5" />,
-      href: "/researcher/grupos",
-      badge: null,
-    },
-    {
-      title: "Protocolos",
-      icon: <Clipboard className="h-5 w-5" />,
-      href: "/researcher/protocolos",
-      badge: null,
-    },
-    {
-      title: "Colaborações",
-      icon: <Building className="h-5 w-5" />,
-      href: "/researcher/colaboracoes",
-      badge: null,
-    },
-    {
-      title: "Nova Pesquisa",
-      icon: <FilePlus className="h-5 w-5" />,
-      href: "/researcher/nova-pesquisa",
-      badge: null,
-    },
-    {
-      title: "Página de Teste",
-      icon: <FileText className="h-5 w-5" />,
-      href: "/researcher/test",
-      badge: <Badge className="ml-auto" variant="outline">TESTE</Badge>,
-    },
-  ];
+  // Menu foi migrado para o componente ResearcherNav
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
@@ -136,24 +65,7 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
         </div>
       </div>
       <ScrollArea className="flex-1 overflow-auto py-2">
-        <nav className="grid gap-1 px-2">
-          {sidebarItems.map((item) => (
-            <div
-              key={item.href}
-              onClick={() => setLocation(item.href)}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 cursor-pointer",
-                location === item.href
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "hover:bg-gray-100"
-              )}
-            >
-              {item.icon}
-              <span>{item.title}</span>
-              {item.badge}
-            </div>
-          ))}
-        </nav>
+        <ResearcherNav />
       </ScrollArea>
       <div className="mt-auto p-4">
         <div className="flex items-center gap-3 rounded-lg border p-3">
