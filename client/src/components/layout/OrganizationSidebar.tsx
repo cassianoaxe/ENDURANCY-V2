@@ -39,6 +39,9 @@ import {
   // Ícones de natureza
   Leaf, Brain, Beaker, Droplet,
   
+  // Ícones de ferramentas
+  Wrench, Calculator,
+  
   // Ícones diversos
   Sparkles, BadgeHelp, Tag, RefreshCw, Network, Home, Map,
   Shapes, Target, GraduationCap, Video, Radio, Headphones, Phone,
