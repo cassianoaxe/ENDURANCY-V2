@@ -11,8 +11,7 @@ import {
   Building, Warehouse, Tool, Calculator, BarChart3, Clock, FileText, Plus,
   Settings, List, Grid, ArrowUpRight, CalendarDays
 } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { PageSubHeader } from '@/components/page-sub-header';
+import { PageHeader, PageSubHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { columns as installationColumns } from './columns/installation-columns';
