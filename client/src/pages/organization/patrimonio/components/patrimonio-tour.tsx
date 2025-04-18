@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { SpotlightTour, SpotlightTourStep } from 'react-spotlight-tour';
+import { SpotlightTour } from 'react-spotlight-tour';
 import { Button } from '@/components/ui/button';
 import { LightbulbIcon, InfoIcon, XIcon } from 'lucide-react';
 import { useLocation } from 'wouter';
@@ -12,13 +12,24 @@ interface PatrimonioTourProps {
   startStep?: 'dashboard' | 'ativos' | 'instalacoes' | 'manutencoes' | 'depreciacao';
 }
 
+// Interface para os passos do tour
+interface TourStep {
+  selector: string;
+  title: string;
+  description: string;
+  placement?: 'top' | 'right' | 'bottom' | 'left' | 'center';
+  spotlightPadding?: number;
+  condition?: () => boolean;
+  action?: () => Promise<void>;
+}
+
 export default function PatrimonioTour({ isOpen, onClose, startStep = 'dashboard' }: PatrimonioTourProps) {
   const [location, navigate] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
   const [highlightedElements, setHighlightedElements] = useState<HTMLElement[]>([]);
   
   // Define todos os passos do tour
-  const tourSteps: SpotlightTourStep[] = [
+  const tourSteps: TourStep[] = [
     // Dashboard do módulo patrimônio
     {
       selector: '[data-tour="patrimonio-dashboard"]',

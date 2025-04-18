@@ -192,9 +192,10 @@ export default function AtivosPage() {
       <PageHeader
         heading="Ativos e Equipamentos"
         text="Gerencie todos os seus ativos e equipamentos."
+        data-tour="patrimonio-ativos-header"
       >
         <div className="flex flex-col sm:flex-row items-center gap-2">
-          <Button asChild>
+          <Button asChild data-tour="patrimonio-ativos-novo">
             <Link to="/organization/patrimonio/ativos/novo">
               <Plus className="mr-2 h-4 w-4" /> Novo Ativo
             </Link>
@@ -202,7 +203,7 @@ export default function AtivosPage() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" data-tour="patrimonio-ativos-acoes">
                 <Filter className="mr-2 h-4 w-4" /> Ações
               </Button>
             </DropdownMenuTrigger>
@@ -218,7 +219,7 @@ export default function AtivosPage() {
                 <FileText className="mr-2 h-4 w-4" /> Gerar Relatório
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem data-tour="patrimonio-etiquetas">
                 <Tag className="mr-2 h-4 w-4" /> Gerar Etiquetas em Lote
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -235,7 +236,9 @@ export default function AtivosPage() {
           <Skeleton className="h-12 w-full" />
         </div>
       ) : (
-        <DataTable columns={columnsWithViewHandler} data={mockAtivos} />
+        <div data-tour="patrimonio-ativos-tabela">
+          <DataTable columns={columnsWithViewHandler} data={mockAtivos} />
+        </div>
       )}
       
       {/* Modal de visualização do ativo */}
