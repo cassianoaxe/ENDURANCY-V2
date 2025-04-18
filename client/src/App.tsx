@@ -1932,6 +1932,16 @@ function AppContent() {
       return <PatientDashboardPage />;
     }
     
+    // Rota de perfil do paciente
+    if (currentPath === '/patient/profile') {
+      const ProfilePage = React.lazy(() => import('@/pages/patient/profile/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <ProfilePage />
+        </Suspense>
+      );
+    }
+    
     // Rotas de produtos e pedidos
     if (currentPath === '/patient/produtos') {
       const ProdutosRedirector = React.lazy(() => import('@/pages/patient/produtos'));
