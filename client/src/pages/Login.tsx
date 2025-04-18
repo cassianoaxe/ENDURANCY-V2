@@ -410,10 +410,12 @@ export default function Login() {
                         </div>
                         <div className="text-left">
                           <div className="text-sm font-medium">{info.label}</div>
-                          <div className="text-xs text-gray-500 truncate max-w-[120px]">
-                            {role === userType && <div className="h-1 w-1 rounded-full bg-[#4CAF50] inline-block mr-1.5"></div>}
-                            {role === userType ? "Selecionado" : "Clique para selecionar"}
-                          </div>
+                          {role === userType && (
+                            <div className="text-xs text-green-600 truncate max-w-[120px] flex items-center">
+                              <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
+                              Selecionado
+                            </div>
+                          )}
                         </div>
                       </button>
                     ))}
