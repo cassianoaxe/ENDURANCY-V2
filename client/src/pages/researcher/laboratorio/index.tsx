@@ -33,9 +33,46 @@ export default function ResearcherLaboratorio() {
   const [isLoading, setIsLoading] = useState(true);
   const [filtro, setFiltro] = useState('');
   const [visualizacao, setVisualizacao] = useState('todas');
-  const [amostras, setAmostras] = useState<any[]>([]);
-  const [equipamentos, setEquipamentos] = useState<any[]>([]);
-  const [resultados, setResultados] = useState<any[]>([]);
+  interface Amostra {
+    id: string;
+    nome: string;
+    tipo: string;
+    status: string;
+    dataEnvio: Date;
+    resultadosPendentes: number;
+    resultadosConcluidos: number;
+    observacoes: string;
+  }
+  
+  interface Equipamento {
+    id: string;
+    nome: string;
+    modelo: string;
+    tipo: string;
+    status: string;
+    proximaManutencao: Date | null;
+    ultimaCalibracao: Date;
+    responsavel: string;
+  }
+  
+  interface ResultadoItem {
+    [key: string]: number;
+  }
+  
+  interface Resultado {
+    id: string;
+    amostraId: string;
+    amostraNome: string;
+    tipo: string;
+    status: string;
+    dataAnalise: Date;
+    equipamento: string;
+    resultados: ResultadoItem;
+  }
+  
+  const [amostras, setAmostras] = useState<Amostra[]>([]);
+  const [equipamentos, setEquipamentos] = useState<Equipamento[]>([]);
+  const [resultados, setResultados] = useState<Resultado[]>([]);
 
   // Exemplo de dados para simulação
   useEffect(() => {
@@ -524,10 +561,10 @@ export default function ResearcherLaboratorio() {
                               <div className="mt-3 pt-3 border-t">
                                 <p className="text-xs font-medium text-gray-500 mb-2">Resumo dos resultados:</p>
                                 <div className="grid grid-cols-4 gap-2">
-                                  {Object.entries(res.resultados).map(([key, value]) => (
+                                  {res.resultados && Object.entries(res.resultados).map(([key, value]) => (
                                     <div key={key} className="bg-gray-50 p-2 rounded border">
                                       <p className="text-xs font-medium">{key}</p>
-                                      <p className="text-sm">{value}%</p>
+                                      <p className="text-sm">{typeof value === 'number' ? value.toFixed(1) : '0'}%</p>
                                     </div>
                                   ))}
                                 </div>
