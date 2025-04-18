@@ -8,8 +8,8 @@ export default function ProdutosRedirector() {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Redirecionar para a página correta de produtos
-    window.location.href = '/patient/produtos';
+    // Redirecionar para a subpasta produtos
+    window.location.href = '/patient/produtos/';
     
     // Mostrar notificação de redirecionamento
     toast({

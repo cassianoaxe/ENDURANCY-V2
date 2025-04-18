@@ -241,7 +241,7 @@ export function PatientQuickActions({ onAction }: { onAction: (action: string) =
     {
       label: 'Novo Pedido',
       icon: <ShoppingBag className="h-5 w-5 text-green-500" />,
-      onClick: () => navigateTo('/patient/produtos'),
+      onClick: () => navigateTo('/patient/produtos/'),
       className: 'border-green-100 hover:border-green-200 hover:bg-green-50'
     },
     {
