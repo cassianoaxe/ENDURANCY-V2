@@ -2176,6 +2176,17 @@ function AppContent() {
       );
     }
     
+    if (currentPath === '/researcher/laboratorio') {
+      const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <LaboratorioPage />
+        </Suspense>
+      );
+    }
+    
     if (currentPath.startsWith('/researcher/estudos')) {
       return (
         <ResearcherLayout>
