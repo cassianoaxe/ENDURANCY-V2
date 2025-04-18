@@ -2111,7 +2111,7 @@ function AppContent() {
       
       if (orgId) {
         console.log("SPECIFIC HANDLER: Login de paciente com organizationId:", orgId);
-        return <PatientLogin organizationId={orgId} />;
+        return <PatientLogin organizationId={orgId || undefined} />;
       }
       
       // Sem organizationId, apenas mostrar a página de login normal
