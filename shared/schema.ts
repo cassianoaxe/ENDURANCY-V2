@@ -1277,9 +1277,9 @@ import {
   labEquipments,
   equipmentMaintenances,
   equipmentCertificates,
-  equipmentStatusEnum,
-  maintenanceTypeEnum,
-  maintenanceStatusEnum,
+  equipmentStatusEnum as labEquipmentStatusEnum,
+  maintenanceTypeEnum as labMaintenanceTypeEnum,
+  maintenanceStatusEnum as labMaintenanceStatusEnum,
   insertLabEquipmentSchema,
   insertEquipmentMaintenanceSchema,
   insertEquipmentCertificateSchema,
@@ -1293,3 +1293,35 @@ import {
   equipmentMaintenancesRelations,
   equipmentCertificatesRelations
 } from './schema-lab-equipment';
+
+// Importações do módulo de patrimônio
+import {
+  installations,
+  assets,
+  assetMaintenances,
+  assetDepreciations,
+  installationTypeEnum,
+  installationStatusEnum,
+  assetTypeEnum,
+  assetStatusEnum,
+  assetMaintenanceTypeEnum,
+  assetMaintenanceStatusEnum,
+  assetMaintenancePriorityEnum,
+  depreciationMethodEnum,
+  insertInstallationSchema,
+  insertAssetSchema,
+  insertAssetMaintenanceSchema,
+  insertAssetDepreciationSchema,
+  Installation,
+  Asset,
+  AssetMaintenance,
+  AssetDepreciation,
+  InsertInstallation,
+  InsertAsset,
+  InsertAssetMaintenance,
+  InsertAssetDepreciation,
+  installationsRelations,
+  assetsRelations,
+  assetMaintenancesRelations,
+  assetDepreciationsRelations
+} from './schema-patrimonio';
