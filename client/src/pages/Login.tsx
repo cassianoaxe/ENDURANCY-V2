@@ -55,7 +55,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [orgCode, setOrgCode] = useState<string | null>(null);
   const [isOrgLogin, setIsOrgLogin] = useState(false);
-  const [location, navigate] = useLocation();
+  const [location, setLocation] = useLocation();
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
   
@@ -188,14 +188,11 @@ export default function Login() {
       
       // Redirecionamentos baseados no tipo de usuário
       if (userType === 'pharmacist') {
-        window.history.pushState({}, '', '/pharmacist/dashboard');
-        window.dispatchEvent(new Event('popstate'));
+        setLocation('/pharmacist/dashboard');
       } else if (userType === 'laboratory') {
-        window.history.pushState({}, '', '/laboratory/dashboard');
-        window.dispatchEvent(new Event('popstate'));
+        setLocation('/laboratory/dashboard');
       } else if (userType === 'researcher') {
-        window.history.pushState({}, '', '/researcher/dashboard');
-        window.dispatchEvent(new Event('popstate'));
+        setLocation('/researcher/dashboard');
       }
       
       toast({
