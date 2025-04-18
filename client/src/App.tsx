@@ -2172,137 +2172,113 @@ function AppContent() {
     
     // Rotas específicas do pesquisador
     if (currentPath === '/researcher/dashboard') {
-      return (
-        <ResearcherLayout>
-          <ResearcherDashboard />
-        </ResearcherLayout>
-      );
+      return <ResearcherDashboard />;
     }
     
     if (currentPath === '/researcher/catalogo') {
-      return (
-        <ResearcherLayout>
-          <CatalogoPesquisas />
-        </ResearcherLayout>
-      );
+      return <CatalogoPesquisas />;
     }
     
     if (currentPath === '/researcher/pacientes') {
-      return (
-        <ResearcherLayout>
-          <BancoPacientes />
-        </ResearcherLayout>
-      );
+      return <BancoPacientes />;
     }
     
     if (currentPath === '/researcher/doencas') {
-      return (
-        <ResearcherLayout>
-          <DoencasCondicoes />
-        </ResearcherLayout>
-      );
+      return <DoencasCondicoes />;
     }
     
     if (currentPath === '/researcher/laboratorio') {
       const LaboratorioPage = React.lazy(() => import('./pages/researcher/laboratorio/index'));
       return (
-        <ResearcherLayout>
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <LaboratorioPage />
-          </Suspense>
-        </ResearcherLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <LaboratorioPage />
+        </Suspense>
       );
     }
     
     if (currentPath.startsWith('/researcher/estudos')) {
       return (
-        <ResearcherLayout>
-          {currentPath === '/researcher/estudos' ? (
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Estudos Científicos</h1>
-              <p className="text-gray-500 mb-6">Lista de todos os seus estudos científicos e colaborações</p>
-              <div className="border rounded-lg p-10 text-center">
-                <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-                <button 
-                  onClick={() => setLocation('/researcher/dashboard')}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                >
-                  Voltar para o Dashboard
-                </button>
-              </div>
+        currentPath === '/researcher/estudos' ? (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Estudos Científicos</h1>
+            <p className="text-gray-500 mb-6">Lista de todos os seus estudos científicos e colaborações</p>
+            <div className="border rounded-lg p-10 text-center">
+              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+              <button 
+                onClick={() => setLocation('/researcher/dashboard')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Voltar para o Dashboard
+              </button>
             </div>
-          ) : currentPath === '/researcher/estudos/novo' ? (
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Novo Estudo Científico</h1>
-              <p className="text-gray-500 mb-6">Cadastre um novo estudo ou projeto de pesquisa</p>
-              <div className="border rounded-lg p-10 text-center">
-                <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
-                <button 
-                  onClick={() => setLocation('/researcher/dashboard')}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                >
-                  Voltar para o Dashboard
-                </button>
-              </div>
+          </div>
+        ) : currentPath === '/researcher/estudos/novo' ? (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Novo Estudo Científico</h1>
+            <p className="text-gray-500 mb-6">Cadastre um novo estudo ou projeto de pesquisa</p>
+            <div className="border rounded-lg p-10 text-center">
+              <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
+              <button 
+                onClick={() => setLocation('/researcher/dashboard')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Voltar para o Dashboard
+              </button>
             </div>
-          ) : (
-            <div className="p-6">
-              <h1 className="text-2xl font-bold mb-4">Detalhes do Estudo</h1>
-              <p className="text-gray-500 mb-6">Visualizando detalhes do estudo</p>
-              <div className="border rounded-lg p-10 text-center">
-                <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-                <button 
-                  onClick={() => setLocation('/researcher/dashboard')}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                >
-                  Voltar para o Dashboard
-                </button>
-              </div>
+          </div>
+        ) : (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Detalhes do Estudo</h1>
+            <p className="text-gray-500 mb-6">Visualizando detalhes do estudo</p>
+            <div className="border rounded-lg p-10 text-center">
+              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+              <button 
+                onClick={() => setLocation('/researcher/dashboard')}
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Voltar para o Dashboard
+              </button>
             </div>
-          )}
-        </ResearcherLayout>
+          </div>
+        )
       );
     }
     
     if (currentPath === '/researcher/plantas' || currentPath === '/researcher/plantas/novo') {
       return (
-        <ResearcherLayout>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Registro de Plantas</h1>
-            <p className="text-gray-500 mb-6">Cadastro e gerenciamento de cepas para pesquisa</p>
-            <div className="border rounded-lg p-10 text-center">
-              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-              <button 
-                onClick={() => setLocation('/researcher/dashboard')}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Voltar para o Dashboard
-              </button>
-            </div>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Registro de Plantas</h1>
+          <p className="text-gray-500 mb-6">Cadastro e gerenciamento de cepas para pesquisa</p>
+          <div className="border rounded-lg p-10 text-center">
+            <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+            <button 
+              onClick={() => setLocation('/researcher/dashboard')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Voltar para o Dashboard
+            </button>
           </div>
-        </ResearcherLayout>
+        </div>
       );
     }
     
     if (currentPath === '/researcher/organizacoes') {
       return (
-        <ResearcherLayout>
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Organizações Colaboradoras</h1>
-            <p className="text-gray-500 mb-6">Gerencie suas parcerias e encontre novas instituições</p>
-            <div className="border rounded-lg p-10 text-center">
-              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-              <button 
-                onClick={() => setLocation('/researcher/dashboard')}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Voltar para o Dashboard
-              </button>
-            </div>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Organizações Colaboradoras</h1>
+          <p className="text-gray-500 mb-6">Gerencie suas parcerias e encontre novas instituições</p>
+          <div className="border rounded-lg p-10 text-center">
+            <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+            <button 
+              onClick={() => setLocation('/researcher/dashboard')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Voltar para o Dashboard
+            </button>
           </div>
-        </ResearcherLayout>
+        </div>
       );
     }
     
