@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Building, Warehouse, Tool, Calculator, BarChart3, Clock, FileText, Plus,
+  Building, Warehouse, Wrench, Calculator, BarChart3, Clock, FileText, Plus,
   Settings, List, Grid, ArrowUpRight, CalendarDays
 } from 'lucide-react';
 import { PageHeader, PageSubHeader } from '@/components/page-header';
@@ -98,7 +98,7 @@ export default function PatrimonioPage() {
             Dashboard
           </TabsTrigger>
           <TabsTrigger value="ativos">
-            <Tool className="h-4 w-4 mr-2" />
+            <Wrench className="h-4 w-4 mr-2" />
             Ativos
           </TabsTrigger>
           <TabsTrigger value="instalacoes">
@@ -602,7 +602,7 @@ export default function PatrimonioPage() {
                   <li>
                     <Button variant="outline" className="w-full justify-start" asChild>
                       <Link to="/organization/patrimonio/relatorios/ativos-por-tipo">
-                        <Tool className="mr-2 h-4 w-4" />
+                        <Wrench className="mr-2 h-4 w-4" />
                         Ativos por Tipo
                       </Link>
                     </Button>
