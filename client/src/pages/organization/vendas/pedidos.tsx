@@ -209,7 +209,7 @@ export default function GerenciamentoPedidos() {
   const [trackingCode, setTrackingCode] = useState("");
   const [statusNote, setStatusNote] = useState("");
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -227,15 +227,15 @@ export default function GerenciamentoPedidos() {
       const response = await fetch('/api/organization/orders?type=patient', {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro ao buscar pedidos de pacientes');
       }
-      
+
       return response.json();
     }
   });
-  
+
   // Buscar pedidos para expedição (pedidos confirmados que precisam ser preparados/enviados)
   const { data: pedidosExpedicao, isLoading: isLoadingExpedicao, error: errorExpedicao } = useQuery<any[]>({
     queryKey: ['/api/organization/orders/expedition'],
@@ -243,11 +243,11 @@ export default function GerenciamentoPedidos() {
       const response = await fetch('/api/organization/orders/expedition', {
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Erro ao buscar pedidos para expedição');
       }
-      
+
       return response.json();
     }
   });
@@ -273,24 +273,24 @@ export default function GerenciamentoPedidos() {
     const matchesSearch = searchTerm === '' || 
       pedido.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pedido.cliente.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = selectedStatus === 'todos' || 
       pedido.status === selectedStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   // Manipulação dos pedidos de pacientes
   const filteredPedidosPacientes = React.useMemo(() => {
     if (!pedidosPacientes) return [];
-    
+
     let filtered = pedidosPacientes;
-    
+
     // Filtrar por status
     if (selectedTab !== 'all') {
       filtered = filtered.filter(order => order.status === selectedTab);
     }
-    
+
     // Filtrar por pesquisa
     if (searchQuery && searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -300,7 +300,7 @@ export default function GerenciamentoPedidos() {
         order.additionalInfo?.customerEmail?.toLowerCase().includes(query)
       );
     }
-    
+
     return filtered;
   }, [pedidosPacientes, selectedTab, searchQuery]);
 
@@ -346,10 +346,10 @@ export default function GerenciamentoPedidos() {
     setSelectedOrder(order);
     setDetailsOpen(true);
   };
-  
+
   // Query client para invalidações
   const queryClient = useQueryClient();
-  
+
   // Mutation para atualizar status do pedido
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ orderId, status, trackingCode, note }: { 
@@ -370,23 +370,23 @@ export default function GerenciamentoPedidos() {
         }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         throw new Error('Falha ao atualizar status do pedido');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       // Invalidar cache para recarregar pedidos
       queryClient.invalidateQueries({ queryKey: ['/api/organization/orders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/organization/orders/expedition'] });
-      
+
       // Fechar modal de status e limpar campos
       setStatusModalOpen(false);
       setTrackingCode('');
       setStatusNote('');
-      
+
       toast({
         title: 'Status atualizado',
         description: 'O status do pedido foi atualizado com sucesso',
@@ -400,7 +400,7 @@ export default function GerenciamentoPedidos() {
       });
     }
   });
-  
+
   // Abrir modal para atualizar status
   const openStatusModal = (order: PatientOrder, newStatus: string) => {
     setSelectedOrder(order);
@@ -431,7 +431,7 @@ export default function GerenciamentoPedidos() {
               Gerencie todos os pedidos da sua organização
             </p>
           </div>
-          
+
           <Button onClick={novoPedido}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Pedido
@@ -443,7 +443,7 @@ export default function GerenciamentoPedidos() {
             <TabsTrigger value="todos">Pedidos Gerais</TabsTrigger>
             <TabsTrigger value="pacientes">Pedidos de Pacientes</TabsTrigger>
           </TabsList>
-          
+
           {/* Conteúdo da aba Pedidos Gerais */}
           <TabsContent value="todos" className="mt-4">
             <Card>
@@ -576,7 +576,7 @@ export default function GerenciamentoPedidos() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           {/* Conteúdo da aba Pedidos de Pacientes */}
           <TabsContent value="pacientes" className="mt-4">
             {/* Filtros e Pesquisa */}
@@ -752,7 +752,7 @@ export default function GerenciamentoPedidos() {
                       Pedido realizado em {formatDate(selectedOrder.createdAt)}
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <ScrollArea className="max-h-[70vh] pr-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Informações do Cliente */}
@@ -805,7 +805,7 @@ export default function GerenciamentoPedidos() {
                               {selectedOrder.additionalInfo?.paymentMethod === 'credit' && 'Cartão de Crédito'}
                               {selectedOrder.additionalInfo?.paymentMethod === 'pix' && 'PIX'}
                               {selectedOrder.additionalInfo?.paymentMethod === 'bankslip' && 'Boleto Bancário'}
-                              
+
                               {selectedOrder.additionalInfo?.paymentMethod === 'credit' && 
                                 selectedOrder.additionalInfo?.paymentDetails?.installments && 
                                 ` (${selectedOrder.additionalInfo.paymentDetails.installments}x)`}
@@ -819,7 +819,7 @@ export default function GerenciamentoPedidos() {
                               {selectedOrder.additionalInfo?.deliveryMethod === 'pickup' && 'Retirada na Loja'}
                             </p>
                           </div>
-                          
+
                           {selectedOrder.additionalInfo?.requiredPrescription && (
                             <div>
                               <span className="text-muted-foreground">Prescrição médica:</span>
@@ -884,7 +884,7 @@ export default function GerenciamentoPedidos() {
                       </Card>
                     </div>
                   </ScrollArea>
-                  
+
                   <DialogFooter className="flex justify-between items-center mt-6">
                     <span className="text-sm text-muted-foreground">
                       ID do Pedido: {selectedOrder.id}
@@ -906,76 +906,14 @@ export default function GerenciamentoPedidos() {
       </div>
 
       {/* Modal de Atualização de Status */}
-      {selectedOrder && (
-        <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Atualizar Status do Pedido</DialogTitle>
-              <DialogDescription>
-                Atualize o status do pedido #{selectedOrder?.orderNumber} para {currentStatus === 'shipped' ? 'enviado' : currentStatus === 'delivered' ? 'entregue' : currentStatus === 'canceled' ? 'cancelado' : 'em preparação'}.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              {currentStatus === 'shipped' && (
-                <div className="space-y-2">
-                  <label htmlFor="tracking-code" className="text-sm font-medium">
-                    Código de Rastreamento
-                  </label>
-                  <Input
-                    id="tracking-code"
-                    placeholder="Digite o código de rastreamento..."
-                    value={trackingCode}
-                    onChange={(e) => setTrackingCode(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    O código de rastreamento será enviado ao cliente por e-mail.
-                  </p>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <label htmlFor="status-note" className="text-sm font-medium">
-                  Observações (opcional)
-                </label>
-                <Input
-                  id="status-note"
-                  placeholder="Adicione informações adicionais sobre este status..."
-                  value={statusNote}
-                  onChange={(e) => setStatusNote(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setStatusModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button 
-                onClick={() => {
-                  if (selectedOrder) {
-                    updateOrderStatusMutation.mutate({
-                      orderId: selectedOrder.id,
-                      status: currentStatus,
-                      trackingCode: currentStatus === 'shipped' ? trackingCode : undefined,
-                      note: statusNote || undefined
-                    });
-                  }
-                }}
-                disabled={updateOrderStatusMutation.isPending || (currentStatus === 'shipped' && !trackingCode)}
-              >
-                {updateOrderStatusMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Atualizando...
-                  </>
-                ) : (
-                  <>Atualizar Status</>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+        {selectedOrder && (
+          <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Atualizar Status do Pedido</DialogTitle>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        )}
   );
 }
