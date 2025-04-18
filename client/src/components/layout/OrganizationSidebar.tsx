@@ -817,44 +817,50 @@ export default function OrganizationSidebar() {
           icon: <Package size={16} />
         },
         {
-          title: "Patrimônio",
+          title: "Acessar Patrimônio",
           path: "/organization/patrimonio",
           active: currentPath === "/organization/patrimonio" || 
                  currentPath.startsWith("/organization/patrimonio/"),
-          icon: <Building2 size={16} />,
-          isSubmenu: true,
-          subItems: [
-            {
-              title: "Dashboard Patrimônio",
-              path: "/organization/patrimonio",
-              active: currentPath === "/organization/patrimonio" && !currentPath.includes("/organization/patrimonio/"),
-              icon: <LayoutDashboard size={16} />
-            },
-            {
-              title: "Ativos",
-              path: "/organization/patrimonio/ativos",
-              active: currentPath === "/organization/patrimonio/ativos" || currentPath === "/organization/patrimonio/ativos/novo",
-              icon: <Package size={16} />
-            },
-            {
-              title: "Instalações",
-              path: "/organization/patrimonio/instalacoes",
-              active: currentPath === "/organization/patrimonio/instalacoes",
-              icon: <Building size={16} />
-            },
-            {
-              title: "Manutenções",
-              path: "/organization/patrimonio/manutencoes",
-              active: currentPath === "/organization/patrimonio/manutencoes",
-              icon: <Wrench size={16} />
-            },
-            {
-              title: "Depreciação",
-              path: "/organization/patrimonio/depreciacao",
-              active: currentPath === "/organization/patrimonio/depreciacao",
-              icon: <Calculator size={16} />
-            }
-          ]
+          icon: <Building2 size={16} />
+        }
+      ]
+    },
+    {
+      title: "Patrimônio",
+      path: "/organization/patrimonio",
+      active: currentPath.startsWith("/organization/patrimonio"),
+      icon: <Building2 size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard",
+          path: "/organization/patrimonio",
+          active: currentPath === "/organization/patrimonio" && !currentPath.includes("/organization/patrimonio/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Ativos",
+          path: "/organization/patrimonio/ativos",
+          active: currentPath === "/organization/patrimonio/ativos" || currentPath === "/organization/patrimonio/ativos/novo",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Instalações",
+          path: "/organization/patrimonio/instalacoes",
+          active: currentPath === "/organization/patrimonio/instalacoes",
+          icon: <Building size={16} />
+        },
+        {
+          title: "Manutenções",
+          path: "/organization/patrimonio/manutencoes",
+          active: currentPath === "/organization/patrimonio/manutencoes",
+          icon: <Wrench size={16} />
+        },
+        {
+          title: "Depreciação",
+          path: "/organization/patrimonio/depreciacao",
+          active: currentPath === "/organization/patrimonio/depreciacao",
+          icon: <Calculator size={16} />
         }
       ]
     },
