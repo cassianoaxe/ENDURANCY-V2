@@ -21,6 +21,10 @@ import { registerTrainerRoutes } from './routes/trainer-routes';
 import equipmentRoutes from './routes/equipment-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
+import { registerLaboratorioRoutes } from './routes-laboratorio';
+import { registerPatientOrdersRoutes } from './routes-patient-orders';
+import { registerPatrimonioRoutes } from './routes-patrimonio';
+import { registerPesquisaRoutes } from './routes-pesquisa';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
