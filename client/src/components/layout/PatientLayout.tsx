@@ -21,15 +21,33 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
     window.location.href = path;
   };
   
-  // Função para deslogar o usuário
+  // Função para deslogar o usuário - implementação direta via fetch
   const handleLogout = async () => {
     try {
-      await logout();
-      toast({
-        title: "Logout realizado",
-        description: "Você saiu da sua conta com sucesso.",
+      // Chamar diretamente a API de logout
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
+      
+      if (response.ok) {
+        toast({
+          title: "Logout realizado",
+          description: "Você saiu da sua conta com sucesso.",
+        });
+        
+        // Redirecionar para a página de login
+        setTimeout(() => {
+          window.location.href = '/patient/login';
+        }, 500);
+      } else {
+        throw new Error('Falha ao fazer logout');
+      }
     } catch (error) {
+      console.error('Erro ao realizar logout:', error);
       toast({
         title: "Erro ao realizar logout",
         description: "Ocorreu um erro ao tentar sair. Tente novamente.",
