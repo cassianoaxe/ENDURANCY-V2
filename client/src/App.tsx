@@ -1942,6 +1942,26 @@ function AppContent() {
       );
     }
     
+    // Rota de configurações do paciente
+    if (currentPath === '/patient/settings') {
+      const SettingsPage = React.lazy(() => import('@/pages/patient/settings/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <SettingsPage />
+        </Suspense>
+      );
+    }
+    
+    // Rota de suporte do paciente
+    if (currentPath === '/patient/suporte') {
+      const SuportePage = React.lazy(() => import('@/pages/patient/suporte/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <SuportePage />
+        </Suspense>
+      );
+    }
+    
     // Rotas de produtos e pedidos
     if (currentPath === '/patient/produtos') {
       const ProdutosRedirector = React.lazy(() => import('@/pages/patient/produtos'));
