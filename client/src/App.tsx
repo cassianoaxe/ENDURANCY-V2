@@ -183,6 +183,14 @@ import Fornecedores from "@/pages/organization/compras/fornecedores";
 import Estoque from "@/pages/organization/compras/estoque";
 import PedidosCompra from "@/pages/organization/compras/pedidos";
 
+// Módulo de Patrimônio
+import PatrimonioPage from "@/pages/organization/patrimonio";
+import AtivosPage from "@/pages/organization/patrimonio/ativos";
+import InstalacoesPage from "@/pages/organization/patrimonio/instalacoes";
+import ManutencoesPage from "@/pages/organization/patrimonio/manutencoes";
+import DepreciacaoPage from "@/pages/organization/patrimonio/depreciacao";
+import CalculadoraDepreciacaoPage from "@/pages/organization/patrimonio/depreciacao/calculadora";
+
 // Import pharmacist pages
 import PharmacistDashboard from "@/pages/pharmacist/Dashboard";
 import PharmacistPrescricoes from "@/pages/pharmacist/Prescricoes";
@@ -1361,6 +1369,43 @@ function AppContent() {
 
     if (currentPath === '/organization/farmacia') {
       return <FarmaciaModule />;
+    }
+    
+    // Rotas do módulo de Patrimônio
+    if (currentPath === '/organization/patrimonio') {
+      return <OrganizationLayout>
+        <PatrimonioPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/ativos') {
+      return <OrganizationLayout>
+        <AtivosPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/instalacoes') {
+      return <OrganizationLayout>
+        <InstalacoesPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/manutencoes') {
+      return <OrganizationLayout>
+        <ManutencoesPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/depreciacao') {
+      return <OrganizationLayout>
+        <DepreciacaoPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/depreciacao/calculadora') {
+      return <OrganizationLayout>
+        <CalculadoraDepreciacaoPage />
+      </OrganizationLayout>;
     }
     
     // Rotas de integração da organização - redirecionamento de várias rotas para a central
