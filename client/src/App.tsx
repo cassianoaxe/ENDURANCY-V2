@@ -58,6 +58,9 @@ import Cadastro from "@/pages/Cadastro";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
 import ResearcherDashboard from "@/pages/researcher/dashboard";
+import CatalogoPesquisas from "@/pages/researcher/catalogo";
+import BancoPacientes from "@/pages/researcher/pacientes";
+import DoencasCondicoes from "@/pages/researcher/doencas";
 import Tickets from "@/pages/Tickets";
 import TicketDetail from "@/pages/TicketDetail";
 import CreateTicket from "@/pages/CreateTicket";
@@ -2172,6 +2175,30 @@ function AppContent() {
       return (
         <ResearcherLayout>
           <ResearcherDashboard />
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/catalogo') {
+      return (
+        <ResearcherLayout>
+          <CatalogoPesquisas />
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/pacientes') {
+      return (
+        <ResearcherLayout>
+          <BancoPacientes />
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/doencas') {
+      return (
+        <ResearcherLayout>
+          <DoencasCondicoes />
         </ResearcherLayout>
       );
     }
