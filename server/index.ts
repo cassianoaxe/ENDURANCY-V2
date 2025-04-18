@@ -806,6 +806,7 @@ app.use((req, res, next) => {
   // Registrar rotas de pedidos de pacientes
   registerPatientOrdersRoutes(app);
   registerPatrimonioRoutes(app);
+  registerLaboratorioRoutes(app);
   registerPesquisaCientificaRoutes(app);
 
   // Inicializar dados de exemplo para tickets
