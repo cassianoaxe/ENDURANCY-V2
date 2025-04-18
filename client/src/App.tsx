@@ -96,6 +96,8 @@ import LandingPage from "@/pages/LandingPage";
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
+import PatrimonioIndex from "@/pages/organization/patrimonio/index";
+import DepreciacaoCalculadora from "@/pages/organization/patrimonio/depreciacao/calculadora";
 // Importar página de teste para transparência
 import TransparenciaTest from "@/pages/TransparenciaTest";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
