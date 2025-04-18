@@ -126,15 +126,27 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
                     Pagamentos
                   </Button>
                   <Separator />
-                  <Button variant="ghost" className="justify-start">
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start"
+                    onClick={() => navigateTo('/patient/profile')}
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Meu Perfil
                   </Button>
-                  <Button variant="ghost" className="justify-start">
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start"
+                    onClick={() => navigateTo('/patient/settings')}
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     Configurações
                   </Button>
-                  <Button variant="ghost" className="justify-start">
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start"
+                    onClick={() => navigateTo('/patient/suporte')}
+                  >
                     <LifeBuoy className="mr-2 h-4 w-4" />
                     Suporte
                   </Button>
