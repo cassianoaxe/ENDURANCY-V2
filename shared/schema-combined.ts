@@ -28,9 +28,6 @@ import * as patrimonioSchema from './schema-patrimonio';
 // Importando o schema de pesquisa científica
 import * as pesquisaSchema from './schema-pesquisa';
 
-// Importando o schema de laboratório
-import * as laboratorioSchema from './schema-laboratorio';
-
 // Temporariamente removido devido a erros
 // import * as financeiroSchema from './schema-financeiro';
 
@@ -44,8 +41,7 @@ export const combinedSchema = {
   ...tarefasSchema,
   ...transparenciaSchema,
   ...patrimonioSchema,
-  ...pesquisaSchema,
-  ...laboratorioSchema
+  ...pesquisaSchema
 };
 
 // Exportando todos os tipos e enums
@@ -59,4 +55,3 @@ export * from './schema-tarefas';
 export * from './schema-transparencia';
 export * from './schema-patrimonio';
 export * from './schema-pesquisa';
-export * from './schema-laboratorio';
