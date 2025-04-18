@@ -905,15 +905,12 @@ export default function GerenciamentoPedidos() {
         </Tabs>
       </div>
 
-      {/* Modal de Atualização de Status */}
-        {selectedOrder && (
-          <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Atualizar Status do Pedido</DialogTitle>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
-        )}
+      <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atualizar Status do Pedido</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
   );
 }
