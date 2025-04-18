@@ -98,7 +98,14 @@ export default function ProdutosPage() {
     const allCategories = Array.isArray(products) 
       ? products.map(product => product.category)
       : [];
-    return ['all', ...new Set(allCategories)];
+    // Extrair categorias únicas manualmente para evitar problemas de compatibilidade
+    const uniqueCategories = [];
+    allCategories.forEach(category => {
+      if (!uniqueCategories.includes(category)) {
+        uniqueCategories.push(category);
+      }
+    });
+    return ['all', ...uniqueCategories];
   }, [products]);
   
   const goToCheckout = () => {
@@ -156,7 +163,7 @@ export default function ProdutosPage() {
       name: "Gummies Relax 100mg",
       description: "Gomas de CBD para redução de ansiedade e stress",
       price: 90.0,
-      imageUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRUM0MDdBIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI0VDNzB7OSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjZmZmIj5SZWxheCBHdW1taWVzPC90ZXh0Pjwvc3ZnPg==",
+      imageUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRUM0MDdBIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI0VDNDA3QSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjZmZmIj5SZWxheCBHdW1taWVzPC90ZXh0Pjwvc3ZnPg==",
       category: "Comestíveis",
       stock: 30,
       requiresPrescription: false

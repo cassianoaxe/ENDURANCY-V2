@@ -200,10 +200,52 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
               <span className="sr-only">Notificações</span>
             </Button>
             <ModeToggle />
-            <Avatar className="cursor-pointer">
-              <AvatarImage src="" alt="Usuário" />
-              <AvatarFallback>PA</AvatarFallback>
-            </Avatar>
+            
+            {/* Menu de usuário com dropdown */}
+            <div className="relative">
+              <Avatar 
+                className="cursor-pointer" 
+                onClick={() => document.getElementById('userMenu')?.classList.toggle('hidden')}
+              >
+                <AvatarImage src="" alt="Usuário" />
+                <AvatarFallback>PA</AvatarFallback>
+              </Avatar>
+              
+              <div 
+                id="userMenu" 
+                className="absolute hidden right-0 mt-2 w-56 rounded-md shadow-lg bg-background border border-border z-50"
+              >
+                <div className="py-1 rounded-md bg-background">
+                  <div className="px-4 py-2 border-b">
+                    <p className="text-sm font-medium">Paciente</p>
+                    <p className="text-xs text-muted-foreground truncate">paciente@email.com</p>
+                  </div>
+                  
+                  <a 
+                    href="/patient/profile" 
+                    className="block px-4 py-2 text-sm hover:bg-accent cursor-pointer"
+                  >
+                    Meu Perfil
+                  </a>
+                  
+                  <a 
+                    href="/patient/settings" 
+                    className="block px-4 py-2 text-sm hover:bg-accent cursor-pointer"
+                  >
+                    Configurações
+                  </a>
+                  
+                  <div className="border-t mt-1"></div>
+                  
+                  <div 
+                    onClick={handleLogout}
+                    className="block px-4 py-2 text-sm text-red-500 hover:bg-accent cursor-pointer"
+                  >
+                    Sair da conta
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
