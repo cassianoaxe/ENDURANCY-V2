@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import ResearcherLayout from '@/components/layout/researcher/ResearcherLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -178,26 +179,28 @@ export default function ResearcherLaboratorio() {
   };
 
   return (
-    <div className="container p-4 mx-auto">
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Laboratório</h1>
-            <p className="text-gray-500 mt-1">Gerencie amostras, análises e resultados laboratoriais</p>
+    <ResearcherLayout>
+      <div className="container p-4 mx-auto">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Laboratório</h1>
+              <p className="text-gray-500 mt-1">Gerencie amostras, análises e resultados laboratoriais</p>
+            </div>
+            
+            <div className="flex flex-wrap gap-3">
+              <Button onClick={() => setLocation('/researcher/laboratorio/amostras/nova')} className="bg-green-600 hover:bg-green-700">
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Nova Amostra
+              </Button>
+              <Button variant="outline" onClick={() => setLocation('/researcher/laboratorio/resultados')}>
+                <FileText className="h-4 w-4 mr-2" />
+                Ver Resultados
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setLocation('/researcher/laboratorio/amostras/nova')} className="bg-green-600 hover:bg-green-700">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Nova Amostra
-            </Button>
-            <Button variant="outline" onClick={() => setLocation('/researcher/laboratorio/resultados')}>
-              <FileText className="h-4 w-4 mr-2" />
-              Ver Resultados
-            </Button>
-          </div>
-        </div>
-        
-        <Tabs defaultValue="amostras" className="w-full">
+          
+          <Tabs defaultValue="amostras" className="w-full">
             <TabsList className="w-full md:w-auto justify-start">
               <TabsTrigger value="amostras" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
                 <Beaker className="h-4 w-4 mr-2" />
@@ -587,5 +590,6 @@ export default function ResearcherLaboratorio() {
           </Card>
         </div>
       </div>
+    </ResearcherLayout>
   );
 }
