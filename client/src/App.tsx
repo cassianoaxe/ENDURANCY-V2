@@ -308,8 +308,7 @@ function AppContent() {
     // não for uma página pública e não estiver já na página de login
     if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
       console.log("Redirecionando usuário não autenticado para o login");
-      window.history.pushState({}, '', '/login');
-      setCurrentPath('/login');
+      setLocation('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
   
@@ -319,23 +318,19 @@ function AppContent() {
       // Se o usuário já estiver autenticado, redireciona para a dashboard apropriada
       if (isAuthenticated) {
         if (userRole === 'admin') {
-          window.history.pushState({}, '', '/dashboard');
-          setCurrentPath('/dashboard');
+          setLocation('/dashboard');
         } else if (userRole === 'org_admin') {
-          window.history.pushState({}, '', '/organization/dashboard');
-          setCurrentPath('/organization/dashboard');
+          setLocation('/organization/dashboard');
         } else if (userRole === 'doctor') {
-          window.history.pushState({}, '', '/doctor/dashboard');
-          setCurrentPath('/doctor/dashboard');
+          setLocation('/doctor/dashboard');
         } else if (userRole === 'patient') {
-          window.history.pushState({}, '', '/patient/dashboard');
-          setCurrentPath('/patient/dashboard');
+          setLocation('/patient/dashboard');
         } else if (userRole === 'pharmacist') {
-          window.history.pushState({}, '', '/pharmacist/dashboard');
-          setCurrentPath('/pharmacist/dashboard');
+          setLocation('/pharmacist/dashboard');
+        } else if (userRole === 'researcher') {
+          setLocation('/researcher/dashboard');
         } else {
-          window.history.pushState({}, '', '/login');
-          setCurrentPath('/login');
+          setLocation('/login');
         }
       } else {
         // Usuário não autenticado na rota raiz, mostrar landing page
@@ -494,8 +489,7 @@ function AppContent() {
     }
     
     // Redirect to login for any other path
-    window.history.pushState({}, '', '/login');
-    setCurrentPath('/login');
+    setLocation('/login');
     return <Login />;
   }
 
