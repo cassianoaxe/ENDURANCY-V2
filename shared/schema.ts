@@ -5,7 +5,7 @@ import * as patrimonioSchema from './schema-patrimonio';
 import * as pesquisaSchema from './schema-pesquisa';
 
 // Define a role enum para os diferentes tipos de usuário
-export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory']);
+export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher']);
 
 // Enum para o status de licença de farmacêutico
 export const pharmacistStatusEnum = pgEnum('pharmacist_status', ['active', 'inactive', 'suspended', 'pending']);
@@ -184,6 +184,42 @@ export const pharmacists = pgTable("pharmacists", {
   certificationUrl: text("certification_url"), // URL do certificado/documento
   appointmentDate: timestamp("appointment_date"), // Data de nomeação como RT
   notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Enum para as áreas de especialização dos pesquisadores
+export const researchAreaEnum = pgEnum('research_area', [
+  'cannabis_medicinal', 'neurodegenerativas', 'dor_cronica', 'psiquiatria', 
+  'oncologia', 'epilepsia', 'autismo', 'geriatria', 'pediatria', 
+  'imunologia', 'farmacologia', 'outra'
+]);
+
+// Tabela para pesquisadores científicos
+export const researchers = pgTable("researchers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  organizationId: integer("organization_id"), // Pode ser nulo para pesquisadores independentes
+  name: text("name").notNull(),
+  cpf: text("cpf").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  lattes: text("lattes"), // Link para currículo Lattes
+  orcid: text("orcid"), // Identificador ORCID
+  institution: text("institution"), // Instituição principal
+  department: text("department"), // Departamento ou setor
+  position: text("position"), // Cargo ou posição (professor, pesquisador, etc.)
+  degree: text("degree"), // Titulação (doutor, mestre, etc.)
+  bio: text("bio"), // Biografia resumida
+  researchAreas: researchAreaEnum("research_areas").array(), // Áreas de pesquisa
+  mainArea: researchAreaEnum("main_area"), // Área principal de pesquisa
+  website: text("website"), // Site pessoal ou institucional
+  socialMedia: json("social_media"), // Links para redes sociais profissionais
+  profilePhoto: text("profile_photo"), // Foto de perfil
+  documentUrl: text("document_url"), // URL para documentos de identificação
+  verified: boolean("verified").default(false), // Se o pesquisador foi verificado
+  publicProfile: boolean("public_profile").default(true), // Se o perfil deve ser público
+  allowContactByEmail: boolean("allow_contact_by_email").default(true), // Permissão para contato
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -416,6 +452,32 @@ export const insertPatientDocumentSchema = createInsertSchema(patientDocuments).
   status: true,
 });
 
+// Schema para criação de pesquisador
+export const insertResearcherSchema = createInsertSchema(researchers).pick({
+  userId: true,
+  organizationId: true,
+  name: true,
+  cpf: true,
+  email: true,
+  phone: true,
+  lattes: true,
+  orcid: true,
+  institution: true,
+  department: true,
+  position: true,
+  degree: true,
+  bio: true,
+  researchAreas: true,
+  mainArea: true,
+  website: true,
+  socialMedia: true,
+  profilePhoto: true,
+  documentUrl: true,
+  verified: true,
+  publicProfile: true,
+  allowContactByEmail: true,
+});
+
 // Schema para criação de farmacêutico
 export const insertPharmacistSchema = createInsertSchema(pharmacists).pick({
   userId: true,
@@ -478,6 +540,8 @@ export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 export type PatientDocument = typeof patientDocuments.$inferSelect;
 export type InsertPatientDocument = z.infer<typeof insertPatientDocumentSchema>;
+export type Researcher = typeof researchers.$inferSelect;
+export type InsertResearcher = z.infer<typeof insertResearcherSchema>;
 export type Pharmacist = typeof pharmacists.$inferSelect;
 export type InsertPharmacist = z.infer<typeof insertPharmacistSchema>;
 
