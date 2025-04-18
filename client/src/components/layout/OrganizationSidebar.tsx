@@ -16,7 +16,7 @@ import {
   Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, Truck,
   
   // Ícones de documentos
-  Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen,
+  Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen, FilePlus,
   
   // Ícones de notificações e comunicação
   BellRing, Bell, MessageSquare, MessageCircle, Send,
