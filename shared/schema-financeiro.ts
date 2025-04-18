@@ -155,10 +155,7 @@ export const orcamentosCategoriasTable = pgTable('orcamentos_categorias', {
   atualizadoEm: timestamp('atualizado_em').defaultNow().notNull(),
 
   // Garante que cada categoria apareça apenas uma vez por orçamento
-  uniqueCategoriaOrcamento: unique('unique_categoria_orcamento').on(
-    orcamentoId, 
-    categoriaId
-  ),
+  uniqueCategoriaOrcamento: unique('unique_categoria_orcamento'),
 });
 
 // Tabela para conciliação bancária
