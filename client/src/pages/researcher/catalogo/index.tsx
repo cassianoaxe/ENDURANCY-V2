@@ -137,7 +137,6 @@ export default function CatalogoPesquisas() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
-                prefix={<Search className="h-4 w-4 text-gray-400" />}
               />
             </div>
             <div className="flex gap-3">
