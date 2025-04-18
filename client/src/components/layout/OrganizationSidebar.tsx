@@ -37,7 +37,7 @@ import {
   Settings, LogOut, HelpCircle, Loader2, Check, Ban, X, Receipt,
   
   // Ícones de natureza
-  Leaf, Brain, Beaker, Droplet,
+  Leaf, Brain, Beaker, Droplet, FlaskConical,
   
   // Ícones de ferramentas
   Wrench, Calculator,
