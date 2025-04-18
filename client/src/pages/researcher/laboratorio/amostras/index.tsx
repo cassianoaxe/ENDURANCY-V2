@@ -106,14 +106,13 @@ export default function AmostrasList() {
   };
 
   return (
-    <ResearcherLayout>
-      <div className="container p-4 mx-auto">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Amostras</h1>
-              <p className="text-gray-500 mt-1">Gerencie amostras enviadas para análise laboratorial</p>
-            </div>
+    <div className="container p-4 mx-auto">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Amostras</h1>
+            <p className="text-gray-500 mt-1">Gerencie amostras enviadas para análise laboratorial</p>
+          </div>
             
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => setLocation('/researcher/laboratorio/amostras/nova')} className="bg-green-600 hover:bg-green-700">
@@ -242,6 +241,5 @@ export default function AmostrasList() {
           </Card>
         </div>
       </div>
-    </ResearcherLayout>
   );
 }
