@@ -31,20 +31,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Link, useLocation } from "wouter";
-import { ChevronDown, Search, Filter, MoreVertical, FileText, Users, Calendar, Edit, Trash, Download, Eye, Clock, CheckCircle2, AlertCircle, Bookmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import {
+  ChevronLeft,
+  ChevronDown,
+  FileText,
+  Eye,
+  Edit,
+  Trash,
+  FilePlus,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Bookmark,
+  Search,
+  FilterX,
+} from "lucide-react";
 
-// Interfaces
 interface Pesquisa {
   id: number;
   titulo: string;
@@ -60,7 +77,7 @@ interface Pesquisa {
   updatedAt: string;
 }
 
-// Componente para exibir o status da pesquisa
+// Componente de status para pesquisa
 const StatusBadge = ({ status }) => {
   const statusConfig = {
     em_andamento: { label: "Em andamento", variant: "default", icon: Clock },
@@ -74,7 +91,7 @@ const StatusBadge = ({ status }) => {
   const config = statusConfig[status] || { 
     label: status.replace('_', ' '), 
     variant: "default",
-    icon: Bookmark
+    icon: Clock
   };
   
   const Icon = config.icon;
@@ -87,259 +104,249 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Componente para exibir o tipo de pesquisa
-const TipoPesquisa = ({ tipo }) => {
-  const tipoMap = {
-    clinico_randomizado: "Clínico Randomizado",
-    observacional_prospectivo: "Observacional Prospectivo",
-    observacional_retrospectivo: "Observacional Retrospectivo",
-    revisao_sistematica: "Revisão Sistemática",
-    translacional: "Translacional",
-    outro: "Outro"
-  };
-
-  return tipoMap[tipo] || tipo.replace('_', ' ');
-};
-
-// Componente de ações para cada linha da tabela
-const AcoesPesquisa = ({ pesquisa }) => {
+// Componente para formatação de datas
+const DataFormatada = ({ data }) => {
+  if (!data) return <span>-</span>;
+  
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Abrir menu</span>
-          <MoreVertical className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-        <DropdownMenuItem asChild>
-          <Link href={`/organization/pesquisa/estudos/${pesquisa.id}`}>
-            <a className="flex items-center">
-              <Eye className="mr-2 h-4 w-4" />
-              <span>Visualizar detalhes</span>
-            </a>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/organization/pesquisa/estudos/${pesquisa.id}/editar`}>
-            <a className="flex items-center">
-              <Edit className="mr-2 h-4 w-4" />
-              <span>Editar pesquisa</span>
-            </a>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href={`/organization/pesquisa/estudos/${pesquisa.id}/participantes`}>
-            <a className="flex items-center">
-              <Users className="mr-2 h-4 w-4" />
-              <span>Gerenciar participantes</span>
-            </a>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/organization/pesquisa/estudos/${pesquisa.id}/protocolos`}>
-            <a className="flex items-center">
-              <FileText className="mr-2 h-4 w-4" />
-              <span>Protocolos</span>
-            </a>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href={`/organization/pesquisa/estudos/${pesquisa.id}/agenda`}>
-            <a className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Agenda</span>
-            </a>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive">
-          <Trash className="mr-2 h-4 w-4" />
-          <span>Excluir</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <span>
+      {new Date(data).toLocaleDateString('pt-BR')}
+    </span>
   );
 };
 
-// Componente principal
+// Mapeamento de tipos de pesquisa
+const tiposPesquisa = {
+  clinico_randomizado: "Clínico Randomizado",
+  observacional_prospectivo: "Observacional Prospectivo",
+  observacional_retrospectivo: "Observacional Retrospectivo",
+  revisao_sistematica: "Revisão Sistemática",
+  translacional: "Translacional",
+  outro: "Outro"
+};
+
 export default function ListaPesquisas() {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const [filtro, setFiltro] = React.useState("");
+  const [statusFiltro, setStatusFiltro] = React.useState("");
+  const [pagina, setPagina] = React.useState(1);
+  const itensPorPagina = 10;
   
-  // Estados para filtros e paginação
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState('todos');
-  const [areaFilter, setAreaFilter] = React.useState('todas');
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const itemsPerPage = 10;
-
-  // Carregar pesquisas com parâmetros de filtro
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['/api/pesquisa/pesquisas', searchTerm, statusFilter, areaFilter],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('q', searchTerm);
-      if (statusFilter !== 'todos') params.append('status', statusFilter);
-      if (areaFilter !== 'todas') params.append('area', areaFilter);
-      
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-      const response = await fetch(`/api/pesquisa/pesquisas${queryString}`);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao carregar pesquisas');
-      }
-      
-      return response.json();
-    },
+  const { data, isLoading, error } = useQuery<Pesquisa[]>({
+    queryKey: ['/api/pesquisa/pesquisas'],
+    staleTime: 60 * 1000, // 1 minuto
+    retry: 1,
   });
 
-  // Carregar áreas de conhecimento para o filtro
-  const { data: areasData } = useQuery({
-    queryKey: ['/api/pesquisa/areas'],
-    queryFn: async () => {
-      const response = await fetch('/api/pesquisa/areas');
-      if (!response.ok) {
-        throw new Error('Erro ao carregar áreas de conhecimento');
-      }
-      return response.json();
-    },
-  });
-
-  // Mostrar mensagem de erro se a query falhar
   React.useEffect(() => {
     if (error) {
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível obter a lista de pesquisas.",
+        description: "Não foi possível obter as pesquisas científicas.",
         variant: "destructive",
       });
     }
   }, [error, toast]);
 
-  // Paginação
-  const totalPages = data ? Math.ceil(data.length / itemsPerPage) : 0;
-  const paginatedData = data ? data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  ) : [];
+  // Filtrar e paginar pesquisas
+  const pesquisasFiltradas = React.useMemo(() => {
+    if (!data) return [];
+    
+    return data.filter((pesquisa) => {
+      const matchTexto = filtro === "" || 
+        pesquisa.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+        pesquisa.descricao.toLowerCase().includes(filtro.toLowerCase()) ||
+        pesquisa.areaNome.toLowerCase().includes(filtro.toLowerCase());
+      
+      const matchStatus = statusFiltro === "" || 
+        pesquisa.status === statusFiltro;
+      
+      return matchTexto && matchStatus;
+    });
+  }, [data, filtro, statusFiltro]);
+  
+  const pesquisasPaginadas = React.useMemo(() => {
+    const inicio = (pagina - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    return pesquisasFiltradas.slice(inicio, fim);
+  }, [pesquisasFiltradas, pagina]);
+  
+  const totalPaginas = React.useMemo(() => {
+    return Math.ceil(pesquisasFiltradas.length / itensPorPagina);
+  }, [pesquisasFiltradas]);
 
-  // Handlers para filtros
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
+  // Limpar filtros
+  const limparFiltros = () => {
+    setFiltro("");
+    setStatusFiltro("");
+    setPagina(1);
   };
 
-  const handleStatusChange = (value) => {
-    setStatusFilter(value);
-    setCurrentPage(1);
-  };
-
-  const handleAreaChange = (value) => {
-    setAreaFilter(value);
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  // Conteúdo para estado de carregamento
-  const renderLoadingState = () => (
-    <div className="space-y-3">
-      {Array(5).fill(0).map((_, index) => (
-        <div key={index} className="flex items-center space-x-4">
-          <Skeleton className="h-12 w-full" />
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Estudos Científicos</h2>
+            <p className="text-muted-foreground">
+              Gerencie seus estudos e pesquisas científicas
+            </p>
+          </div>
+          <Skeleton className="h-10 w-28" />
         </div>
-      ))}
-    </div>
-  );
+        
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Lista de Pesquisas</CardTitle>
+                <CardDescription>
+                  Pesquisas científicas cadastradas
+                </CardDescription>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-10 w-44" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Área</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data Início</TableHead>
+                    <TableHead>Previsão Término</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-8 rounded-md ml-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Navegação e cabeçalho */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/organization/pesquisa">
+                <a className="flex items-center gap-1">
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Voltar</span>
+                </a>
+              </Link>
+            </Button>
+          </div>
           <h2 className="text-2xl font-bold tracking-tight">Estudos Científicos</h2>
           <p className="text-muted-foreground">
-            Gerencie todas as pesquisas e estudos científicos da organização
+            Gerencie seus estudos e pesquisas científicas
           </p>
         </div>
         <Button asChild>
           <Link href="/organization/pesquisa/estudos/novo">
-            <a>Novo estudo</a>
+            <a className="flex items-center gap-1">
+              <FilePlus className="h-4 w-4" />
+              <span>Nova Pesquisa</span>
+            </a>
           </Link>
         </Button>
       </div>
 
+      {/* Lista de pesquisas */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Lista de Pesquisas</CardTitle>
-          <CardDescription>
-            Visualize e gerencie estudos científicos em andamento e concluídos
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Filtros */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar pesquisas..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={handleSearch}
-              />
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>Lista de Pesquisas</CardTitle>
+              <CardDescription>
+                {pesquisasFiltradas.length} {pesquisasFiltradas.length === 1 ? 'pesquisa encontrada' : 'pesquisas encontradas'}
+              </CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Select value={statusFilter} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar pesquisas..."
+                  value={filtro}
+                  onChange={(e) => setFiltro(e.target.value)}
+                  className="pl-8 w-full sm:w-[250px]"
+                />
+              </div>
+              
+              <Select
+                value={statusFiltro}
+                onValueChange={setStatusFiltro}
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os status</SelectItem>
-                  <SelectItem value="em_andamento">Em andamento</SelectItem>
-                  <SelectItem value="aprovada">Aprovada</SelectItem>
-                  <SelectItem value="concluida">Concluída</SelectItem>
-                  <SelectItem value="suspensa">Suspensa</SelectItem>
-                  <SelectItem value="em_analise">Em análise</SelectItem>
+                  <SelectItem value="">Todos os status</SelectItem>
                   <SelectItem value="rascunho">Rascunho</SelectItem>
+                  <SelectItem value="em_analise">Em Análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                  <SelectItem value="suspensa">Suspensa</SelectItem>
+                  <SelectItem value="concluida">Concluída</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Select value={areaFilter} onValueChange={handleAreaChange}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Área" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as áreas</SelectItem>
-                  {areasData?.map((area) => (
-                    <SelectItem key={area.id} value={area.id.toString()}>
-                      {area.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              {(filtro || statusFiltro) && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={limparFiltros}
+                  title="Limpar filtros"
+                >
+                  <FilterX className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
-
-          {/* Tabela de pesquisas */}
-          {isLoading ? (
-            renderLoadingState()
-          ) : data?.length === 0 ? (
-            <div className="text-center py-8">
+        </CardHeader>
+        <CardContent>
+          {pesquisasFiltradas.length === 0 ? (
+            <div className="text-center py-6">
+              <FileText className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
               <p className="text-muted-foreground">
-                Nenhuma pesquisa encontrada. Comece criando uma nova pesquisa.
+                {filtro || statusFiltro 
+                  ? "Nenhuma pesquisa corresponde aos filtros aplicados." 
+                  : "Nenhuma pesquisa científica cadastrada ainda."}
               </p>
-              <Button className="mt-4" asChild>
-                <Link href="/organization/pesquisa/estudos/novo">
-                  <a>Criar nova pesquisa</a>
-                </Link>
-              </Button>
+              {filtro || statusFiltro ? (
+                <Button variant="outline" className="mt-4" onClick={limparFiltros}>
+                  Limpar filtros
+                </Button>
+              ) : (
+                <Button className="mt-4" asChild>
+                  <Link href="/organization/pesquisa/estudos/novo">
+                    <a>Criar nova pesquisa</a>
+                  </Link>
+                </Button>
+              )}
             </div>
           ) : (
             <>
@@ -347,74 +354,155 @@ export default function ListaPesquisas() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[300px]">Título</TableHead>
-                      <TableHead>Área</TableHead>
-                      <TableHead>Tipo</TableHead>
+                      <TableHead>Título</TableHead>
+                      <TableHead className="hidden md:table-cell">Área</TableHead>
+                      <TableHead className="hidden md:table-cell">Tipo</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Data de início</TableHead>
+                      <TableHead className="hidden md:table-cell">Data Início</TableHead>
+                      <TableHead className="hidden lg:table-cell">Previsão Término</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.map((pesquisa) => (
+                    {pesquisasPaginadas.map((pesquisa) => (
                       <TableRow key={pesquisa.id}>
                         <TableCell className="font-medium">
                           <Link href={`/organization/pesquisa/estudos/${pesquisa.id}`}>
-                            <a className="hover:text-primary transition-colors">
-                              {pesquisa.titulo}
-                            </a>
+                            <a className="hover:underline">{pesquisa.titulo}</a>
                           </Link>
+                          <div className="md:hidden text-xs text-muted-foreground mt-1">
+                            {pesquisa.areaNome} • {tiposPesquisa[pesquisa.tipo] || pesquisa.tipo}
+                          </div>
                         </TableCell>
-                        <TableCell>{pesquisa.areaNome}</TableCell>
-                        <TableCell>
-                          <TipoPesquisa tipo={pesquisa.tipo} />
-                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{pesquisa.areaNome}</TableCell>
+                        <TableCell className="hidden md:table-cell">{tiposPesquisa[pesquisa.tipo] || pesquisa.tipo}</TableCell>
                         <TableCell>
                           <StatusBadge status={pesquisa.status} />
+                          <div className="md:hidden text-xs mt-1">
+                            <DataFormatada data={pesquisa.dataInicio} />
+                          </div>
                         </TableCell>
-                        <TableCell>
-                          {pesquisa.dataInicio 
-                            ? new Date(pesquisa.dataInicio).toLocaleDateString('pt-BR')
-                            : '-'}
+                        <TableCell className="hidden md:table-cell">
+                          <DataFormatada data={pesquisa.dataInicio} />
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <DataFormatada data={pesquisa.dataPrevistaFim} />
                         </TableCell>
                         <TableCell className="text-right">
-                          <AcoesPesquisa pesquisa={pesquisa} />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem asChild>
+                                <Link href={`/organization/pesquisa/estudos/${pesquisa.id}`}>
+                                  <a className="flex items-center cursor-pointer">
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    <span>Detalhes</span>
+                                  </a>
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/organization/pesquisa/estudos/${pesquisa.id}/editar`}>
+                                  <a className="flex items-center cursor-pointer">
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Editar</span>
+                                  </a>
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-destructive" 
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  // Confirmar exclusão
+                                  if (window.confirm(`Tem certeza que deseja excluir a pesquisa "${pesquisa.titulo}"?`)) {
+                                    // Implementar lógica de exclusão
+                                    toast({
+                                      title: "Funcionalidade em implementação",
+                                      description: "A exclusão de pesquisas estará disponível em breve.",
+                                    });
+                                  }
+                                }}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                <span>Excluir</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-
+              
               {/* Paginação */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Anterior
-                  </Button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(page)}
-                    >
-                      {page}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Próxima
-                  </Button>
+              {totalPaginas > 1 && (
+                <div className="mt-4 flex justify-center">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (pagina > 1) setPagina(pagina - 1);
+                          }}
+                          className={pagina <= 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPaginas }).map((_, i) => {
+                        // Para simplicidade, mostrar apenas algumas páginas
+                        if (
+                          i === 0 || // Primeira página
+                          i === totalPaginas - 1 || // Última página
+                          (i >= pagina - 2 && i <= pagina) || // Algumas páginas antes da atual
+                          (i >= pagina && i <= pagina + 1) // Algumas páginas depois da atual
+                        ) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationLink 
+                                href="#" 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setPagina(i + 1);
+                                }}
+                                isActive={pagina === i + 1}
+                              >
+                                {i + 1}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        } else if (
+                          (i === 1 && pagina > 3) || // Elipse após a primeira página
+                          (i === totalPaginas - 2 && pagina < totalPaginas - 3) // Elipse antes da última página
+                        ) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          );
+                        }
+                        return null;
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (pagina < totalPaginas) setPagina(pagina + 1);
+                          }}
+                          className={pagina >= totalPaginas ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 </div>
               )}
             </>
