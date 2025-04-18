@@ -2192,7 +2192,7 @@ function AppContent() {
               <div className="border rounded-lg p-10 text-center">
                 <p className="text-gray-500">Esta página está em desenvolvimento.</p>
                 <button 
-                  onClick={() => navigate('/researcher/dashboard')}
+                  onClick={() => setLocation('/researcher/dashboard')}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   Voltar para o Dashboard
@@ -2206,7 +2206,7 @@ function AppContent() {
               <div className="border rounded-lg p-10 text-center">
                 <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
                 <button 
-                  onClick={() => navigate('/researcher/dashboard')}
+                  onClick={() => setLocation('/researcher/dashboard')}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   Voltar para o Dashboard
@@ -2220,7 +2220,7 @@ function AppContent() {
               <div className="border rounded-lg p-10 text-center">
                 <p className="text-gray-500">Esta página está em desenvolvimento.</p>
                 <button 
-                  onClick={() => navigate('/researcher/dashboard')}
+                  onClick={() => setLocation('/researcher/dashboard')}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                 >
                   Voltar para o Dashboard
@@ -2241,7 +2241,7 @@ function AppContent() {
             <div className="border rounded-lg p-10 text-center">
               <p className="text-gray-500">Esta página está em desenvolvimento.</p>
               <button 
-                onClick={() => navigate('/researcher/dashboard')}
+                onClick={() => setLocation('/researcher/dashboard')}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
               >
                 Voltar para o Dashboard
@@ -2261,7 +2261,7 @@ function AppContent() {
             <div className="border rounded-lg p-10 text-center">
               <p className="text-gray-500">Esta página está em desenvolvimento.</p>
               <button 
-                onClick={() => navigate('/researcher/dashboard')}
+                onClick={() => setLocation('/researcher/dashboard')}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
               >
                 Voltar para o Dashboard
