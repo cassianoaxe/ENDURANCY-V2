@@ -1933,8 +1933,17 @@ function AppContent() {
     }
     
     // Rotas de produtos e pedidos
-    if (currentPath.startsWith('/patient/produtos')) {
-      const ProdutosPage = React.lazy(() => import('@/pages/patient/produtos'));
+    if (currentPath === '/patient/produtos') {
+      const ProdutosRedirector = React.lazy(() => import('@/pages/patient/produtos'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <ProdutosRedirector />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath.startsWith('/patient/produtos/')) {
+      const ProdutosPage = React.lazy(() => import('@/pages/patient/produtos/index'));
       return (
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
           <ProdutosPage />
