@@ -2198,6 +2198,119 @@ function AppContent() {
       );
     }
     
+    if (currentPath === '/researcher/laboratorio/resultados') {
+      const ResultadosLaboratorio = React.lazy(() => import('./pages/researcher/laboratorio/resultados/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ResultadosLaboratorio />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath.match(/^\/researcher\/laboratorio\/resultados\/[^\/]+$/)) {
+      const id = currentPath.split('/').pop();
+      const DetalhesResultado = React.lazy(() => import('./pages/researcher/laboratorio/resultados/[id]'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <DetalhesResultado params={{ id: id || '' }} />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath === '/researcher/laboratorio/amostras') {
+      const AmostrasLaboratorio = React.lazy(() => import('./pages/researcher/laboratorio/amostras/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <AmostrasLaboratorio />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath.match(/^\/researcher\/laboratorio\/amostras\/[^\/]+$/)) {
+      const id = currentPath.split('/').pop();
+      // Página a ser implementada posteriormente
+      return (
+        <ResearcherLayout>
+          <div className="container p-4 mx-auto">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={() => setLocation('/researcher/laboratorio/amostras')}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Detalhes da Amostra {id}</h1>
+              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <Beaker className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-medium mb-1">Página em desenvolvimento</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      A visualização detalhada de amostras será implementada em breve.
+                    </p>
+                    <Button 
+                      onClick={() => setLocation('/researcher/laboratorio/amostras')}
+                    >
+                      Voltar para a lista
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
+    if (currentPath === '/researcher/laboratorio/amostras/nova') {
+      // Página a ser implementada posteriormente
+      return (
+        <ResearcherLayout>
+          <div className="container p-4 mx-auto">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8" 
+                  onClick={() => setLocation('/researcher/laboratorio/amostras')}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Nova Amostra</h1>
+              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <Beaker className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-gray-700 font-medium mb-1">Página em desenvolvimento</h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      O formulário de cadastro de novas amostras será implementado em breve.
+                    </p>
+                    <Button 
+                      onClick={() => setLocation('/researcher/laboratorio/amostras')}
+                    >
+                      Voltar para a lista
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </ResearcherLayout>
+      );
+    }
+    
     if (currentPath.startsWith('/researcher/estudos')) {
       return (
         currentPath === '/researcher/estudos' ? (
