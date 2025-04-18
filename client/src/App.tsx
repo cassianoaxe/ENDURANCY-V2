@@ -2311,51 +2311,74 @@ function AppContent() {
       );
     }
     
-    if (currentPath.startsWith('/researcher/estudos')) {
+    // Rotas para estudos, protocolos e colaborações
+    if (currentPath === '/researcher/estudos') {
+      const EstudosPesquisa = React.lazy(() => import('./pages/researcher/estudos/index'));
       return (
-        currentPath === '/researcher/estudos' ? (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Estudos Científicos</h1>
-            <p className="text-gray-500 mb-6">Lista de todos os seus estudos científicos e colaborações</p>
-            <div className="border rounded-lg p-10 text-center">
-              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-              <button 
-                onClick={() => setLocation('/researcher/dashboard')}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Voltar para o Dashboard
-              </button>
-            </div>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <EstudosPesquisa />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath === '/researcher/protocolos') {
+      const Protocolos = React.lazy(() => import('./pages/researcher/protocolos/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <Protocolos />
+        </Suspense>
+      );
+    }
+    
+    if (currentPath === '/researcher/colaboracoes') {
+      const Colaboracoes = React.lazy(() => import('./pages/researcher/colaboracoes/index'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <Colaboracoes />
+        </Suspense>
+      );
+    }
+    
+    // Manipular rotas específicas de estudos com parâmetros
+    if (currentPath.startsWith('/researcher/estudos/') && currentPath !== '/researcher/estudos/novo') {
+      return (
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Detalhes do Estudo</h1>
+          <p className="text-gray-500 mb-6">Visualizando detalhes do estudo</p>
+          <div className="border rounded-lg p-10 text-center">
+            <p className="text-gray-500">Esta página está em desenvolvimento.</p>
+            <button 
+              onClick={() => setLocation('/researcher/estudos')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Voltar para Estudos
+            </button>
           </div>
-        ) : currentPath === '/researcher/estudos/novo' ? (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Novo Estudo Científico</h1>
-            <p className="text-gray-500 mb-6">Cadastre um novo estudo ou projeto de pesquisa</p>
-            <div className="border rounded-lg p-10 text-center">
-              <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
-              <button 
-                onClick={() => setLocation('/researcher/dashboard')}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Voltar para o Dashboard
-              </button>
-            </div>
+        </div>
+      );
+    }
+    
+    if (currentPath === '/researcher/estudos/novo') {
+      return (
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Novo Estudo Científico</h1>
+          <p className="text-gray-500 mb-6">Cadastre um novo estudo ou projeto de pesquisa</p>
+          <div className="border rounded-lg p-10 text-center">
+            <p className="text-gray-500">Este formulário está em desenvolvimento.</p>
+            <button 
+              onClick={() => setLocation('/researcher/estudos')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Voltar para Estudos
+            </button>
           </div>
-        ) : (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Detalhes do Estudo</h1>
-            <p className="text-gray-500 mb-6">Visualizando detalhes do estudo</p>
-            <div className="border rounded-lg p-10 text-center">
-              <p className="text-gray-500">Esta página está em desenvolvimento.</p>
-              <button 
-                onClick={() => setLocation('/researcher/dashboard')}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Voltar para o Dashboard
-              </button>
-            </div>
-          </div>
-        )
+        </div>
       );
     }
     
