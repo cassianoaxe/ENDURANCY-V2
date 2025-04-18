@@ -437,7 +437,7 @@ export default function ResearcherDashboard() {
                     <Button 
                       variant="ghost" 
                       className="w-full text-blue-600 hover:bg-blue-50"
-                      onClick={() => navigate('/researcher/eventos')}
+                      onClick={() => setLocation('/researcher/eventos')}
                     >
                       Ver todos os eventos
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -498,7 +498,7 @@ export default function ResearcherDashboard() {
                     <Button 
                       variant="ghost" 
                       className="w-full text-blue-600 hover:bg-blue-50"
-                      onClick={() => navigate('/researcher/publicacoes')}
+                      onClick={() => setLocation('/researcher/publicacoes')}
                     >
                       Ver todos os documentos
                       <ChevronRight className="h-4 w-4 ml-1" />
