@@ -912,7 +912,7 @@ export default function GerenciamentoPedidos() {
             <DialogHeader>
               <DialogTitle>Atualizar Status do Pedido</DialogTitle>
               <DialogDescription>
-                Atualize o status do pedido #{selectedOrder.orderNumber} para {currentStatus === 'shipped' ? 'enviado' : currentStatus === 'delivered' ? 'entregue' : currentStatus === 'canceled' ? 'cancelado' : 'em preparação'}.
+                Atualize o status do pedido #{selectedOrder?.orderNumber} para {currentStatus === 'shipped' ? 'enviado' : currentStatus === 'delivered' ? 'entregue' : currentStatus === 'canceled' ? 'cancelado' : 'em preparação'}.
               </DialogDescription>
             </DialogHeader>
             
@@ -953,12 +953,14 @@ export default function GerenciamentoPedidos() {
               </Button>
               <Button 
                 onClick={() => {
-                  updateOrderStatusMutation.mutate({
-                    orderId: selectedOrder.id,
-                    status: currentStatus,
-                    trackingCode: currentStatus === 'shipped' ? trackingCode : undefined,
-                    note: statusNote || undefined
-                  });
+                  if (selectedOrder) {
+                    updateOrderStatusMutation.mutate({
+                      orderId: selectedOrder.id,
+                      status: currentStatus,
+                      trackingCode: currentStatus === 'shipped' ? trackingCode : undefined,
+                      note: statusNote || undefined
+                    });
+                  }
                 }}
                 disabled={updateOrderStatusMutation.isPending || (currentStatus === 'shipped' && !trackingCode)}
               >

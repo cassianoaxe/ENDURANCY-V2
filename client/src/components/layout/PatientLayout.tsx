@@ -187,7 +187,9 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
       
       {/* Main Content */}
       <main className="flex-1">
-        {children}
+        <div className="container mx-auto px-4 py-6">
+          {children}
+        </div>
       </main>
       
       {/* Footer */}
