@@ -89,7 +89,7 @@ export function registerPlanRoutes(app: Express) {
     try {
       const planId = parseInt(req.params.id);
       const planModulesData = await db.query.planModules.findMany({
-        where: eq(planModules.planId, planId),
+        where: eq(planModules.plan_id, planId),
         with: {
           module: true,
         }
@@ -129,12 +129,12 @@ export function registerPlanRoutes(app: Express) {
 
         // Remover todos os módulos atuais do plano
         await db.delete(planModules)
-          .where(eq(planModules.planId, planId));
+          .where(eq(planModules.plan_id, planId));
 
         // Adicionar os novos módulos ao plano
         const newModuleRelations = moduleIds.map(moduleId => ({
-          planId,
-          moduleId,
+          plan_id: planId,
+          module_id: moduleId,
         }));
 
         if (newModuleRelations.length > 0) {
