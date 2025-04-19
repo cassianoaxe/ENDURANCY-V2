@@ -82,9 +82,10 @@ interface Plan {
   modules?: Module[];
 }
 
-export default function PlanModules() {
+export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const params = useParams<{ planId: string }>();
-  const planId = parseInt(params.planId);
+  // Usar o planId de props se fornecido, caso contrário, usar o da URL
+  const planId = propPlanId ? parseInt(propPlanId) : params?.planId ? parseInt(params.planId) : NaN;
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
