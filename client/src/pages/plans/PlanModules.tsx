@@ -103,12 +103,26 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   } = useQuery<Plan>({
     queryKey: [`/api/plans/${planId}`],
     queryFn: async () => {
-      const response = await fetch(`/api/plans/${planId}`);
+      if (isNaN(planId)) {
+        throw new Error("ID do plano inválido");
+      }
+      
+      const response = await fetch(`/api/plans/${planId}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include' // Incluir cookies de autenticação
+      });
+      
       if (!response.ok) {
         throw new Error(`Erro ao carregar plano: ${response.statusText}`);
       }
-      return await response.json();
+      
+      const data = await response.json();
+      return data;
     },
+    enabled: !isNaN(planId) // Só executar a query se planId for um número válido
   });
 
   // Buscar todos os módulos disponíveis
@@ -119,10 +133,18 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   } = useQuery<Module[]>({
     queryKey: ['/api/modules'],
     queryFn: async () => {
-      const response = await fetch('/api/modules');
+      const response = await fetch('/api/modules', {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include' // Incluir cookies de autenticação
+      });
+      
       if (!response.ok) {
         throw new Error(`Erro ao carregar módulos: ${response.statusText}`);
       }
+      
       return await response.json();
     },
   });
@@ -137,16 +159,22 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   // Mutation para salvar as alterações nos módulos do plano
   const saveModulesMutation = useMutation({
     mutationFn: async (moduleIds: number[]) => {
+      if (isNaN(planId)) {
+        throw new Error("ID do plano inválido");
+      }
+      
       const response = await fetch(`/api/plans/${planId}/modules`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Incluir cookies de autenticação
         body: JSON.stringify({ moduleIds }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
         throw new Error(errorData.message || 'Erro ao salvar módulos');
       }
 
