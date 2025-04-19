@@ -54,13 +54,17 @@ export default function Plans() {
   // Buscar todos os planos
   const { data: plans = [], isLoading, error } = useQuery<Plan[]>({
     queryKey: ['/api/plans'],
-    onSuccess: (data) => {
-      console.log("Planos carregados com sucesso:", data);
-    },
-    onError: (err) => {
-      console.error("Erro ao carregar planos:", err);
-    }
   });
+
+  // Adicionar log quando os planos forem carregados
+  useEffect(() => {
+    if (plans && plans.length > 0) {
+      console.log("Planos carregados com sucesso:", plans);
+    }
+    if (error) {
+      console.error("Erro ao carregar planos:", error);
+    }
+  }, [plans, error]);
 
   // Buscar estatísticas de assinantes
   const { data: planStats } = useQuery<{
@@ -135,6 +139,21 @@ export default function Plans() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6">
+        {error && (
+          <div className="bg-destructive/15 border border-destructive text-destructive p-4 rounded-md mb-6">
+            <h3 className="font-semibold mb-1">Erro ao carregar planos:</h3>
+            <p>{(error as Error).message}</p>
+          </div>
+        )}
+
+        {/* Debug info */}
+        <div className="bg-gray-100 p-4 rounded-md mb-6 overflow-auto">
+          <h3 className="font-semibold mb-2">Dados recebidos:</h3>
+          <div className="text-xs">
+            <pre className="whitespace-pre-wrap">Planos: {plans.length ? JSON.stringify(plans.map(p => ({id: p.id, name: p.name, modules: p.modules?.length || 0})), null, 2) : 'Nenhum'}</pre>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Planos</h1>
