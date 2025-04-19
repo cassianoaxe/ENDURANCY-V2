@@ -1,6 +1,9 @@
 import { users, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -12,9 +15,19 @@ export interface IStorage {
   updateUserProfile(id: number, userData: Partial<User>): Promise<User | undefined>;
   updateUserPassword(id: number, newPassword: string): Promise<boolean>;
   updateUserPhoto(id: number, photoPath: string): Promise<User | undefined>;
+  sessionStore: session.SessionStore;
 }
 
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.SessionStore;
+  
+  constructor() {
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true
+    });
+  }
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
