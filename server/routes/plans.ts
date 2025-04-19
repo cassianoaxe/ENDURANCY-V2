@@ -3,7 +3,7 @@ import { Express } from 'express';
 import { db } from '../db';
 import { eq, and, sql } from 'drizzle-orm';
 import { plans, planModules, modules } from '@shared/schema';
-import { authenticate } from './auth';
+import { authenticate } from '../routes';
 
 export function registerPlanRoutes(app: Express) {
   // Obter todos os planos com seus módulos associados
