@@ -1,176 +1,156 @@
-import { useState, ReactNode } from "react";
+import { ReactNode } from "react";
 import { useLocation } from 'wouter';
-import { Button } from "@/components/ui/button";
-import { 
-  Menu, 
-  Microscope, 
-  LogOut,
-} from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
-import { ResearcherNav } from "./ResearcherNav";
 
+// Versão ultra-simplificada sem componentes pesados para garantir máxima performance
 interface ResearcherLayoutProps {
   children: ReactNode;
 }
 
 export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
-  const [location] = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const { toast } = useToast();
 
   const firstName = user?.name?.split(' ')[0] || 'Pesquisador';
   const userInitials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n: string) => n[0])
-        .join('')
+    ? user.name.split(' ').map((n: string) => n[0]).join('')
     : 'PR';
-
-  const [, setLocation] = useLocation();
   
+  // Função de logout simplificada
   const handleLogout = async () => {
     try {
       await logout();
       setLocation('/login');
+      console.log("Logout completo no frontend");
     } catch (error) {
-      toast({
-        title: "Erro ao sair",
-        description: "Não foi possível finalizar sua sessão. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error("Erro ao fazer logout:", error);
+      alert("Não foi possível finalizar sua sessão. Tente novamente.");
     }
   };
 
-  // Menu foi migrado para o componente ResearcherNav
-
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="px-4 py-6">
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-md bg-sky-700 flex items-center justify-center text-white">
-            <Microscope className="h-6 w-6" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Portal do Pesquisador</h2>
-            <p className="text-xs text-gray-500">Endurancy Scientific Research</p>
-          </div>
-        </div>
-      </div>
-      <ScrollArea className="flex-1 overflow-auto py-2">
-        <ResearcherNav />
-      </ScrollArea>
-      <div className="mt-auto p-4">
-        <div className="flex items-center gap-3 rounded-lg border p-3">
-          <Avatar>
-            <AvatarFallback className="bg-sky-100 text-sky-700">
-              {userInitials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 truncate">
-            <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium text-gray-700">
-                {firstName}
-              </span>
-              <Badge variant="outline" className="ml-auto">
-                Pesquisador
-              </Badge>
-            </div>
-            <span className="text-xs text-gray-500 truncate">
-              {user?.email || user?.username}
-            </span>
-          </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-gray-900"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Sair</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar para desktop */}
+      {/* Sidebar fixa simplificada */}
       <div className="hidden lg:block w-64 flex-shrink-0 border-r bg-white">
-        <SidebarContent />
-      </div>
-
-      {/* Sidebar móvel */}
-      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64">
-          <SidebarContent />
-        </SheetContent>
-      </Sheet>
-
-      <main className="flex-1 overflow-auto">
-        {/* Header */}
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white px-4 md:px-6 lg:px-8">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setIsSidebarOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-          </Sheet>
-          <div className="flex-1" />
-          <div className="flex items-center gap-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden md:flex"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span className="sr-only">Sair</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sair</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Separator orientation="vertical" className="hidden md:block h-8" />
-            <div className="hidden md:flex items-center gap-2">
-              <Avatar>
-                <AvatarFallback className="bg-sky-100 text-sky-700">
-                  {userInitials}
-                </AvatarFallback>
-              </Avatar>
+        <div className="flex h-full flex-col">
+          {/* Cabeçalho da sidebar */}
+          <div className="px-4 py-6 border-b">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold">
+                P
+              </div>
               <div>
-                <p className="text-sm font-medium leading-none">{firstName}</p>
-                <p className="text-xs text-gray-500">Pesquisador</p>
+                <h2 className="text-lg font-semibold text-gray-900">Portal do Pesquisador</h2>
+                <p className="text-xs text-gray-500">Endurancy Research</p>
               </div>
             </div>
+          </div>
+          
+          {/* Menu simplificado */}
+          <div className="p-4 overflow-auto">
+            <nav>
+              <ul className="space-y-2">
+                <li>
+                  <a href="/researcher/dashboard" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Dashboard
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/catalogo" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Catálogo de Pesquisas
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/pacientes" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Banco de Pacientes
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/doencas" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Doenças e Condições
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/estudos" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Estudos
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/protocolos" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Protocolos
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/colaboracoes" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Colaborações
+                  </a>
+                </li>
+                <li>
+                  <a href="/researcher/estatisticas" className="block px-3 py-2 rounded-md hover:bg-blue-50 text-gray-700 hover:text-blue-600">
+                    Estatísticas
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          
+          {/* Perfil do usuário simplificado */}
+          <div className="mt-auto p-4 border-t">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                {userInitials}
+              </div>
+              <div className="flex-1 truncate">
+                <div className="text-sm font-medium text-gray-700">
+                  {firstName}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {user?.email || user?.username}
+                </div>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="h-8 w-8 flex items-center justify-center text-gray-500 hover:text-gray-900"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1 overflow-auto">
+        {/* Header simplificado */}
+        <header className="sticky top-0 z-10 flex h-16 items-center border-b bg-white px-4">
+          <button
+            className="lg:hidden h-10 w-10 flex items-center justify-center text-gray-500"
+            onClick={() => alert("Menu mobile: use versão desktop para melhor experiência")}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div className="flex-1" />
+          <div className="lg:hidden flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+              {userInitials}
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="h-8 w-8 flex items-center justify-center text-gray-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
           </div>
         </header>
         
