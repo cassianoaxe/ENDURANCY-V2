@@ -1857,7 +1857,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Buscar informações do plano através do paymentStatus
         // Obter as informações do status retornado pela API Zoop
-        const paymentData = await paymentModule.getTransactionDetails(paymentIntentId);
+        const paymentData = await getTransactionDetails(paymentIntentId);
         const planId = parseInt(paymentData.metadata?.planId || '0', 10);
         
         if (planId <= 0) {
@@ -1871,7 +1871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Processar o pagamento para atribuir o plano e configurar os dados financeiros
-        const paymentProcessed = await paymentModule.processPlanPayment(paymentIntentId, organizationId);
+        const paymentProcessed = await processPlanPayment(paymentIntentId, organizationId);
         
         if (!paymentProcessed) {
           return res.status(500).json({ message: "Erro ao processar o pagamento" });
