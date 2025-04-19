@@ -297,14 +297,25 @@ export default function Plans() {
                     <Separator />
                     
                     <CardContent className="flex-grow pt-4">
-                      <h4 className="text-sm font-medium mb-2">Inclui:</h4>
+                      <h4 className="text-sm font-medium mb-2">Módulos inclusos:</h4>
                       <ul className="space-y-2">
-                        {plan.features?.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
+                        {plan.modules && plan.modules.length > 0 ? (
+                          // Exibe os módulos associados ao plano
+                          plan.modules.map((module, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{module.name} - {module.description}</span>
+                            </li>
+                          ))
+                        ) : (
+                          // Se não houver módulos, exibe as features do plano (caso existam)
+                          plan.features?.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm">
+                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{feature}</span>
+                            </li>
+                          ))
+                        )}
                       </ul>
                     </CardContent>
                     
