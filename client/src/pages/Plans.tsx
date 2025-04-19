@@ -213,12 +213,13 @@ export default function Plans() {
               </div>
               
               <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-5 w-full">
+                <TabsList className="grid grid-cols-6 w-full">
                   <TabsTrigger value="todos">Todos</TabsTrigger>
                   <TabsTrigger value="free">Freemium</TabsTrigger>
                   <TabsTrigger value="seed">Seed</TabsTrigger>
                   <TabsTrigger value="grow">Grow</TabsTrigger>
                   <TabsTrigger value="pro">Pro</TabsTrigger>
+                  <TabsTrigger value="enterprise">Enterprise</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -238,7 +239,8 @@ export default function Plans() {
                         ${plan.tier === 'free' ? 'bg-gray-400' : 
                           plan.tier === 'seed' ? 'bg-green-500' : 
                           plan.tier === 'grow' ? 'bg-blue-500' : 
-                          'bg-indigo-500'}`}
+                          plan.tier === 'pro' ? 'bg-indigo-500' : 
+                          'bg-purple-600'}`}
                     />
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start gap-2">
