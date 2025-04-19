@@ -5551,6 +5551,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas do módulo financeiro
   console.log("Registrando rotas do módulo financeiro");
   registerFinanceiroRoutes(app);
+  
+  // Registrar rotas do módulo de planos
+  registerPlanRoutes(app);
   console.log("Rotas do módulo financeiro registradas");
   
   // Registrar rotas do portal de transparência
