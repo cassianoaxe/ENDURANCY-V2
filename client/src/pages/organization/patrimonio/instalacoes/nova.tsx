@@ -67,8 +67,21 @@ export default function NovaInstalacaoPage() {
   // Mutação para criar a instalação
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: InstalacaoFormValues) => {
-      const response = await apiRequest('POST', '/api/patrimonio/instalacoes', data);
-      return response.json();
+      const response = await fetch('/api/patrimonio/instalacoes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Falha ao cadastrar instalação');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
