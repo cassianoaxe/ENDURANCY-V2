@@ -1,6 +1,13 @@
 import { plans, planTierEnum } from '@shared/schema';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
+import Stripe from 'stripe';
+
+// Inicializar Stripe
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey 
+  ? new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' })
+  : null;
 
 /**
  * Inicializa planos no banco de dados (usado para teste e inicialização)
