@@ -1481,7 +1481,7 @@ function AppContent() {
   }
   
   // Handle pharmacist-specific routes
-  if (currentPath.startsWith('/pharmacist/')) {
+  if (currentPath.startsWith('/pharmacist')) {
     // Temporariamente permitindo acesso com role "doctor" para simular farmacêutico
     // No futuro, adicionar o role "pharmacist" ao enum role_type no banco de dados
     if (userRole !== 'pharmacist' && userRole !== 'doctor') {
@@ -1506,125 +1506,41 @@ function AppContent() {
       );
     }
     
-    // Dashboard do farmacêutico
-    if (currentPath === '/pharmacist/dashboard') {
+    // Dashboard do farmacêutico (rota raiz)
+    if (currentPath === '/pharmacist' || currentPath === '/pharmacist/dashboard') {
+      const PharmacistDashboard = React.lazy(() => import('./pages/pharmacist/dashboard'));
       return (
-        <PharmacistLayout>
-          <PharmacistDashboard />
-        </PharmacistLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <PharmacistLayout>
+            <PharmacistDashboard />
+          </PharmacistLayout>
+        </Suspense>
       );
     }
     
-    // Página de prescrições
-    if (currentPath === '/pharmacist/prescricoes') {
+    // Outras rotas do portal do farmacêutico - usando placeholder temporário
+    // até que as páginas específicas sejam implementadas
+    if (currentPath.startsWith('/pharmacist/')) {
       return (
-        <PharmacistLayout>
-          <PharmacistPrescricoes />
-        </PharmacistLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <PharmacistLayout>
+            <div className="flex flex-col items-center justify-center p-8 bg-background border rounded-lg shadow-sm">
+              <h2 className="text-2xl font-medium mb-4">Página em desenvolvimento</h2>
+              <p className="text-muted-foreground text-center mb-6">
+                Esta funcionalidade do portal do farmacêutico está sendo implementada e estará disponível em breve.
+              </p>
+              <Button asChild>
+                <a href="/pharmacist">Voltar para o Dashboard</a>
+              </Button>
+            </div>
+          </PharmacistLayout>
+        </Suspense>
       );
     }
-    
-    // Página de estoque
-    if (currentPath === '/pharmacist/estoque') {
-      return (
-        <PharmacistLayout>
-          <PharmacistEstoque />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de caixa (PDV)
-    if (currentPath === '/pharmacist/caixa') {
-      return (
-        <PharmacistLayout>
-          <PharmacistCaixa />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de financeiro
-    if (currentPath === '/pharmacist/financeiro') {
-      return (
-        <PharmacistLayout>
-          <PharmacistFinanceiro />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de produtos
-    if (currentPath === '/pharmacist/produtos') {
-      return (
-        <PharmacistLayout>
-          <PharmacistProdutos />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de agenda
-    if (currentPath === '/pharmacist/agenda') {
-      return (
-        <PharmacistLayout>
-          <PharmacistAgenda />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de pacientes
-    if (currentPath === '/pharmacist/pacientes') {
-      return (
-        <PharmacistLayout>
-          <PharmacistPacientes />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de pedidos
-    if (currentPath === '/pharmacist/pedidos') {
-      return (
-        <PharmacistLayout>
-          <PharmacistPedidos />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de relatórios
-    if (currentPath === '/pharmacist/relatorios') {
-      return (
-        <PharmacistLayout>
-          <PharmacistRelatorios />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de ajuda e suporte
-    if (currentPath === '/pharmacist/ajuda') {
-      return (
-        <PharmacistLayout>
-          <PharmacistAjuda />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de perfil do farmacêutico
-    if (currentPath === '/pharmacist/perfil') {
-      return (
-        <PharmacistLayout>
-          <PharmacistPerfil />
-        </PharmacistLayout>
-      );
-    }
-    
-    // Página de configurações do farmacêutico
-    if (currentPath === '/pharmacist/configuracoes') {
-      return (
-        <PharmacistLayout>
-          <PharmacistConfiguracoes />
-        </PharmacistLayout>
-      );
-    }
-    
-    // NotFound para outras rotas de farmacêutico não reconhecidas
-    return <NotFound />;
   }
 
   // Handle doctor-specific routes
