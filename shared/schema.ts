@@ -1,4 +1,5 @@
 import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum, json } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import * as patrimonioSchema from './schema-patrimonio';
@@ -294,8 +295,8 @@ export const modulePlans = pgTable("module_plans", {
 // Tabela de associação entre planos e módulos
 export const planModules = pgTable("plan_modules", {
   id: serial("id").primaryKey(),
-  plan_id: integer("plan_id").notNull(),
-  module_id: integer("module_id").notNull(),
+  plan_id: integer("plan_id").notNull().references(() => plans.id, { onDelete: "cascade" }),
+  module_id: integer("module_id").notNull().references(() => modules.id, { onDelete: "cascade" }),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -531,6 +532,26 @@ export type InsertPlan = z.infer<typeof insertPlanSchema>;
 export type Plan = typeof plans.$inferSelect & {
   modules?: Module[];
 };
+
+// Relações entre tabelas
+export const planRelations = relations(plans, ({ many }) => ({
+  planModules: many(planModules),
+}));
+
+export const moduleRelations = relations(modules, ({ many }) => ({
+  planModules: many(planModules),
+}));
+
+export const planModuleRelations = relations(planModules, ({ one }) => ({
+  plan: one(plans, {
+    fields: [planModules.plan_id],
+    references: [plans.id],
+  }),
+  module: one(modules, {
+    fields: [planModules.module_id],
+    references: [modules.id],
+  }),
+}));
 export type OrganizationDocument = typeof organizationDocuments.$inferSelect;
 export type InsertOrganizationDocument = z.infer<typeof insertOrganizationDocumentSchema>;
 export type Doctor = typeof doctors.$inferSelect;
