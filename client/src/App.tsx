@@ -867,6 +867,41 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
+    // Rotas de Instalações do módulo de Patrimônio
+    if (currentPath === '/organization/patrimonio/instalacoes') {
+      const InstalacoesListPage = React.lazy(() => import('./pages/organization/patrimonio/instalacoes/index'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <InstalacoesListPage />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+
+    if (currentPath.startsWith('/organization/patrimonio/instalacoes/')) {
+      if (currentPath === '/organization/patrimonio/instalacoes/nova') {
+        const NovaInstalacaoPage = React.lazy(() => import('./pages/organization/patrimonio/instalacoes/nova'));
+        return <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <NovaInstalacaoPage />
+          </Suspense>
+        </OrganizationLayout>;
+      } else {
+        // Rota dinâmica para detalhes de instalação
+        const InstalacaoDetailPage = React.lazy(() => import('./pages/organization/patrimonio/instalacoes/[id]'));
+        return <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <InstalacaoDetailPage />
+          </Suspense>
+        </OrganizationLayout>;
+      }
+    }
+
     if (currentPath === '/organization/patrimonio/depreciacao/calculadora') {
       return <OrganizationLayout>
         <DepreciacaoCalculadora />
