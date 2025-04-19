@@ -63,6 +63,12 @@ export default function PatrimonioPage() {
             </Link>
           </Button>
           
+          <Button variant="secondary" asChild>
+            <Link to="/organization/patrimonio/instalacoes/nova">
+              <Building className="mr-2 h-4 w-4" /> Nova Instalação
+            </Link>
+          </Button>
+          
           <Button variant="outline" onClick={startTour}>
             <HelpCircle className="mr-2 h-4 w-4" /> Tour Guiado
           </Button>
