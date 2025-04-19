@@ -54,6 +54,13 @@ export default function Plans() {
   // Buscar todos os planos
   const { data: plans = [], isLoading, error } = useQuery<Plan[]>({
     queryKey: ['/api/plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/plans');
+      if (!response.ok) {
+        throw new Error(`Erro ao carregar planos: ${response.statusText}`);
+      }
+      return await response.json();
+    }
   });
 
   // Adicionar log quando os planos forem carregados
@@ -74,6 +81,13 @@ export default function Plans() {
     revenueMonthly: number;
   }>({
     queryKey: ['/api/plans/stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/plans/stats');
+      if (!response.ok) {
+        throw new Error(`Erro ao carregar estatísticas: ${response.statusText}`);
+      }
+      return await response.json();
+    }
   });
 
   // Mutation para deletar um plano
