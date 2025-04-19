@@ -1507,6 +1507,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para estatísticas dos planos
+  app.get("/api/plans/stats", authenticate, async (req, res) => {
+    try {
+      // Verificar se o usuário é um administrador
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem acessar estatísticas." });
+      }
+      
+      // Buscar todos os planos
+      const allPlans = await db.select().from(plans);
+      
+      // Buscar organizações com planos pagos (não free)
+      const activeSubscribers = await db.select({ count: sql<number>`count(*)` })
+        .from(organizations)
+        .where(
+          and(
+            notExists(
+              db.select().from(plans)
+                .where(
+                  and(
+                    eq(plans.id, organizations.planId),
+                    eq(plans.tier, 'free')
+                  )
+                )
+            ),
+            eq(organizations.status, 'active')
+          )
+        );
+      
+      // Calculando a receita mensal
+      let revenueMonthly = 0;
+      
+      // Obter todas as organizações com seus planos
+      const orgsWithPlans = await db.select({
+        organization: organizations,
+        plan: plans
+      })
+      .from(organizations)
+      .leftJoin(plans, eq(organizations.planId, plans.id))
+      .where(eq(organizations.status, 'active'));
+      
+      // Somar a receita de cada organização ativa
+      for (const item of orgsWithPlans) {
+        if (item.plan && item.plan.tier !== 'free') {
+          revenueMonthly += parseFloat(item.plan.price.toString());
+        }
+      }
+      
+      // Total de organizações
+      const totalOrgs = await db.select({ count: sql<number>`count(*)` })
+        .from(organizations);
+      
+      // Taxa de conversão (assinantes pagos / total de organizações)
+      const conversionRate = totalOrgs[0].count > 0 
+        ? Math.round((activeSubscribers[0].count / totalOrgs[0].count) * 100) 
+        : 0;
+      
+      res.json({
+        totalPlans: allPlans.length,
+        activeSubscribers: activeSubscribers[0].count,
+        conversionRate,
+        revenueMonthly
+      });
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas dos planos:", error);
+      res.status(500).json({ message: "Erro ao buscar estatísticas dos planos" });
+    }
+  });
+  
+  // Rota para criar um novo plano (apenas administradores)
+  app.post("/api/plans", authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se o usuário é um administrador
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem criar planos." });
+      }
+      
+      // Validar o body usando o schema de inserção
+      const planData = insertPlanSchema.safeParse(req.body);
+      
+      if (!planData.success) {
+        return res.status(400).json({ 
+          message: "Dados do plano inválidos", 
+          errors: planData.error.errors 
+        });
+      }
+      
+      // Criar o novo plano
+      const [newPlan] = await db.insert(plans)
+        .values(planData.data)
+        .returning();
+      
+      console.log(`Novo plano "${newPlan.name}" criado pelo administrador ${req.session.user?.username}`);
+      
+      return res.status(201).json(newPlan);
+    } catch (error) {
+      console.error("Erro ao criar plano:", error);
+      return res.status(500).json({ message: "Erro ao criar plano. Tente novamente mais tarde." });
+    }
+  });
+  
+  // Rota para atualizar um plano existente (apenas administradores)
+  app.put("/api/plans/:id", authenticate, async (req: Request, res: Response) => {
+    try {
+      // Verificar se o usuário é um administrador
+      if (req.session.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Acesso negado. Apenas administradores podem atualizar planos." });
+      }
+      
+      const planId = parseInt(req.params.id);
+      
+      if (isNaN(planId)) {
+        return res.status(400).json({ message: "ID de plano inválido" });
+      }
+      
+      // Verificar se o plano existe
+      const existingPlan = await db.select()
+        .from(plans)
+        .where(eq(plans.id, planId));
+      
+      if (existingPlan.length === 0) {
+        return res.status(404).json({ message: "Plano não encontrado" });
+      }
+      
+      // Validar o body usando o schema de inserção
+      const planData = insertPlanSchema.safeParse(req.body);
+      
+      if (!planData.success) {
+        return res.status(400).json({ 
+          message: "Dados do plano inválidos", 
+          errors: planData.error.errors 
+        });
+      }
+      
+      // Atualizar o plano
+      const [updatedPlan] = await db.update(plans)
+        .set(planData.data)
+        .where(eq(plans.id, planId))
+        .returning();
+      
+      console.log(`Plano ID ${planId} atualizado pelo administrador ${req.session.user?.username}`);
+      
+      return res.status(200).json(updatedPlan);
+    } catch (error) {
+      console.error("Erro ao atualizar plano:", error);
+      return res.status(500).json({ message: "Erro ao atualizar plano. Tente novamente mais tarde." });
+    }
+  });
+  
   // Rota para deletar um plano (apenas para administradores)
   app.delete("/api/plans/:id", authenticate, async (req: Request, res: Response) => {
     try {
