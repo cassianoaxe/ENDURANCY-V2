@@ -14,19 +14,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
 }
 
-// Create context with default values
-const defaultContextValue: AuthContextType = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  login: async () => { throw new Error('Not implemented'); },
-  logout: async () => { throw new Error('Not implemented'); }
-};
-
-const AuthContext = createContext<AuthContextType>(defaultContextValue);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -232,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const contextValue: AuthContextType = {
+  const value = {
     user,
     isAuthenticated: !!user,
     isLoading,
@@ -240,9 +231,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
   };
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
