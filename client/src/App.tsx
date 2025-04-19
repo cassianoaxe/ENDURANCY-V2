@@ -48,6 +48,7 @@ import Plans from "@/pages/Plans";
 import PlanSettings from "@/pages/plans/settings";
 import CreatePlan from "@/pages/plans/create";
 import EditPlan from "@/pages/plans/edit";
+import PlanModules from "@/pages/plans/PlanModules";
 import Modules from "@/pages/Modules";
 import Modulos from "@/pages/Modulos";
 import ModulesTable from "@/pages/ModulesTable";
