@@ -215,7 +215,7 @@ export default function MeuPlano() {
     
     // Filtrar apenas os planos solicitados
     return availablePlans.filter(plan => 
-      ['free', 'seed', 'grow', 'pro'].includes(plan.tier)
+      ['free', 'seed', 'grow', 'pro', 'enterprise'].includes(plan.tier)
     ).sort((a, b) => getPlanLevel(a.tier) - getPlanLevel(b.tier));
   };
 
@@ -225,7 +225,8 @@ export default function MeuPlano() {
       'free': 1,
       'seed': 2,
       'grow': 3,
-      'pro': 4
+      'pro': 4,
+      'enterprise': 5
     };
     return tierLevels[planTier] || 1;
   };
@@ -237,8 +238,13 @@ export default function MeuPlano() {
     const currentLevel = getPlanLevel(currentPlanTier);
     const requestedLevel = getPlanLevel(requestedPlanTier);
     
-    // Se o plano atual é Pro (nível 4), todos os outros são downgrades
-    if (currentPlanTier === 'pro' && requestedPlanTier !== 'pro') {
+    // Se o plano atual é Enterprise (nível 5), todos os outros são downgrades
+    if (currentPlanTier === 'enterprise' && requestedPlanTier !== 'enterprise') {
+      return 'downgrade';
+    }
+    
+    // Se o plano atual é Pro (nível 4) e o solicitado não é Pro nem Enterprise, é um downgrade
+    if (currentPlanTier === 'pro' && !['pro', 'enterprise'].includes(requestedPlanTier)) {
       return 'downgrade';
     }
     
@@ -247,11 +253,11 @@ export default function MeuPlano() {
     return 'same';
   };
   
-  // Verificar se o plano atual é o mais alto (Pro)
+  // Verificar se o plano atual é o mais alto (Enterprise)
   const isHighestPlan = (): boolean => {
     if (!organization?.planTier) return false;
-    // "Pro" é o plano mais alto, qualquer organização com esse plano não pode fazer upgrade
-    return organization.planTier === 'pro';
+    // "Enterprise" é o plano mais alto, qualquer organização com esse plano não pode fazer upgrade
+    return organization.planTier === 'enterprise';
   };
 
   // Formatar preço
@@ -302,11 +308,13 @@ export default function MeuPlano() {
                 ${currentPlan?.tier === 'free' ? 'bg-gray-100 text-gray-700' : 
                 currentPlan?.tier === 'seed' ? 'bg-green-100 text-green-700' : 
                 currentPlan?.tier === 'grow' ? 'bg-blue-100 text-blue-700' : 
-                'bg-purple-100 text-purple-700'}`}
+                currentPlan?.tier === 'pro' ? 'bg-purple-100 text-purple-700' : 
+                'bg-red-100 text-red-700'}`}
               >
                 {currentPlan?.tier === 'free' ? 'Gratuito' : 
                  currentPlan?.tier === 'seed' ? 'Seed' : 
-                 currentPlan?.tier === 'grow' ? 'Grow' : 'Pro'}
+                 currentPlan?.tier === 'grow' ? 'Grow' : 
+                 currentPlan?.tier === 'pro' ? 'Pro' : 'Enterprise'}
               </Badge>
             </div>
           </CardHeader>
