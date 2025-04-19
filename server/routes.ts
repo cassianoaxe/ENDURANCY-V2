@@ -69,9 +69,19 @@ import session from "express-session";
 import pgSession from "connect-pg-simple";
 import { pool } from "./db";
 import { sendMail, isEmailServiceConfigured, sendTemplateEmail, EmailTemplate } from "./services/email";
-import { updateOrganizationPlan, cancelPlan, getOrganizationPlanDetails } from './services/subscriptions';
+import { 
+  updateOrganizationPlan, 
+  cancelPlan, 
+  getOrganizationPlanDetails 
+} from './services/subscriptions';
 import { handlePaymentNotification } from './services/webhooks';
 import { validatePaymentToken, processPaymentFromToken, handlePaymentFailure } from './services/payment-links';
+import { 
+  createPlanPaymentIntent, 
+  checkPaymentStatus, 
+  processPlanPayment,
+  createModulePaymentIntent
+} from './services/stripe';
 
 // Extend express-session with custom user property
 declare module 'express-session' {
