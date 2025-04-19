@@ -3,6 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
+
+interface PlanModulesProps {
+  planId?: string;
+}
 import {
   Card,
   CardContent,
