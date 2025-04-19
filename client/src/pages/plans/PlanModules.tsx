@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
 
 interface PlanModulesProps {
   planId?: string;
@@ -94,6 +96,35 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
+  
+  // Verificar se o usuário está autenticado e é um admin
+  useEffect(() => {
+    // Não fazer nada se ainda estiver carregando a autenticação
+    if (authLoading) return;
+    
+    // Se o usuário não está autenticado, redirecionar para login
+    if (!user) {
+      toast({
+        title: "Acesso restrito",
+        description: "Você precisa estar logado como administrador para acessar esta página",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+    
+    // Se o usuário não é admin, redirecionar para página principal
+    if (user.role !== 'admin') {
+      toast({
+        title: "Permissão negada",
+        description: "Apenas administradores podem gerenciar planos e módulos",
+        variant: "destructive",
+      });
+      navigate("/");
+      return;
+    }
+  }, [user, authLoading, navigate, toast]);
 
   // Buscar detalhes do plano
   const {
@@ -255,6 +286,24 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const isLoading = planLoading || modulesLoading;
   const error = planError || modulesError;
 
+  // Mostrar tela de carregamento enquanto verifica autenticação
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Verificando autenticação...</p>
+        </div>
+      </Layout>
+    );
+  }
+  
+  // Se o usuário não estiver autenticado ou não for admin, não renderiza o conteúdo
+  // (O useEffect já lida com o redirecionamento)
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
+  
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-8">
