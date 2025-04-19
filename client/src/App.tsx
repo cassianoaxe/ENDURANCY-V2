@@ -270,11 +270,11 @@ function AppContent() {
   
   // Removido logs de depuração que causavam muitas solicitações
 
-  // Listen for path changes
+  // Listen for path changes - otimizado para não depender de currentPath
   useEffect(() => {
     const handlePathChange = () => {
       const newPath = window.location.pathname;
-      console.log(`App.tsx: Mudança detectada de rota de ${currentPath} para ${newPath}`);
+      // Removemos o log para reduzir o processamento
       setCurrentPath(newPath);
     };
 
@@ -284,7 +284,7 @@ function AppContent() {
     // Ouvir evento customizado para navegação manual
     const handleCustomNavigation = () => {
       const newPath = window.location.pathname;
-      console.log(`App.tsx: Navegação manual detectada para ${newPath}`);
+      // Removemos o log para reduzir o processamento
       setCurrentPath(newPath);
     };
     
@@ -294,7 +294,7 @@ function AppContent() {
       window.removeEventListener('popstate', handlePathChange);
       window.removeEventListener('navigation', handleCustomNavigation);
     };
-  }, [currentPath]);
+  }, []);
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
@@ -305,7 +305,7 @@ function AppContent() {
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
     // não for uma página pública e não estiver já na página de login
     if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
-      console.log("Redirecionando usuário não autenticado para o login");
+      // Removido console.log para reduzir o processamento
       setLocation('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
