@@ -70,6 +70,45 @@ export async function createPlanPaymentIntent(
 }
 
 /**
+ * Obtém detalhes de uma transação
+ * @param transactionId ID da transação
+ * @returns Detalhes da transação
+ */
+export async function getTransactionDetails(transactionId: string): Promise<any> {
+  try {
+    if (!COMPLYPAY_API_KEY || !COMPLYPAY_MARKETPLACE_ID) {
+      console.log('ComplyPay não configurado - retornando dados simulados para desenvolvimento');
+      return {
+        id: transactionId,
+        status: 'approved',
+        amount: 49900, // Em centavos (R$ 499,00)
+        metadata: {
+          planId: '1',
+          organizationId: '1',
+          planName: 'Seed',
+          planTier: 'seed'
+        }
+      };
+    }
+
+    const response = await axios.get(
+      `${COMPLYPAY_BASE_URL}/marketplaces/${COMPLYPAY_MARKETPLACE_ID}/transactions/${transactionId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${COMPLYPAY_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao obter detalhes da transação:', error);
+    throw error;
+  }
+}
+
+/**
  * Verifica o status de um pagamento
  * @param paymentIntentId ID da payment intent
  * @returns Status do pagamento
@@ -114,11 +153,11 @@ export async function checkPaymentStatus(transactionId: string): Promise<string>
  * Processa o pagamento de um plano após confirmação
  * @param transactionId ID da transação
  */
-export async function processPlanPayment(transactionId: string): Promise<void> {
+export async function processPlanPayment(transactionId: string, organizationId: number): Promise<boolean> {
   try {
     if (!COMPLYPAY_API_KEY || !COMPLYPAY_MARKETPLACE_ID) {
       console.log('ComplyPay não configurado - simulando processamento de pagamento para desenvolvimento');
-      return;
+      return true;
     }
 
     const response = await axios.get(
@@ -143,14 +182,15 @@ export async function processPlanPayment(transactionId: string): Promise<void> {
       .set({
         planId: planId,
         planStartDate: new Date(),
-        plan_status: 'active' // usando snake_case conforme schema
+        status: 'active' // Usando status que é o campo real no schema
       })
       .where(eq(organizations.id, organizationId));
 
     console.log(`Pagamento processado com sucesso para organização ${organizationId}, plano ${planId}`);
+    return true;
   } catch (error) {
     console.error('Erro ao processar pagamento do plano:', error);
-    throw error;
+    return false;
   }
 }
 
