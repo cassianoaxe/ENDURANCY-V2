@@ -27,30 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Verifica primeiro se há dados em localStorage para reduzir chamadas à API
-        const cachedAuth = localStorage.getItem('auth_data');
-        
-        if (cachedAuth) {
-          try {
-            const authData = JSON.parse(cachedAuth);
-            const cacheTime = authData.timestamp || 0;
-            const currentTime = Date.now();
-            const cacheAge = currentTime - cacheTime;
-            
-            // Cache válido por 2 minutos (120000 ms)
-            if (cacheAge < 120000 && authData.user) {
-              console.log("Usando dados de autenticação em cache");
-              setUser(authData.user);
-              setIsLoading(false);
-              return;
-            }
-          } catch (e) {
-            // Se houver erro ao ler o cache, ignora e continua com a requisição
-            console.log("Erro ao ler cache, fazendo requisição");
-            localStorage.removeItem('auth_data');
-          }
-        }
-        
         console.log("Verificando status de autenticação...");
         const response = await fetch('/api/auth/me', {
           credentials: 'include', // Incluir cookies na requisição
@@ -67,21 +43,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await response.json();
           console.log("Usuário autenticado:", userData);
           setUser(userData);
-          
-          // Armazena os dados em cache com timestamp
-          localStorage.setItem('auth_data', JSON.stringify({
-            user: userData,
-            timestamp: Date.now()
-          }));
         } else {
           console.log("Usuário não autenticado. Status:", response.status);
           const errorText = await response.text();
           console.log("Erro de autenticação:", errorText);
-          localStorage.removeItem('auth_data');
         }
       } catch (error) {
         console.error('Failed to check authentication status', error);
-        localStorage.removeItem('auth_data');
       } finally {
         setIsLoading(false);
       }
@@ -144,13 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const userData = await response.json();
       console.log("Login bem-sucedido. Dados do usuário:", userData);
-      
-      // Armazenar dados no cache
-      localStorage.setItem('auth_data', JSON.stringify({
-        user: userData,
-        timestamp: Date.now()
-      }));
-      
       setUser(userData);
       
       // Redirecionar com base no papel do usuário
@@ -194,9 +155,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       console.log("Iniciando logout");
-      // Limpar o cache de autenticação
-      localStorage.removeItem('auth_data');
-      
       await fetch('/api/auth/logout', {
         method: 'POST',
         headers: {
