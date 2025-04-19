@@ -519,7 +519,7 @@ function AppContent() {
     console.log("Gerenciando módulos do plano com ID:", planId);
     return (
       <Layout>
-        <PlanModules />
+        <PlanModules planId={planId} />
       </Layout>
     );
   }
@@ -546,7 +546,7 @@ function AppContent() {
     window.dispatchEvent(new Event('popstate'));
     return (
       <Layout>
-        <PlanModules />
+        <PlanModules planId={planId} />
       </Layout>
     );
   }
