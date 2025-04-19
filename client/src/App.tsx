@@ -369,9 +369,11 @@ function AppContent() {
       useEffect(() => {
         if (isAuthenticated) {
           // Fazer logout automático quando acessar a página principal
+          // e redirecionar para a página de login
           logout();
+          setLocation('/login');
         }
-      }, [isAuthenticated, logout]);
+      }, [isAuthenticated, logout, setLocation]);
       
       return <LandingPage />;
     };
