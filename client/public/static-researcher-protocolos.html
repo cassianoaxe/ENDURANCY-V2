@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protocolos - Portal do Pesquisador</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #4f46e5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .main-content {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 20px;
+    }
+    nav {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      height: fit-content;
+    }
+    nav h2 {
+      font-size: 16px;
+      margin-top: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    nav li {
+      margin-bottom: 8px;
+    }
+    nav a {
+      display: block;
+      padding: 8px 12px;
+      color: #4b5563;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    nav a:hover {
+      background-color: #f3f4f6;
+    }
+    nav a.active {
+      background-color: #ebe9fe;
+      color: #4f46e5;
+      font-weight: 500;
+    }
+    .content {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid #e5e7eb;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      margin-top: 0;
+      font-size: 16px;
+      border-bottom: 1px solid #f3f4f6;
+      padding-bottom: 8px;
+    }
+    .btn {
+      display: inline-block;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: #4338ca;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-green {
+      background: #ecfdf5;
+      color: #065f46;
+    }
+    .badge-amber {
+      background: #fffbeb;
+      color: #92400e;
+    }
+    .badge-purple {
+      background: #f5f3ff;
+      color: #6d28d9;
+    }
+    .lista-simples {
+      list-style: none;
+      padding: 0;
+    }
+    .lista-simples li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .lista-simples li:last-child {
+      border-bottom: none;
+    }
+    .protocolo-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .protocolo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .protocolo-titulo {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .protocolo-descricao {
+      margin: 8px 0;
+      color: #4b5563;
+    }
+    .protocolo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    .protocolo-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .protocolo-acoes {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+    }
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-select {
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      background: white;
+    }
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .protocolo-header {
+        flex-direction: column;
+      }
+      .actions-bar {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .filter-group {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Portal do Pesquisador</h1>
+    <div class="user-info">
+      <div class="user-avatar">P</div>
+      <span>Pesquisador Científico</span>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <h2>Menu</h2>
+      <ul>
+        <li><a href="/static-researcher.html">Dashboard</a></li>
+        <li><a href="/static-researcher-catalogo.html">Catálogo de Pesquisas</a></li>
+        <li><a href="/static-researcher-pacientes.html">Banco de Pacientes</a></li>
+        <li><a href="/static-researcher-doencas.html">Doenças e Condições</a></li>
+        <li><a href="/static-researcher-estudos.html">Estudos</a></li>
+        <li><a href="/static-researcher-protocolos.html" class="active">Protocolos</a></li>
+        <li><a href="/static-researcher-colaboracoes.html">Colaborações</a></li>
+        <li><a href="/static-researcher-estatisticas.html">Estatísticas</a></li>
+        <li><a href="/login">Sair</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+      <h2>Protocolos de Pesquisa</h2>
+      <p>Gerencie os protocolos padronizados para suas pesquisas</p>
+
+      <div class="actions-bar">
+        <div class="filter-group">
+          <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Buscar protocolos...">
+            <button class="btn">Buscar</button>
+          </div>
+        </div>
+        <button class="btn">Novo Protocolo</button>
+      </div>
+
+      <div class="filter-group" style="margin-bottom: 16px;">
+        <select class="filter-select">
+          <option>Todos os status</option>
+          <option>Aprovado</option>
+          <option>Em Revisão</option>
+          <option>Rascunho</option>
+        </select>
+        <select class="filter-select">
+          <option>Todos os tipos</option>
+          <option>Clínico</option>
+          <option>Laboratorial</option>
+          <option>Administrativo</option>
+        </select>
+        <select class="filter-select">
+          <option>Ordenar por: Mais recentes</option>
+          <option>Ordenar por: Mais antigos</option>
+          <option>Ordenar por: Título A-Z</option>
+        </select>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Avaliação de Eficácia em Epilepsia</h3>
+          <span class="badge badge-green">Aprovado</span>
+        </div>
+        <p class="protocolo-descricao">Protocolo padronizado para avaliação da eficácia de canabinoides em pacientes com epilepsia refratária, incluindo escalas de avaliação e métricas de acompanhamento.</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>2.3</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dra. Ana Ribeiro</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>12/03/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Clínico</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Visualizar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Análise de Canabinoides por HPLC</h3>
+          <span class="badge badge-green">Aprovado</span>
+        </div>
+        <p class="protocolo-descricao">Procedimento padronizado para a análise quantitativa de canabinoides em amostras vegetais e extratos utilizando cromatografia líquida de alta eficiência (HPLC).</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>1.8</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dr. Felipe Martins</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>05/02/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Laboratorial</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Visualizar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Avaliação de Efeitos Adversos</h3>
+          <span class="badge badge-green">Aprovado</span>
+        </div>
+        <p class="protocolo-descricao">Procedimento para registro, classificação e manejo de efeitos adversos em estudos clínicos envolvendo canabinoides, seguindo normas da ANVISA e boas práticas clínicas.</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>3.0</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dra. Luciana Costa</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>20/01/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Clínico</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Visualizar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Estudo Duplo-Cego para Dor Crônica</h3>
+          <span class="badge badge-amber">Em Revisão</span>
+        </div>
+        <p class="protocolo-descricao">Metodologia para estudos duplo-cego controlados por placebo avaliando eficácia de canabinoides em dor crônica, incluindo procedimentos de randomização e mascaramento.</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>1.2</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dr. Marcelo Souza</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>15/03/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Clínico</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Visualizar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Análise de Terpenos</h3>
+          <span class="badge badge-amber">Em Revisão</span>
+        </div>
+        <p class="protocolo-descricao">Procedimento para identificação e quantificação de terpenos em amostras de cannabis utilizando cromatografia gasosa acoplada a espectrometria de massa (GC-MS).</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>0.9</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dra. Carla Mendonça</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>02/04/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Laboratorial</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Visualizar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Baixar PDF</button>
+        </div>
+      </div>
+
+      <div class="protocolo-item">
+        <div class="protocolo-header">
+          <h3 class="protocolo-titulo">Protocolo de Extração de RNA para PCR</h3>
+          <span class="badge badge-purple">Rascunho</span>
+        </div>
+        <p class="protocolo-descricao">Procedimento detalhado para extração de RNA de alta qualidade de amostras biológicas para análise por PCR quantitativo, otimizado para estudos de expressão gênica.</p>
+        <div class="protocolo-meta">
+          <div class="protocolo-meta-item">
+            <span>Versão:</span>
+            <strong>0.5</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Responsável:</span>
+            <strong>Dr. André Santos</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Atualizado em:</span>
+            <strong>10/04/2025</strong>
+          </div>
+          <div class="protocolo-meta-item">
+            <span>Tipo:</span>
+            <strong>Laboratorial</strong>
+          </div>
+        </div>
+        <div class="protocolo-acoes">
+          <button class="btn">Editar</button>
+          <button class="btn" style="background-color: #f3f4f6; color: #4b5563;">Visualizar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
