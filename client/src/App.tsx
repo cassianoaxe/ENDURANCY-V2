@@ -310,32 +310,8 @@ function AppContent() {
     }
   }, [isLoading, isAuthenticated, currentPath]);
   
-  // Se o usuário acessar a raiz, redirecionar para a página correta baseada no papel do usuário
-  useEffect(() => {
-    if (currentPath === '/') {
-      // Se o usuário já estiver autenticado, redireciona para a dashboard apropriada
-      if (isAuthenticated) {
-        if (userRole === 'admin') {
-          setLocation('/dashboard');
-        } else if (userRole === 'org_admin') {
-          setLocation('/organization/dashboard');
-        } else if (userRole === 'doctor') {
-          setLocation('/doctor/dashboard');
-        } else if (userRole === 'patient') {
-          setLocation('/patient/dashboard');
-        } else if (userRole === 'pharmacist') {
-          setLocation('/pharmacist/dashboard');
-        } else if (userRole === 'researcher') {
-          setLocation('/researcher/dashboard');
-        } else {
-          setLocation('/login');
-        }
-      } else {
-        // Usuário não autenticado na rota raiz, mostrar landing page
-        // Não redirecionamos, apenas deixamos a landing page ser renderizada no caso abaixo
-      }
-    }
-  }, [currentPath, isAuthenticated, userRole]);
+  // Removido o redirecionamento automático para dashboard a partir da raiz
+  // A rota raiz sempre vai mostrar a landing page independente do status de autenticação
 
   // Render loading state
   if (isLoading) {
@@ -383,13 +359,13 @@ function AppContent() {
     return <PaymentConfirmar />;
   }
 
-  // If not authenticated, handle login pages and public pages
+  // Landing page sempre na raiz independente da autenticação
+  if (currentPath === '/') {
+    return <LandingPage />;
+  }
+  
+  // If not authenticated, handle public pages
   if (!isAuthenticated) {
-    // Página inicial / landing page
-    if (currentPath === '/') {
-      return <LandingPage />;
-    }
-    
     // Check if this is an organization-specific login URL (e.g., /login/ORG-123-ABC)
     const orgLoginMatch = currentPath.match(/^\/login\/([^\/]+)$/);
     if (orgLoginMatch) {
