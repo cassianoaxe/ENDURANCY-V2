@@ -52,8 +52,14 @@ export default function Plans() {
   const queryClient = useQueryClient();
 
   // Buscar todos os planos
-  const { data: plans = [], isLoading } = useQuery<Plan[]>({
+  const { data: plans = [], isLoading, error } = useQuery<Plan[]>({
     queryKey: ['/api/plans'],
+    onSuccess: (data) => {
+      console.log("Planos carregados com sucesso:", data);
+    },
+    onError: (err) => {
+      console.error("Erro ao carregar planos:", err);
+    }
   });
 
   // Buscar estatísticas de assinantes
