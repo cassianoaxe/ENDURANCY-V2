@@ -12,48 +12,94 @@ export async function initializePlans() {
     if (existingPlans.length === 0) {
       console.log("Criando planos padrão...");
       
-      // Criar plano Free
+      // Criar plano Free (Freemium)
       await db.insert(plans).values({
         name: 'Freemium',
-        description: 'Plano gratuito para conhecer o sistema',
+        description: 'Experimente todas as opções por 30 dias',
         price: '0',
         tier: 'free',
-        features: JSON.stringify(['Acesso básico', 'Limite de usuários: 3', 'Suporte por e-mail']),
-        isActive: true,
-        isPopular: false,
+        features: [
+          'Todas as opções para testes', 
+          'Acesso por 30 dias', 
+          'Exceto portal do médico',
+          'Suporte por e-mail'
+        ],
+        maxRecords: 100,
+        trialDays: 30
       });
       
       // Criar plano Seed
       await db.insert(plans).values({
         name: 'Seed',
-        description: 'Plano inicial para pequenas organizações',
-        price: '149.90',
+        description: 'Plano básico inicial para pequenas organizações',
+        price: '499.00',
         tier: 'seed',
-        features: JSON.stringify(['Até 10 usuários', 'Módulos básicos', 'Suporte por e-mail e chat']),
-        isActive: true,
-        isPopular: true,
+        features: [
+          'Módulos básicos', 
+          'Até 15 usuários', 
+          'Suporte por e-mail e chat',
+          'Dashboard e Onboarding',
+          'Patrimônio (+R$99/mês)',
+          'Financeiro'
+        ],
+        maxRecords: 500,
+        trialDays: 0
       });
       
       // Criar plano Grow
       await db.insert(plans).values({
         name: 'Grow',
-        description: 'Plano para organizações em crescimento',
-        price: '299.90',
+        description: 'Plano para organizações em crescimento com módulo de cultivo',
+        price: '999.00',
         tier: 'grow',
-        features: JSON.stringify(['Até 30 usuários', 'Todos os módulos básicos', 'Módulos adicionais', 'Suporte prioritário']),
-        isActive: true,
-        isPopular: false,
+        features: [
+          'Todos os recursos do Seed', 
+          'Módulo de Cultivo', 
+          'Até 30 usuários', 
+          'Suporte prioritário',
+          'Controle de inventário',
+          'Patrimônio (+R$99/mês)'
+        ],
+        maxRecords: 1000,
+        trialDays: 0
       });
       
       // Criar plano Pro
       await db.insert(plans).values({
         name: 'Pro',
-        description: 'Plano completo para organizações estabelecidas',
-        price: '499.90',
+        description: 'Plano avançado incluindo módulo de produção',
+        price: '1999.00',
         tier: 'pro',
-        features: JSON.stringify(['Usuários ilimitados', 'Todos os módulos', 'Atendimento personalizado', 'API completa', 'Suporte 24/7']),
-        isActive: true,
-        isPopular: false,
+        features: [
+          'Todos os recursos do Grow', 
+          'Módulo de Produção', 
+          'Usuários ilimitados', 
+          'Atendimento personalizado', 
+          'API completa', 
+          'Suporte 24/7',
+          'Patrimônio incluso'
+        ],
+        maxRecords: 5000,
+        trialDays: 0
+      });
+      
+      // Criar plano Enterprise
+      await db.insert(plans).values({
+        name: 'Enterprise',
+        description: 'Solução completa com todos os módulos disponíveis',
+        price: '2999.00',
+        tier: 'enterprise',
+        features: [
+          'Todos os módulos inclusos', 
+          'Usuários ilimitados', 
+          'Suporte VIP 24/7', 
+          'Integrações personalizadas',
+          'Onboarding premium',
+          'Treinamento da equipe',
+          'Recursos exclusivos'
+        ],
+        maxRecords: 10000,
+        trialDays: 0
       });
       
       console.log('Planos padrão criados com sucesso!');

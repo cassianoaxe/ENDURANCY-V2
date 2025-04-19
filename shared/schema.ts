@@ -34,7 +34,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const planTierEnum = pgEnum('plan_tier', ['free', 'seed', 'grow', 'pro']);
+export const planTierEnum = pgEnum('plan_tier', ['free', 'seed', 'grow', 'pro', 'enterprise']);
 
 export const plans = pgTable("plans", {
   id: serial("id").primaryKey(),
