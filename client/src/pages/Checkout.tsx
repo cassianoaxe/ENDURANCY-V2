@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Check, CreditCard, Info, AlertCircle, CheckCircle2, ArrowLeft, RefreshCw, Landmark, Banknote, QrCode, Wallet } from "lucide-react";
+import { Check, CreditCard, Info, AlertCircle, CheckCircle2, ArrowLeft, RefreshCw, Landmark, Banknote, Qr, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Plan, ModulePlan } from "@shared/schema";
 import { stripePromise, createPlanPaymentIntent, createModulePaymentIntent, confirmPlanPayment, confirmModulePayment } from "@/lib/stripeClient";
@@ -218,7 +218,7 @@ function ComplyPayCheckoutForm({
             onClick={() => setPaymentMethod('pix')}
             className="flex items-center gap-2"
           >
-            <QrCode className="h-4 w-4" />
+            <Qr className="h-4 w-4" />
             <span>PIX</span>
           </TabsTrigger>
           <TabsTrigger 
@@ -325,7 +325,7 @@ function ComplyPayCheckoutForm({
             </Alert>
             
             <div className="flex flex-col items-center justify-center p-8 border rounded-lg bg-muted/30">
-              <QrCode className="h-16 w-16 mb-4 text-primary" />
+              <Qr className="h-16 w-16 mb-4 text-primary" />
               <h3 className="text-lg font-medium mb-1">Pagamento via PIX</h3>
               <p className="text-sm text-muted-foreground text-center mb-4">
                 Rápido, seguro e sem taxas adicionais
