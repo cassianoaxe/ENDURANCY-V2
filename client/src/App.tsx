@@ -263,7 +263,7 @@ import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [, setLocation] = useLocation();
   const userRole = user?.role;
@@ -360,8 +360,23 @@ function AppContent() {
   }
 
   // Landing page sempre na raiz independente da autenticação
+  // Combinamos a lógica de logout com a renderização de LandingPage
   if (currentPath === '/') {
-    return <LandingPage />;
+    // Usando um useEffect dentro do componente funcional que será renderizado
+    // isso garante que os hooks sempre sejam chamados na mesma ordem
+    const LandingPageWithLogout = () => {
+      // Este hook sempre será executado quando LandingPage for renderizado
+      useEffect(() => {
+        if (isAuthenticated) {
+          // Fazer logout automático quando acessar a página principal
+          logout();
+        }
+      }, [isAuthenticated, logout]);
+      
+      return <LandingPage />;
+    };
+    
+    return <LandingPageWithLogout />;
   }
   
   // If not authenticated, handle public pages
