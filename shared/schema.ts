@@ -527,7 +527,10 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 export type InsertPlan = z.infer<typeof insertPlanSchema>;
-export type Plan = typeof plans.$inferSelect;
+// Tipo base do plano
+export type Plan = typeof plans.$inferSelect & {
+  modules?: Module[];
+};
 export type OrganizationDocument = typeof organizationDocuments.$inferSelect;
 export type InsertOrganizationDocument = z.infer<typeof insertOrganizationDocumentSchema>;
 export type Doctor = typeof doctors.$inferSelect;
