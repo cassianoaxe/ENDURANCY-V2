@@ -73,6 +73,7 @@ import { updateOrganizationPlan, cancelPlan, getOrganizationPlanDetails } from '
 import { handlePaymentNotification } from './services/webhooks';
 import { validatePaymentToken, processPaymentFromToken, handlePaymentFailure } from './services/payment-links';
 import { initializePlans, processPlanPayment, createPlanPaymentIntent, createModulePaymentIntent, getTransactionDetails, checkPaymentStatus } from './services/payment';
+import { initializePlanModules } from './initialize-plan-modules';
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -334,7 +335,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize sample plans
   import('./services/payment').then(({ initializePlans }) => {
-    initializePlans();
+    initializePlans().then(() => {
+      // Depois de inicializar os planos, inicializar os módulos dos planos
+      initializePlanModules().catch(err => {
+        console.error("Error initializing plan modules:", err);
+      });
+    });
   }).catch(err => {
     console.error("Error importing and initializing plans:", err);
   });
