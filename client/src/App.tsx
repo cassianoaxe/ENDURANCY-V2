@@ -901,6 +901,31 @@ function AppContent() {
         </OrganizationLayout>;
       }
     }
+    
+    // Rotas de Ativos do módulo de Patrimônio
+    if (currentPath === '/organization/patrimonio/ativos/novo') {
+      const NovoAtivoPage = React.lazy(() => import('./pages/organization/patrimonio/ativos/novo'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <NovoAtivoPage />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+
+    if (currentPath.startsWith('/organization/patrimonio/ativos/') && currentPath !== '/organization/patrimonio/ativos/novo') {
+      // Rota dinâmica para detalhes de ativo - será implementada depois
+      return <OrganizationLayout>
+        <div className="container mx-auto py-8">
+          <h1 className="text-2xl font-bold mb-4">Detalhes do Ativo</h1>
+          <p className="text-muted-foreground">Página em desenvolvimento</p>
+          <Button asChild className="mt-4">
+            <Link href="/organization/patrimonio">Voltar para Patrimônio</Link>
+          </Button>
+        </div>
+      </OrganizationLayout>;
+    }
 
     if (currentPath === '/organization/patrimonio/depreciacao/calculadora') {
       return <OrganizationLayout>
