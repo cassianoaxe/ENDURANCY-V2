@@ -1508,7 +1508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Plans Routes
-  app.get("/api/plans", async (_req, res) => {
+  app.get("/api/plans", authenticate, async (req, res) => {
     try {
       // Primeiro buscar todos os planos
       const plansList = await db.select().from(plans);
