@@ -1,5 +1,4 @@
 import { useState, ReactNode } from "react";
-import { useLocation } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { 
   Menu, 
@@ -21,7 +20,6 @@ interface ResearcherLayoutProps {
 }
 
 export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
-  const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const { toast } = useToast();
@@ -33,13 +31,12 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
         .map((n: string) => n[0])
         .join('')
     : 'PR';
-
-  const [, setLocation] = useLocation();
   
   const handleLogout = async () => {
     try {
       await logout();
-      setLocation('/login');
+      // Usar window.location para navegação simplificada
+      window.location.href = '/login';
     } catch (error) {
       toast({
         title: "Erro ao sair",

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -102,64 +102,61 @@ export default function ResearcherDashboard() {
     formattedDate: string;
   }>>([]);
   
-  useEffect(() => {
-    // Simulação de carregamento para demonstração
-    const timer = setTimeout(() => {
-      // Dados de exemplo para demonstração
-      setDashboardData({
-        pesquisasAtivas: 12,
-        participantes: 248,
-        publicacoes: 18,
-        colaboracoes: 5,
-        novasPesquisas: 2,
-        estudosDiferentes: 8,
-        emRevisao: 3,
-        instituicoesDiferentes: 3
-      });
-      
-      setPesquisasRecentes([
-        { 
-          id: 1, 
-          title: 'Eficácia do CBD na epilepsia refratária',
-          status: 'Em Andamento',
-          updatedText: 'Atualizado Hoje'
-        },
-        { 
-          id: 2, 
-          title: 'Efeitos da cannabis em pacientes com dor crônica',
-          status: 'Em Análise',
-          updatedText: 'Atualizado Ontem'
-        },
-        { 
-          id: 3, 
-          title: 'Estudo comparativo de diferentes cepas',
-          status: 'Aprovada',
-          updatedText: 'Atualizado 2 dias atrás'
-        }
-      ]);
-      
-      setProximosEventos([
-        {
-          id: 1,
-          title: 'Reunião do Comitê de Ética',
-          formattedDate: '15/03/2024'
-        },
-        {
-          id: 2,
-          title: 'Apresentação de Resultados Preliminares',
-          formattedDate: '20/03/2024'
-        },
-        {
-          id: 3,
-          title: 'Workshop de Metodologia',
-          formattedDate: '25/03/2024'
-        }
-      ]);
-      
-      setIsLoading(false);
-    }, 1000);
+  // Removemos o useEffect que estava causando recarregamentos constantes
+  // e colocamos os dados diretamente no componente
+  React.useEffect(() => {
+    // Definir os dados diretamente sem timeout para evitar excesso de solicitações
+    setDashboardData({
+      pesquisasAtivas: 12,
+      participantes: 248,
+      publicacoes: 18,
+      colaboracoes: 5,
+      novasPesquisas: 2,
+      estudosDiferentes: 8,
+      emRevisao: 3,
+      instituicoesDiferentes: 3
+    });
     
-    return () => clearTimeout(timer);
+    setPesquisasRecentes([
+      { 
+        id: 1, 
+        title: 'Eficácia do CBD na epilepsia refratária',
+        status: 'Em Andamento',
+        updatedText: 'Atualizado Hoje'
+      },
+      { 
+        id: 2, 
+        title: 'Efeitos da cannabis em pacientes com dor crônica',
+        status: 'Em Análise',
+        updatedText: 'Atualizado Ontem'
+      },
+      { 
+        id: 3, 
+        title: 'Estudo comparativo de diferentes cepas',
+        status: 'Aprovada',
+        updatedText: 'Atualizado 2 dias atrás'
+      }
+    ]);
+    
+    setProximosEventos([
+      {
+        id: 1,
+        title: 'Reunião do Comitê de Ética',
+        formattedDate: '15/03/2024'
+      },
+      {
+        id: 2,
+        title: 'Apresentação de Resultados Preliminares',
+        formattedDate: '20/03/2024'
+      },
+      {
+        id: 3,
+        title: 'Workshop de Metodologia',
+        formattedDate: '25/03/2024'
+      }
+    ]);
+    
+    setIsLoading(false);
   }, []);
 
   return (
