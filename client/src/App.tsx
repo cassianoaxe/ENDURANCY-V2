@@ -512,6 +512,18 @@ function AppContent() {
   // Tratamento especial para rotas dinâmicas de planos
   // Verificamos isso antes porque é um padrão dinâmico que não se encaixa nas rotas fixas
   
+  // Verificar rota de módulos de planos (/plans/123/modules)
+  const planModulesMatch = currentPath.match(/^\/plans\/(\d+)\/modules$/);
+  if (planModulesMatch && userRole === 'admin') {
+    const planId = planModulesMatch[1];
+    console.log("Gerenciando módulos do plano com ID:", planId);
+    return (
+      <Layout>
+        <PlanModules />
+      </Layout>
+    );
+  }
+
   // Verificar rota de edição de planos (/plans/123/edit)
   const planEditMatch = currentPath.match(/^\/plans\/(\d+)\/edit$/);
   if (planEditMatch && userRole === 'admin') {
@@ -529,12 +541,12 @@ function AppContent() {
   if (planDetailMatch && userRole === 'admin') {
     const planId = planDetailMatch[1];
     console.log("Visualizando detalhes do plano:", planId);
-    // Redirecionar para edição do plano
-    window.history.pushState({}, '', `/plans/${planId}/edit`);
+    // Redirecionar para configuração de módulos do plano
+    window.history.pushState({}, '', `/plans/${planId}/modules`);
     window.dispatchEvent(new Event('popstate'));
     return (
       <Layout>
-        <EditPlan />
+        <PlanModules />
       </Layout>
     );
   }
