@@ -70,7 +70,7 @@ export default function NovoAtivoPage() {
   const defaultValues: Partial<AtivoFormValues> = {
     tipo: '',
     status: 'Ativo',
-    instalacaoId: '',
+    instalacaoId: 'none',
     vidaUtilAnos: 5,
     valorResidual: 0,
     valorAquisicao: 0,
@@ -302,7 +302,7 @@ export default function NovoAtivoPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma instalação</SelectItem>
+                        <SelectItem value="none">Nenhuma instalação</SelectItem>
                         {instalacoes?.map((instalacao: any) => (
                           <SelectItem key={instalacao.id} value={instalacao.id.toString()}>
                             {instalacao.nome}
