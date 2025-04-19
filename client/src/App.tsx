@@ -921,7 +921,7 @@ function AppContent() {
           <h1 className="text-2xl font-bold mb-4">Detalhes do Ativo</h1>
           <p className="text-muted-foreground">Página em desenvolvimento</p>
           <Button asChild className="mt-4">
-            <Link href="/organization/patrimonio">Voltar para Patrimônio</Link>
+            <a href="/organization/patrimonio">Voltar para Patrimônio</a>
           </Button>
         </div>
       </OrganizationLayout>;
