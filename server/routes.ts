@@ -1510,10 +1510,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Plans Routes
   app.get("/api/plans", async (_req, res) => {
     try {
+      // Primeiro buscar todos os planos
       const plansList = await db.select().from(plans);
-      res.json(plansList);
+      
+      // Para cada plano, buscar os módulos associados
+      const plansWithModules = await Promise.all(plansList.map(async (plan) => {
+        // Buscar todas as associações plano-módulo para este plano
+        const planModulesList = await db.select()
+          .from(planModules)
+          .where(eq(planModules.plan_id, plan.id));
+        
+        // Buscar detalhes dos módulos
+        const moduleDetails = [];
+        if (planModulesList.length > 0) {
+          for (const pm of planModulesList) {
+            const moduleInfo = await db.select()
+              .from(modules)
+              .where(eq(modules.id, pm.module_id));
+            
+            if (moduleInfo.length > 0) {
+              moduleDetails.push(moduleInfo[0]);
+            }
+          }
+        }
+        
+        // Retornar o plano com a lista de módulos
+        return {
+          ...plan,
+          modules: moduleDetails
+        };
+      }));
+      
+      res.json(plansWithModules);
     } catch (error) {
-      console.error("Error fetching plans:", error);
+      console.error("Error fetching plans with modules:", error);
       res.status(500).json({ message: "Failed to fetch plans" });
     }
   });
