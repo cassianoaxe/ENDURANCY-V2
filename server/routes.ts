@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   initializeDefaultUsers();
   
   // Initialize sample plans
-  import('./services/stripe').then(({ initializePlans }) => {
+  import('./services/payment').then(({ initializePlans }) => {
     initializePlans();
   }).catch(err => {
     console.error("Error importing and initializing plans:", err);
@@ -1767,10 +1767,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Para o registro inicial de organização, marcamos isNewOrganization como true
       // e passamos o organizationId se disponível (pode ser de uma organização recém-criada)
       try {
-        const clientSecret = await createPlanPaymentIntent(
+        // Importando módulo de pagamento para usar as funções da API ComplyPay
+        const paymentModule = await import('./services/payment');
+        const clientSecret = await paymentModule.createPlanPaymentIntent(
           numericPlanId, 
-          true, // isNewOrganization = true para esta rota
-          numericOrgId
+          numericOrgId,
+          { isNewOrganization: true } // metadata
         );
         
         if (!clientSecret) {
@@ -1839,10 +1841,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify payment was successful
       console.log("Verificando status do pagamento:", paymentIntentId);
-      const paymentIntent = await checkPaymentStatus(paymentIntentId);
-      console.log("Status do pagamento:", paymentIntent.status);
+      // Importando módulo de pagamento para usar as funções da API ComplyPay
+      const paymentModule = await import('./services/payment');
+      const paymentStatus = await paymentModule.checkPaymentStatus(paymentIntentId);
+      console.log("Status do pagamento:", paymentStatus);
       
-      if (paymentIntent.status === 'succeeded') {
+      if (paymentStatus === 'approved' || paymentStatus === 'succeeded') {
         // Buscar organização antes de atualizar
         const [organization] = await db.select()
           .from(organizations)
@@ -1866,7 +1870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Processar o pagamento para atribuir o plano e configurar os dados financeiros
-        const paymentProcessed = await processPlanPayment(paymentIntentId, organizationId);
+        const paymentProcessed = await paymentModule.processPlanPayment(paymentIntentId, organizationId);
         
         if (!paymentProcessed) {
           return res.status(500).json({ message: "Erro ao processar o pagamento" });
