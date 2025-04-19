@@ -134,224 +134,222 @@ export default function Plans() {
 
   return (
     <Layout>
-      <div className="flex justify-center">
-        <div className="container max-w-6xl px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold">Planos</h1>
-              <p className="text-muted-foreground">Gerencie os planos e assinaturas disponíveis na plataforma.</p>
-            </div>
-            <Button onClick={goToCreatePlan}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Plano
-            </Button>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Planos</h1>
+            <p className="text-muted-foreground">Gerencie os planos e assinaturas disponíveis na plataforma.</p>
           </div>
+          <Button onClick={goToCreatePlan}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Novo Plano
+          </Button>
+        </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total de Planos</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{planStats?.totalPlans || plans.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {plans.length > 0 ? `${plans.length} planos disponíveis` : "Carregando..."}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Assinantes Ativos</CardTitle>
-                <Users className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{planStats?.activeSubscribers || "..."}</div>
-                <p className="text-xs text-muted-foreground">
-                  Organizações com assinaturas ativas
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-                <ArrowUpRight className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{planStats?.conversionRate ? `${planStats.conversionRate}%` : "..."}</div>
-                <p className="text-xs text-muted-foreground">
-                  De trial para assinante
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
-                <ArrowUpRight className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {planStats?.revenueMonthly 
-                    ? `R$ ${planStats.revenueMonthly.toLocaleString('pt-BR')}` 
-                    : "R$ ..."}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Receita recorrente mensal (MRR)
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total de Planos</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{planStats?.totalPlans || plans.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {plans.length > 0 ? `${plans.length} planos disponíveis` : "Carregando..."}
+              </p>
+            </CardContent>
+          </Card>
 
           <Card>
-            <CardHeader>
-              <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-center">
-                  <CardTitle>Planos Disponíveis</CardTitle>
-                  <Button variant="outline" onClick={() => {
-                    window.history.pushState({}, '', '/plans/settings');
-                    window.dispatchEvent(new Event('popstate'));
-                  }}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurar Planos
-                  </Button>
-                </div>
-                
-                <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-6 w-full">
-                    <TabsTrigger value="todos">Todos</TabsTrigger>
-                    <TabsTrigger value="free">Freemium</TabsTrigger>
-                    <TabsTrigger value="seed">Seed</TabsTrigger>
-                    <TabsTrigger value="grow">Grow</TabsTrigger>
-                    <TabsTrigger value="pro">Pro</TabsTrigger>
-                    <TabsTrigger value="enterprise">Enterprise</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Assinantes Ativos</CardTitle>
+              <Users className="h-4 w-4 text-green-500" />
             </CardHeader>
-            
             <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : (
-                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                  {getFilteredPlans().map((plan) => (
-                    <Card key={plan.id} className="flex flex-col border overflow-hidden">
-                      <div 
-                        className={`h-2 w-full 
-                          ${plan.tier === 'free' ? 'bg-gray-400' : 
-                            plan.tier === 'seed' ? 'bg-green-500' : 
-                            plan.tier === 'grow' ? 'bg-blue-500' : 
-                            plan.tier === 'pro' ? 'bg-indigo-500' : 
-                            plan.tier === 'enterprise' ? 'bg-red-600' : 
-                            'bg-purple-600'}`}
-                      />
-                      <CardHeader className="pb-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="truncate">{plan.name}</CardTitle>
-                            <CardDescription className="mt-1 line-clamp-2 text-xs">{plan.description}</CardDescription>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {plan.tier === 'grow' && (
-                              <Badge>Popular</Badge>
-                            )}
-                            {plan.tier === 'enterprise' && (
-                              <Badge variant="destructive">Premium</Badge>
-                            )}
-                            <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
-                              <Button 
-                                variant="secondary" 
-                                size="icon" 
-                                className="h-8 w-8 hover:bg-secondary" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.history.pushState({}, '', `/plans/${plan.id}/edit`);
-                                  window.dispatchEvent(new Event('popstate'));
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="secondary" 
-                                size="icon"
-                                className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  confirmDeletePlan(plan);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4">
-                          <span className="text-3xl font-bold">
-                            {plan.tier === 'free' ? 'Grátis' : `R$ ${Number(plan.price).toLocaleString('pt-BR')}`}
-                          </span>
-                          {plan.tier !== 'free' && (
-                            <span className="text-sm text-muted-foreground ml-1">/mês</span>
-                          )}
-                        </div>
-                      </CardHeader>
-                      
-                      <Separator />
-                      
-                      <CardContent className="flex-grow pt-4">
-                        <h4 className="text-sm font-medium mb-2">Inclui:</h4>
-                        <ul className="space-y-2">
-                          {plan.features?.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                      
-                      <CardFooter className="flex-col gap-3 pt-2">
-                        <Button 
-                          className={`w-full ${plan.tier === 'enterprise' ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                          variant={plan.tier === 'grow' || plan.tier === 'enterprise' ? "default" : "outline"}
-                          onClick={() => goToCheckout(plan)}
-                        >
-                          {plan.tier === 'free' ? 'Começar avaliação' : 
-                           plan.tier === 'enterprise' ? 'Assinar Enterprise' : 'Assinar agora'}
-                        </Button>
-                        
-                        <Button variant="ghost" size="sm" className="w-full" onClick={() => {
-                          window.history.pushState({}, '', `/plans/${plan.id}/edit`);
-                          window.dispatchEvent(new Event('popstate'));
-                        }}>
-                          <span className="text-xs">Editar plano</span>
-                          <ChevronRight className="h-3 w-3 ml-1" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              )}
-              
-              {!isLoading && getFilteredPlans().length === 0 && (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center h-64">
-                    <p className="text-lg text-muted-foreground mb-4">Nenhum plano encontrado nesta categoria.</p>
-                    <Button onClick={goToCreatePlan}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Criar Plano {activeTab !== 'todos' ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : ''}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+              <div className="text-2xl font-bold">{planStats?.activeSubscribers || "..."}</div>
+              <p className="text-xs text-muted-foreground">
+                Organizações com assinaturas ativas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
+              <ArrowUpRight className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{planStats?.conversionRate ? `${planStats.conversionRate}%` : "..."}</div>
+              <p className="text-xs text-muted-foreground">
+                De trial para assinante
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Receita Mensal</CardTitle>
+              <ArrowUpRight className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {planStats?.revenueMonthly 
+                  ? `R$ ${planStats.revenueMonthly.toLocaleString('pt-BR')}` 
+                  : "R$ ..."}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Receita recorrente mensal (MRR)
+              </p>
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col space-y-4">
+              <div className="flex justify-between items-center">
+                <CardTitle>Planos Disponíveis</CardTitle>
+                <Button variant="outline" onClick={() => {
+                  window.history.pushState({}, '', '/plans/settings');
+                  window.dispatchEvent(new Event('popstate'));
+                }}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurar Planos
+                </Button>
+              </div>
+              
+              <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-6 w-full">
+                  <TabsTrigger value="todos">Todos</TabsTrigger>
+                  <TabsTrigger value="free">Freemium</TabsTrigger>
+                  <TabsTrigger value="seed">Seed</TabsTrigger>
+                  <TabsTrigger value="grow">Grow</TabsTrigger>
+                  <TabsTrigger value="pro">Pro</TabsTrigger>
+                  <TabsTrigger value="enterprise">Enterprise</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {getFilteredPlans().map((plan) => (
+                  <Card key={plan.id} className="flex flex-col border overflow-hidden">
+                    <div 
+                      className={`h-2 w-full 
+                        ${plan.tier === 'free' ? 'bg-gray-400' : 
+                          plan.tier === 'seed' ? 'bg-green-500' : 
+                          plan.tier === 'grow' ? 'bg-blue-500' : 
+                          plan.tier === 'pro' ? 'bg-indigo-500' : 
+                          plan.tier === 'enterprise' ? 'bg-red-600' : 
+                          'bg-purple-600'}`}
+                    />
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="truncate">{plan.name}</CardTitle>
+                          <CardDescription className="mt-1 line-clamp-2 text-xs">{plan.description}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {plan.tier === 'grow' && (
+                            <Badge>Popular</Badge>
+                          )}
+                          {plan.tier === 'enterprise' && (
+                            <Badge variant="destructive">Premium</Badge>
+                          )}
+                          <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
+                            <Button 
+                              variant="secondary" 
+                              size="icon" 
+                              className="h-8 w-8 hover:bg-secondary" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.history.pushState({}, '', `/plans/${plan.id}/edit`);
+                                window.dispatchEvent(new Event('popstate'));
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="secondary" 
+                              size="icon"
+                              className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmDeletePlan(plan);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <span className="text-3xl font-bold">
+                          {plan.tier === 'free' ? 'Grátis' : `R$ ${Number(plan.price).toLocaleString('pt-BR')}`}
+                        </span>
+                        {plan.tier !== 'free' && (
+                          <span className="text-sm text-muted-foreground ml-1">/mês</span>
+                        )}
+                      </div>
+                    </CardHeader>
+                    
+                    <Separator />
+                    
+                    <CardContent className="flex-grow pt-4">
+                      <h4 className="text-sm font-medium mb-2">Inclui:</h4>
+                      <ul className="space-y-2">
+                        {plan.features?.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                    
+                    <CardFooter className="flex-col gap-3 pt-2">
+                      <Button 
+                        className={`w-full ${plan.tier === 'enterprise' ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                        variant={plan.tier === 'grow' || plan.tier === 'enterprise' ? "default" : "outline"}
+                        onClick={() => goToCheckout(plan)}
+                      >
+                        {plan.tier === 'free' ? 'Começar avaliação' : 
+                         plan.tier === 'enterprise' ? 'Assinar Enterprise' : 'Assinar agora'}
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="w-full" onClick={() => {
+                        window.history.pushState({}, '', `/plans/${plan.id}/edit`);
+                        window.dispatchEvent(new Event('popstate'));
+                      }}>
+                        <span className="text-xs">Editar plano</span>
+                        <ChevronRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
+            
+            {!isLoading && getFilteredPlans().length === 0 && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center h-64">
+                  <p className="text-lg text-muted-foreground mb-4">Nenhum plano encontrado nesta categoria.</p>
+                  <Button onClick={goToCreatePlan}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Criar Plano {activeTab !== 'todos' ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : ''}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </CardContent>
+        </Card>
       </div>
       
       {/* Diálogo de confirmação para excluir plano */}
