@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Pesquisador - Versão Ultra-Rápida</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #4f46e5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .main-content {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 20px;
+    }
+    nav {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      height: fit-content;
+    }
+    nav h2 {
+      font-size: 16px;
+      margin-top: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    nav li {
+      margin-bottom: 8px;
+    }
+    nav a {
+      display: block;
+      padding: 8px 12px;
+      color: #4b5563;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    nav a:hover {
+      background-color: #f3f4f6;
+    }
+    nav a.active {
+      background-color: #ebe9fe;
+      color: #4f46e5;
+      font-weight: 500;
+    }
+    .content {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid #e5e7eb;
+    }
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .stat-card h3 {
+      font-size: 14px;
+      color: #6b7280;
+      margin: 0 0 8px 0;
+    }
+    .stat-card p {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+    .stat-card small {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      margin-top: 0;
+      font-size: 16px;
+      border-bottom: 1px solid #f3f4f6;
+      padding-bottom: 8px;
+    }
+    .btn {
+      display: inline-block;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: #4338ca;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-green {
+      background: #ecfdf5;
+      color: #065f46;
+    }
+    .badge-amber {
+      background: #fffbeb;
+      color: #92400e;
+    }
+    .badge-blue {
+      background: #eff6ff;
+      color: #1e40af;
+    }
+    .grid-cols-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .lista-simples {
+      list-style: none;
+      padding: 0;
+    }
+    .lista-simples li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .lista-simples li:last-child {
+      border-bottom: none;
+    }
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .grid-cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Portal do Pesquisador</h1>
+    <div class="user-info">
+      <div class="user-avatar">P</div>
+      <span>Pesquisador Científico</span>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <nav>
+      <h2>Menu</h2>
+      <ul>
+        <li><a href="/static-researcher.html" class="active">Dashboard</a></li>
+        <li><a href="/static-researcher-catalogo.html">Catálogo de Pesquisas</a></li>
+        <li><a href="/static-researcher-pacientes.html">Banco de Pacientes</a></li>
+        <li><a href="/static-researcher-doencas.html">Doenças e Condições</a></li>
+        <li><a href="/static-researcher-estudos.html">Estudos</a></li>
+        <li><a href="/static-researcher-protocolos.html">Protocolos</a></li>
+        <li><a href="/static-researcher-colaboracoes.html">Colaborações</a></li>
+        <li><a href="/static-researcher-estatisticas.html">Estatísticas</a></li>
+        <li><a href="/login">Sair</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+      <h2>Dashboard de Pesquisa Científica</h2>
+      <p>Acompanhe e gerencie todas as atividades de pesquisa</p>
+      
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Pesquisas Ativas</h3>
+          <p>12</p>
+          <small>+2 novas este mês</small>
+        </div>
+        <div class="stat-card">
+          <h3>Participantes</h3>
+          <p>248</p>
+          <small>Em 8 estudos diferentes</small>
+        </div>
+        <div class="stat-card">
+          <h3>Publicações</h3>
+          <p>18</p>
+          <small>3 em processo de revisão</small>
+        </div>
+        <div class="stat-card">
+          <h3>Colaborações</h3>
+          <p>5</p>
+          <small>Com 3 instituições diferentes</small>
+        </div>
+      </div>
+
+      <div class="grid-cols-2">
+        <div class="card">
+          <h3>Acesso Rápido</h3>
+          <ul class="lista-simples">
+            <li><a href="/static-researcher-catalogo.html">Catálogo de Pesquisas</a></li>
+            <li><a href="/static-researcher-pacientes.html">Banco de Pacientes</a></li>
+            <li><a href="/static-researcher-doencas.html">Doenças e Condições</a></li>
+            <li><a href="/static-researcher-estatisticas.html">Estatísticas</a></li>
+            <li><a href="/static-researcher-estudos.html">Estudos</a></li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Pesquisas Recentes</h3>
+          <ul class="lista-simples">
+            <li>
+              <div>
+                <div>Eficácia do CBD em Epilepsia Refratária</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                  <span class="badge badge-green">Em Andamento</span>
+                  <small>Atualizado Hoje</small>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div>
+                <div>Canabinoides e Qualidade do Sono</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                  <span class="badge badge-amber">Em Análise</span>
+                  <small>Atualizado Ontem</small>
+                </div>
+              </div>
+            </li>
+            <li>
+              <div>
+                <div>Uso de THC/CBD em Dor Crônica</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                  <span class="badge badge-blue">Concluído</span>
+                  <small>Atualizado 2 dias atrás</small>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Próximos Eventos</h3>
+        <ul class="lista-simples">
+          <li>
+            <div style="display: flex; justify-content: space-between;">
+              <div>Reunião do Comitê de Ética</div>
+              <div>25/04/2025</div>
+            </div>
+          </li>
+          <li>
+            <div style="display: flex; justify-content: space-between;">
+              <div>Apresentação de Resultados Preliminares</div>
+              <div>30/04/2025</div>
+            </div>
+          </li>
+          <li>
+            <div style="display: flex; justify-content: space-between;">
+              <div>Workshop de Metodologia</div>
+              <div>05/05/2025</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
