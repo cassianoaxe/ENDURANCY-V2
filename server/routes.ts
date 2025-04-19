@@ -36,7 +36,11 @@ import {
   // Imports para perfil de usuário
   updateProfileSchema, updatePasswordSchema
 } from "@shared/schema";
-import { inArray, and, eq, sql, desc, asc, gte, lte, like, ilike } from "drizzle-orm";
+import { inArray, and, eq, sql, desc, asc, gte, lte, like, ilike, not, notExists } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+
+// Criar schemas de inserção para validação dos planos
+const insertPlanSchema = createInsertSchema(plans);
 // Importar rotas administrativas
 import adminRouter from "./routes/admin";
 // Importar rotas de integração
