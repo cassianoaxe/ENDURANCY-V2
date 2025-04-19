@@ -1856,8 +1856,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Organization not found" });
         }
         
-        // Buscar informações do plano
-        const planId = parseInt(paymentIntent.metadata.planId || '0', 10);
+        // Buscar informações do plano através do paymentStatus
+        // Obter as informações do status retornado pela API Zoop
+        const paymentData = await paymentModule.getTransactionDetails(paymentIntentId);
+        const planId = parseInt(paymentData.metadata?.planId || '0', 10);
         
         if (planId <= 0) {
           return res.status(400).json({ message: "ID do plano não encontrado nos metadados do pagamento" });
@@ -1969,7 +1971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ 
           success: false, 
           message: "Payment not completed",
-          status: paymentIntent.status
+          status: paymentStatus
         });
       }
     } catch (error) {
