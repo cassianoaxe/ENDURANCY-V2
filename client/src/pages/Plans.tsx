@@ -20,35 +20,27 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Check, Package, Users, ArrowUpRight, Settings, BarChart3,
-  PlusCircle, Edit, ChevronRight, Trash2, AlertTriangle 
+  Check, Package, Users, ArrowUpRight, Settings, 
+  AlertCircle, Lock, Server, Layers, List, BadgeCheck,
+  Sliders, X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/layout/Layout";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
+// Interface para os módulos associados a um plano
+interface Module {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  price: string;
+  status: 'active' | 'inactive';
+}
 
 export default function Plans() {
   const [, navigate] = useLocation();
-  
-  // Função para navegar para a criação de planos
-  const goToCreatePlan = () => {
-    console.log("Navegando para /plans/create");
-    window.history.pushState({}, '', '/plans/create');
-    window.dispatchEvent(new Event('popstate'));
-  };
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("todos");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
   const queryClient = useQueryClient();
 
   // Buscar todos os planos
@@ -90,58 +82,24 @@ export default function Plans() {
     }
   });
 
-  // Mutation para deletar um plano
-  const deletePlanMutation = useMutation({
+  // Mutation para gerenciar módulos de um plano
+  const managePlanModulesMutation = useMutation({
     mutationFn: async (planId: number) => {
-      const response = await fetch(`/api/plans/${planId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao excluir plano');
-      }
-      
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/plans'] });
-      toast({
-        title: "Plano excluído",
-        description: "O plano foi excluído com sucesso.",
-        variant: "default"
-      });
-      setPlanToDelete(null);
+      navigate(`/plans/${planId}/modules`);
+      return planId;
     },
     onError: (error: Error) => {
       toast({
-        title: "Erro ao excluir plano",
+        title: "Erro ao acessar gerenciamento de módulos",
         description: error.message,
         variant: "destructive"
       });
     }
   });
 
-  // Abrir diálogo de confirmação para excluir um plano
-  const confirmDeletePlan = (plan: Plan) => {
-    setPlanToDelete(plan);
-    setDeleteDialogOpen(true);
-  };
-
-  // Executar a exclusão do plano
-  const handleDeletePlan = () => {
-    if (planToDelete) {
-      deletePlanMutation.mutate(planToDelete.id);
-    }
-    setDeleteDialogOpen(false);
-  };
-
-  // Acessar página de checkout de um plano
-  const goToCheckout = (plan: Plan) => {
-    window.location.href = `/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans`;
+  // Gerenciar módulos do plano
+  const managePlanModules = (planId: number) => {
+    managePlanModulesMutation.mutate(planId);
   };
 
   // Filtrar planos com base na tab selecionada
@@ -150,33 +108,49 @@ export default function Plans() {
     return plans.filter(plan => plan.tier === activeTab);
   };
 
+  // Obter o ícone correspondente ao tipo de módulo
+  const getModuleIcon = (moduleType: string) => {
+    switch (moduleType.toLowerCase()) {
+      case 'financeiro':
+        return <ArrowUpRight className="h-4 w-4 text-green-500" />;
+      case 'complypay':
+        return <ArrowUpRight className="h-4 w-4 text-blue-500" />;
+      case 'segurança':
+        return <Lock className="h-4 w-4 text-red-500" />;
+      case 'produção':
+        return <Server className="h-4 w-4 text-indigo-500" />;
+      case 'cultivo':
+        return <Layers className="h-4 w-4 text-green-500" />;
+      case 'patrimônio':
+        return <Package className="h-4 w-4 text-orange-500" />;
+      case 'pesquisa':
+        return <List className="h-4 w-4 text-purple-500" />;
+      case 'crm':
+        return <Users className="h-4 w-4 text-blue-500" />;
+      default:
+        return <BadgeCheck className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {error && (
           <div className="bg-destructive/15 border border-destructive text-destructive p-4 rounded-md mb-6">
-            <h3 className="font-semibold mb-1">Erro ao carregar planos:</h3>
-            <p>{(error as Error).message}</p>
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <h3 className="font-semibold">Erro ao carregar planos:</h3>
+            </div>
+            <p className="mt-2">{(error as Error).message}</p>
           </div>
         )}
 
-        {/* Debug info */}
-        <div className="bg-gray-100 p-4 rounded-md mb-6 overflow-auto">
-          <h3 className="font-semibold mb-2">Dados recebidos:</h3>
-          <div className="text-xs">
-            <pre className="whitespace-pre-wrap">Planos: {plans.length ? JSON.stringify(plans.map(p => ({id: p.id, name: p.name, modules: p.modules?.length || 0})), null, 2) : 'Nenhum'}</pre>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Planos</h1>
-            <p className="text-muted-foreground">Gerencie os planos e assinaturas disponíveis na plataforma.</p>
-          </div>
-          <Button onClick={goToCreatePlan}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Novo Plano
-          </Button>
+        <div className="flex flex-col items-center text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Gerenciamento de Planos</h1>
+          <p className="text-muted-foreground max-w-2xl">
+            Configure os módulos disponíveis em cada plano de assinatura da plataforma. 
+            Somente usuários com permissão de Super Admin podem gerenciar planos.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -237,17 +211,14 @@ export default function Plans() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="mb-8">
           <CardHeader>
             <div className="flex flex-col space-y-4">
               <div className="flex justify-between items-center">
-                <CardTitle>Planos Disponíveis</CardTitle>
-                <Button variant="outline" onClick={() => {
-                  window.history.pushState({}, '', '/plans/settings');
-                  window.dispatchEvent(new Event('popstate'));
-                }}>
+                <CardTitle>Configuração de Planos</CardTitle>
+                <Button variant="outline">
                   <Settings className="mr-2 h-4 w-4" />
-                  Configurar Planos
+                  Configurações Globais
                 </Button>
               </div>
               
@@ -272,7 +243,7 @@ export default function Plans() {
             ) : (
               <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {getFilteredPlans().map((plan) => (
-                  <Card key={plan.id} className="flex flex-col border overflow-hidden">
+                  <Card key={plan.id} className="flex flex-col border overflow-hidden shadow-sm hover:shadow transition-shadow">
                     <div 
                       className={`h-2 w-full 
                         ${plan.tier === 'free' ? 'bg-gray-400' : 
@@ -282,44 +253,19 @@ export default function Plans() {
                           plan.tier === 'enterprise' ? 'bg-red-600' : 
                           'bg-purple-600'}`}
                     />
-                    <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1 min-w-0">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div>
                           <CardTitle className="truncate">{plan.name}</CardTitle>
-                          <CardDescription className="mt-1 line-clamp-2 text-xs">{plan.description}</CardDescription>
+                          <CardDescription className="mt-1 text-xs">{plan.description}</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div>
                           {plan.tier === 'grow' && (
                             <Badge>Popular</Badge>
                           )}
                           {plan.tier === 'enterprise' && (
                             <Badge variant="destructive">Premium</Badge>
                           )}
-                          <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
-                            <Button 
-                              variant="secondary" 
-                              size="icon" 
-                              className="h-8 w-8 hover:bg-secondary" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.history.pushState({}, '', `/plans/${plan.id}/edit`);
-                                window.dispatchEvent(new Event('popstate'));
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="secondary" 
-                              size="icon"
-                              className="h-8 w-8 hover:bg-destructive hover:text-destructive-foreground"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                confirmDeletePlan(plan);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
                         </div>
                       </div>
                       
@@ -336,44 +282,45 @@ export default function Plans() {
                     <Separator />
                     
                     <CardContent className="flex-grow pt-4">
-                      <h4 className="text-sm font-medium mb-2">Módulos inclusos:</h4>
-                      <ul className="space-y-2">
-                        {plan.modules && plan.modules.length > 0 ? (
-                          // Exibe os módulos associados ao plano
-                          plan.modules.map((module, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{module.name} - {module.description}</span>
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">Módulos Inclusos</h4>
+                        <Badge variant="outline" className="text-xs">
+                          {plan.modules?.length || 0} módulos
+                        </Badge>
+                      </div>
+                      
+                      <div className="max-h-48 overflow-y-auto pr-1">
+                        <ul className="space-y-2">
+                          {plan.modules && plan.modules.length > 0 ? (
+                            plan.modules.map((module, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm bg-secondary/30 p-2 rounded-md">
+                                <div className="mt-0.5 flex-shrink-0">
+                                  {getModuleIcon(module.type)}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{module.name}</div>
+                                  <div className="text-xs text-muted-foreground">{module.description}</div>
+                                </div>
+                              </li>
+                            ))
+                          ) : (
+                            <li className="flex items-center justify-center gap-2 text-sm text-muted-foreground h-20">
+                              <X className="h-4 w-4" />
+                              <span>Nenhum módulo associado</span>
                             </li>
-                          ))
-                        ) : (
-                          // Se não houver módulos, exibe as features do plano (caso existam)
-                          plan.features?.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm">
-                              <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))
-                        )}
-                      </ul>
+                          )}
+                        </ul>
+                      </div>
                     </CardContent>
                     
-                    <CardFooter className="flex-col gap-3 pt-2">
-                      <Button 
-                        className={`w-full ${plan.tier === 'enterprise' ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                        variant={plan.tier === 'grow' || plan.tier === 'enterprise' ? "default" : "outline"}
-                        onClick={() => goToCheckout(plan)}
+                    <CardFooter className="pt-2 pb-4">
+                      <Button
+                        variant="default"
+                        className="w-full"
+                        onClick={() => managePlanModules(plan.id)}
                       >
-                        {plan.tier === 'free' ? 'Começar avaliação' : 
-                         plan.tier === 'enterprise' ? 'Assinar Enterprise' : 'Assinar agora'}
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="w-full" onClick={() => {
-                        window.history.pushState({}, '', `/plans/${plan.id}/edit`);
-                        window.dispatchEvent(new Event('popstate'));
-                      }}>
-                        <span className="text-xs">Editar plano</span>
-                        <ChevronRight className="h-3 w-3 ml-1" />
+                        <Sliders className="mr-2 h-4 w-4" />
+                        Configurar Módulos
                       </Button>
                     </CardFooter>
                   </Card>
@@ -385,52 +332,30 @@ export default function Plans() {
               <Card>
                 <CardContent className="flex flex-col items-center justify-center h-64">
                   <p className="text-lg text-muted-foreground mb-4">Nenhum plano encontrado nesta categoria.</p>
-                  <Button onClick={goToCreatePlan}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Criar Plano {activeTab !== 'todos' ? activeTab.charAt(0).toUpperCase() + activeTab.slice(1) : ''}
-                  </Button>
                 </CardContent>
               </Card>
             )}
           </CardContent>
         </Card>
+
+        <div className="bg-secondary/30 rounded-lg p-6 border border-border">
+          <div className="flex items-start gap-3">
+            <div className="bg-secondary rounded-full p-2">
+              <AlertCircle className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-lg mb-1">Importante: Sobre a configuração de planos</h3>
+              <p className="text-muted-foreground text-sm mb-3">
+                Os planos da plataforma são pré-configurados e não podem ser excluídos ou criados novamente. 
+                Somente a adição ou remoção de módulos é permitida para manter a estrutura de preços e benefícios.
+              </p>
+              <p className="text-sm">
+                Para modificar a estrutura básica dos planos ou alterar os preços base, entre em contato com o suporte técnico.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      {/* Diálogo de confirmação para excluir plano */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-                Confirmar exclusão
-              </div>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o plano <strong>{planToDelete?.name}</strong>?
-              <div className="mt-2 text-destructive">
-                Esta ação não pode ser desfeita.
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeletePlan}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deletePlanMutation.isPending ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Excluindo...
-                </div>
-              ) : (
-                "Sim, excluir"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Layout>
   );
 }
