@@ -117,13 +117,7 @@ export default function Plans() {
 
   // Acessar página de checkout de um plano
   const goToCheckout = (plan: Plan) => {
-    // Se for o plano Enterprise, usar ComplyPay
-    if (plan.tier === 'enterprise') {
-      window.location.href = `/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans&gateway=complypay`;
-    } else {
-      // Para outros planos, manter o fluxo atual
-      window.location.href = `/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans`;
-    }
+    window.location.href = `/checkout?type=plan&itemId=${plan.id}&returnUrl=/plans`;
   };
 
   // Filtrar planos com base na tab selecionada
