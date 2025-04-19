@@ -268,12 +268,7 @@ function AppContent() {
   const [, setLocation] = useLocation();
   const userRole = user?.role;
   
-  // Log para depuração
-  useEffect(() => {
-    console.log("Caminho atual:", currentPath);
-    console.log("Usuário autenticado:", isAuthenticated);
-    console.log("Papel do usuário:", userRole);
-  }, [currentPath, isAuthenticated, userRole]);
+  // Removido logs de depuração que causavam muitas solicitações
 
   // Listen for path changes
   useEffect(() => {
