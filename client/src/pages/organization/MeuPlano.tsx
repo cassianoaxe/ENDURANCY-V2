@@ -503,7 +503,8 @@ export default function MeuPlano() {
                         ${plan.tier === 'free' ? 'bg-gray-50' : 
                         plan.tier === 'seed' ? 'bg-green-50' : 
                         plan.tier === 'grow' ? 'bg-blue-50' : 
-                        'bg-purple-50'}
+                        plan.tier === 'pro' ? 'bg-purple-50' : 
+                        'bg-red-50'}
                       `}>
                         <div className="flex justify-between items-start">
                           <div>
@@ -514,11 +515,13 @@ export default function MeuPlano() {
                             ${plan.tier === 'free' ? 'bg-gray-100 text-gray-700' : 
                             plan.tier === 'seed' ? 'bg-green-100 text-green-700' : 
                             plan.tier === 'grow' ? 'bg-blue-100 text-blue-700' : 
-                            'bg-purple-100 text-purple-700'}
+                            plan.tier === 'pro' ? 'bg-purple-100 text-purple-700' : 
+                            'bg-red-100 text-red-700'}
                           `}>
                             {plan.tier === 'free' ? 'Gratuito' : 
                             plan.tier === 'seed' ? 'Seed' : 
-                            plan.tier === 'grow' ? 'Grow' : 'Pro'}
+                            plan.tier === 'grow' ? 'Grow' : 
+                            plan.tier === 'pro' ? 'Pro' : 'Enterprise'}
                           </Badge>
                         </div>
                         <div className="mt-3">
@@ -548,8 +551,10 @@ export default function MeuPlano() {
                             changePlanMutation.isPending || 
                             plan.id === organization?.planId || 
                             organization?.requestedPlanId === plan.id || // Desativar se já existe uma solicitação para este plano
-                            // Quando o plano atual é PRO, desativar todas as opções de upgrade
-                            (organization?.planTier === 'pro' && getPlanLevel(plan.tier) <= getPlanLevel('pro')) ||
+                            // Quando o plano atual é Enterprise, desativar todas as opções de upgrade
+                            (organization?.planTier === 'enterprise') ||
+                            // Quando o plano atual é PRO, desativar opções de upgrade exceto para Enterprise
+                            (organization?.planTier === 'pro' && plan.tier !== 'enterprise' && getPlanLevel(plan.tier) <= getPlanLevel('pro')) ||
                             // Desabilitar opções de downgrade quando já estiver no plano free
                             (organization?.planTier === 'free' && getPlanLevel(plan.tier) <= getPlanLevel('free'))
                           }
@@ -570,8 +575,10 @@ export default function MeuPlano() {
                                   Alterando...
                                 </>
                               ) : (
-                                // Se o plano atual é PRO, todos os outros planos são downgrade
-                                organization?.planTier === 'pro' && plan.tier !== 'pro' ? 
+                                // Se o plano atual é Enterprise, todos os outros planos são downgrade
+                                organization?.planTier === 'enterprise' ? 'Fazer Downgrade' :
+                                // Se o plano atual é PRO, todos os outros planos são downgrade exceto Enterprise
+                                (organization?.planTier === 'pro' && plan.tier !== 'pro' && plan.tier !== 'enterprise') ? 
                                 'Fazer Downgrade' : 
                                 // Caso contrário, verificar normalmente
                                 determinePlanChangeType(organization?.planTier || null, plan.tier) === 'downgrade' ? 
