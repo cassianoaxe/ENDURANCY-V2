@@ -240,6 +240,7 @@ export default function Plans() {
                           plan.tier === 'seed' ? 'bg-green-500' : 
                           plan.tier === 'grow' ? 'bg-blue-500' : 
                           plan.tier === 'pro' ? 'bg-indigo-500' : 
+                          plan.tier === 'enterprise' ? 'bg-red-600' : 
                           'bg-purple-600'}`}
                     />
                     <CardHeader className="pb-3">
@@ -251,6 +252,9 @@ export default function Plans() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {plan.tier === 'grow' && (
                             <Badge>Popular</Badge>
+                          )}
+                          {plan.tier === 'enterprise' && (
+                            <Badge variant="destructive">Premium</Badge>
                           )}
                           <div className="flex space-x-1 bg-secondary/50 p-1 rounded-md shadow-sm">
                             <Button 
@@ -306,11 +310,12 @@ export default function Plans() {
                     
                     <CardFooter className="flex-col gap-3 pt-2">
                       <Button 
-                        className="w-full" 
-                        variant={plan.tier === 'grow' ? "default" : "outline"}
+                        className={`w-full ${plan.tier === 'enterprise' ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                        variant={plan.tier === 'grow' || plan.tier === 'enterprise' ? "default" : "outline"}
                         onClick={() => goToCheckout(plan)}
                       >
-                        {plan.tier === 'free' ? 'Começar avaliação' : 'Assinar agora'}
+                        {plan.tier === 'free' ? 'Começar avaliação' : 
+                         plan.tier === 'enterprise' ? 'Assinar Enterprise' : 'Assinar agora'}
                       </Button>
                       
                       <Button variant="ghost" size="sm" className="w-full" onClick={() => {
