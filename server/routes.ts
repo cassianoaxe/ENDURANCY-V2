@@ -72,6 +72,7 @@ import { sendMail, isEmailServiceConfigured, sendTemplateEmail, EmailTemplate } 
 import { updateOrganizationPlan, cancelPlan, getOrganizationPlanDetails } from './services/subscriptions';
 import { handlePaymentNotification } from './services/webhooks';
 import { validatePaymentToken, processPaymentFromToken, handlePaymentFailure } from './services/payment-links';
+import { initializePlans, processPlanPayment, createPlanPaymentIntent, createModulePaymentIntent, getTransactionDetails, checkPaymentStatus } from './services/payment';
 
 // Extend express-session with custom user property
 declare module 'express-session' {
@@ -1767,9 +1768,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Para o registro inicial de organização, marcamos isNewOrganization como true
       // e passamos o organizationId se disponível (pode ser de uma organização recém-criada)
       try {
-        // Importando módulo de pagamento para usar as funções da API ComplyPay
-        const paymentModule = await import('./services/payment');
-        const clientSecret = await paymentModule.createPlanPaymentIntent(
+        // Utilizando a função importada de createPlanPaymentIntent
+        const clientSecret = await createPlanPaymentIntent(
           numericPlanId, 
           numericOrgId,
           { isNewOrganization: true } // metadata
@@ -1841,9 +1841,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Verify payment was successful
       console.log("Verificando status do pagamento:", paymentIntentId);
-      // Importando módulo de pagamento para usar as funções da API ComplyPay
-      const paymentModule = await import('./services/payment');
-      const paymentStatus = await paymentModule.checkPaymentStatus(paymentIntentId);
+      // Utilizando a função checkPaymentStatus importada
+      const paymentStatus = await checkPaymentStatus(paymentIntentId);
       console.log("Status do pagamento:", paymentStatus);
       
       if (paymentStatus === 'approved' || paymentStatus === 'succeeded') {
