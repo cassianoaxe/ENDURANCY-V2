@@ -514,7 +514,14 @@ function AppContent() {
   
   // Verificar rota de módulos de planos (/plans/123/modules)
   const planModulesMatch = currentPath.match(/^\/plans\/(\d+)\/modules$/);
-  if (planModulesMatch && userRole === 'admin') {
+  if (planModulesMatch) {
+    // Verificar se o usuário é administrador
+    if (userRole !== 'admin') {
+      // Redirecionar para a página de login
+      console.log("Acesso restrito: usuário não é administrador");
+      return <Login redirectPath={currentPath} />;
+    }
+    
     const planId = planModulesMatch[1];
     console.log("Gerenciando módulos do plano com ID:", planId);
     return (
