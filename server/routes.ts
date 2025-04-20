@@ -860,10 +860,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/auth/me", (req, res) => {
-    // Rota otimizada sem logs extensivos para melhorar performance
-    // já que esta rota é chamada frequentemente
-    if (req.session && req.session.user) {
-      // Retorna imediatamente sem tocar na sessão para evitar sobrecarga
+    // Adicionar headers para prevenir caching, importante para autenticação
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    // Verificar se há cookie de sessão
+    if (!req.headers.cookie) {
+      console.log("GET /api/auth/me: Requisição sem cookie de sessão");
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+
+    // Verificar sessão e usuário
+    if (!req.session) {
+      console.log("GET /api/auth/me: Requisição sem objeto de sessão");
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+
+    // Logar o sessionID e estado
+    console.log(`GET /api/auth/me: Verificando sessão ${req.sessionID}`, {
+      hasSessionObject: !!req.session,
+      hasUserObject: !!req.session.user,
+      userRole: req.session.user?.role || 'sem_role'
+    });
+    
+    if (req.session.user) {
+      // Tocar na sessão para renovar tempo de expiração (adicionar isso pode ajudar a manter a sessão ativa)
+      req.session.touch();
       res.json(req.session.user);
     } else {
       res.status(401).json({ message: "Não autenticado" });
