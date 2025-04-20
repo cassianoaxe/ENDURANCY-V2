@@ -102,31 +102,48 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   
   // Verificar se o usuário está autenticado e é um admin
   useEffect(() => {
+    console.log("Verificando autenticação:", { 
+      authLoading, 
+      userExists: !!user, 
+      userRole: user?.role 
+    });
+    
     // Não fazer nada se ainda estiver carregando a autenticação
     if (authLoading) return;
     
     // Se o usuário não está autenticado, redirecionar para login
     if (!user) {
+      console.log("Usuário não autenticado, redirecionando para login");
       toast({
         title: "Acesso restrito",
         description: "Você precisa estar logado como administrador para acessar esta página",
         variant: "destructive",
       });
-      navigate("/login");
+      // Usar window.location para garantir um redirecionamento completo
+      window.location.href = "/login";
       return;
     }
     
     // Se o usuário não é admin, redirecionar para página principal
     if (user.role !== 'admin') {
+      console.log("Usuário não é admin, redirecionando para home");
       toast({
         title: "Permissão negada",
         description: "Apenas administradores podem gerenciar planos e módulos",
         variant: "destructive",
       });
-      navigate("/");
+      // Usar window.location para garantir um redirecionamento completo
+      window.location.href = "/";
       return;
     }
-  }, [user, authLoading, navigate, toast]);
+    
+    console.log("Usuário autenticado como admin, carregando dados do plano");
+    // Se chegou aqui, o usuário está autenticado como admin
+    // Chamar fetchPlanModules para garantir que os dados serão carregados
+    if (planId && !isNaN(planId)) {
+      fetchPlanModules();
+    }
+  }, [user, authLoading, toast, planId]);
 
   // Buscar detalhes do plano
   const {
