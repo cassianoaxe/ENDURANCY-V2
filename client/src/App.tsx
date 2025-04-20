@@ -58,6 +58,7 @@ import VendasAdmin from "@/pages/Vendas";
 import Cadastro from "@/pages/Cadastro";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
+import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import ResearcherDashboard from "@/pages/researcher/dashboard";
 import CatalogoPesquisas from "@/pages/researcher/catalogo";
 import BancoPacientes from "@/pages/researcher/pacientes";
@@ -121,7 +122,6 @@ import TourGuide from "@/components/features/TourGuide";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // Import role-specific dashboards
-import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import OrgAdminDashboard from "@/pages/dashboards/OrgAdminDashboard";
 import DoctorDashboard from "@/pages/doctor/Dashboard";
 import PatientDashboard from "@/pages/dashboards/PatientDashboard";
@@ -2600,6 +2600,8 @@ function AppContent() {
       case '/user-invitations': Component = UserInvitations; break;
       case '/module-subscription-sales': Component = ModuleSubscriptionSales; break;
       case '/payment-test': Component = PaymentTest; break;
+      case '/admin/dashboard': Component = AdminDashboard; break;
+      case '/super-admin/dashboard': Component = AdminDashboard; break;
       
       // Rotas de integracoes
       case '/integracoes': Component = Integracoes; break;
