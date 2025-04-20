@@ -87,7 +87,30 @@ export function registerPlanRoutes(app: Express) {
   // Obter módulos associados a um plano
   app.get('/api/plans/:id/modules', authenticate, async (req, res) => {
     try {
+      console.log(`Buscando módulos para o plano ID: ${req.params.id}`);
+      
+      // Certificar-se de que o Content-Type está definido como application/json
+      res.setHeader('Content-Type', 'application/json');
+
+      // Adicionar headers para prevenir caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
+      // Verificar sessão
+      if (!req.session || !req.session.user) {
+        console.error("Usuário não autenticado ao tentar acessar módulos do plano");
+        return res.status(401).json({ message: 'Não autenticado', authenticated: false });
+      }
+
+      // Verificar se ID é um número válido
       const planId = parseInt(req.params.id);
+      if (isNaN(planId)) {
+        console.error("ID do plano inválido:", req.params.id);
+        return res.status(400).json({ message: 'ID do plano inválido' });
+      }
+
+      // Buscar dados dos módulos do plano
       const planModulesData = await db.query.planModules.findMany({
         where: eq(planModules.plan_id, planId),
         with: {
@@ -95,15 +118,23 @@ export function registerPlanRoutes(app: Express) {
         }
       });
 
-      if (!planModulesData) {
-        return res.status(404).json({ message: 'Módulos do plano não encontrados' });
+      // Verificar se existem módulos
+      if (!planModulesData || planModulesData.length === 0) {
+        console.log(`Nenhum módulo encontrado para o plano ${planId}`);
+        return res.json([]); // Retornar array vazio em vez de 404
       }
 
+      // Extrair e formatar a lista de módulos
       const modulesList = planModulesData.map(pm => pm.module);
+      console.log(`Encontrados ${modulesList.length} módulos para o plano ${planId}`);
+      
       res.json(modulesList);
     } catch (error: any) {
       console.error(`Erro ao buscar módulos do plano ${req.params.id}:`, error);
-      res.status(500).json({ message: 'Erro ao buscar módulos do plano', error: error.message });
+      res.status(500).json({ 
+        message: 'Erro ao buscar módulos do plano', 
+        error: error.message || 'Erro interno no servidor' 
+      });
     }
   });
 
