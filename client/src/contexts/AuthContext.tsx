@@ -31,9 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Verificando status de autenticação...");
         
-        // Tentar até 3 vezes com backoff exponencial
+        // Tentar apenas 1 vez para evitar rate limiting
         let attempts = 0;
-        const maxAttempts = 3;
+        const maxAttempts = 1;
         
         while (attempts < maxAttempts) {
           attempts++;
@@ -170,9 +170,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
       
-      // Usar função de retry para contornar possíveis problemas de rate limiting
+      // Reduzir para apenas 1 tentativa para evitar rate limiting
       let attempts = 0;
-      const maxAttempts = 3;
+      const maxAttempts = 1;
       
       while (attempts < maxAttempts) {
         attempts++;
