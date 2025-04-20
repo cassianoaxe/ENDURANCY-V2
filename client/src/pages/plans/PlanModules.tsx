@@ -147,11 +147,33 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
       });
       
       if (!response.ok) {
+        // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          // Caso seja HTML, provavelmente é uma página de login
+          if (response.status === 401) {
+            throw new Error('Sessão expirada. Faça login novamente.');
+          } else {
+            throw new Error(`Erro de autenticação. Status: ${response.status}`);
+          }
+        }
+        
         throw new Error(`Erro ao carregar plano: ${response.statusText}`);
       }
       
-      const data = await response.json();
-      return data;
+      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Resposta do servidor não está no formato JSON esperado');
+      }
+      
+      try {
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Erro ao parsear resposta JSON:', error);
+        throw new Error('Falha ao processar resposta do servidor');
+      }
     },
     enabled: !isNaN(planId) // Só executar a query se planId for um número válido
   });
@@ -173,10 +195,33 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
       });
       
       if (!response.ok) {
+        // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          // Caso seja HTML, provavelmente é uma página de login
+          if (response.status === 401) {
+            throw new Error('Sessão expirada. Faça login novamente.');
+          } else {
+            throw new Error(`Erro de autenticação. Status: ${response.status}`);
+          }
+        }
+        
         throw new Error(`Erro ao carregar módulos: ${response.statusText}`);
       }
       
-      return await response.json();
+      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Resposta do servidor não está no formato JSON esperado');
+      }
+      
+      try {
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Erro ao parsear resposta JSON:', error);
+        throw new Error('Falha ao processar resposta do servidor');
+      }
     },
   });
 
@@ -204,12 +249,38 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
         body: JSON.stringify({ moduleIds }),
       });
 
+      // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
+      const contentType = response.headers.get('content-type');
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-        throw new Error(errorData.message || 'Erro ao salvar módulos');
+        if (contentType && contentType.includes('text/html')) {
+          // Caso seja HTML, provavelmente é uma página de login
+          if (response.status === 401) {
+            throw new Error('Sessão expirada. Faça login novamente.');
+          } else {
+            throw new Error(`Erro de autenticação. Status: ${response.status}`);
+          }
+        }
+        
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Erro ao salvar módulos');
+        } catch (jsonError) {
+          throw new Error('Erro ao salvar módulos');
+        }
       }
 
-      return await response.json();
+      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Resposta do servidor não está no formato JSON esperado');
+      }
+      
+      try {
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Erro ao parsear resposta JSON:', error);
+        throw new Error('Falha ao processar resposta do servidor');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/plans/${planId}`] });
