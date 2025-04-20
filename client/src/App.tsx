@@ -891,39 +891,27 @@ function AppContent() {
 
     // Rotas do módulo de Comunicação
     if (currentPath === '/organization/comunicacao') {
-      return <OrganizationLayout>
-        <ComunicacaoDashboard />
-      </OrganizationLayout>;
+      return <ComunicacaoDashboard />;
     }
     
     if (currentPath === '/organization/comunicacao/calendario') {
-      return <OrganizationLayout>
-        <CalendarioComunicacao />
-      </OrganizationLayout>;
+      return <CalendarioComunicacao />;
     }
     
     if (currentPath === '/organization/comunicacao/campanhas') {
-      return <OrganizationLayout>
-        <CampanhasEmail />
-      </OrganizationLayout>;
+      return <CampanhasEmail />;
     }
     
     if (currentPath === '/organization/comunicacao/notificacoes') {
-      return <OrganizationLayout>
-        <NotificacoesComunicacao />
-      </OrganizationLayout>;
+      return <NotificacoesComunicacao />;
     }
     
     if (currentPath === '/organization/comunicacao/arquivos') {
-      return <OrganizationLayout>
-        <ArquivosComunicacao />
-      </OrganizationLayout>;
+      return <ArquivosComunicacao />;
     }
     
     if (currentPath === '/organization/comunicacao/credenciais') {
-      return <OrganizationLayout>
-        <CredenciaisComunicacao />
-      </OrganizationLayout>;
+      return <CredenciaisComunicacao />;
     }
 
     // Rotas do módulo de Patrimônio
