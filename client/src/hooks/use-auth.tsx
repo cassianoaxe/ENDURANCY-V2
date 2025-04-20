@@ -43,21 +43,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Função para verificar autenticação do usuário
   const checkAuth = async () => {
     setIsLoading(true);
+    let isMounted = true; // Flag para verificar se o componente ainda está montado
+    
     try {
-      const userData = await apiRequest('/api/auth/me', {
-        method: 'GET'
-      });
+      console.log("Verificando autenticação...");
       
-      setUser(userData);
-      // Guarda informação no localStorage para uso em componentes que não têm acesso ao contexto
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Implementar retry com backoff para contornar rate limiting
+      const maxRetries = 3;
+      let attempts = 0;
+      let success = false;
+      
+      while (attempts < maxRetries && !success) {
+        attempts++;
+        
+        try {
+          console.log(`Tentando verificar autenticação (tentativa ${attempts}/${maxRetries})...`);
+          
+          const userData = await apiRequest('/api/auth/me', {
+            method: 'GET',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
+          
+          console.log("Autenticação verificada com sucesso:", userData);
+          
+          if (isMounted) {
+            setUser(userData);
+            // Guarda informação no localStorage para uso em componentes que não têm acesso ao contexto
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+          
+          success = true;
+        } catch (error: any) {
+          console.error(`Erro na tentativa ${attempts}:`, error);
+          
+          // Se for erro 429 (rate limiting), tentar novamente após um atraso
+          if (error.message && error.message.includes('Muitas requisições')) {
+            const delayMs = Math.pow(2, attempts) * 1000; // Backoff exponencial: 2s, 4s, 8s...
+            console.log(`Rate limiting detectado, aguardando ${delayMs}ms antes da próxima tentativa...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+          } else {
+            // Se não for rate limiting, não há necessidade de tentar novamente
+            throw error;
+          }
+        }
+      }
+      
+      if (!success) {
+        console.error(`Todas as ${maxRetries} tentativas falharam`);
+        throw new Error('Falha ao verificar autenticação após múltiplas tentativas');
+      }
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error);
-      setUser(null);
-      localStorage.removeItem('user');
+      
+      if (isMounted) {
+        setUser(null);
+        localStorage.removeItem('user');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLoading(false);
+      }
     }
+    
+    // Cleanup para evitar memory leaks
+    return () => {
+      isMounted = false;
+    };
   };
 
   // Função de login
