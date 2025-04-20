@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { EcosystemGraph } from "@/components/ecosystem-graph";
+import { EcosystemGraphV2 } from "@/components/ecosystem-graph-v2";
 import { EcosystemLogo } from "@/components/ecosystem-logo";
 
 export default function Home() {
@@ -32,7 +33,7 @@ export default function Home() {
             Uma solução integrada para todos os profissionais e processos
           </p>
         </div>
-        <EcosystemGraph />
+        <EcosystemGraphV2 />
       </div>
       
       <div className="mb-12">
