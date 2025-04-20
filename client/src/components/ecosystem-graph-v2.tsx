@@ -38,6 +38,23 @@ interface EcosystemNodeProps {
   lineRef?: React.RefObject<SVGPathElement>;
 }
 
+interface EcosystemNodeProps {
+  label: string;
+  icon: React.ReactNode;
+  initialPosition: NodePosition;
+  delay?: number;
+  isAI?: boolean;
+  onHover: (label: string, isHovered: boolean) => void;
+  isHovered: boolean;
+  activeNode: string | null;
+  colorClass: string;
+  secondaryColor: string;
+  highlightColor: string;
+  lineRef?: React.RefObject<SVGPathElement>;
+  mousePosition?: {x: number, y: number} | null;
+  aiCursorActive?: boolean;
+}
+
 const EcosystemNode: React.FC<EcosystemNodeProps> = ({ 
   label, 
   icon,
@@ -50,7 +67,9 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
   colorClass,
   secondaryColor,
   highlightColor,
-  lineRef
+  lineRef,
+  mousePosition,
+  aiCursorActive
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState(initialPosition);
@@ -76,6 +95,31 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
         opacity: 1,
         rotation: initialPosition.rotation + 5
       });
+    } else if (aiCursorActive && mousePosition) {
+      // Quando o cursor IA está ativo, atrair os nós para a posição do mouse
+      // Converter coordenadas de mouse (0-100) para o sistema de coordenadas dos nós (-50 a 50)
+      const mouseX = mousePosition.x - 50;
+      const mouseY = mousePosition.y - 50;
+      
+      // Calcular vetor de atração entre o nó e o cursor
+      const dx = mouseX - initialPosition.x;
+      const dy = mouseY - initialPosition.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Força de atração inversamente proporcional à distância (quanto mais perto, mais forte)
+      const attractionForce = Math.min(0.4, 8 / Math.max(5, distance));
+      
+      // Aplicar força de atração ao nó
+      const newX = initialPosition.x + dx * attractionForce;
+      const newY = initialPosition.y + dy * attractionForce;
+      
+      setPosition({
+        x: newX,
+        y: newY,
+        scale: 1 + attractionForce * 0.5, // Aumentar tamanho conforme se aproxima
+        opacity: 1,
+        rotation: initialPosition.rotation + (dx + dy) * 0.1
+      });
     } else if (activeNode && activeNode !== label) {
       // Diminuir nós não ativos quando outro está destacado
       setPosition({
@@ -89,7 +133,7 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
       // Posição normal
       setPosition(initialPosition);
     }
-  }, [isHovered, activeNode, label]);
+  }, [isHovered, activeNode, label, mousePosition, aiCursorActive]);
 
   return (
     <div 
@@ -174,6 +218,9 @@ export function EcosystemGraphV2() {
   const [renderStep, setRenderStep] = useState(0);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [centerEffects, setCenterEffects] = useState(false);
+  const [mousePosition, setMousePosition] = useState<{x: number, y: number} | null>(null);
+  const [aiCursorActive, setAiCursorActive] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   
   // Cores para os diferentes tipos de nós
@@ -193,6 +240,43 @@ export function EcosystemGraphV2() {
     
     return () => clearTimeout(timer);
   }, [renderStep]);
+  
+  // Efeito para lidar com o movimento do mouse e o efeito do cursor IA
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      // Calcula a posição relativa do mouse no container
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      setMousePosition({ x, y });
+      
+      // Ativar o cursor de IA apenas quando o mouse está dentro do gráfico
+      // e não está sobre nenhum nó específico
+      if (!hoveredNode) {
+        setAiCursorActive(true);
+      } else {
+        setAiCursorActive(false);
+      }
+    };
+    
+    const handleMouseLeave = () => {
+      setMousePosition(null);
+      setAiCursorActive(false);
+    };
+    
+    containerRef.current.addEventListener('mousemove', handleMouseMove);
+    containerRef.current.addEventListener('mouseleave', handleMouseLeave);
+    
+    return () => {
+      containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+      containerRef.current?.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [hoveredNode]);
   
   // Função para lidar com hover nos nós
   const handleNodeHover = (label: string, isHovered: boolean) => {
@@ -353,8 +437,41 @@ export function EcosystemGraphV2() {
     return hoveredNode === from || hoveredNode === to;
   };
   
+  // Calcula o estilo do cursor IA
+  const getAICursorStyle = () => {
+    if (!mousePosition || !aiCursorActive) return {};
+    
+    return {
+      position: 'absolute',
+      left: `${mousePosition.x}%`,
+      top: `${mousePosition.y}%`,
+      transform: 'translate(-50%, -50%)',
+      pointerEvents: 'none',
+      zIndex: 100,
+      width: '80px',
+      height: '80px'
+    } as React.CSSProperties;
+  };
+
   return (
-    <div className="relative w-full h-full mx-auto aspect-square bg-gray-50 rounded-xl shadow-inner overflow-hidden">
+    <div 
+      ref={containerRef}
+      className={`relative w-full h-full mx-auto aspect-square bg-gray-50 rounded-xl shadow-inner overflow-hidden ${aiCursorActive ? 'cursor-none' : ''}`}
+    >
+      {/* Cursor personalizado de IA */}
+      {aiCursorActive && mousePosition && (
+        <div style={getAICursorStyle()} className="pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full opacity-30 animate-pulse"></div>
+          <div className="absolute inset-2 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full opacity-50"></div>
+          <div className="absolute inset-[35%] bg-white rounded-full opacity-80"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">IA</span>
+          </div>
+          <div className="absolute -inset-4 rounded-full border border-indigo-300 opacity-30 animate-ping" />
+          <div className="absolute -inset-8 rounded-full border border-purple-200 opacity-20 animate-ping delay-300" />
+        </div>
+      )}
+      
       {/* Gradiente de fundo sutil */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 opacity-70"></div>
       
@@ -472,6 +589,8 @@ export function EcosystemGraphV2() {
           colorClass={node.colorClass}
           secondaryColor={node.secondaryColor}
           highlightColor={node.highlightColor}
+          mousePosition={mousePosition}
+          aiCursorActive={aiCursorActive}
         />
       ))}
       
