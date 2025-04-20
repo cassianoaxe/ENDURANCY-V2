@@ -87,19 +87,11 @@ export default function Plans() {
     // Adicionar logs detalhados para diagnóstico
     console.log("Iniciando navegação para configuração de módulos do plano:", planId);
     
-    try {
-      // Usar o método de navegação diretamente em vez de mutation
-      // para simplificar o fluxo e facilitar o diagnóstico
-      navigate(`/plans/${planId}/modules`);
-      console.log("Navegação concluída com sucesso");
-    } catch (error) {
-      console.error("Erro durante a navegação:", error);
-      toast({
-        title: "Erro ao acessar gerenciamento de módulos",
-        description: "Houve um problema ao tentar acessar a configuração de módulos. Por favor, tente novamente.",
-        variant: "destructive"
-      });
-    }
+    // Forçar navegação com window.location em vez de navigate hook
+    window.location.href = `/plans/${planId}/modules`;
+    
+    // Não precisamos do try/catch aqui pois o window.location é mais direto
+    // e não lança exceções como os hooks de navegação podem fazer
   };
 
   // Filtrar planos com base na tab selecionada
