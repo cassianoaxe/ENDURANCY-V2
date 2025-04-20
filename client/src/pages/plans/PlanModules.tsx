@@ -138,44 +138,62 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
         throw new Error("ID do plano inválido");
       }
       
-      const response = await fetch(`/api/plans/${planId}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include' // Incluir cookies de autenticação
-      });
-      
-      if (!response.ok) {
-        // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('text/html')) {
-          // Caso seja HTML, provavelmente é uma página de login
-          if (response.status === 401) {
-            throw new Error('Sessão expirada. Faça login novamente.');
-          } else {
-            throw new Error(`Erro de autenticação. Status: ${response.status}`);
-          }
-        }
-        
-        throw new Error(`Erro ao carregar plano: ${response.statusText}`);
-      }
-      
-      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Resposta do servidor não está no formato JSON esperado');
-      }
+      console.log("Iniciando busca pelo plano ID:", planId);
       
       try {
+        // Adicionar um pequeno delay para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const response = await fetch(`/api/plans/${planId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include', // Incluir cookies de autenticação
+          cache: 'no-store' // Evitar cache para sempre obter dados atualizados
+        });
+        
+        if (!response.ok) {
+          // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
+          const contentType = response.headers.get('content-type');
+          console.log("Tipo de conteúdo recebido:", contentType);
+          
+          if (contentType && contentType.includes('text/html')) {
+            // Caso seja HTML, provavelmente é uma página de login
+            if (response.status === 401) {
+              console.error("Erro 401: Sessão expirada");
+              throw new Error('Sessão expirada. Faça login novamente.');
+            } else if (response.status === 429) {
+              console.error("Erro 429: Muitas requisições");
+              throw new Error('Muitas requisições. Aguarde um momento e tente novamente.');
+            } else {
+              console.error(`Erro de autenticação. Status: ${response.status}`);
+              throw new Error(`Erro de autenticação. Status: ${response.status}`);
+            }
+          }
+          
+          console.error(`Erro ao carregar plano: ${response.statusText}`);
+          throw new Error(`Erro ao carregar plano: ${response.statusText}`);
+        }
+        
+        // Verificar o tipo de conteúdo antes de tentar parsear como JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Resposta do servidor não está no formato JSON esperado');
+          throw new Error('Resposta do servidor não está no formato JSON esperado');
+        }
+        
         const data = await response.json();
+        console.log("Dados do plano recebidos com sucesso:", data.id);
         return data;
       } catch (error) {
-        console.error('Erro ao parsear resposta JSON:', error);
-        throw new Error('Falha ao processar resposta do servidor');
+        console.error('Erro ao buscar/processar plano:', error);
+        throw error;
       }
     },
-    enabled: !isNaN(planId) // Só executar a query se planId for um número válido
+    enabled: !isNaN(planId), // Só executar a query se planId for um número válido
+    retry: 2, // Tentar novamente até 2 vezes em caso de erro
+    retryDelay: 1000 // Aguardar 1 segundo entre as tentativas
   });
 
   // Buscar todos os módulos disponíveis

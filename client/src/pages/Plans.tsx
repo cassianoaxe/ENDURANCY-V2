@@ -82,16 +82,23 @@ export default function Plans() {
     }
   });
 
-  // Gerenciar módulos do plano
+  // Gerenciar módulos do plano com proteção contra rate limiting
   const managePlanModules = (planId: number) => {
     // Adicionar logs detalhados para diagnóstico
     console.log("Iniciando navegação para configuração de módulos do plano:", planId);
+
+    // Mostrar toast de carregamento
+    toast({
+      title: "Redirecionando...",
+      description: "Aguarde enquanto preparamos a configuração de módulos.",
+      duration: 3000,
+    });
     
-    // Forçar navegação com window.location em vez de navigate hook
-    window.location.href = `/plans/${planId}/modules`;
-    
-    // Não precisamos do try/catch aqui pois o window.location é mais direto
-    // e não lança exceções como os hooks de navegação podem fazer
+    // Definir um timeout curto para evitar problemas de rate limiting
+    setTimeout(() => {
+      // Forçar navegação com window.location em vez de navigate hook
+      window.location.href = `/plans/${planId}/modules`;
+    }, 800);
   };
 
   // Filtrar planos com base na tab selecionada
