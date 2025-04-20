@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { 
-  Beaker, Flask, Microscope, LineChart, Users, 
+  Beaker, FlaskConical, Microscope, LineChart, Users, 
   Book, ShieldCheck, Leaf, Receipt, FileText, 
   BarChart3 
 } from "lucide-react";
@@ -11,16 +11,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { EcosystemGraph } from "@/components/ecosystem-graph";
 
 export default function Home() {
   // Exibimos uma página inicial com informações sobre o sistema
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="text-center mb-12">
+      <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-3 text-primary">Endurancy Medical HPLC</h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
           Plataforma integrada para gerenciamento de laboratórios de análise de cannabis medicinal
         </p>
+      </div>
+      
+      <div className="mb-12">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-primary">Ecossistema Completo</h2>
+          <p className="text-muted-foreground mt-1">
+            Uma solução integrada para todos os profissionais e processos
+          </p>
+        </div>
+        <EcosystemGraph />
       </div>
       
       <Tabs defaultValue="overview" className="mb-12">
@@ -74,7 +85,7 @@ export default function Home() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl">Módulo HPLC</CardTitle>
-                  <Flask className="h-5 w-5 text-primary" />
+                  <FlaskConical className="h-5 w-5 text-primary" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -129,7 +140,7 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
-                  <Flask className="h-5 w-5 text-primary" />
+                  <FlaskConical className="h-5 w-5 text-primary" />
                   <CardTitle>HPLC</CardTitle>
                 </div>
                 <CardDescription>Gestão de análises por cromatografia</CardDescription>
