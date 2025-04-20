@@ -9,6 +9,9 @@ interface EcosystemNodeProps {
   delay?: number;
   radius: number;
   isAI?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  isAttracted?: boolean;
 }
 
 const EcosystemNode: React.FC<EcosystemNodeProps> = ({ 
@@ -17,7 +20,10 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
   angle, 
   delay = 0,
   radius,
-  isAI = false
+  isAI = false,
+  onMouseEnter,
+  onMouseLeave,
+  isAttracted
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   
@@ -31,19 +37,27 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
   
   // Calcular posição baseada em ângulo e raio
   const angleRad = (angle * Math.PI) / 180;
-  const x = 50 + radius * Math.cos(angleRad);
-  const y = 50 + radius * Math.sin(angleRad);
   
-  const nodeColor = isAI ? "bg-indigo-600 hover:bg-indigo-700" : "bg-green-600 hover:bg-green-700";
+  // Se estiver no estado atraído, reduzir o raio em 10% para criar efeito de atração para o centro
+  const effectiveRadius = isAttracted ? radius * 0.9 : radius;
+  
+  const x = 50 + effectiveRadius * Math.cos(angleRad);
+  const y = 50 + effectiveRadius * Math.sin(angleRad);
+  
+  const nodeColor = isAI 
+    ? "bg-indigo-600 hover:bg-indigo-700" 
+    : "bg-green-600 hover:bg-green-700";
   
   return (
     <div 
-      className={`absolute flex items-center justify-center ${nodeColor} text-white rounded-full px-3 py-1.5 font-medium shadow-md transition-all duration-500 cursor-pointer transform hover:scale-105 z-10 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      className={`absolute flex items-center justify-center ${nodeColor} text-white rounded-full px-3 py-1.5 font-medium shadow-md cursor-pointer z-10 ${isVisible ? 'opacity-100' : 'opacity-0'} ${isAttracted ? 'shadow-lg scale-110' : 'hover:scale-105'} transition-all duration-300`}
       style={{
         left: `${x}%`,
         top: `${y}%`,
         transform: 'translate(-50%, -50%)'
       }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <span className="mr-1.5">{icon}</span>
       {label}
@@ -53,6 +67,8 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({
 
 export function EcosystemGraph() {
   const [renderStep, setRenderStep] = useState(0);
+  const [attractedNode, setAttractedNode] = useState<string | null>(null);
+  const [centerPulse, setCenterPulse] = useState(false);
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -61,6 +77,18 @@ export function EcosystemGraph() {
     
     return () => clearTimeout(timer);
   }, [renderStep]);
+  
+  // Função para lidar com a passagem do mouse sobre um nó
+  const handleMouseEnter = (label: string) => {
+    setAttractedNode(label);
+    setCenterPulse(true);
+  };
+  
+  // Função para lidar com a saída do mouse de um nó
+  const handleMouseLeave = () => {
+    setAttractedNode(null);
+    setCenterPulse(false);
+  };
   
   // Definição dos nós - distribuídos uniformemente ao redor do círculo
   const nodes = [
@@ -84,12 +112,19 @@ export function EcosystemGraph() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] rounded-full border border-green-200"></div>
       </div>
       
-      {/* Círculo central com logo */}
-      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center bg-white rounded-full h-24 w-24 shadow-md z-20 border-2 border-green-100 transition-all duration-500 ${renderStep >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-        <div className="bg-green-50 p-2 rounded-full flex items-center justify-center">
-          <Leaf className="h-7 w-7 text-green-600" />
+      {/* Círculo central com logo - adiciona efeito de pulso quando um nó está sendo atraído */}
+      <div 
+        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center bg-white rounded-full h-24 w-24 shadow-md z-20 border-2 ${centerPulse ? 'border-green-400 shadow-lg scale-105' : 'border-green-100'} transition-all duration-300 ${renderStep >= 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+      >
+        <div className={`bg-green-50 p-2 rounded-full flex items-center justify-center ${centerPulse ? 'bg-green-100' : ''}`}>
+          <Leaf className={`h-7 w-7 text-green-600 ${centerPulse ? 'animate-pulse' : ''}`} />
         </div>
         <div className="text-center font-bold text-sm mt-1 text-green-800">Endurancy</div>
+        
+        {/* Efeito de atração magnética - círculo que aparece quando um nó está sendo atraído */}
+        {centerPulse && (
+          <div className="absolute -inset-4 rounded-full border border-green-300 opacity-50 animate-ping" />
+        )}
       </div>
       
       {/* Nós do ecossistema */}
@@ -102,6 +137,9 @@ export function EcosystemGraph() {
           delay={node.delay}
           radius={42}
           isAI={node.isAI}
+          onMouseEnter={() => handleMouseEnter(node.label)}
+          onMouseLeave={handleMouseLeave}
+          isAttracted={attractedNode === node.label}
         />
       ))}
       
