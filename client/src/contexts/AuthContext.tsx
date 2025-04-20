@@ -273,7 +273,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Retorna sem redirecionamento para permitir que a página de login faça isso
           return;
           
-        } catch (fetchError) {
+        } catch (fetchError: any) {
           if (fetchError.name === 'AbortError') {
             console.error('Requisição de login abortada por timeout');
             throw new Error('Tempo limite de conexão excedido. Verifique sua conexão com a internet.');

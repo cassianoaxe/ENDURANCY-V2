@@ -480,7 +480,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password, userType, orgCode, email } = req.body;
       
-      console.log("Login attempt:", { username, email, userType, hasOrgCode: !!orgCode });
+      console.log("Login attempt:", { 
+        username, 
+        email, 
+        userType, 
+        hasOrgCode: !!orgCode, 
+        sessionID: req.sessionID,
+        headers: {
+          'user-agent': req.headers['user-agent'],
+          'content-type': req.headers['content-type'],
+          'cookie': !!req.headers.cookie // Apenas logar presença do cookie, não seu valor
+        }
+      });
       
       // Se temos um código de organização, verificar se é válido
       if (orgCode) {
