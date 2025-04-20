@@ -55,12 +55,15 @@ async function fetchCsrfToken(): Promise<string> {
  * @param options Opções da requisição
  * @returns Resposta JSON da API
  */
-export async function apiRequest(url: string, options: ApiRequestOptions) {
+export async function apiRequest(url: string, options: ApiRequestOptions = { method: 'GET' }) {
   const { method, data, headers = {}, includeCredentials = true } = options;
+  
+  console.log(`Iniciando requisição API: ${method} ${url}`);
   
   // Cabeçalhos padrão
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...headers,
   };
 
@@ -82,6 +85,7 @@ export async function apiRequest(url: string, options: ApiRequestOptions) {
     method,
     headers: requestHeaders,
     credentials: includeCredentials ? 'include' : 'same-origin',
+    cache: 'no-store', // Desabilitar cache para sempre obter dados atualizados
   };
 
   // Incluir corpo da requisição se tiver dados
@@ -89,35 +93,73 @@ export async function apiRequest(url: string, options: ApiRequestOptions) {
     requestOptions.body = JSON.stringify(data);
   }
 
-  // Fazer a requisição
-  const response = await fetch(url, requestOptions);
-  
-  // Tratar resposta de erro
-  if (!response.ok) {
-    // Tentar obter mensagem de erro detalhada da API
-    let errorMessage = `API request failed: ${response.statusText}`;
+  try {
+    // Fazer a requisição
+    const response = await fetch(url, requestOptions);
     
-    try {
-      const errorData = await response.json();
-      if (errorData.message) {
-        errorMessage = errorData.message;
-      } else if (errorData.error && errorData.error.message) {
-        errorMessage = errorData.error.message;
+    // Verificar o tipo de conteúdo da resposta
+    const contentType = response.headers.get('content-type');
+    console.log(`Resposta API: ${response.status} ${response.statusText}, Content-Type: ${contentType}`);
+    
+    // Tratar resposta de erro
+    if (!response.ok) {
+      // Verificar se a resposta contém HTML (comum em redirecionamentos de login)
+      if (contentType && contentType.includes('text/html')) {
+        // Verificar tipos específicos de erro
+        if (response.status === 401) {
+          // Sessão expirada ou não autenticado
+          console.error('Erro 401: Usuário não autenticado ou sessão expirada');
+          
+          // Verificar se estamos na página de login para evitar loop de redirecionamento
+          if (!window.location.pathname.includes('/login')) {
+            console.log('Redirecionando para página de login devido a erro 401');
+            window.location.href = '/login';
+          }
+          
+          throw new Error('Sessão expirada. Faça login novamente.');
+        } else if (response.status === 429) {
+          console.error('Erro 429: Rate limiting aplicado');
+          throw new Error('Muitas requisições. Por favor, aguarde um momento e tente novamente.');
+        } else {
+          console.error(`Erro ${response.status}: Resposta em HTML não esperada`);
+          throw new Error(`Erro na requisição (${response.status}): Resposta inesperada do servidor`);
+        }
       }
-    } catch {
-      // Se não conseguir parsear o JSON de erro, usa a mensagem padrão
+      
+      // Tentar obter mensagem de erro detalhada da API para respostas JSON
+      let errorMessage = `API request failed: ${response.statusText}`;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.error && errorData.error.message) {
+            errorMessage = errorData.error.message;
+          }
+        } catch (jsonError) {
+          console.error('Erro ao parsear resposta JSON de erro:', jsonError);
+          // Se não conseguir parsear o JSON de erro, usa a mensagem padrão
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
     
-    throw new Error(errorMessage);
+    // Verificar se há conteúdo para parsear como JSON
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        console.error('Erro ao parsear resposta JSON:', jsonError);
+        throw new Error('Falha ao processar resposta do servidor');
+      }
+    }
+    
+    // Retorno vazio para respostas sem conteúdo JSON
+    return {}; 
+  } catch (error) {
+    console.error(`Erro na requisição API ${method} ${url}:`, error);
+    throw error;
   }
-  
-  // Verificar se há conteúdo para parsear como JSON
-  const contentType = response.headers.get('content-type');
-  
-  if (contentType && contentType.includes('application/json')) {
-    return response.json();
-  }
-  
-  // Retorno vazio para respostas sem conteúdo
-  return {}; 
 }
