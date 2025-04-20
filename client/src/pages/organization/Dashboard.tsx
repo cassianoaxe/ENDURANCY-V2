@@ -1,5 +1,5 @@
 import React from 'react';
-import OrganizationLayout from '@/components/layout/OrganizationLayout';
+// Removendo import do OrganizationLayout para evitar a renderização duplicada
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -24,7 +24,6 @@ export default function OrganizationDashboard() {
   });
 
   return (
-    <OrganizationLayout>
       <div className="container px-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -480,6 +479,5 @@ export default function OrganizationDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </OrganizationLayout>
   );
 }
