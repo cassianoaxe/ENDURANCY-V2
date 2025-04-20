@@ -82,24 +82,24 @@ export default function Plans() {
     }
   });
 
-  // Mutation para gerenciar módulos de um plano
-  const managePlanModulesMutation = useMutation({
-    mutationFn: async (planId: number) => {
+  // Gerenciar módulos do plano
+  const managePlanModules = (planId: number) => {
+    // Adicionar logs detalhados para diagnóstico
+    console.log("Iniciando navegação para configuração de módulos do plano:", planId);
+    
+    try {
+      // Usar o método de navegação diretamente em vez de mutation
+      // para simplificar o fluxo e facilitar o diagnóstico
       navigate(`/plans/${planId}/modules`);
-      return planId;
-    },
-    onError: (error: Error) => {
+      console.log("Navegação concluída com sucesso");
+    } catch (error) {
+      console.error("Erro durante a navegação:", error);
       toast({
         title: "Erro ao acessar gerenciamento de módulos",
-        description: error.message,
+        description: "Houve um problema ao tentar acessar a configuração de módulos. Por favor, tente novamente.",
         variant: "destructive"
       });
     }
-  });
-
-  // Gerenciar módulos do plano
-  const managePlanModules = (planId: number) => {
-    managePlanModulesMutation.mutate(planId);
   };
 
   // Filtrar planos com base na tab selecionada
