@@ -49,7 +49,7 @@ import {
   Copy
 } from "lucide-react";
 
-export default function CampanhasPage() {
+export default function CampanhasEmail() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -161,7 +161,6 @@ export default function CampanhasPage() {
   };
 
   return (
-    <OrganizationLayout>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -427,6 +426,5 @@ export default function CampanhasPage() {
           </Card>
         </div>
       </div>
-    </OrganizationLayout>
   );
 }
