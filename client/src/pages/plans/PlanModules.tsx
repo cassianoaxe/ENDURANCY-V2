@@ -97,6 +97,8 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const [hasChanges, setHasChanges] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const { user, isLoading: authLoading } = useAuth();
+  const [loadingPlanModules, setLoadingPlanModules] = useState(true);
+  const [planModulesError, setPlanModulesError] = useState<Error | null>(null);
   
   // Verificar se o usuário está autenticado e é um admin
   useEffect(() => {
@@ -243,12 +245,91 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     },
   });
 
+  // Estado para armazenar os módulos obtidos manualmente
+  const [planModules, setPlanModules] = useState<Module[]>([]);
+  
+  // Função para buscar manualmente os módulos do plano
+  async function fetchPlanModules() {
+    if (isNaN(planId) || !user) {
+      return;
+    }
+    
+    setLoadingPlanModules(true);
+    setPlanModulesError(null);
+    
+    try {
+      console.log(`Iniciando busca manual dos módulos do plano ${planId}...`);
+      
+      // Adicionar um pequeno delay para evitar rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const response = await fetch(`/api/plans/${planId}/modules`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        credentials: 'include', // Incluir cookies de autenticação
+        cache: 'no-store' // Evitar cache
+      });
+      
+      if (!response.ok) {
+        // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
+        const contentType = response.headers.get('content-type');
+        console.log(`Tipo de conteúdo recebido em fetchPlanModules: ${contentType}, status: ${response.status}`);
+        
+        if (contentType && contentType.includes('text/html')) {
+          // Caso seja HTML, provavelmente é uma página de login
+          if (response.status === 401) {
+            throw new Error('Sessão expirada. Faça login novamente.');
+          } else if (response.status === 429) {
+            throw new Error('Muitas requisições. Aguarde um momento e tente novamente.');
+          } else {
+            throw new Error(`Erro de autenticação. Status: ${response.status}`);
+          }
+        }
+        
+        throw new Error(`Erro ao carregar módulos do plano: ${response.statusText}`);
+      }
+      
+      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Resposta do servidor não está no formato JSON esperado');
+      }
+      
+      try {
+        const modules = await response.json();
+        console.log(`Módulos do plano ${planId} recebidos com sucesso:`, modules.length);
+        setPlanModules(modules);
+        
+        // Inicializar os módulos selecionados
+        if (modules && modules.length > 0) {
+          setSelectedModules(modules.map((m: Module) => m.id));
+        }
+      } catch (error) {
+        console.error('Erro ao parsear resposta JSON dos módulos:', error);
+        throw new Error('Falha ao processar resposta do servidor');
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar módulos do plano ${planId}:`, error);
+      setPlanModulesError(error as Error);
+    } finally {
+      setLoadingPlanModules(false);
+    }
+  }
+  
   // Inicializar os módulos selecionados quando o plano for carregado
   useEffect(() => {
     if (plan?.modules) {
       setSelectedModules(plan.modules.map(m => m.id));
     }
-  }, [plan]);
+    
+    // Buscar os módulos do plano manualmente
+    fetchPlanModules();
+  }, [plan, planId, user]);
 
   // Mutation para salvar as alterações nos módulos do plano
   const saveModulesMutation = useMutation({
@@ -372,8 +453,8 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     return Array.from(types);
   };
 
-  const isLoading = planLoading || modulesLoading;
-  const error = planError || modulesError;
+  const isLoading = planLoading || modulesLoading || loadingPlanModules;
+  const error = planError || modulesError || planModulesError;
 
   // Mostrar tela de carregamento enquanto verifica autenticação
   if (authLoading) {
