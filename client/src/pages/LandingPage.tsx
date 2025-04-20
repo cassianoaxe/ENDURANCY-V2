@@ -76,7 +76,7 @@ const LandingPage = () => {
                 <p className="text-sm text-gray-500 mb-4 text-center max-w-md">
                   Uma plataforma completa que conecta todos os agentes do setor em um único sistema
                 </p>
-                <div className="w-full h-[400px] flex items-center justify-center">
+                <div className="w-full aspect-square max-w-xl mx-auto">
                   <EcosystemGraph />
                 </div>
               </div>
