@@ -70,17 +70,13 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            <div className="rounded-lg overflow-hidden shadow-xl">
-              <img 
-                src="/assets/dashboard-preview.png" 
-                alt="Dashboard Preview" 
-                className="w-full h-auto"
-                onError={(e) => {
-                  // Fallback se a imagem não existir
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://placehold.co/600x400/e4f7ed/1e854a?text=Endurancy+Dashboard";
-                }}
-              />
+            <div className="rounded-lg overflow-hidden shadow-xl bg-white p-6">
+              <div className="flex flex-col items-center">
+                <h3 className="text-xl font-semibold text-green-800 mb-4">Nosso Ecossistema</h3>
+                <div className="w-full h-[350px]">
+                  <EcosystemGraph />
+                </div>
+              </div>
             </div>
           </div>
         </div>
