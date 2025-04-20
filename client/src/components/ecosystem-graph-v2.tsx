@@ -299,12 +299,12 @@ export function EcosystemGraphV2() {
     { 
       label: "IA", 
       icon: <Cpu size={18} />, 
-      position: calculatePosition(0, 0, 0), // Centralizada
-      delay: 800,
+      position: calculatePosition(160, 17, 0), // Posição destacada
+      delay: 500,
       isAI: true,
-      colorClass: "bg-indigo-600 hover:bg-indigo-700",
+      colorClass: "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 scale-125 shadow-lg shadow-indigo-200",
       secondaryColor: colors.ai,
-      highlightColor: "bg-indigo-500" 
+      highlightColor: "bg-gradient-to-r from-indigo-500 to-purple-500 scale-130 shadow-xl shadow-indigo-300" 
     }
   ];
   
@@ -327,9 +327,13 @@ export function EcosystemGraphV2() {
     
     // Conexões com IA
     { from: "IA", to: "Paciente", color: colors.ai, delay: 1150 },
+    { from: "IA", to: "Médico", color: colors.ai, delay: 1175 },
     { from: "IA", to: "Farmácia", color: colors.ai, delay: 1200 },
+    { from: "IA", to: "Químico", color: colors.ai, delay: 1225 },
     { from: "IA", to: "Produção", color: colors.ai, delay: 1250 },
-    { from: "IA", to: "Pesquisa", color: colors.ai, delay: 1300 },
+    { from: "IA", to: "Financeiro", color: colors.ai, delay: 1275 },
+    { from: "IA", to: "Cultivo", color: colors.ai, delay: 1300 },
+    { from: "IA", to: "Pesquisa", color: colors.ai, delay: 1325 },
   ];
   
   // Encontra a posição do nó no SVG
