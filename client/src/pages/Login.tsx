@@ -33,7 +33,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'complypay';
+type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -99,16 +99,6 @@ export default function Login() {
         password: 'org123'
       },
       color: 'bg-blue-50 text-blue-700 border-blue-100'
-    },
-    complypay: {
-      label: 'ComplyPay',
-      icon: <CreditCard className="h-5 w-5" />,
-      description: 'Acesse o sistema de pagamentos ComplyPay',
-      credentials: {
-        username: 'admin@complypay.com',
-        password: 'pay123'
-      },
-      color: 'bg-green-50 text-green-700 border-green-100'
     },
     doctor: {
       label: 'Médico',
@@ -269,11 +259,9 @@ export default function Login() {
         console.log("Redirecionando após login...");
         
         if (userType === 'admin') {
-          window.location.href = '/dashboards/admin';
+          window.location.href = '/admin/dashboard';
         } else if (userType === 'org_admin') {
           window.location.href = '/organization/dashboard';
-        } else if (userType === 'complypay') {
-          window.location.href = '/organization/complypay';
         } else if (userType === 'pharmacist') {
           window.location.href = '/pharmacist/dashboard';
         } else if (userType === 'laboratory') {
