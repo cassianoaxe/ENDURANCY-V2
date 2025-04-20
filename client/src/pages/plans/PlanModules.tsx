@@ -104,8 +104,8 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const [planModulesError, setPlanModulesError] = useState<Error | null>(null);
   
   // IDs dos módulos padrão que não podem ser desmarcados
-  // Estes módulos estarão presentes em todos os planos: financeiro, complypay, vendas online, expedição e integrações
-  const standardModuleTypes = ["financeiro", "complypay", "vendas", "expedição", "integracoes"];
+  // Estes módulos estarão presentes em todos os planos: financeiro, complypay, vendas online, expedição, integrações e comunicação
+  const standardModuleTypes = ["financeiro", "complypay", "vendas", "expedição", "integracoes", "comunicacao"];
   
   // Verificar se o usuário está autenticado e é um admin
   useEffect(() => {
@@ -643,6 +643,7 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
                     <li>Vendas - Módulo básico de vendas online</li>
                     <li>Expedição - Gerenciamento de envio de produtos</li>
                     <li>Integrações - APIs e conectores para sistemas externos</li>
+                    <li>Comunicação - Gestão de e-mails, notificações e arquivos</li>
                   </ul>
                 </div>
               </div>
