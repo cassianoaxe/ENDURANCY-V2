@@ -95,11 +95,10 @@ export default function OrganizationSidebar() {
   
   // Gerenciar posição de rolagem e expandedMenu
   useEffect(() => {
-    // Verifica se existe uma configuração de menu expandido no localStorage
-    const savedExpandedMenu = localStorage.getItem('expandedSubmenu');
-    if (savedExpandedMenu) {
-      setExpandedMenu(savedExpandedMenu);
-    }
+    // Para garantir que menus sempre iniciem fechados, removemos qualquer estado salvo
+    // Isso corrige o problema de menus como Financeiro e Tickets abrirem automaticamente
+    localStorage.removeItem('expandedSubmenu');
+    setExpandedMenu(null);
     
     // Restaura a posição de rolagem da sidebar, se houver
     const scrollContainer = document.querySelector('.custom-scrollbar');
@@ -170,16 +169,8 @@ export default function OrganizationSidebar() {
     }
   };
 
-  // Use localStorage para persistir o estado do menu entre navegações
-  const [expandedMenu, setExpandedMenu] = useState<string | null>(() => {
-    // Carrega o submenu aberto do localStorage na inicialização
-    try {
-      const savedMenu = localStorage.getItem('expandedSubmenu');
-      return savedMenu || null;
-    } catch (e) {
-      return null;
-    }
-  });
+  // Use estado para controlar qual menu está expandido
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
   
   // Função para alternar a exibição de um submenu
   const toggleSubmenu = (menuTitle: string, event: React.MouseEvent) => {
