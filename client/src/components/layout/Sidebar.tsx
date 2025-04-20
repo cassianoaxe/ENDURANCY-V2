@@ -100,7 +100,7 @@ export default function Sidebar() {
   // Estado para controle dos menus expandidos
   const [expandedMenus, setExpandedMenus] = React.useState<{[key: string]: boolean}>({
     "Dashboard": true,
-    "Módulos": true,
+    "Módulos": false, // Menu fechado por padrão
     "Planos": true,
     "Organizações": true,
     "Tickets de Suporte": false, // Menu fechado por padrão
