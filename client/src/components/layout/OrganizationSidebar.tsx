@@ -462,6 +462,53 @@ export default function OrganizationSidebar() {
     },
     
     {
+      title: "Comunicação",
+      path: "/organization/comunicacao",
+      active: currentPath === "/organization/comunicacao" || 
+              currentPath.startsWith("/organization/comunicacao/"),
+      icon: <MessageCircle size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Módulo Comunicação",
+          path: "/organization/comunicacao",
+          active: currentPath === "/organization/comunicacao" && !currentPath.includes("/organization/comunicacao/"),
+          icon: <MessageCircle size={16} />
+        },
+        {
+          title: "Calendário",
+          path: "/organization/comunicacao/calendario",
+          active: currentPath === "/organization/comunicacao/calendario",
+          icon: <CalendarDays size={16} />
+        },
+        {
+          title: "Campanhas de Email",
+          path: "/organization/comunicacao/campanhas",
+          active: currentPath === "/organization/comunicacao/campanhas",
+          icon: <Send size={16} />
+        },
+        {
+          title: "Notificações",
+          path: "/organization/comunicacao/notificacoes",
+          active: currentPath === "/organization/comunicacao/notificacoes",
+          icon: <Bell size={16} />
+        },
+        {
+          title: "Arquivos e Mídias",
+          path: "/organization/comunicacao/arquivos",
+          active: currentPath === "/organization/comunicacao/arquivos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Credenciais",
+          path: "/organization/comunicacao/credenciais",
+          active: currentPath === "/organization/comunicacao/credenciais",
+          icon: <ShieldCheck size={16} />
+        }
+      ]
+    },
+    
+    {
       title: "Integrações",
       path: "/organization/integracoes",
       active: currentPath === "/organization/integracoes" || 
