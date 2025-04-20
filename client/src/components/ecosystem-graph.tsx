@@ -1,15 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Leaf } from "lucide-react";
+import { Leaf, Brain, Sparkles } from "lucide-react";
 
 interface EcosystemNodeProps {
   label: string;
   className?: string;
   position: string;
   delay?: number;
+  icon?: React.ReactNode;
 }
 
-const EcosystemNode: React.FC<EcosystemNodeProps> = ({ label, className, position, delay = 0 }) => {
+const EcosystemNode: React.FC<EcosystemNodeProps> = ({ 
+  label, 
+  className, 
+  position, 
+  delay = 0,
+  icon
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
@@ -20,11 +27,20 @@ const EcosystemNode: React.FC<EcosystemNodeProps> = ({ label, className, positio
     return () => clearTimeout(timer);
   }, [delay]);
   
+  const isAI = label.includes("Inteligência") || label === "IA";
+  const baseClasses = `absolute ${position} flex items-center justify-center bg-green-600 text-white rounded-full px-4 py-2 font-medium shadow-lg hover:bg-green-700 transition-all duration-300 cursor-pointer transform hover:scale-105 ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500 ${className}`;
+
   return (
-    <div 
-      className={`absolute ${position} flex items-center justify-center bg-green-600 text-white rounded-full px-4 py-2 font-medium shadow-lg hover:bg-green-700 transition-all duration-300 cursor-pointer transform hover:scale-105 ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500 ${className}`}
-    >
+    <div className={baseClasses}>
+      {icon && (
+        <span className={`mr-1.5 ${isAI ? 'animate-pulse' : ''}`}>
+          {icon}
+        </span>
+      )}
       {label}
+      {isAI && (
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur opacity-30 group-hover:opacity-50 animate-pulse"></div>
+      )}
     </div>
   );
 };
@@ -74,6 +90,13 @@ export function EcosystemGraph() {
           <EcosystemNode label="Cultivo" position="bottom-4 left-1/4" delay={600} />
           <EcosystemNode label="Pesquisa" position="bottom-1/4 left-8" delay={700} />
           <EcosystemNode label="Farmácia" position="top-1/2 left-4" delay={800} />
+          <EcosystemNode 
+            label="Inteligência Artificial" 
+            position="bottom-1/2 left-1/2 transform translate-x-6 translate-y-2" 
+            delay={900} 
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold scale-110 py-2.5 px-5"
+            icon={<Sparkles className="h-4 w-4" />}
+          />
         </>
       )}
       
@@ -118,6 +141,35 @@ export function EcosystemGraph() {
         {/* Conexões cruzadas para mostrar integração completa */}
         <path d="M 200 60 Q 210 140 280 210" stroke={secondaryColor} strokeWidth="1" strokeDasharray="4 2" markerEnd="url(#arrowhead)" />
         <path d="M 120 130 Q 180 150 230 280" stroke={secondaryColor} strokeWidth="1" strokeDasharray="4 2" markerEnd="url(#arrowhead)" />
+        
+        {/* Conexões com a IA */}
+        <linearGradient id="iaGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#4C51BF" />
+          <stop offset="100%" stopColor="#9F7AEA" />
+        </linearGradient>
+        
+        {/* Conexões da IA para outros nós */}
+        <path d="M 214 214 Q 230 190 280 210" stroke="url(#iaGradient)" strokeWidth="1.5" strokeDasharray="3 2" markerEnd="url(#arrowhead)">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3s" repeatCount="indefinite" />
+        </path>
+        <path d="M 214 214 Q 190 170 200 60" stroke="url(#iaGradient)" strokeWidth="1.5" strokeDasharray="3 2" markerEnd="url(#arrowhead)">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="4s" repeatCount="indefinite" />
+        </path>
+        <path d="M 214 214 Q 160 210 120 210" stroke="url(#iaGradient)" strokeWidth="1.5" strokeDasharray="3 2" markerEnd="url(#arrowhead)">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="5s" repeatCount="indefinite" />
+        </path>
+        <path d="M 214 214 Q 180 240 170 280" stroke="url(#iaGradient)" strokeWidth="1.5" strokeDasharray="3 2" markerEnd="url(#arrowhead)">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="4.5s" repeatCount="indefinite" />
+        </path>
+        <path d="M 214 214 Q 250 240 230 280" stroke="url(#iaGradient)" strokeWidth="1.5" strokeDasharray="3 2" markerEnd="url(#arrowhead)">
+          <animate attributeName="stroke-dashoffset" from="100" to="0" dur="3.7s" repeatCount="indefinite" />
+        </path>
+        
+        {/* Círculo decorativo ao redor da IA */}
+        <circle cx="214" cy="214" r="35" stroke="url(#iaGradient)" strokeWidth="2" strokeDasharray="5 3" fill="none" opacity="0.3">
+          <animate attributeName="r" from="32" to="38" dur="3s" repeatCount="indefinite" />
+          <animate attributeName="opacity" from="0.1" to="0.4" dur="3s" repeatCount="indefinite" />
+        </circle>
       </svg>
     </div>
   );
