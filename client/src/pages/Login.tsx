@@ -171,6 +171,8 @@ export default function Login() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
+      console.log("Iniciando tentativa de login para usuário:", data.username, "tipo:", userType);
+      
       // Ajuste para tipos de usuário específicos
       let loginType = userType;
       // Farmacêutico temporariamente usando "doctor"
@@ -180,31 +182,52 @@ export default function Login() {
       
       // Se é um login específico para organização, incluir o código no login
       if (isOrgLogin && orgCode) {
+        console.log("Login em organização específica com código:", orgCode);
         await login(data.username, data.password, loginType, orgCode);
       } else {
         // Login normal
+        console.log("Login padrão para tipo:", loginType);
         await login(data.username, data.password, loginType);
       }
       
-      // Redirecionamentos baseados no tipo de usuário
-      if (userType === 'pharmacist') {
-        setLocation('/pharmacist/dashboard');
-      } else if (userType === 'laboratory') {
-        setLocation('/laboratory/dashboard');
-      } else if (userType === 'researcher') {
-        setLocation('/researcher/dashboard');
-      }
+      console.log("Login realizado com sucesso");
       
+      // Mostrar toast de sucesso
       toast({
         title: 'Login bem-sucedido',
-        description: 'Bem-vindo de volta!',
-        variant: 'default',
+        description: 'Bem-vindo de volta! Redirecionando...',
+        duration: 3000, 
       });
+      
+      // Pequeno delay antes de redirecionar para evitar rate limiting
+      setTimeout(() => {
+        // Usando window.location para redirecionamento mais confiável
+        console.log("Redirecionando após login...");
+        
+        if (userType === 'admin') {
+          window.location.href = '/admin/dashboard';
+        } else if (userType === 'org_admin') {
+          window.location.href = '/organization/dashboard';
+        } else if (userType === 'pharmacist') {
+          window.location.href = '/pharmacist/dashboard';
+        } else if (userType === 'laboratory') {
+          window.location.href = '/laboratory/dashboard';
+        } else if (userType === 'researcher') {
+          window.location.href = '/researcher/dashboard';
+        } else if (userType === 'doctor') {
+          window.location.href = '/doctor/dashboard';
+        } else if (userType === 'patient') {
+          window.location.href = '/patient/dashboard';
+        } else {
+          window.location.href = '/dashboard';
+        }
+      }, 1000);
+      
     } catch (error) {
       console.error('Login falhou:', error);
       toast({
         title: 'Falha no login',
-        description: 'Email ou senha inválidos',
+        description: error.message || 'Email ou senha inválidos. Verifique suas credenciais e tente novamente.',
         variant: 'destructive',
       });
     } finally {
