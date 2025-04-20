@@ -180,26 +180,80 @@ export default function Login() {
         loginType = 'doctor'; 
       }
       
-      // Se é um login específico para organização, incluir o código no login
-      if (isOrgLogin && orgCode) {
-        console.log("Login em organização específica com código:", orgCode);
-        await login(data.username, data.password, loginType, orgCode);
-      } else {
-        // Login normal
-        console.log("Login padrão para tipo:", loginType);
-        await login(data.username, data.password, loginType);
+      // Implementar retry com backoff exponencial para evitar problemas de rate limiting
+      let maxAttempts = 3;
+      let attempt = 0;
+      let loginSuccess = false;
+      let lastError: any = null;
+      
+      while (attempt < maxAttempts && !loginSuccess) {
+        attempt++;
+        try {
+          console.log(`Tentativa de login ${attempt} de ${maxAttempts}`);
+          
+          // Se é um login específico para organização, incluir o código no login
+          if (isOrgLogin && orgCode) {
+            console.log("Login em organização específica com código:", orgCode);
+            await login(data.username, data.password, loginType, orgCode);
+          } else {
+            // Login normal
+            console.log("Login padrão para tipo:", loginType);
+            await login(data.username, data.password, loginType);
+          }
+          
+          // Se chegou aqui, login foi bem-sucedido
+          loginSuccess = true;
+          console.log("Login realizado com sucesso na tentativa", attempt);
+          
+        } catch (error: any) {
+          lastError = error;
+          console.error(`Tentativa ${attempt} falhou:`, error);
+          
+          // Se não for erro de rate limiting ou for a última tentativa, não tentar novamente
+          if (!error.message?.includes('429') || attempt >= maxAttempts) {
+            break;
+          }
+          
+          // Esperar um tempo antes de tentar novamente (backoff exponencial)
+          const backoffTime = Math.pow(2, attempt) * 1000;
+          console.log(`Aguardando ${backoffTime}ms antes da próxima tentativa...`);
+          await new Promise(resolve => setTimeout(resolve, backoffTime));
+        }
       }
       
-      console.log("Login realizado com sucesso");
+      // Se o login falhou após todas as tentativas, lançar erro
+      if (!loginSuccess) {
+        throw lastError || new Error('Falha na autenticação após múltiplas tentativas');
+      }
+      
+      // Verificar se a sessão foi estabelecida corretamente
+      try {
+        const sessionCheck = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!sessionCheck.ok) {
+          console.warn("Aviso: Login bem-sucedido, mas sessão pode não estar estabelecida corretamente");
+        } else {
+          console.log("Sessão confirmada com sucesso");
+        }
+      } catch (sessionError) {
+        console.warn("Erro ao verificar sessão:", sessionError);
+      }
       
       // Mostrar toast de sucesso
       toast({
         title: 'Login bem-sucedido',
         description: 'Bem-vindo de volta! Redirecionando...',
-        duration: 3000, 
+        duration: 3000,
       });
       
-      // Pequeno delay antes de redirecionar para evitar rate limiting
+      // Pequeno delay antes de redirecionar para garantir que a sessão foi estabelecida
       setTimeout(() => {
         // Usando window.location para redirecionamento mais confiável
         console.log("Redirecionando após login...");
@@ -221,13 +275,25 @@ export default function Login() {
         } else {
           window.location.href = '/dashboard';
         }
-      }, 1000);
+      }, 1500);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login falhou:', error);
+      
+      // Extrair mensagem de erro mais informativa
+      let errorMessage = 'Email ou senha inválidos. Verifique suas credenciais e tente novamente.';
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      if (errorMessage.includes('429')) {
+        errorMessage = 'Muitas tentativas de login. Por favor, aguarde alguns minutos e tente novamente.';
+      }
+      
       toast({
         title: 'Falha no login',
-        description: error.message || 'Email ou senha inválidos. Verifique suas credenciais e tente novamente.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

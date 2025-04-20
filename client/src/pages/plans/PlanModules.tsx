@@ -4,11 +4,21 @@ import Layout from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { 
+  Loader2, 
+  AlertCircle, 
+  Shield, 
+  AlertTriangle, 
+  ArrowLeft, 
+  Save, 
+  Search, 
+  FilterX, 
+  X, 
+  Check, 
+  Package, 
+  Sliders 
+} from "lucide-react";
 
-interface PlanModulesProps {
-  planId?: string;
-}
 import {
   Card,
   CardContent,
@@ -21,17 +31,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  AlertCircle,
-  ArrowLeft,
-  Package,
-  Save,
-  Check,
-  X,
-  Search,
-  FilterX,
-  Sliders,
-} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -57,8 +56,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+interface PlanModulesProps {
+  planId?: string;
+}
 
 // Interfaces
 interface Module {
@@ -265,9 +267,10 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   // Estado para armazenar os módulos obtidos manualmente
   const [planModules, setPlanModules] = useState<Module[]>([]);
   
-  // Função para buscar manualmente os módulos do plano
+  // Função para buscar manualmente os módulos do plano - versão simplificada
   async function fetchPlanModules() {
     if (isNaN(planId) || !user) {
+      console.log("Não carregando módulos: ID plano inválido ou usuário não autenticado");
       return;
     }
     
@@ -277,62 +280,48 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     try {
       console.log(`Iniciando busca manual dos módulos do plano ${planId}...`);
       
-      // Adicionar um pequeno delay para evitar rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
       
       const response = await fetch(`/api/plans/${planId}/modules`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
         },
-        credentials: 'include', // Incluir cookies de autenticação
-        cache: 'no-store' // Evitar cache
+        credentials: 'include',
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
       if (!response.ok) {
-        // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
-        const contentType = response.headers.get('content-type');
-        console.log(`Tipo de conteúdo recebido em fetchPlanModules: ${contentType}, status: ${response.status}`);
-        
-        if (contentType && contentType.includes('text/html')) {
-          // Caso seja HTML, provavelmente é uma página de login
-          if (response.status === 401) {
-            throw new Error('Sessão expirada. Faça login novamente.');
-          } else if (response.status === 429) {
-            throw new Error('Muitas requisições. Aguarde um momento e tente novamente.');
-          } else {
-            throw new Error(`Erro de autenticação. Status: ${response.status}`);
-          }
+        if (response.status === 401) {
+          console.error("Erro 401: Não autenticado ao buscar módulos");
+          throw new Error('Autenticação necessária. Faça login novamente.');
+        } else if (response.status === 429) {
+          console.error("Erro 429: Muitas requisições ao buscar módulos");
+          throw new Error('Muitas requisições. Aguarde alguns minutos.');
+        } else {
+          console.error(`Erro ${response.status} ao buscar módulos: ${response.statusText}`);
+          throw new Error(`Erro ao carregar dados: ${response.statusText}`);
         }
-        
-        throw new Error(`Erro ao carregar módulos do plano: ${response.statusText}`);
       }
       
-      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Resposta do servidor não está no formato JSON esperado');
-      }
+      const modules = await response.json();
+      console.log(`Módulos do plano ${planId} recebidos:`, modules.length);
+      setPlanModules(modules);
       
-      try {
-        const modules = await response.json();
-        console.log(`Módulos do plano ${planId} recebidos com sucesso:`, modules.length);
-        setPlanModules(modules);
-        
-        // Inicializar os módulos selecionados
-        if (modules && modules.length > 0) {
-          setSelectedModules(modules.map((m: Module) => m.id));
-        }
-      } catch (error) {
-        console.error('Erro ao parsear resposta JSON dos módulos:', error);
-        throw new Error('Falha ao processar resposta do servidor');
+      // Inicializar os módulos selecionados
+      if (modules && modules.length > 0) {
+        setSelectedModules(modules.map((m: Module) => m.id));
       }
     } catch (error) {
       console.error(`Erro ao buscar módulos do plano ${planId}:`, error);
-      setPlanModulesError(error as Error);
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setPlanModulesError(new Error('Tempo limite excedido. A solicitação foi cancelada.'));
+      } else {
+        setPlanModulesError(error as Error);
+      }
     } finally {
       setLoadingPlanModules(false);
     }
@@ -345,69 +334,48 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     }
     
     // Buscar os módulos do plano manualmente
-    fetchPlanModules();
+    if (planId && !isNaN(planId) && user && user.role === 'admin') {
+      fetchPlanModules();
+    }
   }, [plan, planId, user]);
 
-  // Mutation para salvar as alterações nos módulos do plano
+  // Mutation para salvar os módulos do plano
   const saveModulesMutation = useMutation({
     mutationFn: async (moduleIds: number[]) => {
-      if (isNaN(planId)) {
-        throw new Error("ID do plano inválido");
-      }
-      
-      const response = await fetch(`/api/plans/${planId}/modules`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Incluir cookies de autenticação
-        body: JSON.stringify({ moduleIds }),
-      });
-
-      // Verificar se a resposta contém texto HTML (erro comum em redireções para login)
-      const contentType = response.headers.get('content-type');
-      if (!response.ok) {
-        if (contentType && contentType.includes('text/html')) {
-          // Caso seja HTML, provavelmente é uma página de login
-          if (response.status === 401) {
-            throw new Error('Sessão expirada. Faça login novamente.');
+      try {
+        const response = await fetch(`/api/plans/${planId}/modules`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ moduleIds }),
+        });
+        
+        if (!response.ok) {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
           } else {
-            throw new Error(`Erro de autenticação. Status: ${response.status}`);
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
           }
         }
         
-        try {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Erro ao salvar módulos');
-        } catch (jsonError) {
-          throw new Error('Erro ao salvar módulos');
-        }
-      }
-
-      // Verificar o tipo de conteúdo antes de tentar parsear como JSON
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Resposta do servidor não está no formato JSON esperado');
-      }
-      
-      try {
-        const data = await response.json();
-        return data;
+        return await response.json();
       } catch (error) {
-        console.error('Erro ao parsear resposta JSON:', error);
-        throw new Error('Falha ao processar resposta do servidor');
+        console.error('Erro ao salvar módulos:', error);
+        throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/plans/${planId}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/plans'] });
-      
       toast({
-        title: "Módulos atualizados",
-        description: "As alterações foram salvas com sucesso",
-        variant: "default",
+        title: "Sucesso",
+        description: "Módulos do plano atualizados com sucesso",
       });
-      
+      queryClient.invalidateQueries({ queryKey: [`/api/plans/${planId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/plans/${planId}/modules`] });
       setHasChanges(false);
     },
     onError: (error: Error) => {
@@ -419,33 +387,35 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     },
   });
 
-  // Verificar se um módulo está incluído no plano
-  const isModuleSelected = (moduleId: number) => {
-    return selectedModules.includes(moduleId);
-  };
-
-  // Alternar seleção de um módulo
-  const toggleModule = (moduleId: number) => {
-    setSelectedModules(prev => {
-      const newSelected = prev.includes(moduleId)
-        ? prev.filter(id => id !== moduleId)
-        : [...prev, moduleId];
-      
-      setHasChanges(true);
-      return newSelected;
-    });
-  };
-
-  // Filtrar módulos com base na pesquisa e no tipo selecionado
+  // Filtrar módulos baseado no termo de busca e tipo selecionado
   const getFilteredModules = () => {
-    return allModules.filter(module => {
-      const matchesSearch = 
+    return allModules.filter((module) => {
+      const matchesTerm =
+        searchTerm === "" ||
         module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesType = filterType === "todos" || module.type === filterType;
       
-      return matchesSearch && matchesType;
+      return matchesTerm && matchesType;
+    });
+  };
+
+  // Verificar se um módulo está selecionado
+  const isModuleSelected = (moduleId: number) => {
+    return selectedModules.includes(moduleId);
+  };
+
+  // Adicionar ou remover um módulo da seleção
+  const toggleModule = (moduleId: number) => {
+    setSelectedModules((prev) => {
+      const isSelected = prev.includes(moduleId);
+      const newSelection = isSelected
+        ? prev.filter((id) => id !== moduleId)
+        : [...prev, moduleId];
+      
+      setHasChanges(true);
+      return newSelection;
     });
   };
 
@@ -454,7 +424,7 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     saveModulesMutation.mutate(selectedModules);
   };
 
-  // Cancelar alterações e voltar para a página de planos
+  // Cancelar as alterações e voltar para a página de planos
   const cancelChanges = () => {
     if (hasChanges) {
       setConfirmDialogOpen(true);
@@ -485,10 +455,45 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     );
   }
   
-  // Se o usuário não estiver autenticado ou não for admin, não renderiza o conteúdo
-  // (O useEffect já lida com o redirecionamento)
-  if (!user || user.role !== 'admin') {
-    return null;
+  // Se o usuário não estiver autenticado ou não for admin, mostrar mensagem clara de erro
+  if (!user) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+          <div className="bg-destructive/15 border border-destructive text-destructive p-6 rounded-lg max-w-md w-full">
+            <AlertCircle className="h-10 w-10 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Sessão expirada</h2>
+            <p className="mb-4">Você precisa estar autenticado para acessar esta página.</p>
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={() => window.location.href = '/login'}>
+                Fazer login
+              </Button>
+              <Button variant="destructive" onClick={() => window.location.href = '/'}>
+                Voltar ao início
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
+  // Verificar se o usuário tem permissão de admin
+  if (user.role !== 'admin') {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 p-6 rounded-lg max-w-md w-full">
+            <Shield className="h-10 w-10 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Acesso restrito</h2>
+            <p className="mb-4">Esta página está disponível apenas para administradores do sistema.</p>
+            <Button variant="outline" onClick={() => window.location.href = '/'}>
+              Voltar ao início
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
   }
   
   return (
