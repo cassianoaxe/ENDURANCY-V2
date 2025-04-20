@@ -70,10 +70,13 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            <div className="rounded-lg overflow-hidden shadow-xl bg-white p-6">
+            <div className="rounded-xl overflow-hidden shadow-xl bg-white p-6 border border-green-100">
               <div className="flex flex-col items-center">
-                <h3 className="text-xl font-semibold text-green-800 mb-4">Nosso Ecossistema</h3>
-                <div className="w-full h-[350px]">
+                <h3 className="text-xl font-semibold text-green-800 mb-2">Nosso Ecossistema Integrado</h3>
+                <p className="text-sm text-gray-500 mb-4 text-center max-w-md">
+                  Uma plataforma completa que conecta todos os agentes do setor em um único sistema
+                </p>
+                <div className="w-full h-[400px] flex items-center justify-center">
                   <EcosystemGraph />
                 </div>
               </div>
