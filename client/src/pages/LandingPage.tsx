@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { EcosystemLogo } from "@/components/ecosystem-logo";
 import { EcosystemGraph } from "@/components/ecosystem-graph";
+import { EcosystemGraphV2 } from "@/components/ecosystem-graph-v2";
 import { 
   Leaf, ShieldCheck, Users, BookOpen, Pill, 
   ArrowRight, CheckCircle, Medal, Globe, 
@@ -77,7 +78,7 @@ const LandingPage = () => {
                   Uma plataforma completa que conecta todos os agentes do setor em um único sistema
                 </p>
                 <div className="w-full aspect-square max-w-xl mx-auto">
-                  <EcosystemGraph />
+                  <EcosystemGraphV2 />
                 </div>
               </div>
             </div>
