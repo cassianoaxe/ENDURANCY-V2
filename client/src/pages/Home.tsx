@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { EcosystemGraph } from "@/components/ecosystem-graph";
+import { EcosystemLogo } from "@/components/ecosystem-logo";
 
 export default function Home() {
   // Exibimos uma página inicial com informações sobre o sistema
@@ -32,6 +33,18 @@ export default function Home() {
           </p>
         </div>
         <EcosystemGraph />
+      </div>
+      
+      <div className="mb-12">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-primary">Gestão Completa para Setor Medicinal Cannabidiol</h2>
+          <p className="text-muted-foreground mt-1">
+            Análises, relatórios e métricas para sua operação
+          </p>
+        </div>
+        <Card className="p-4">
+          <EcosystemLogo />
+        </Card>
       </div>
       
       <Tabs defaultValue="overview" className="mb-12">
