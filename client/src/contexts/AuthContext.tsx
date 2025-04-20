@@ -25,37 +25,113 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check if user is already authenticated on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAuthStatus = async () => {
       try {
         console.log("Verificando status de autenticação...");
-        const response = await fetch('/api/auth/me', {
-          credentials: 'include', // Incluir cookies na requisição
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          },
-          cache: 'no-cache' // Prevent browser caching
-        });
         
-        if (response.ok) {
-          const userData = await response.json();
-          console.log("Usuário autenticado:", userData);
-          setUser(userData);
-        } else {
-          console.log("Usuário não autenticado. Status:", response.status);
-          const errorText = await response.text();
-          console.log("Erro de autenticação:", errorText);
+        // Tentar até 3 vezes com backoff exponencial
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (attempts < maxAttempts) {
+          attempts++;
+          console.log(`Tentativa ${attempts}/${maxAttempts} de verificar autenticação`);
+          
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+            
+            const response = await fetch('/api/auth/me', {
+              credentials: 'include', // Incluir cookies na requisição
+              headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              },
+              cache: 'no-cache', // Prevent browser caching
+              signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            // Verificar se a resposta contém HTML (possível redirecionamento)
+            const contentType = response.headers.get('content-type');
+            const isHtmlResponse = contentType && contentType.includes('text/html');
+            
+            if (isHtmlResponse) {
+              console.warn("Recebida resposta HTML ao invés de JSON. Possível redirecionamento ou erro de sessão");
+              
+              if (response.status === 429) {
+                // Rate limiting, aguardar e tentar novamente
+                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
+                if (attempts < maxAttempts) {
+                  // Esperar tempo progressivo entre tentativas: 2s, 4s, 8s...
+                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                  continue;
+                }
+              }
+            }
+            
+            if (response.ok) {
+              const userData = await response.json();
+              console.log("Usuário autenticado:", userData);
+              if (isMounted) setUser(userData);
+              break; // Sair do loop em caso de sucesso
+            } else {
+              console.log("Usuário não autenticado. Status:", response.status);
+              
+              if (response.status === 429) {
+                // Rate limiting, aguardar e tentar novamente
+                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
+                if (attempts < maxAttempts) {
+                  // Esperar tempo progressivo entre tentativas
+                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                  continue;
+                }
+              }
+              
+              let errorText = '';
+              try {
+                errorText = await response.text();
+              } catch (e) {
+                errorText = 'Não foi possível obter detalhes do erro';
+              }
+              console.log("Erro de autenticação:", errorText);
+              break; // Sair do loop se o erro não for 429
+            }
+          } catch (innerError: any) {
+            if (innerError.name === 'AbortError') {
+              console.error('Requisição abortada por timeout');
+              if (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                continue;
+              }
+            } else if (attempts < maxAttempts) {
+              console.warn(`Erro na tentativa ${attempts}, tentando novamente...`, innerError);
+              await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+              continue;
+            }
+            
+            console.error(`Todas as ${maxAttempts} tentativas falharam`, innerError);
+            throw innerError;
+          }
         }
       } catch (error) {
         console.error('Failed to check authentication status', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     checkAuthStatus();
+    
+    // Cleanup para evitar memory leaks
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => {
@@ -89,60 +165,133 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userType, 
         hasOrgCode: !!orgCode 
       });
+      
+      // Implementar um mecanismo de timeout para a requisição
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
+      
+      // Usar função de retry para contornar possíveis problemas de rate limiting
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`Tentativa de login ${attempts}/${maxAttempts}`);
         
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        credentials: 'include', // Importante para salvar o cookie de sessão
-        cache: 'no-cache', // Prevent caching
-        body: JSON.stringify(requestBody),
-      });
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            credentials: 'include', // Importante para salvar o cookie de sessão
+            cache: 'no-cache', // Prevent caching
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          
+          // Verificar se a resposta contém HTML (possível redirecionamento)
+          const contentType = response.headers.get('content-type');
+          const isHtmlResponse = contentType && contentType.includes('text/html');
+          
+          if (isHtmlResponse) {
+            console.warn("Recebida resposta HTML ao invés de JSON. Possível redirecionamento ou erro de sessão");
+            
+            if (response.status === 429) {
+              // Rate limiting, aguardar e tentar novamente
+              console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
+              if (attempts < maxAttempts) {
+                // Esperar tempo progressivo entre tentativas: 2s, 4s, 8s...
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                continue;
+              } else {
+                throw new Error("Muitas requisições. Por favor, aguarde alguns instantes e tente novamente.");
+              }
+            }
+            
+            if (response.status === 401 || response.status === 403) {
+              throw new Error("Credenciais inválidas. Verifique seu e-mail e senha.");
+            }
+            
+            throw new Error(`Resposta inesperada do servidor (${response.status})`);
+          }
+          
+          if (!response.ok) {
+            // Tenta obter mensagem de erro do JSON
+            let errorMessage = `Erro ${response.status}: ${response.statusText}`;
+            try {
+              const errorData = await response.json();
+              if (errorData.message) {
+                errorMessage = errorData.message;
+              } else if (errorData.error) {
+                errorMessage = typeof errorData.error === 'string' 
+                  ? errorData.error 
+                  : errorData.error.message || errorMessage;
+              }
+            } catch {
+              // Não conseguiu parsear JSON, tenta obter texto simples
+              try {
+                const errorText = await response.text();
+                if (errorText && errorText.length < 200) { // Se for um texto curto
+                  errorMessage = errorText;
+                }
+              } catch {
+                // Ignora se não conseguir obter texto
+              }
+            }
+            
+            // Tratamento específico para rate limiting
+            if (response.status === 429) {
+              console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
+              if (attempts < maxAttempts) {
+                // Esperar tempo progressivo entre tentativas
+                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
+                continue;
+              } else {
+                throw new Error("Muitas requisições. Por favor, aguarde alguns instantes e tente novamente.");
+              }
+            }
+            
+            throw new Error(errorMessage);
+          }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Login falhou: ${response.status} - ${errorText}`);
-        throw new Error('Login failed');
-      }
-
-      const userData = await response.json();
-      console.log("Login bem-sucedido. Dados do usuário:", userData);
-      setUser(userData);
-      
-      // Redirecionar com base no papel do usuário
-      let redirectPath = '/dashboard';
-      
-      if (userData.role === 'admin') {
-        redirectPath = '/dashboard';
-        console.log("Redirecionando admin para o dashboard administrativo");
-      } else if (userData.role === 'org_admin') {
-        redirectPath = '/organization/dashboard';
-        console.log("Redirecionando org_admin para o dashboard da organização");
-      } else if (userData.role === 'doctor') {
-        redirectPath = '/doctor/dashboard';
-      } else if (userData.role === 'patient') {
-        redirectPath = '/patient/dashboard';
-      } else if (userData.role === 'pharmacist') {
-        redirectPath = '/pharmacist/dashboard';
-      } else if (userData.role === 'laboratory') {
-        redirectPath = '/laboratory/dashboard';
-        console.log("Redirecionando laboratório para o dashboard do laboratório");
-      } else if (userData.role === 'researcher') {
-        redirectPath = '/researcher/dashboard';
-        console.log("Redirecionando pesquisador para o dashboard do pesquisador");
+          // Processa a resposta bem-sucedida
+          const userData = await response.json();
+          console.log("Login bem-sucedido. Dados do usuário:", userData);
+          setUser(userData);
+          
+          // Redirecionar com base no papel do usuário
+          // Usando window.location.href para redirecionamento mais confiável
+          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento...`);
+          
+          // Retorna sem redirecionamento para permitir que a página de login faça isso
+          return;
+          
+        } catch (fetchError) {
+          if (fetchError.name === 'AbortError') {
+            console.error('Requisição de login abortada por timeout');
+            throw new Error('Tempo limite de conexão excedido. Verifique sua conexão com a internet.');
+          }
+          
+          if (attempts >= maxAttempts) {
+            console.error(`Todas as ${maxAttempts} tentativas de login falharam:`, fetchError);
+            throw fetchError;
+          } else {
+            console.warn(`Tentativa ${attempts} falhou, tentando novamente...`, fetchError);
+            // Aumentar o tempo de espera entre tentativas: 1s, 2s, 4s...
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts - 1) * 1000));
+          }
+        }
       }
       
-      console.log(`Login bem-sucedido como ${userData.role}, redirecionando para ${redirectPath}`);
-      
-      // Use window.history instead of wouter
-      window.history.pushState({}, '', redirectPath);
-      // Dispatch a custom event to notify about path change
-      window.dispatchEvent(new Event('popstate'));
+      // Se chegou aqui, todas as tentativas falharam
+      throw new Error('Falha ao realizar login após múltiplas tentativas');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
