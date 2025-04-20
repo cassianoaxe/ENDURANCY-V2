@@ -330,12 +330,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Método para verificar se o usuário está autenticado (útil para testes e debugging)
+  const checkAuthentication = async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      if (!response.ok) return false;
+      
+      const userData = await response.json();
+      return !!userData?.id;
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error);
+      return false;
+    }
+  };
+  
   const value = {
     user,
     isAuthenticated: !!user,
     isLoading,
     login,
     logout,
+    checkAuthentication
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
