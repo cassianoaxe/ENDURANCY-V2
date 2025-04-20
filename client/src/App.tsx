@@ -519,7 +519,7 @@ function AppContent() {
     if (userRole !== 'admin') {
       // Redirecionar para a página de login
       console.log("Acesso restrito: usuário não é administrador");
-      return <Login redirectPath={currentPath} />;
+      return <Login />;
     }
     
     const planId = planModulesMatch[1];
