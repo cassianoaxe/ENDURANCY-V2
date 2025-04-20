@@ -269,7 +269,7 @@ export default function Login() {
         console.log("Redirecionando após login...");
         
         if (userType === 'admin') {
-          window.location.href = '/admin/dashboard';
+          window.location.href = '/dashboards/admin';
         } else if (userType === 'org_admin') {
           window.location.href = '/organization/dashboard';
         } else if (userType === 'complypay') {
