@@ -16,7 +16,8 @@ import {
   X, 
   Check, 
   Package, 
-  Sliders 
+  Sliders,
+  Info
 } from "lucide-react";
 
 import {
@@ -101,6 +102,10 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
   const { user, isLoading: authLoading } = useAuth();
   const [loadingPlanModules, setLoadingPlanModules] = useState(true);
   const [planModulesError, setPlanModulesError] = useState<Error | null>(null);
+  
+  // IDs dos módulos padrão que não podem ser desmarcados
+  // Estes módulos estarão presentes em todos os planos: financeiro, complypay, vendas online, expedição e integrações
+  const standardModuleTypes = ["financeiro", "complypay", "vendas", "expedição", "integracoes"];
   
   // Verificar se o usuário está autenticado e é um admin
   useEffect(() => {
@@ -401,6 +406,11 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
     });
   };
 
+  // Verificar se um módulo é um dos módulos padrão
+  const isStandardModule = (moduleType: string) => {
+    return standardModuleTypes.includes(moduleType);
+  };
+
   // Verificar se um módulo está selecionado
   const isModuleSelected = (moduleId: number) => {
     return selectedModules.includes(moduleId);
@@ -408,6 +418,19 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
 
   // Adicionar ou remover um módulo da seleção
   const toggleModule = (moduleId: number) => {
+    // Buscar o módulo pelo ID para verificar o tipo
+    const module = allModules.find(m => m.id === moduleId);
+    
+    // Se for um módulo padrão e já está selecionado, não permitir desmarcar
+    if (module && isStandardModule(module.type) && isModuleSelected(moduleId)) {
+      toast({
+        title: "Módulo padrão",
+        description: "Este módulo é padrão e não pode ser removido do plano.",
+        variant: "default",
+      });
+      return;
+    }
+    
     setSelectedModules((prev) => {
       const isSelected = prev.includes(moduleId);
       const newSelection = isSelected
@@ -598,6 +621,35 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
           </Card>
         )}
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Configuração de Módulos</CardTitle>
+            <CardDescription>
+              Configure os módulos que estarão disponíveis neste plano
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+              <div className="flex">
+                <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-blue-700 mb-1">Módulos Padrão (Obrigatórios)</h4>
+                  <p className="text-blue-600 text-sm mb-2">
+                    Os seguintes módulos são padrão e estarão presentes em todos os planos:
+                  </p>
+                  <ul className="list-disc pl-5 text-sm text-blue-600 space-y-1">
+                    <li>Financeiro - Gerenciamento financeiro básico da organização</li>
+                    <li>ComplyPay - Sistema de processamento de pagamentos</li>
+                    <li>Vendas - Módulo básico de vendas online</li>
+                    <li>Expedição - Gerenciamento de envio de produtos</li>
+                    <li>Integrações - APIs e conectores para sistemas externos</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -658,15 +710,19 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
                   <TableBody>
                     {getFilteredModules().length > 0 ? (
                       getFilteredModules().map((module) => (
-                        <TableRow key={module.id}>
+                        <TableRow 
+                          key={module.id}
+                          className={isStandardModule(module.type) ? "bg-blue-50/50" : ""}
+                        >
                           <TableCell className="text-center">
                             <Checkbox
                               checked={isModuleSelected(module.id)}
                               onCheckedChange={() => toggleModule(module.id)}
+                              disabled={isStandardModule(module.type)}
                             />
                           </TableCell>
                           <TableCell className="font-medium flex items-center gap-2">
-                            <Package className="h-4 w-4 text-muted-foreground" />
+                            <Package className={`h-4 w-4 ${isStandardModule(module.type) ? 'text-blue-500' : 'text-muted-foreground'}`} />
                             {module.name}
                             {module.status === 'inactive' && (
                               <Badge variant="outline" className="ml-2 text-amber-500 border-amber-500">
@@ -675,9 +731,16 @@ export default function PlanModules({ planId: propPlanId }: PlanModulesProps) {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline">
-                              {module.type}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">
+                                {module.type}
+                              </Badge>
+                              {isStandardModule(module.type) && (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
+                                  Padrão
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>{module.description}</TableCell>
                           <TableCell className="text-right">
