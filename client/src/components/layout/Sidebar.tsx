@@ -103,8 +103,8 @@ export default function Sidebar() {
     "Módulos": true,
     "Planos": true,
     "Organizações": true,
-    "Tickets de Suporte": true,
-    "Financeiro": true,
+    "Tickets de Suporte": false, // Menu fechado por padrão
+    "Financeiro": false, // Menu fechado por padrão
     "Integrações": true,
     "Sistema": true
   });
