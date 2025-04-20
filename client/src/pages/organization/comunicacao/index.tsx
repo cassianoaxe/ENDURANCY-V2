@@ -298,7 +298,7 @@ export default function ComunicacaoDashboard() {
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium">{campaign.title}</h4>
                           {campaign.status === "enviada" ? (
-                            <Badge variant="success" className="bg-green-100 text-green-800">Enviada</Badge>
+                            <Badge variant="outline" className="bg-green-100 text-green-800">Enviada</Badge>
                           ) : (
                             <Badge variant="secondary">Rascunho</Badge>
                           )}
