@@ -1,5 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { EcosystemLogo } from "@/components/ecosystem-logo";
+import { EcosystemGraph } from "@/components/ecosystem-graph";
 import { 
   Leaf, ShieldCheck, Users, BookOpen, Pill, 
   ArrowRight, CheckCircle, Medal, Globe, 
