@@ -91,6 +91,15 @@ import ConciliacaoBancaria from "@/pages/organization/financeiro/conciliacao";
 import AnaliseFinanceira from "@/pages/organization/financeiro/analise";
 import ConfiguracaoFinanceira from "@/pages/organization/financeiro/configuracao";
 import AnaliseIA from "@/pages/organization/financeiro/analise-ia";
+
+// Importar páginas do módulo de Comunicação
+import ComunicacaoDashboard from "@/pages/organization/comunicacao/index";
+import CalendarioComunicacao from "@/pages/organization/comunicacao/calendario";
+import CampanhasEmail from "@/pages/organization/comunicacao/campanhas";
+import NotificacoesComunicacao from "@/pages/organization/comunicacao/notificacoes";
+import ArquivosComunicacao from "@/pages/organization/comunicacao/arquivos";
+import CredenciaisComunicacao from "@/pages/organization/comunicacao/credenciais";
+
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -877,6 +886,43 @@ function AppContent() {
     if (currentPath === '/organization/financeiro/analise-ia') {
       return <OrganizationLayout>
         <AnaliseIA />
+      </OrganizationLayout>;
+    }
+
+    // Rotas do módulo de Comunicação
+    if (currentPath === '/organization/comunicacao') {
+      return <OrganizationLayout>
+        <ComunicacaoDashboard />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/comunicacao/calendario') {
+      return <OrganizationLayout>
+        <CalendarioComunicacao />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/comunicacao/campanhas') {
+      return <OrganizationLayout>
+        <CampanhasEmail />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/comunicacao/notificacoes') {
+      return <OrganizationLayout>
+        <NotificacoesComunicacao />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/comunicacao/arquivos') {
+      return <OrganizationLayout>
+        <ArquivosComunicacao />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/comunicacao/credenciais') {
+      return <OrganizationLayout>
+        <CredenciaisComunicacao />
       </OrganizationLayout>;
     }
 
