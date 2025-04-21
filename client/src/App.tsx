@@ -373,12 +373,16 @@ function AppContent() {
         
         console.log(`Redirecionando para ${redirectUrl}`);
         
-        // Usamos diretamente o setLocation do wouter para navegação
-        // sem recarregar a página
-        setLocation(redirectUrl);
-        
-        // Restaurar a opacidade para garantir que a nova página seja totalmente visível
-        document.body.style.opacity = '1';
+        // Adicionar pequeno delay para dar tempo à animação de fade
+        setTimeout(() => {
+          try {
+            // Usar location.replace para evitar adicionar ao histórico
+            window.location.replace(redirectUrl);
+          } catch (error) {
+            console.error("Erro ao redirecionar:", error);
+            window.location.href = redirectUrl;
+          }
+        }, 150);
       }
     }
   }, [isLoading, isAuthenticated, user]);
@@ -488,19 +492,9 @@ function AppContent() {
       return <Login />;
     }
     
-    // Regular login - versão simplificada para corrigir problemas de desempenho e redirecionamento
+    // Regular login
     if (currentPath === '/login') {
-      // Importamos o SimpleLogin dinamicamente para evitar dependências circulares
-      const SimpleLogin = React.lazy(() => import('@/pages/SimpleLogin'));
-      return (
-        <React.Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        }>
-          <SimpleLogin />
-        </React.Suspense>
-      );
+      return <Login />;
     }
     
     // Login de paciente - tratar todas as variações de URL
