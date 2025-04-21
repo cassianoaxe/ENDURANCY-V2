@@ -239,10 +239,52 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Mostrar um estado visual de loading durante a transição
-      // para evitar que o usuário veja múltiplas páginas carregando
-      document.body.style.opacity = '0.5';
-      document.body.style.transition = 'opacity 0.3s';
+      // Solução radical: mostrar uma tela de carregamento customizada na DOM
+      // em vez de confiar na renderização do React durante o redirecionamento
+      document.body.innerHTML = `
+        <div 
+          style="
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 9999;
+          "
+        >
+          <div 
+            style="
+              width: 50px; 
+              height: 50px; 
+              border: 5px solid #f3f3f3; 
+              border-top: 5px solid #3db54a; 
+              border-radius: 50%; 
+              animation: spin 1s linear infinite;
+            "
+          ></div>
+          <p 
+            style="
+              margin-top: 20px; 
+              font-family: system-ui, sans-serif; 
+              font-size: 18px; 
+              color: #333;
+            "
+          >
+            Login bem-sucedido! Redirecionando...
+          </p>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </div>
+      `;
       
       // Definir URL de redirecionamento com base no tipo de usuário
       let redirectUrl = '/dashboard';
@@ -263,21 +305,14 @@ export default function Login() {
 
       console.log(`Redirecionando diretamente para ${redirectUrl}`);
       
-      // Usar location.replace para evitar adicionar ao histórico e
-      // configurar uma flag no sessionStorage para sinalizar redirecionamento
-      sessionStorage.setItem('loginRedirect', 'true');
-      sessionStorage.setItem('loginRedirectTarget', redirectUrl);
+      // Desativar flags e forçar um novo carregamento da página
+      localStorage.setItem('direct_login_redirect', 'true');
+      sessionStorage.setItem('skip_dashboard_check', 'true');
       
-      // Adicionar pequeno delay para dar tempo à animação de fade
+      // Redirecionar diretamente sem reconstruir o React DOM      
       setTimeout(() => {
-        try {
-          // Usar location.replace para evitar adicionar ao histórico
-          window.location.replace(redirectUrl);
-        } catch (error) {
-          console.error("Erro ao redirecionar:", error);
-          window.location.href = redirectUrl;
-        }
-      }, 150);
+        window.location.replace(redirectUrl);
+      }, 200);
       
     } catch (error: any) {
       console.error('Login falhou:', error);
