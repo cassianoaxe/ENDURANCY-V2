@@ -1,145 +1,232 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Loader2, Building, Leaf } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import '../index.css';
 
-const loginSchema = z.object({
-  username: z.string().min(1, 'Email é obrigatório'),
-  password: z.string().min(1, 'Senha é obrigatória'),
-});
+// Estilo minimalista e totalmente independente
+const styles = {
+  container: {
+    display: 'flex',
+    minHeight: '100vh',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: '20px'
+  },
+  card: {
+    width: '100%',
+    maxWidth: '400px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    overflow: 'hidden'
+  },
+  header: {
+    padding: '24px',
+    borderBottom: '1px solid #e2e8f0'
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    textAlign: 'center' as const,
+    color: '#111827'
+  },
+  content: {
+    padding: '24px'
+  },
+  formGroup: {
+    marginBottom: '16px'
+  },
+  label: {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#374151'
+  },
+  input: {
+    width: '100%',
+    padding: '10px 12px',
+    borderRadius: '6px',
+    border: '1px solid #d1d5db',
+    fontSize: '16px'
+  },
+  button: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#10b981',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '16px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  buttonDisabled: {
+    backgroundColor: '#9ca3af',
+    cursor: 'not-allowed'
+  },
+  error: {
+    color: '#ef4444',
+    fontSize: '14px',
+    marginTop: '8px'
+  },
+  loadingSpinner: {
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    border: '3px solid rgba(255,255,255,0.3)',
+    borderTopColor: 'white',
+    animation: 'spin 1s linear infinite',
+    marginRight: '8px'
+  },
+  footer: {
+    padding: '16px 24px',
+    textAlign: 'center' as const,
+    fontSize: '14px',
+    color: '#6b7280',
+    borderTop: '1px solid #e2e8f0'
+  },
+  testCredentials: {
+    marginTop: '16px',
+    textAlign: 'center' as const,
+    fontSize: '14px',
+    color: '#6b7280'
+  }
+};
 
-type LoginFormData = z.infer<typeof loginSchema>;
+// Estilos para a animação do spinner
+const spinnerKeyframes = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
 
 export default function FastLogin() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-    },
-  });
-
-  async function onSubmit(data: LoginFormData) {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+    
     try {
-      setIsLoading(true);
-      
+      // Login direto sem depender do contexto
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: data.username,
-          password: data.password,
-          userType: 'org_admin'
+        body: JSON.stringify({ 
+          email, 
+          password,
+          userType: 'org_admin' 
         }),
         credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error('Email ou senha inválidos');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha no login');
       }
       
       const userData = await response.json();
-      console.log("Login bem-sucedido:", userData);
       
-      // Redirecionamento simples e direto
-      window.location.replace('/organization/dashboard');
-      
-    } catch (error) {
-      console.error('Login falhou:', error);
-      toast({
-        title: 'Falha no login',
-        description: error instanceof Error ? error.message : 'Erro ao fazer login',
-        variant: 'destructive',
-      });
+      // Redirecionar diretamente sem depender de contextos ou estado
+      if (userData.role === 'org_admin') {
+        window.location.href = '/organization/dashboard';
+      } else if (userData.role === 'admin') {
+        window.location.href = '/dashboard';
+      } else if (userData.role === 'doctor') {
+        window.location.href = '/doctor/dashboard';
+      } else if (userData.role === 'patient') {
+        window.location.href = '/patient/dashboard';
+      } else if (userData.role === 'pharmacist') {
+        window.location.href = '/pharmacist/dashboard';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    } catch (error: any) {
+      setError(error.message || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
-  }
-
+  };
+  
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <div className="w-full flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border shadow-sm">
-          <CardHeader className="space-y-2 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <div className="w-12 h-12 bg-[#e6f7e6] rounded-xl flex items-center justify-center">
-                <Leaf className="h-6 w-6 text-green-600" />
+    <>
+      <style>{spinnerKeyframes}</style>
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <h1 style={styles.title}>Acessar Endurancy</h1>
+          </div>
+          <div style={styles.content}>
+            <form onSubmit={handleLogin}>
+              <div style={styles.formGroup}>
+                <label htmlFor="email" style={styles.label}>Email</label>
+                <input 
+                  id="email" 
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu.email@organizacao.com"
+                  style={styles.input}
+                  required
+                />
               </div>
+              <div style={styles.formGroup}>
+                <label htmlFor="password" style={styles.label}>Senha</label>
+                <input 
+                  id="password" 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="********"
+                  style={styles.input}
+                  required
+                />
+              </div>
+              {error && <div style={styles.error}>{error}</div>}
+              <button 
+                type="submit" 
+                style={{
+                  ...styles.button,
+                  ...(isLoading ? styles.buttonDisabled : {})
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div style={styles.loadingSpinner} />
+                    Entrando...
+                  </>
+                ) : 'Entrar'}
+              </button>
+            </form>
+            
+            <div style={styles.testCredentials}>
+              <p>Para fins de teste, use:</p>
+              <p style={{fontWeight: 'bold'}}>Email: admin@organizacao.com</p>
+              <p style={{fontWeight: 'bold'}}>Senha: senha123</p>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Endurancy</h2>
-            <p className="text-sm text-gray-500">Faça login para acessar o sistema</p>
-          </CardHeader>
-          
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="seu@email.com" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="******" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Entrando...
-                    </>
-                  ) : (
-                    <>Entrar</>
-                  )}
-                </Button>
-                
-                <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-gray-100">
-                  <div className="p-1 rounded bg-blue-50">
-                    <Building className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="text-sm text-left">
-                    <p className="font-medium">Usuário de teste</p>
-                    <p className="text-xs text-gray-500">Email: abraceesperanca@gmail.com</p>
-                    <p className="text-xs text-gray-500">Senha: abraceesperanca123</p>
-                  </div>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+          </div>
+          <div style={styles.footer}>
+            © 2025 Endurancy - Todos os direitos reservados
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
