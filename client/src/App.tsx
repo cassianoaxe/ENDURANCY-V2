@@ -361,11 +361,23 @@ function AppContent() {
   // Removido o redirecionamento automático para dashboard a partir da raiz
   // A rota raiz sempre vai mostrar a landing page independente do status de autenticação
 
+  // Verificar se estamos em processo de redirecionamento de login
+  useEffect(() => {
+    const loginRedirect = sessionStorage.getItem('loginRedirect');
+    if (loginRedirect === 'true') {
+      // Restaurar a opacidade da página se necessário
+      document.body.style.opacity = '1';
+      // Limpar flag após uso
+      sessionStorage.removeItem('loginRedirect');
+    }
+  }, []);
+
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-gray-500">Carregando...</p>
       </div>
     );
   }
