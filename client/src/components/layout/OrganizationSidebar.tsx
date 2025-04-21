@@ -1247,8 +1247,28 @@ export default function OrganizationSidebar() {
               </div>
             </div>
             <button
-              onClick={() => logout()}
-              className="rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Feedback visual antes da ação
+                document.body.style.opacity = '0.7';
+                document.body.style.transition = 'opacity 0.2s';
+                
+                // Logout através do contexto, mas previne a navegação
+                Promise.resolve().then(() => {
+                  // Logout manual sem usar o contexto para evitar ciclos de dependência
+                  fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Cache-Control': 'no-cache' }
+                  }).finally(() => {
+                    // Redirecionamento manual após o logout
+                    console.log('Redirecionando após logout');
+                    window.location.href = '/login';
+                  });
+                });
+              }}
+              className="rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-400 focus:outline-none"
               title="Sair"
             >
               <LogOut size={16} />
@@ -1256,8 +1276,26 @@ export default function OrganizationSidebar() {
           </div>
         ) : (
           <button
-            onClick={() => logout()}
-            className="w-full flex justify-center rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Feedback visual antes da ação
+              document.body.style.opacity = '0.7';
+              document.body.style.transition = 'opacity 0.2s';
+              
+              // Logout direto com redirecionamento manual
+              Promise.resolve().then(() => {
+                fetch('/api/auth/logout', {
+                  method: 'POST',
+                  credentials: 'include',
+                  headers: { 'Cache-Control': 'no-cache' }
+                }).finally(() => {
+                  console.log('Redirecionando após logout');
+                  window.location.href = '/login';
+                });
+              });
+            }}
+            className="w-full flex justify-center rounded-md p-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-400 focus:outline-none"
             title="Sair"
           >
             <LogOut size={16} />
