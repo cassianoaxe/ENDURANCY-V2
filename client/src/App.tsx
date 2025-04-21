@@ -312,34 +312,77 @@ function AppContent() {
   useEffect(() => {
     if (isLoading) return; // Não fazer nada enquanto estiver carregando
     
+    // Verificar se há um redirecionamento de login em andamento
+    const loginRedirect = sessionStorage.getItem('loginRedirect');
+    if (loginRedirect === 'true') {
+      // Se estamos em processo de redirecionamento de login, não interferir
+      console.log("Redirecionamento de login em andamento, não interferir");
+      return;
+    }
+    
     if (isAuthenticated && user) {
       console.log("Verificando papel do usuário para redirecionamento correto:", user.role);
       const path = window.location.pathname;
       
-      // Verificar se o usuário está na página de login ou na raiz e redirecionar
-      if (path === '/login' || path === '/') {
-        // Já que acabou de fazer login, ir para o dashboard correto
+      // Função para verificar se um usuário está na página errada e precisa ser redirecionado
+      const needsRedirect = () => {
+        if (path === '/login' || path === '/') return true;
+        
+        // Se um usuário org_admin estiver no dashboard geral, redirecionar
+        if (user.role === 'org_admin' && path === '/dashboard') return true;
+        
+        // Se um usuário admin estiver no dashboard da organização, redirecionar
+        if (user.role === 'admin' && path === '/organization/dashboard') return true;
+        
+        // Verifica se o usuário com papel específico está na rota correta
+        if (user.role === 'pharmacist' && !path.startsWith('/pharmacist/')) return true;
+        if (user.role === 'doctor' && !path.startsWith('/doctor/')) return true;
+        if (user.role === 'laboratory' && !path.startsWith('/laboratory/')) return true;
+        if (user.role === 'researcher' && !path.startsWith('/researcher/')) return true;
+        if (user.role === 'patient' && !path.startsWith('/patient/')) return true;
+        
+        return false;
+      };
+      
+      if (needsRedirect()) {
+        console.log("Usuário precisa ser redirecionado para seu dashboard correto");
+        
+        // Prevenção contra redirecionamentos duplicados - registrar que estamos iniciando um
+        sessionStorage.setItem('loginRedirect', 'true');
+        
+        // Mostrar um estado visual de loading durante a transição
+        document.body.style.opacity = '0.5';
+        document.body.style.transition = 'opacity 0.3s';
+        
+        // Definir URL de redirecionamento com base no tipo de usuário
+        let redirectUrl = '/dashboard';
+        
         if (user.role === 'org_admin') {
-          console.log("Redirecionando org_admin para dashboard da organização");
-          window.location.replace('/organization/dashboard');
+          redirectUrl = '/organization/dashboard';
         } else if (user.role === 'pharmacist') {
-          window.location.replace('/pharmacist/dashboard');
+          redirectUrl = '/pharmacist/dashboard';
         } else if (user.role === 'laboratory') {
-          window.location.replace('/laboratory/dashboard');
+          redirectUrl = '/laboratory/dashboard';
         } else if (user.role === 'researcher') {
-          window.location.replace('/researcher/dashboard');
+          redirectUrl = '/researcher/dashboard';
         } else if (user.role === 'doctor') {
-          window.location.replace('/doctor/dashboard');
+          redirectUrl = '/doctor/dashboard';
         } else if (user.role === 'patient') {
-          window.location.replace('/patient/dashboard');
-        } else if (user.role === 'admin') {
-          window.location.replace('/dashboard');
+          redirectUrl = '/patient/dashboard';
         }
-      }
-      // Verificação de rota incorreta - se um org_admin estiver no dashboard geral, redirecionar
-      else if (user.role === 'org_admin' && path === '/dashboard') {
-        console.log("Org_admin detectado na rota /dashboard, redirecionando");
-        window.location.replace('/organization/dashboard');
+        
+        console.log(`Redirecionando para ${redirectUrl}`);
+        
+        // Adicionar pequeno delay para dar tempo à animação de fade
+        setTimeout(() => {
+          try {
+            // Usar location.replace para evitar adicionar ao histórico
+            window.location.replace(redirectUrl);
+          } catch (error) {
+            console.error("Erro ao redirecionar:", error);
+            window.location.href = redirectUrl;
+          }
+        }, 150);
       }
     }
   }, [isLoading, isAuthenticated, user]);
