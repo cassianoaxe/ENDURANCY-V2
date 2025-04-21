@@ -239,52 +239,24 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Solução radical: mostrar uma tela de carregamento customizada na DOM
-      // em vez de confiar na renderização do React durante o redirecionamento
-      document.body.innerHTML = `
-        <div 
-          style="
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background-color: white; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 9999;
-          "
-        >
-          <div 
-            style="
-              width: 50px; 
-              height: 50px; 
-              border: 5px solid #f3f3f3; 
-              border-top: 5px solid #3db54a; 
-              border-radius: 50%; 
-              animation: spin 1s linear infinite;
-            "
-          ></div>
-          <p 
-            style="
-              margin-top: 20px; 
-              font-family: system-ui, sans-serif; 
-              font-size: 18px; 
-              color: #333;
-            "
-          >
-            Login bem-sucedido! Redirecionando...
-          </p>
-          <style>
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        </div>
+      // Adicionar um elemento de loading que seja menos destrutivo para o DOM
+      // mas ainda mostre feedback visual
+      const loadingEl = document.createElement('div');
+      loadingEl.setAttribute('id', 'login-loading-overlay');
+      loadingEl.setAttribute('style', 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;');
+      
+      loadingEl.innerHTML = `
+        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3db54a; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 20px; font-family: system-ui, sans-serif; font-size: 18px; color: #333;">Login bem-sucedido! Redirecionando...</p>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
       `;
+      
+      document.body.appendChild(loadingEl);
       
       // Definir URL de redirecionamento com base no tipo de usuário
       let redirectUrl = '/dashboard';
