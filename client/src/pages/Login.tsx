@@ -253,29 +253,27 @@ export default function Login() {
         duration: 3000,
       });
       
-      // Pequeno delay antes de redirecionar para garantir que a sessão foi estabelecida
-      setTimeout(() => {
-        // Usando window.location para redirecionamento mais confiável
-        console.log("Redirecionando após login...");
-        
-        if (userType === 'admin') {
-          window.location.href = '/dashboard';
-        } else if (userType === 'org_admin') {
-          window.location.href = '/organization/dashboard';
-        } else if (userType === 'pharmacist') {
-          window.location.href = '/pharmacist/dashboard';
-        } else if (userType === 'laboratory') {
-          window.location.href = '/laboratory/dashboard';
-        } else if (userType === 'researcher') {
-          window.location.href = '/researcher/dashboard';
-        } else if (userType === 'doctor') {
-          window.location.href = '/doctor/dashboard';
-        } else if (userType === 'patient') {
-          window.location.href = '/patient/dashboard';
-        } else {
-          window.location.href = '/dashboard';
-        }
-      }, 1500);
+      // Redirecionamento imediato para a página correta baseado no papel do usuário
+      console.log("Redirecionando após login para o papel:", userType);
+      
+      // Redirecionando diretamente sem delay para evitar que apareça primeiro a página do Super User
+      if (userType === 'admin') {
+        window.location.href = '/dashboard';
+      } else if (userType === 'org_admin') {
+        window.location.href = '/organization/dashboard';
+      } else if (userType === 'pharmacist') {
+        window.location.href = '/pharmacist/dashboard';
+      } else if (userType === 'laboratory') {
+        window.location.href = '/laboratory/dashboard';
+      } else if (userType === 'researcher') {
+        window.location.href = '/researcher/dashboard';
+      } else if (userType === 'doctor') {
+        window.location.href = '/doctor/dashboard';
+      } else if (userType === 'patient') {
+        window.location.href = '/patient/dashboard';
+      } else {
+        window.location.href = '/dashboard';
+      }
       
     } catch (error: any) {
       console.error('Login falhou:', error);
