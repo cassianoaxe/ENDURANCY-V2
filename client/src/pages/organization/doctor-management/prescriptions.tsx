@@ -86,7 +86,7 @@ function PrescritionsDashboard() {
   const [activeTab, setActiveTab] = useState<string>("pending");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filterDoctor, setFilterDoctor] = useState<string>("");
+  const [filterDoctor, setFilterDoctor] = useState<string>("all");
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
   
@@ -271,11 +271,11 @@ function PrescritionsDashboard() {
             <SelectTrigger className="w-full md:w-[180px]">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span>{filterDoctor ? "Médico: " + filterDoctor : "Filtrar por médico"}</span>
+                <span>{filterDoctor === "all" ? "Todos os médicos" : "Médico: " + filterDoctor}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os médicos</SelectItem>
+              <SelectItem value="all">Todos os médicos</SelectItem>
               {(doctors || []).map((doctor: Doctor) => (
                 <SelectItem key={doctor.id} value={doctor.id.toString()}>
                   {doctor.name}
