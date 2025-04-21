@@ -701,14 +701,12 @@ function AppContent() {
     // Redirecionamento imediato para usuarios org_admin para seu dashboard
     if (userRole === 'org_admin') {
       console.log("Usuário org_admin detectado na rota /dashboard, redirecionando");
-      // Redirecionamento direto sem animações ou overlays
-      window.location.replace('/organization/dashboard');
       
-      // Elemento simples de carregamento como fallback
+      // Renderizar OrganizationDashboard diretamente em vez de fazer reload da página
       return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
+        <OrganizationLayout>
+          <OrganizationDashboard />
+        </OrganizationLayout>
       );
     } 
     else if (userRole === 'admin') {
@@ -757,11 +755,10 @@ function AppContent() {
     }
     
     if (currentPath === '/organization/dashboard') {
-      console.log("Renderizando o Dashboard da Organização com ícone Leaf");
-      // Forçar recarregamento do componente, mas com o layout correto
+      console.log("Renderizando o Dashboard da Organização");
       return (
         <OrganizationLayout>
-          <OrganizationDashboard key={Date.now()} />
+          <OrganizationDashboard />
         </OrganizationLayout>
       );
     }
