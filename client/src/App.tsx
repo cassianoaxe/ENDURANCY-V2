@@ -171,6 +171,7 @@ import DoctorManagementDoctors from "@/pages/organization/doctor-management/doct
 import DoctorManagementAppointments from "@/pages/organization/doctor-management/appointments";
 import DoctorManagementStatistics from "@/pages/organization/doctor-management/statistics";
 import DoctorManagementDocuments from "@/pages/organization/doctor-management/documents";
+import DoctorManagementPrescriptions from "@/pages/organization/doctor-management/prescriptions";
 import DoctorManagementAffiliation from "@/pages/organization/doctor-management/afiliacao";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -1482,6 +1483,10 @@ function AppContent() {
 
     if (currentPath === '/organization/doctor-management/afiliacao') {
       return <DoctorManagementAffiliation />;
+    }
+
+    if (currentPath === '/organization/doctor-management/prescriptions') {
+      return <DoctorManagementPrescriptions />;
     }
 
     if (currentPath === '/organization/farmacia') {
