@@ -700,15 +700,36 @@ function AppContent() {
     
     // Redirecionamento imediato para usuarios org_admin para seu dashboard
     if (userRole === 'org_admin') {
-      console.log("Usuário org_admin detectado na rota /dashboard, redirecionando");
-      // Redirecionamento direto sem animações ou overlays
-      window.location.href = '/organization/dashboard';
-      
-      // Elemento simples de carregamento como fallback
+      console.log("Usuário org_admin detectado na rota /dashboard");
+      // Renderizamos OrganizationDashboard diretamente sem redirecionamento
+      // Isso evita o recarregamento completo da página
       return (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
+        <Layout>
+          <div className="p-8">
+            <h1 className="text-2xl font-bold mb-4">Área de Administração</h1>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="shadow-md hover:shadow-lg transition-shadow">
+                <CardHeader className="bg-green-50 border-b border-green-100">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                      <Building className="h-5 w-5 text-green-600" />
+                    </div>
+                    <h3 className="font-medium text-green-700">Sua Organização</h3>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6 pb-3">
+                  <p className="text-gray-600 mb-4">Acesse o dashboard da sua organização para gerenciar todos os aspectos da operação.</p>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button asChild className="w-full" variant="default">
+                    <a href="/organization/dashboard">Acessar Dashboard</a>
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </Layout>
       );
     } 
     else if (userRole === 'admin') {
