@@ -256,35 +256,45 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Redirecionando diretamente sem delay e evitando redireções intermediários
-      try {
-        // Definir URL de redirecionamento com base no tipo de usuário
-        let redirectUrl = '/dashboard';
-        
-        if (userType === 'org_admin') {
-          redirectUrl = '/organization/dashboard';
-        } else if (userType === 'pharmacist') {
-          redirectUrl = '/pharmacist/dashboard';
-        } else if (userType === 'laboratory') {
-          redirectUrl = '/laboratory/dashboard';
-        } else if (userType === 'researcher') {
-          redirectUrl = '/researcher/dashboard';
-        } else if (userType === 'doctor') {
-          redirectUrl = '/doctor/dashboard';
-        } else if (userType === 'patient') {
-          redirectUrl = '/patient/dashboard';
-        }
-
-        console.log(`Redirecionando diretamente para ${redirectUrl}`);
-        
-        // Usar location.replace para evitar adicionar ao histórico
-        // Isso impede que o usuário volte para a página de login após o redirecionamento
-        window.location.replace(redirectUrl);
-      } catch (error) {
-        console.error("Erro ao redirecionar:", error);
-        // Em caso de erro, usar método padrão
-        window.location.href = userType === 'org_admin' ? '/organization/dashboard' : '/dashboard';
+      // Mostrar um estado visual de loading durante a transição
+      // para evitar que o usuário veja múltiplas páginas carregando
+      document.body.style.opacity = '0.5';
+      document.body.style.transition = 'opacity 0.3s';
+      
+      // Definir URL de redirecionamento com base no tipo de usuário
+      let redirectUrl = '/dashboard';
+      
+      if (userType === 'org_admin') {
+        redirectUrl = '/organization/dashboard';
+      } else if (userType === 'pharmacist') {
+        redirectUrl = '/pharmacist/dashboard';
+      } else if (userType === 'laboratory') {
+        redirectUrl = '/laboratory/dashboard';
+      } else if (userType === 'researcher') {
+        redirectUrl = '/researcher/dashboard';
+      } else if (userType === 'doctor') {
+        redirectUrl = '/doctor/dashboard';
+      } else if (userType === 'patient') {
+        redirectUrl = '/patient/dashboard';
       }
+
+      console.log(`Redirecionando diretamente para ${redirectUrl}`);
+      
+      // Usar location.replace para evitar adicionar ao histórico e
+      // configurar uma flag no sessionStorage para sinalizar redirecionamento
+      sessionStorage.setItem('loginRedirect', 'true');
+      sessionStorage.setItem('loginRedirectTarget', redirectUrl);
+      
+      // Adicionar pequeno delay para dar tempo à animação de fade
+      setTimeout(() => {
+        try {
+          // Usar location.replace para evitar adicionar ao histórico
+          window.location.replace(redirectUrl);
+        } catch (error) {
+          console.error("Erro ao redirecionar:", error);
+          window.location.href = redirectUrl;
+        }
+      }, 150);
       
     } catch (error: any) {
       console.error('Login falhou:', error);
