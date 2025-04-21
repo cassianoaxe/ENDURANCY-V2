@@ -256,23 +256,34 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Redirecionando diretamente sem delay para evitar que apareça primeiro a página do Super User
-      if (userType === 'admin') {
-        window.location.href = '/dashboard';
-      } else if (userType === 'org_admin') {
-        window.location.href = '/organization/dashboard';
-      } else if (userType === 'pharmacist') {
-        window.location.href = '/pharmacist/dashboard';
-      } else if (userType === 'laboratory') {
-        window.location.href = '/laboratory/dashboard';
-      } else if (userType === 'researcher') {
-        window.location.href = '/researcher/dashboard';
-      } else if (userType === 'doctor') {
-        window.location.href = '/doctor/dashboard';
-      } else if (userType === 'patient') {
-        window.location.href = '/patient/dashboard';
-      } else {
-        window.location.href = '/dashboard';
+      // Redirecionando diretamente sem delay e evitando redireções intermediários
+      try {
+        // Definir URL de redirecionamento com base no tipo de usuário
+        let redirectUrl = '/dashboard';
+        
+        if (userType === 'org_admin') {
+          redirectUrl = '/organization/dashboard';
+        } else if (userType === 'pharmacist') {
+          redirectUrl = '/pharmacist/dashboard';
+        } else if (userType === 'laboratory') {
+          redirectUrl = '/laboratory/dashboard';
+        } else if (userType === 'researcher') {
+          redirectUrl = '/researcher/dashboard';
+        } else if (userType === 'doctor') {
+          redirectUrl = '/doctor/dashboard';
+        } else if (userType === 'patient') {
+          redirectUrl = '/patient/dashboard';
+        }
+
+        console.log(`Redirecionando diretamente para ${redirectUrl}`);
+        
+        // Usar location.replace para evitar adicionar ao histórico
+        // Isso impede que o usuário volte para a página de login após o redirecionamento
+        window.location.replace(redirectUrl);
+      } catch (error) {
+        console.error("Erro ao redirecionar:", error);
+        // Em caso de erro, usar método padrão
+        window.location.href = userType === 'org_admin' ? '/organization/dashboard' : '/dashboard';
       }
       
     } catch (error: any) {

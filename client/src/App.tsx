@@ -606,10 +606,16 @@ function AppContent() {
   if (currentPath === '/dashboard') {
     let DashboardComponent = Dashboard;
     
-    if (userRole === 'admin') {
+    // Redirecionar usuários org_admin diretamente para o dashboard da organização
+    if (userRole === 'org_admin') {
+      console.log("Usuário org_admin detectado na rota /dashboard, redirecionando para dashboard da organização");
+      window.location.href = '/organization/dashboard';
+      return <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Redirecionando...</span>
+      </div>;
+    } else if (userRole === 'admin') {
       DashboardComponent = AdminDashboard;
-    } else if (userRole === 'org_admin') {
-      DashboardComponent = OrgAdminDashboard;
     } else if (userRole === 'doctor') {
       DashboardComponent = DoctorDashboard;
     } else if (userRole === 'patient') {
