@@ -698,44 +698,16 @@ function AppContent() {
   if (currentPath === '/dashboard') {
     let DashboardComponent = Dashboard;
     
-    // BLOQUEAR COMPLETAMENTE organizações acessando dashboard principal
+    // Redirecionamento imediato para usuarios org_admin para seu dashboard
     if (userRole === 'org_admin') {
-      console.log("Usuário org_admin detectado na rota /dashboard, bloqueando e redirecionando");
+      console.log("Usuário org_admin detectado na rota /dashboard, redirecionando");
+      // Redirecionamento direto sem animações ou overlays
+      window.location.replace('/organization/dashboard');
       
-      // Verificar se já existe um overlay de redirecionamento
-      if (!document.getElementById('org-redirect-overlay')) {
-        // Adicionar ao localStorage que estamos redirecionando de forma explícita
-        localStorage.setItem("blocking_redirect", "true");
-        
-        // Criar um overlay de redirecionamento
-        const redirectOverlay = document.createElement('div');
-        redirectOverlay.setAttribute('id', 'org-redirect-overlay');
-        redirectOverlay.setAttribute('style', 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;');
-        
-        redirectOverlay.innerHTML = `
-          <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3db54a; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <p style="margin-top: 20px; font-family: system-ui, sans-serif; font-size: 18px; color: #333;">Redirecionando para o dashboard da organização...</p>
-          <style>
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        `;
-        
-        document.body.appendChild(redirectOverlay);
-        
-        // Após um pequeno delay, redirecionar
-        setTimeout(() => {
-          window.location.replace('/organization/dashboard');
-        }, 200);
-      }
-      
-      // Retornar um elemento de loading simples como fallback caso algo dê errado
+      // Elemento simples de carregamento como fallback
       return (
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
-          <span className="ml-3 text-primary">Redirecionando...</span>
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
       );
     } 

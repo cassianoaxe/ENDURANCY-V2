@@ -239,52 +239,31 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Adicionar um elemento de loading que seja menos destrutivo para o DOM
-      // mas ainda mostre feedback visual
-      const loadingEl = document.createElement('div');
-      loadingEl.setAttribute('id', 'login-loading-overlay');
-      loadingEl.setAttribute('style', 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;');
+      // Abordagem mais simples e direta para melhorar desempenho
+      console.log(`Login bem-sucedido como ${userType}, preparando redirecionamento...`);
       
-      loadingEl.innerHTML = `
-        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3db54a; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="margin-top: 20px; font-family: system-ui, sans-serif; font-size: 18px; color: #333;">Login bem-sucedido! Redirecionando...</p>
-        <style>
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        </style>
-      `;
-      
-      document.body.appendChild(loadingEl);
-      
-      // Definir URL de redirecionamento com base no tipo de usuário
-      let redirectUrl = '/dashboard';
-      
-      if (userType === 'org_admin') {
-        redirectUrl = '/organization/dashboard';
-      } else if (userType === 'pharmacist') {
-        redirectUrl = '/pharmacist/dashboard';
-      } else if (userType === 'laboratory') {
-        redirectUrl = '/laboratory/dashboard';
-      } else if (userType === 'researcher') {
-        redirectUrl = '/researcher/dashboard';
-      } else if (userType === 'doctor') {
-        redirectUrl = '/doctor/dashboard';
-      } else if (userType === 'patient') {
-        redirectUrl = '/patient/dashboard';
-      }
+      // Definir URL de redirecionamento com base no tipo de usuário (simplificado)
+      const redirectUrl = userType === 'org_admin' 
+        ? '/organization/dashboard'
+        : userType === 'pharmacist' 
+          ? '/pharmacist/dashboard' 
+          : userType === 'laboratory'
+            ? '/laboratory/dashboard'
+            : userType === 'researcher'
+              ? '/researcher/dashboard'
+              : userType === 'doctor'
+                ? '/doctor/dashboard'
+                : userType === 'patient'
+                  ? '/patient/dashboard'
+                  : '/dashboard';
 
-      console.log(`Redirecionando diretamente para ${redirectUrl}`);
+      console.log(`Redirecionando para ${redirectUrl}`);
       
-      // Desativar flags e forçar um novo carregamento da página
-      localStorage.setItem('direct_login_redirect', 'true');
-      sessionStorage.setItem('skip_dashboard_check', 'true');
+      // Apenas mostrar feedback visual usando elementos React existentes
+      setIsLoading(true);
       
-      // Redirecionar diretamente sem reconstruir o React DOM      
-      setTimeout(() => {
-        window.location.replace(redirectUrl);
-      }, 200);
+      // Redirecionamento direto e imediato - sem animações desnecessárias
+      window.location.replace(redirectUrl);
       
     } catch (error: any) {
       console.error('Login falhou:', error);
