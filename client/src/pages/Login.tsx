@@ -226,25 +226,8 @@ export default function Login() {
         throw lastError || new Error('Falha na autenticação após múltiplas tentativas');
       }
       
-      // Verificar se a sessão foi estabelecida corretamente
-      try {
-        const sessionCheck = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (!sessionCheck.ok) {
-          console.warn("Aviso: Login bem-sucedido, mas sessão pode não estar estabelecida corretamente");
-        } else {
-          console.log("Sessão confirmada com sucesso");
-        }
-      } catch (sessionError) {
-        console.warn("Erro ao verificar sessão:", sessionError);
-      }
+      // Não verificamos mais a sessão com uma segunda requisição
+      // A verificação da sessão já foi feita durante o login no servidor
       
       // Mostrar toast de sucesso
       toast({
