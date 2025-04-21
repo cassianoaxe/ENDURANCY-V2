@@ -306,6 +306,43 @@ function AppContent() {
       window.removeEventListener('navigation', handleCustomNavigation);
     };
   }, []);
+  
+  // Efeito específico para redirecionar com base no papel do usuário
+  // Este efeito é executado apenas uma vez após a autenticação ser verificada
+  useEffect(() => {
+    if (isLoading) return; // Não fazer nada enquanto estiver carregando
+    
+    if (isAuthenticated && user) {
+      console.log("Verificando papel do usuário para redirecionamento correto:", user.role);
+      const path = window.location.pathname;
+      
+      // Verificar se o usuário está na página de login ou na raiz e redirecionar
+      if (path === '/login' || path === '/') {
+        // Já que acabou de fazer login, ir para o dashboard correto
+        if (user.role === 'org_admin') {
+          console.log("Redirecionando org_admin para dashboard da organização");
+          window.location.replace('/organization/dashboard');
+        } else if (user.role === 'pharmacist') {
+          window.location.replace('/pharmacist/dashboard');
+        } else if (user.role === 'laboratory') {
+          window.location.replace('/laboratory/dashboard');
+        } else if (user.role === 'researcher') {
+          window.location.replace('/researcher/dashboard');
+        } else if (user.role === 'doctor') {
+          window.location.replace('/doctor/dashboard');
+        } else if (user.role === 'patient') {
+          window.location.replace('/patient/dashboard');
+        } else if (user.role === 'admin') {
+          window.location.replace('/dashboard');
+        }
+      }
+      // Verificação de rota incorreta - se um org_admin estiver no dashboard geral, redirecionar
+      else if (user.role === 'org_admin' && path === '/dashboard') {
+        console.log("Org_admin detectado na rota /dashboard, redirecionando");
+        window.location.replace('/organization/dashboard');
+      }
+    }
+  }, [isLoading, isAuthenticated, user]);
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
