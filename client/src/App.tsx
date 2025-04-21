@@ -40,7 +40,7 @@ import EmailTemplates from "@/pages/EmailTemplates";
 import RoutesList from "@/pages/RoutesList";
 import AdminSettings from "@/pages/Settings";
 import OrderView from "@/pages/OrderView";
-import Login from "@/pages/FastLogin";
+import Login from "@/pages/Login";
 import ActivityLog from "@/pages/ActivityLog";
 import Backups from "@/pages/Backups";
 import Emergencies from "@/pages/Emergencies";

@@ -239,31 +239,30 @@ export default function Login() {
       // Redirecionamento imediato para a página correta baseado no papel do usuário
       console.log("Redirecionando após login para o papel:", userType);
       
-      // Abordagem mais simples e direta para melhorar desempenho
-      console.log(`Login bem-sucedido como ${userType}, preparando redirecionamento...`);
-      
-      // Definir URL de redirecionamento com base no tipo de usuário (simplificado)
-      const redirectUrl = userType === 'org_admin' 
-        ? '/organization/dashboard'
-        : userType === 'pharmacist' 
-          ? '/pharmacist/dashboard' 
-          : userType === 'laboratory'
-            ? '/laboratory/dashboard'
-            : userType === 'researcher'
-              ? '/researcher/dashboard'
-              : userType === 'doctor'
-                ? '/doctor/dashboard'
-                : userType === 'patient'
-                  ? '/patient/dashboard'
-                  : '/dashboard';
-
-      console.log(`Redirecionando para ${redirectUrl}`);
-      
-      // Apenas mostrar feedback visual usando elementos React existentes
+      // Mostrar estado de loading que já existe através do botão
       setIsLoading(true);
       
-      // Redirecionamento direto e imediato - sem animações desnecessárias
-      window.location.replace(redirectUrl);
+      // Definir URL de redirecionamento baseado no tipo de usuário
+      let redirectUrl = '/dashboard';
+      
+      if (userType === 'org_admin') {
+        redirectUrl = '/organization/dashboard';
+      } else if (userType === 'pharmacist') {
+        redirectUrl = '/pharmacist/dashboard';
+      } else if (userType === 'laboratory') {
+        redirectUrl = '/laboratory/dashboard';
+      } else if (userType === 'researcher') {
+        redirectUrl = '/researcher/dashboard';
+      } else if (userType === 'doctor') {
+        redirectUrl = '/doctor/dashboard';
+      } else if (userType === 'patient') {
+        redirectUrl = '/patient/dashboard';
+      }
+      
+      console.log(`Usuário autenticado como ${userType}, redirecionando para ${redirectUrl}`);
+      
+      // Usando window.location.href é mais confiável neste caso
+      window.location.href = redirectUrl;
       
     } catch (error: any) {
       console.error('Login falhou:', error);
