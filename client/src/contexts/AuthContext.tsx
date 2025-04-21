@@ -300,34 +300,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      console.log("Iniciando logout");
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        credentials: 'include', // Importante para acessar e limpar cookies
-        cache: 'no-cache'
-      });
-      console.log("Logout completo no servidor");
-      setUser(null);
-      
-      // Sempre redirecionar para a página de login após logout
-      window.history.pushState({}, '', '/login');
-      // Dispatch a custom event to notify about path change
-      window.dispatchEvent(new Event('popstate'));
-      // Recarregar a página para garantir um estado limpo
-      window.location.reload();
-    } catch (error) {
+  const logout = () => {
+    console.log("Iniciando logout");
+    
+    // Primeiro, definir o usuário como null para atualizar a UI imediatamente
+    setUser(null);
+    
+    // Redirecionar para a página de login de forma simples e direta
+    window.location.href = '/login';
+    
+    // Fazer a chamada para logout no servidor após o redirecionamento já ter iniciado
+    // pois não precisamos esperar a resposta para fazer o redirecionamento
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      credentials: 'include', // Importante para acessar e limpar cookies
+      cache: 'no-cache'
+    }).catch(error => {
       console.error('Logout error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Método para verificar se o usuário está autenticado (útil para testes e debugging)
