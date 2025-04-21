@@ -95,12 +95,12 @@ function PrescritionsDashboard() {
     data: prescriptions,
     isLoading: isPrescriptionsLoading,
     refetch: refetchPrescriptions
-  } = useQuery({
+  } = useQuery<PrescriptionPaginatedResponse>({
     queryKey: ['/api/organization/doctor-management/prescriptions', activeTab, currentPage, searchQuery, filterDoctor],
   });
 
   // Buscar médicos
-  const { data: doctors, isLoading: isDoctorsLoading } = useQuery({
+  const { data: doctors, isLoading: isDoctorsLoading } = useQuery<Doctor[]>({
     queryKey: ['/api/organization/doctors'],
   });
 
@@ -276,7 +276,7 @@ function PrescritionsDashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todos os médicos</SelectItem>
-              {doctors?.map((doctor: Doctor) => (
+              {(doctors || []).map((doctor: Doctor) => (
                 <SelectItem key={doctor.id} value={doctor.id.toString()}>
                   {doctor.name}
                 </SelectItem>
@@ -301,8 +301,8 @@ function PrescritionsDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {prescriptions?.items?.length > 0 ? (
-                  prescriptions.items.map((prescription: Prescription) => (
+                {(prescriptions?.items?.length ?? 0) > 0 ? (
+                  (prescriptions?.items || []).map((prescription: Prescription) => (
                     <TableRow key={prescription.id}>
                       <TableCell className="font-medium">{prescription.id}</TableCell>
                       <TableCell>{prescription.doctorName}</TableCell>
@@ -383,7 +383,7 @@ function PrescritionsDashboard() {
           </div>
         </CardContent>
 
-        {prescriptions?.totalPages > 1 && (
+        {(prescriptions?.totalPages ?? 0) > 1 && (
           <CardFooter className="flex justify-center py-4 border-t">
             <Pagination>
               <PaginationContent>
@@ -398,7 +398,7 @@ function PrescritionsDashboard() {
                   />
                 </PaginationItem>
                 
-                {Array.from({ length: prescriptions.totalPages }).map((_, i) => (
+                {Array.from({ length: prescriptions?.totalPages ?? 0 }).map((_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink 
                       href="#" 
@@ -418,9 +418,9 @@ function PrescritionsDashboard() {
                     href="#" 
                     onClick={(e) => {
                       e.preventDefault();
-                      if (currentPage < prescriptions.totalPages) setCurrentPage(currentPage + 1);
+                      if (currentPage < (prescriptions?.totalPages ?? 0)) setCurrentPage(currentPage + 1);
                     }}
-                    className={currentPage === prescriptions.totalPages ? "pointer-events-none opacity-50" : ""}
+                    className={currentPage === (prescriptions?.totalPages ?? 0) ? "pointer-events-none opacity-50" : ""}
                   />
                 </PaginationItem>
               </PaginationContent>
