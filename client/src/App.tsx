@@ -701,12 +701,14 @@ function AppContent() {
     // Redirecionamento imediato para usuarios org_admin para seu dashboard
     if (userRole === 'org_admin') {
       console.log("Usuário org_admin detectado na rota /dashboard, redirecionando");
+      // Redirecionamento direto sem animações ou overlays
+      window.location.href = '/organization/dashboard';
       
-      // Renderizar OrganizationDashboard diretamente em vez de fazer reload da página
+      // Elemento simples de carregamento como fallback
       return (
-        <OrganizationLayout>
-          <OrganizationDashboard />
-        </OrganizationLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
       );
     } 
     else if (userRole === 'admin') {
