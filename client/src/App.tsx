@@ -694,19 +694,26 @@ function AppContent() {
     }
   }
   
-  // Role-specific dashboards
+  // Rota de dashboard principal com bloqueio para org_admin (eles NUNCA devem ver essa tela)
   if (currentPath === '/dashboard') {
     let DashboardComponent = Dashboard;
     
-    // Redirecionar usuários org_admin diretamente para o dashboard da organização
+    // BLOQUEAR COMPLETAMENTE organizações acessando dashboard principal
     if (userRole === 'org_admin') {
-      console.log("Usuário org_admin detectado na rota /dashboard, redirecionando para dashboard da organização");
-      window.location.href = '/organization/dashboard';
-      return <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Redirecionando...</span>
-      </div>;
-    } else if (userRole === 'admin') {
+      console.log("Usuário org_admin detectado na rota /dashboard, bloqueando e redirecionando");
+      // Adicionar ao localStorage que estamos redirecionando de forma explícita
+      localStorage.setItem("blocking_redirect", "true");
+      document.body.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: white;"><div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 16px; font-family: sans-serif; color: #555;">Redirecionando para o dashboard da organização...</p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>';
+      
+      // Após um pequeno delay, redirecionar
+      setTimeout(() => {
+        window.location.replace('/organization/dashboard');
+      }, 100);
+      
+      // Não renderizar nada do React, já manipulamos o DOM diretamente
+      return null;
+    } 
+    else if (userRole === 'admin') {
       DashboardComponent = AdminDashboard;
     } else if (userRole === 'doctor') {
       DashboardComponent = DoctorDashboard;
