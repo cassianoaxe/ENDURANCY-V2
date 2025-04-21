@@ -701,17 +701,43 @@ function AppContent() {
     // BLOQUEAR COMPLETAMENTE organizações acessando dashboard principal
     if (userRole === 'org_admin') {
       console.log("Usuário org_admin detectado na rota /dashboard, bloqueando e redirecionando");
-      // Adicionar ao localStorage que estamos redirecionando de forma explícita
-      localStorage.setItem("blocking_redirect", "true");
-      document.body.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: white;"><div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 16px; font-family: sans-serif; color: #555;">Redirecionando para o dashboard da organização...</p></div><style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>';
       
-      // Após um pequeno delay, redirecionar
-      setTimeout(() => {
-        window.location.replace('/organization/dashboard');
-      }, 100);
+      // Verificar se já existe um overlay de redirecionamento
+      if (!document.getElementById('org-redirect-overlay')) {
+        // Adicionar ao localStorage que estamos redirecionando de forma explícita
+        localStorage.setItem("blocking_redirect", "true");
+        
+        // Criar um overlay de redirecionamento
+        const redirectOverlay = document.createElement('div');
+        redirectOverlay.setAttribute('id', 'org-redirect-overlay');
+        redirectOverlay.setAttribute('style', 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;');
+        
+        redirectOverlay.innerHTML = `
+          <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3db54a; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="margin-top: 20px; font-family: system-ui, sans-serif; font-size: 18px; color: #333;">Redirecionando para o dashboard da organização...</p>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        `;
+        
+        document.body.appendChild(redirectOverlay);
+        
+        // Após um pequeno delay, redirecionar
+        setTimeout(() => {
+          window.location.replace('/organization/dashboard');
+        }, 200);
+      }
       
-      // Não renderizar nada do React, já manipulamos o DOM diretamente
-      return null;
+      // Retornar um elemento de loading simples como fallback caso algo dê errado
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full"></div>
+          <span className="ml-3 text-primary">Redirecionando...</span>
+        </div>
+      );
     } 
     else if (userRole === 'admin') {
       DashboardComponent = AdminDashboard;
