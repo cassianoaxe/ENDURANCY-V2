@@ -300,32 +300,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     console.log("Iniciando logout");
     
     // Primeiro, definir o usuário como null para atualizar a UI imediatamente
     setUser(null);
     
-    try {
-      // Fazer a chamada para logout no servidor primeiro
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        credentials: 'include',
-        cache: 'no-cache'
-      });
-      console.log("Logout no servidor concluído");
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    
-    // Depois redirecionar para a página de login
-    console.log("Redirecionando para login");
+    // Redirecionar para a página de login de forma simples e direta
     window.location.href = '/login';
+    
+    // Fazer a chamada para logout no servidor após o redirecionamento já ter iniciado
+    // pois não precisamos esperar a resposta para fazer o redirecionamento
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      credentials: 'include', // Importante para acessar e limpar cookies
+      cache: 'no-cache'
+    }).catch(error => {
+      console.error('Logout error:', error);
+    });
   };
 
   // Método para verificar se o usuário está autenticado (útil para testes e debugging)
