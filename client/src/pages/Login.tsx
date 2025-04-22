@@ -535,8 +535,7 @@ export default function Login() {
                               <div className="text-sm font-medium">{info.label}</div>
                               {role === userType && (
                                 <div className="text-xs text-green-600 flex items-center justify-center mt-1">
-                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
-                                  Selecionado
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
                                 </div>
                               )}
                             </div>
