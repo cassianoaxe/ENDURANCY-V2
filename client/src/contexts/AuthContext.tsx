@@ -264,7 +264,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Processa a resposta bem-sucedida
           const userData = await response.json();
           console.log("Login bem-sucedido. Dados do usuário:", userData);
+          
+          // Definir o estado do usuário
           setUser(userData);
+          
+          // Adicionar um cookie local para ajudar a manter o estado após o redirecionamento
+          document.cookie = `auth_redirect=true; path=/; max-age=60; SameSite=Lax`;
+          
+          // Vamos dar um tempo curto para o estado ser atualizado e o cookie ser definido
+          await new Promise(resolve => setTimeout(resolve, 100));
           
           // Redirecionar com base no papel do usuário
           // Usando window.location.href para redirecionamento mais confiável
