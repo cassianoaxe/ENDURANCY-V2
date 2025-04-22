@@ -638,7 +638,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Se temos um user type, verificar se o usuário tem a role correspondente
       const user = usersFound[0];
       
-      if (userType && user.role !== userType && !(userType === 'admin' && (username === 'admin' || email === 'admin@exemplo.com'))) {
+      // Se userType for association_admin ou company_admin e o usuário for org_admin, permitir o login
+      if (userType && user.role !== userType && 
+          !((userType === 'admin' && (username === 'admin' || email === 'admin@exemplo.com')) || 
+            ((userType === 'association_admin' || userType === 'company_admin') && user.role === 'org_admin'))) {
         console.log("Role mismatch:", { requestedRole: userType, actualRole: user.role });
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
