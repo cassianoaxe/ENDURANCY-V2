@@ -96,7 +96,7 @@ export default function Login() {
       icon: <Building className="h-5 w-5" />,
       description: 'Acesse como administrador de associação (RDC 327)',
       credentials: {
-        username: 'admin@associacao.com',
+        username: 'admin@organizacao.com',
         password: 'assoc123'
       },
       color: 'bg-green-50 text-green-700 border-green-100'
