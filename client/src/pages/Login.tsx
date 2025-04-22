@@ -480,24 +480,16 @@ export default function Login() {
                         type="button"
                         onClick={() => setUserType(role as UserRole)}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          "p-3 rounded-lg border transition-all",
                           role === userType 
                             ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
                             : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         )}
                       >
-                        <div 
-                          className={cn(
-                            "w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0",
-                            role === userType ? 'bg-[#4CAF50]/20 text-[#4CAF50]' : 'bg-gray-100 text-gray-500'
-                          )}
-                        >
-                          {info.icon}
-                        </div>
-                        <div className="text-left">
+                        <div className="text-center">
                           <div className="text-sm font-medium">{info.label}</div>
                           {role === userType && (
-                            <div className="text-xs text-green-600 truncate max-w-[120px] flex items-center">
+                            <div className="text-xs text-green-600 flex items-center justify-center mt-1">
                               <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
                               Selecionado
                             </div>
@@ -518,8 +510,7 @@ export default function Login() {
                       userTypeInfo[userType].color
                     )}
                   >
-                    <span className="flex items-center gap-1.5">
-                      {userTypeInfo[userType].icon}
+                    <span>
                       {userTypeInfo[userType].label}
                     </span>
                   </Badge>
@@ -641,7 +632,7 @@ export default function Login() {
                     href="/organization-registration" 
                     className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center"
                   >
-                    Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
+                    Cadastre-se aqui
                   </a>
                 </div>
               </div>
