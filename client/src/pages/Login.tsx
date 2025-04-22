@@ -379,12 +379,21 @@ export default function Login() {
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-indigo-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
-                      <Building className="h-3 w-3 text-indigo-600" />
+                    <div className="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Building className="h-3 w-3 text-green-600" />
                     </div>
                     <div>
-                      <span className="font-medium text-gray-900">Portal da Organização</span>
-                      <p className="text-xs text-gray-600">Gestão para associações (327) e importadoras (660)</p>
+                      <span className="font-medium text-gray-900">Portal da Associação</span>
+                      <p className="text-xs text-gray-600">Gestão para associações (RDC 327) com anuidade</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Building className="h-3 w-3 text-blue-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal da Empresa</span>
+                      <p className="text-xs text-gray-600">Gestão para importadoras (RDC 660) com emissão de NF</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
