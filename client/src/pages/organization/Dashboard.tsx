@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 // Removendo import do OrganizationLayout para evitar a renderização duplicada
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,54 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function OrganizationDashboard() {
   const [activeTab, setActiveTab] = React.useState('visao-geral');
   const { user } = useAuth();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  
+  // Adicionar verificação de autenticação explícita para corrigir problemas de redirecionamento
+  useEffect(() => {
+    if (user) {
+      // Usuário já está autenticado, não precisamos verificar
+      setIsCheckingAuth(false);
+      return;
+    }
+    
+    // Verificar se temos cookies de sessão
+    const checkAuth = async () => {
+      try {
+        console.log("Verificando autenticação diretamente no dashboard...");
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Dashboard: autenticação verificada com sucesso:", userData);
+          
+          // Se estamos autenticados, recarregar a página para atualizar o contexto de autenticação
+          window.location.reload();
+        } else {
+          console.error("Dashboard: não autenticado, redirecionando para login...");
+          // Redirecionar para a página de login
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error("Erro ao verificar autenticação no dashboard:", error);
+        // Em caso de erro, redirecionar para a página de login
+        window.location.href = '/login';
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+    
+    // Verificar autenticação após um curto delay
+    const timeoutId = setTimeout(checkAuth, 500);
+    return () => clearTimeout(timeoutId);
+  }, [user]);
   
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
@@ -23,6 +71,18 @@ export default function OrganizationDashboard() {
     enabled: !!user?.organizationId,
   });
 
+  // Mostrar um indicador de carregamento enquanto verificamos a autenticação
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-3">
+          <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
       <div className="container px-0">
         <div className="flex items-center justify-between mb-4">
