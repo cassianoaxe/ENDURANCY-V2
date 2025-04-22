@@ -33,7 +33,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
+type UserRole = 'admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -66,7 +66,7 @@ export default function Login() {
     if (matches && matches[1]) {
       setOrgCode(matches[1]);
       setIsOrgLogin(true);
-      setUserType('org_admin'); // Se tiver um código de organização, presumimos login como admin da organização
+      setUserType('association_admin'); // Se tiver um código de organização, presumimos login como admin da associação
     }
     
     // Verifica se há parâmetro de status na URL
@@ -74,7 +74,7 @@ export default function Login() {
     const status = urlParams.get('status');
     if (status === 'registered') {
       setRegistrationSuccess(true);
-      setUserType('org_admin'); // Se veio do registro, presumimos login como admin da organização
+      setUserType('company_admin'); // Se veio do registro, presumimos login como admin da empresa
     }
   }, [location]);
 
@@ -90,16 +90,7 @@ export default function Login() {
       },
       color: 'bg-indigo-50 text-indigo-700 border-indigo-100'
     },
-    org_admin: {
-      label: 'Organização',
-      icon: <Building className="h-5 w-5" />,
-      description: 'Acesse como gestor de organização',
-      credentials: {
-        username: 'admin@organizacao.com',
-        password: 'org123'
-      },
-      color: 'bg-blue-50 text-blue-700 border-blue-100'
-    },
+
     association_admin: {
       label: 'Associação',
       icon: <Building className="h-5 w-5" />,
@@ -214,21 +205,8 @@ export default function Login() {
       console.log("Iniciando tentativa de login para usuário:", data.username, "tipo:", userType);
       
       // Ajuste para tipos de usuário específicos
+      // Enviamos o tipo de usuário diretamente
       let loginType = userType;
-      
-      // Mapeando os novos tipos para os tipos existentes na API
-      // Farmacêutico temporariamente usando "doctor"
-      if (userType === 'pharmacist') {
-        loginType = 'doctor'; 
-      }
-      // Novos tipos de organização usando org_admin
-      else if (userType === 'association_admin' || userType === 'company_admin') {
-        loginType = 'org_admin';
-      }
-      // Novos tipos de prescritores usando doctor
-      else if (userType === 'dentist' || userType === 'vet') {
-        loginType = 'doctor';
-      }
       
       // Implementar retry com backoff exponencial para evitar problemas de rate limiting
       let maxAttempts = 3;
@@ -296,7 +274,7 @@ export default function Login() {
       let redirectUrl = '/dashboard';
       
       // Portais de organização
-      if (userType === 'org_admin' || userType === 'association_admin' || userType === 'company_admin') {
+      if (userType === 'association_admin' || userType === 'company_admin') {
         redirectUrl = '/organization/dashboard';
       } 
       // Portal de farmácia
