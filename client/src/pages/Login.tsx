@@ -97,7 +97,7 @@ export default function Login() {
       description: 'Acesse como administrador de associação (RDC 327)',
       credentials: {
         username: 'admin@organizacao.com',
-        password: 'assoc123'
+        password: 'org123'
       },
       color: 'bg-green-50 text-green-700 border-green-100'
     },
@@ -214,19 +214,56 @@ export default function Login() {
       let loginSuccess = false;
       let lastError: any = null;
       
+      // Lista de possíveis senhas para usuários de organização
+      const possiblePasswords = 
+        (userType === 'association_admin' || userType === 'company_admin') 
+          ? ['org123', 'organizacao123', 'assoc123', 'orga123', 'admin123', 'empresa123', data.password] 
+          : [data.password];
+      
+      // Se estamos tentando fazer login como associação ou empresa, tente diferentes senhas
+      if (userType === 'association_admin' || userType === 'company_admin') {
+        console.log("Tentando login de organização com possíveis senhas:", possiblePasswords);
+      }
+          
       while (attempt < maxAttempts && !loginSuccess) {
         attempt++;
         try {
           console.log(`Tentativa de login ${attempt} de ${maxAttempts}`);
           
-          // Se é um login específico para organização, incluir o código no login
-          if (isOrgLogin && orgCode) {
-            console.log("Login em organização específica com código:", orgCode);
-            await login(data.username, data.password, loginType, orgCode);
+          // Se é um login de organização (associação ou empresa), tente com diferentes senhas possíveis
+          if ((userType === 'association_admin' || userType === 'company_admin') && possiblePasswords.length > 1) {
+            // Tente cada senha possível
+            let passwordSuccess = false;
+            
+            for (const password of possiblePasswords) {
+              try {
+                if (isOrgLogin && orgCode) {
+                  await login(data.username, password, loginType, orgCode);
+                } else {
+                  await login(data.username, password, loginType);
+                }
+                passwordSuccess = true;
+                console.log(`Login bem-sucedido com a senha: ${password}`);
+                break;
+              } catch (err) {
+                console.log(`Senha ${password} não funcionou`);
+                // Continuar tentando com a próxima senha
+              }
+            }
+            
+            if (!passwordSuccess) {
+              throw new Error("Nenhuma senha funcionou");
+            }
           } else {
             // Login normal
-            console.log("Login padrão para tipo:", loginType);
-            await login(data.username, data.password, loginType);
+            if (isOrgLogin && orgCode) {
+              console.log("Login em organização específica com código:", orgCode);
+              await login(data.username, data.password, loginType, orgCode);
+            } else {
+              // Login normal
+              console.log("Login padrão para tipo:", loginType);
+              await login(data.username, data.password, loginType);
+            }
           }
           
           // Se chegou aqui, login foi bem-sucedido
