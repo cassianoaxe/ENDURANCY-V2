@@ -33,7 +33,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
+type UserRole = 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -100,13 +100,53 @@ export default function Login() {
       },
       color: 'bg-blue-50 text-blue-700 border-blue-100'
     },
+    association_admin: {
+      label: 'Associação',
+      icon: <Building className="h-5 w-5" />,
+      description: 'Acesse como administrador de associação (RDC 327)',
+      credentials: {
+        username: 'admin@associacao.com',
+        password: 'assoc123'
+      },
+      color: 'bg-green-50 text-green-700 border-green-100'
+    },
+    company_admin: {
+      label: 'Empresa',
+      icon: <Building className="h-5 w-5" />,
+      description: 'Acesse como administrador de empresa (RDC 660)',
+      credentials: {
+        username: 'admin@empresa.com',
+        password: 'empresa123'
+      },
+      color: 'bg-blue-50 text-blue-700 border-blue-100'
+    },
     doctor: {
       label: 'Médico',
       icon: <Stethoscope className="h-5 w-5" />,
-      description: 'Acesse como profissional médico',
+      description: 'Acesse como médico prescritor',
       credentials: {
         username: 'medico@endurancy.com',
         password: 'medico123'
+      },
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
+    },
+    dentist: {
+      label: 'Dentista',
+      icon: <Stethoscope className="h-5 w-5" />,
+      description: 'Acesse como dentista prescritor',
+      credentials: {
+        username: 'dentista@endurancy.com',
+        password: 'dentista123'
+      },
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
+    },
+    vet: {
+      label: 'Veterinário',
+      icon: <Stethoscope className="h-5 w-5" />,
+      description: 'Acesse como veterinário prescritor',
+      credentials: {
+        username: 'veterinario@endurancy.com',
+        password: 'vet123'
       },
       color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
     },
@@ -175,9 +215,19 @@ export default function Login() {
       
       // Ajuste para tipos de usuário específicos
       let loginType = userType;
+      
+      // Mapeando os novos tipos para os tipos existentes na API
       // Farmacêutico temporariamente usando "doctor"
       if (userType === 'pharmacist') {
         loginType = 'doctor'; 
+      }
+      // Novos tipos de organização usando org_admin
+      else if (userType === 'association_admin' || userType === 'company_admin') {
+        loginType = 'org_admin';
+      }
+      // Novos tipos de prescritores usando doctor
+      else if (userType === 'dentist' || userType === 'vet') {
+        loginType = 'doctor';
       }
       
       // Implementar retry com backoff exponencial para evitar problemas de rate limiting
@@ -245,17 +295,28 @@ export default function Login() {
       // Definir URL de redirecionamento baseado no tipo de usuário
       let redirectUrl = '/dashboard';
       
-      if (userType === 'org_admin') {
+      // Portais de organização
+      if (userType === 'org_admin' || userType === 'association_admin' || userType === 'company_admin') {
         redirectUrl = '/organization/dashboard';
-      } else if (userType === 'pharmacist') {
+      } 
+      // Portal de farmácia
+      else if (userType === 'pharmacist') {
         redirectUrl = '/pharmacist/dashboard';
-      } else if (userType === 'laboratory') {
+      } 
+      // Portal de laboratório
+      else if (userType === 'laboratory') {
         redirectUrl = '/laboratory/dashboard';
-      } else if (userType === 'researcher') {
+      } 
+      // Portal de pesquisa
+      else if (userType === 'researcher') {
         redirectUrl = '/researcher/dashboard';
-      } else if (userType === 'doctor') {
+      } 
+      // Portais de prescritor
+      else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
         redirectUrl = '/doctor/dashboard';
-      } else if (userType === 'patient') {
+      } 
+      // Portal do paciente
+      else if (userType === 'patient') {
         redirectUrl = '/patient/dashboard';
       }
       
@@ -473,30 +534,102 @@ export default function Login() {
               {!isOrgLogin && (
                 <div className="px-6">
                   <h3 className="text-base font-medium mb-3">Selecione o tipo de acesso</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                    {Object.entries(userTypeInfo).map(([role, info]) => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setUserType(role as UserRole)}
-                        className={cn(
-                          "p-3 rounded-lg border transition-all",
-                          role === userType 
-                            ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                        )}
-                      >
-                        <div className="text-center">
-                          <div className="text-sm font-medium">{info.label}</div>
-                          {role === userType && (
-                            <div className="text-xs text-green-600 flex items-center justify-center mt-1">
-                              <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
-                              Selecionado
+                  
+                  {/* Organizações */}
+                  <div className="mb-4">
+                    <h4 className="text-sm text-gray-600 mb-2">Organizações</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['association_admin', 'company_admin'].map((role) => {
+                        const info = userTypeInfo[role as UserRole];
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => setUserType(role as UserRole)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all",
+                              role === userType 
+                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            )}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{info.label}</div>
+                              {role === userType && (
+                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
+                                  Selecionado
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Prescritores */}
+                  <div className="mb-4">
+                    <h4 className="text-sm text-gray-600 mb-2">Prescritores</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['doctor', 'dentist', 'vet'].map((role) => {
+                        const info = userTypeInfo[role as UserRole];
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => setUserType(role as UserRole)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all",
+                              role === userType 
+                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            )}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{info.label}</div>
+                              {role === userType && (
+                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Outros acessos */}
+                  <div>
+                    <h4 className="text-sm text-gray-600 mb-2">Outros acessos</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {['admin', 'pharmacist', 'laboratory', 'patient', 'researcher'].map((role) => {
+                        const info = userTypeInfo[role as UserRole];
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => setUserType(role as UserRole)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all",
+                              role === userType 
+                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            )}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{info.label}</div>
+                              {role === userType && (
+                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
