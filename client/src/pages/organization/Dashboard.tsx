@@ -30,7 +30,7 @@ export default function OrganizationDashboard() {
     const checkAuth = async () => {
       try {
         console.log("Verificando autenticação diretamente no dashboard...");
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('/api/user', {
           credentials: 'include',
           headers: {
             'Accept': 'application/json',

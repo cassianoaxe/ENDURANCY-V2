@@ -337,8 +337,11 @@ export default function Login() {
       
       console.log(`Usuário autenticado como ${userType}, redirecionando para ${redirectUrl}`);
       
-      // Usando window.location.href é mais confiável neste caso
-      window.location.href = redirectUrl;
+      // Usando window.location.href e adicionando parâmetro para evitar cache
+      const timestamp = new Date().getTime();
+      const redirectUrlWithParam = `${redirectUrl}?t=${timestamp}`;
+      console.log(`Redirecionando para: ${redirectUrlWithParam}`);
+      window.location.href = redirectUrlWithParam;
       
     } catch (error: any) {
       console.error('Login falhou:', error);
