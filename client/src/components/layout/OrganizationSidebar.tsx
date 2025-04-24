@@ -1271,9 +1271,10 @@ export default function OrganizationSidebar() {
             </h3>
           )}
           
-          {premiumModules.map((item, index) => (
+          {/* Exibe módulo específico de importação se for uma empresa importadora */}
+          {isImportCompany && importModules.map((item, index) => (
             <SidebarMenuItem
-              key={`premium-${index}`}
+              key={`import-${index}`}
               item={item}
               expandedMenu={expandedMenu}
               toggleSubmenu={toggleSubmenu}
@@ -1283,6 +1284,25 @@ export default function OrganizationSidebar() {
               collapsed={collapsed}
             />
           ))}
+          
+          {/* Módulos premium filtrados - remove Cultivo, Produção Industrial e Transparência para importadoras */}
+          {premiumModules
+            .filter(item => !isImportCompany || 
+              (!item.title.includes("Cultivo") && 
+               !item.title.includes("Produção Industrial") && 
+               !item.title.includes("Transparência")))
+            .map((item, index) => (
+              <SidebarMenuItem
+                key={`premium-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
         </div>
         
         {/* Seção de módulos enterprise */}
@@ -1293,18 +1313,25 @@ export default function OrganizationSidebar() {
             </h3>
           )}
           
-          {enterpriseModules.map((item, index) => (
-            <SidebarMenuItem
-              key={`enterprise-${index}`}
-              item={item}
-              expandedMenu={expandedMenu}
-              toggleSubmenu={toggleSubmenu}
-              closeSubmenu={closeSubmenu}
-              navigateTo={navigateTo}
-              openSubmenu={openSubmenu}
-              collapsed={collapsed}
-            />
-          ))}
+          {/* Módulos enterprise filtrados - remove de acordo com o tipo de organização */}
+          {enterpriseModules
+            .filter(item => !isImportCompany || 
+              (!item.title.includes("Cultivo") && 
+               !item.title.includes("Produção Industrial") && 
+               !item.title.includes("Transparência") &&
+               !item.title.includes("Anuidade")))
+            .map((item, index) => (
+              <SidebarMenuItem
+                key={`enterprise-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
         </div>
         
         {/* Configurações */}

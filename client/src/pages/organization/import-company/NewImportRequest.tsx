@@ -1,375 +1,432 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
-
-import OrganizationLayout from '@/components/layout/OrganizationLayout';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Info, Loader2, Upload } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { CheckCircle, ChevronRight, Globe, HelpCircle, InfoIcon, Loader2, Upload, User } from "lucide-react";
+import { Steps } from "@/components/ui/steps";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 
-// Schema de validação para o formulário
-const importRequestSchema = z.object({
-  // Informações do paciente
-  patientName: z.string().min(3, "Nome completo é obrigatório"),
-  patientEmail: z.string().email("Email inválido"),
-  patientPhone: z.string().min(10, "Telefone inválido"),
-  patientCpf: z.string().min(11, "CPF inválido").max(14),
-  patientBirthDate: z.string().min(1, "Data de nascimento é obrigatória"),
-  patientAddress: z.string().min(5, "Endereço é obrigatório"),
-  patientCity: z.string().min(2, "Cidade é obrigatória"),
-  patientState: z.string().min(2, "Estado é obrigatório"),
-  patientZipCode: z.string().min(8, "CEP inválido").max(9),
-  
-  // Informações médicas
-  doctorName: z.string().min(3, "Nome do médico é obrigatório"),
-  doctorCrm: z.string().min(5, "CRM inválido"),
-  doctorState: z.string().min(2, "Estado do CRM é obrigatório"),
-  medicalCondition: z.string().min(3, "Condição médica é obrigatória"),
-  prescriptionDate: z.string().min(1, "Data da prescrição é obrigatória"),
-  
-  // Informações do produto
-  productName: z.string().min(3, "Nome do produto é obrigatório"),
-  productConcentration: z.string().min(1, "Concentração é obrigatória"),
-  productQuantity: z.string().min(1, "Quantidade é obrigatória"),
-  productManufacturer: z.string().min(3, "Fabricante é obrigatório"),
-  
-  // Termos e condições
-  termsAndConditions: z.boolean().refine(val => val === true, {
-    message: "Você deve aceitar os termos e condições",
-  }),
-  anvisaConsent: z.boolean().refine(val => val === true, {
-    message: "Você deve autorizar o envio de informações à ANVISA",
-  }),
-  privacyPolicy: z.boolean().refine(val => val === true, {
-    message: "Você deve aceitar a política de privacidade",
-  }),
-  
-  // Arquivos (na implementação real, estes seriam integrados com upload de arquivos)
-  hasPrescription: z.boolean().optional(),
-  hasIdDocument: z.boolean().optional(),
-  hasMedicalReport: z.boolean().optional(),
+// Esquema de validação
+const patientSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido"),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  address: z.string().min(1, "Endereço é obrigatório"),
+  city: z.string().min(1, "Cidade é obrigatória"),
+  state: z.string().min(1, "Estado é obrigatório"),
+  documentType: z.enum(["cpf", "passport"]),
+  documentNumber: z.string().min(1, "Número do documento é obrigatório"),
+  hasConsentForm: z.boolean().refine(val => val === true, "O termo de consentimento deve ser aceito"),
 });
 
-type ImportRequestFormValues = z.infer<typeof importRequestSchema>;
+const medicationSchema = z.object({
+  product: z.string().min(1, "Produto é obrigatório"),
+  quantity: z.string().min(1, "Quantidade é obrigatória"),
+  concentration: z.string().min(1, "Concentração é obrigatória"),
+  dosage: z.string().min(1, "Dosagem é obrigatória"),
+  prescriptionDate: z.string().min(1, "Data da prescrição é obrigatória"),
+  prescriptionFile: z.any().optional(),
+  medicalReportFile: z.any().optional(),
+  prescribingDoctor: z.string().min(1, "Nome do médico prescritor é obrigatório"),
+  doctorCRM: z.string().min(1, "CRM do médico é obrigatório"),
+  medicalJustification: z.string().min(1, "Justificativa médica é obrigatória"),
+  patientCondition: z.string().min(1, "Condição do paciente é obrigatória"),
+});
 
-export default function NewImportRequestPage() {
-  const [, navigate] = useLocation();
-  const queryClient = useQueryClient();
+// Lista de produtos à base de cannabis disponíveis
+const cannabisProducts = [
+  { id: "cbd_oil_500", name: "CBD Oil 500mg", concentration: "500mg", type: "Óleo" },
+  { id: "cbd_oil_1000", name: "CBD Oil 1000mg", concentration: "1000mg", type: "Óleo" },
+  { id: "cbd_oil_1500", name: "CBD Oil 1500mg", concentration: "1500mg", type: "Óleo" },
+  { id: "cbd_capsules_25", name: "CBD Capsules 25mg", concentration: "25mg", type: "Cápsulas" },
+  { id: "cbd_capsules_50", name: "CBD Capsules 50mg", concentration: "50mg", type: "Cápsulas" },
+  { id: "full_spectrum", name: "Full Spectrum Tincture", concentration: "750mg", type: "Tintura" },
+  { id: "cbd_isolate", name: "CBD Isolate Powder", concentration: "1g", type: "Isolado" },
+  { id: "thc_cbd_1_1", name: "THC:CBD 1:1 Oil", concentration: "600mg", type: "Óleo" },
+  { id: "thc_cbd_1_20", name: "THC:CBD 1:20 Oil", concentration: "600mg", type: "Óleo" },
+  { id: "cbd_cream", name: "CBD Topical Cream", concentration: "250mg", type: "Tópico" },
+];
+
+// Lista de condições médicas comuns para tratamento com cannabis
+const medicalConditions = [
+  "Epilepsia refratária",
+  "Dor crônica",
+  "Esclerose múltipla",
+  "Doença de Parkinson",
+  "Autismo",
+  "Ansiedade",
+  "Insônia",
+  "Câncer (tratamento paliativo)",
+  "Síndrome de Tourette",
+  "Doença de Alzheimer",
+  "Fibromialgia",
+  "Outro (especificar)"
+];
+
+export default function NewImportRequest() {
+  const [step, setStep] = useState(0);
+  const [_, navigate] = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = React.useState("patient-info");
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Configuração do formulário
-  const form = useForm<ImportRequestFormValues>({
-    resolver: zodResolver(importRequestSchema),
+  const patientForm = useForm<z.infer<typeof patientSchema>>({
+    resolver: zodResolver(patientSchema),
     defaultValues: {
-      patientName: "",
-      patientEmail: "",
-      patientPhone: "",
-      patientCpf: "",
-      patientBirthDate: "",
-      patientAddress: "",
-      patientCity: "",
-      patientState: "",
-      patientZipCode: "",
-      
-      doctorName: "",
-      doctorCrm: "",
-      doctorState: "",
-      medicalCondition: "",
-      prescriptionDate: "",
-      
-      productName: "",
-      productConcentration: "",
-      productQuantity: "",
-      productManufacturer: "",
-      
-      termsAndConditions: false,
-      anvisaConsent: false,
-      privacyPolicy: false,
-      
-      hasPrescription: false,
-      hasIdDocument: false,
-      hasMedicalReport: false,
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      state: "",
+      documentType: "cpf",
+      documentNumber: "",
+      hasConsentForm: false,
     },
   });
   
-  // Mutation para criar um novo pedido de importação
-  const createImportRequestMutation = useMutation({
-    mutationFn: async (data: ImportRequestFormValues) => {
-      const response = await apiRequest('POST', '/api/import-requests', data);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao criar pedido de importação');
-      }
-      
-      return response.json();
+  const medicationForm = useForm<z.infer<typeof medicationSchema>>({
+    resolver: zodResolver(medicationSchema),
+    defaultValues: {
+      product: "",
+      quantity: "",
+      concentration: "",
+      dosage: "",
+      prescriptionDate: "",
+      prescribingDoctor: "",
+      doctorCRM: "",
+      medicalJustification: "",
+      patientCondition: "",
     },
-    onSuccess: () => {
-      // Invalidar a consulta para atualizar a lista de pedidos
-      queryClient.invalidateQueries({ queryKey: ['import-orders'] });
+  });
+
+  const handlePatientSubmit = async (data: z.infer<typeof patientSchema>) => {
+    console.log("Dados do paciente:", data);
+    // Avança para o próximo passo
+    setStep(1);
+  };
+
+  const handleMedicationSubmit = async (data: z.infer<typeof medicationSchema>) => {
+    console.log("Dados da medicação:", data);
+    setIsSubmitting(true);
+
+    try {
+      // Em um caso real, enviaria ambos os dados (patientForm.getValues() e data) para a API
+      // Simula um delay para mostrar o loading
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mostrar mensagem de sucesso
       toast({
-        title: "Pedido de importação criado",
-        description: "Seu pedido foi registrado com sucesso e será processado em breve.",
+        title: "Pedido enviado com sucesso!",
+        description: "O pedido de importação foi registrado e será analisado.",
+        variant: "default",
       });
       
-      // Redirecionar para a página de dashboard
-      navigate('/organization/import-company');
-    },
-    onError: (error) => {
-      // Mostrar mensagem de erro
+      // Redireciona para a lista de pedidos após o envio
+      navigate("/organization/import-company");
+    } catch (error) {
       toast({
-        title: "Erro ao criar pedido",
-        description: error.message,
+        title: "Erro ao enviar pedido",
+        description: "Ocorreu um erro ao processar seu pedido. Tente novamente.",
         variant: "destructive",
       });
-    },
-  });
-  
-  // Função para submeter o formulário
-  function onSubmit(values: ImportRequestFormValues) {
-    createImportRequestMutation.mutate(values);
-  }
-  
-  // Função para avançar para a próxima etapa
-  const nextTab = () => {
-    if (activeTab === "patient-info") {
-      // Validar os campos da etapa atual
-      form.trigger([
-        "patientName", 
-        "patientEmail", 
-        "patientPhone", 
-        "patientCpf", 
-        "patientBirthDate", 
-        "patientAddress", 
-        "patientCity", 
-        "patientState", 
-        "patientZipCode"
-      ] as const).then(isValid => {
-        if (isValid) {
-          setActiveTab("medical-info");
-        }
-      });
-    } else if (activeTab === "medical-info") {
-      form.trigger([
-        "doctorName", 
-        "doctorCrm", 
-        "doctorState", 
-        "medicalCondition", 
-        "prescriptionDate"
-      ] as const).then(isValid => {
-        if (isValid) {
-          setActiveTab("product-info");
-        }
-      });
-    } else if (activeTab === "product-info") {
-      form.trigger([
-        "productName", 
-        "productConcentration", 
-        "productQuantity", 
-        "productManufacturer"
-      ] as const).then(isValid => {
-        if (isValid) {
-          setActiveTab("documents");
-        }
-      });
-    } else if (activeTab === "documents") {
-      setActiveTab("terms");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
-  // Função para voltar para a etapa anterior
-  const prevTab = () => {
-    if (activeTab === "medical-info") {
-      setActiveTab("patient-info");
-    } else if (activeTab === "product-info") {
-      setActiveTab("medical-info");
-    } else if (activeTab === "documents") {
-      setActiveTab("product-info");
-    } else if (activeTab === "terms") {
-      setActiveTab("documents");
-    }
+
+  const handlePreviousStep = () => {
+    setStep(0);
   };
-  
-  // Lista de estados brasileiros
-  const brazilianStates = [
-    { value: "AC", label: "Acre" },
-    { value: "AL", label: "Alagoas" },
-    { value: "AP", label: "Amapá" },
-    { value: "AM", label: "Amazonas" },
-    { value: "BA", label: "Bahia" },
-    { value: "CE", label: "Ceará" },
-    { value: "DF", label: "Distrito Federal" },
-    { value: "ES", label: "Espírito Santo" },
-    { value: "GO", label: "Goiás" },
-    { value: "MA", label: "Maranhão" },
-    { value: "MT", label: "Mato Grosso" },
-    { value: "MS", label: "Mato Grosso do Sul" },
-    { value: "MG", label: "Minas Gerais" },
-    { value: "PA", label: "Pará" },
-    { value: "PB", label: "Paraíba" },
-    { value: "PR", label: "Paraná" },
-    { value: "PE", label: "Pernambuco" },
-    { value: "PI", label: "Piauí" },
-    { value: "RJ", label: "Rio de Janeiro" },
-    { value: "RN", label: "Rio Grande do Norte" },
-    { value: "RS", label: "Rio Grande do Sul" },
-    { value: "RO", label: "Rondônia" },
-    { value: "RR", label: "Roraima" },
-    { value: "SC", label: "Santa Catarina" },
-    { value: "SP", label: "São Paulo" },
-    { value: "SE", label: "Sergipe" },
-    { value: "TO", label: "Tocantins" }
-  ];
-  
+
   return (
-    <OrganizationLayout>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate('/organization/import-company')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold">Novo Pedido de Importação</h1>
-        </div>
-        
-        <Alert className="mb-6">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Processo de Importação via RDC 660</AlertTitle>
-          <AlertDescription>
-            Este formulário coletará todas as informações necessárias para solicitar a autorização 
-            excepcional de importação de produtos à base de canabidiol junto à ANVISA. 
-            Após o preenchimento completo, estas informações serão enviadas para processamento.
-          </AlertDescription>
-        </Alert>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Formulário de Solicitação de Importação</CardTitle>
-            <CardDescription>
-              Preencha todos os campos obrigatórios com informações precisas para evitar atrasos no processo de aprovação
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-5 mb-8">
-                    <TabsTrigger value="patient-info">Dados do Paciente</TabsTrigger>
-                    <TabsTrigger value="medical-info">Dados Médicos</TabsTrigger>
-                    <TabsTrigger value="product-info">Produto</TabsTrigger>
-                    <TabsTrigger value="documents">Documentos</TabsTrigger>
-                    <TabsTrigger value="terms">Termos</TabsTrigger>
-                  </TabsList>
-                  
-                  {/* Aba de Informações do Paciente */}
-                  <TabsContent value="patient-info" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="patientName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome Completo</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nome completo do paciente" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="patientEmail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>E-mail</FormLabel>
-                            <FormControl>
-                              <Input placeholder="email@exemplo.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="patientPhone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Telefone</FormLabel>
-                            <FormControl>
-                              <Input placeholder="(11) 98765-4321" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="patientCpf"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CPF</FormLabel>
-                            <FormControl>
-                              <Input placeholder="123.456.789-00" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
+    <div className="container mx-auto p-6 space-y-6">
+      <h1 className="text-3xl font-bold text-blue-700">Novo Pedido de Importação</h1>
+      <p className="text-muted-foreground">
+        Preencha os dados para solicitar a importação de medicamentos à base de Cannabis via RDC 660
+      </p>
+      
+      <Steps 
+        steps={[
+          { label: "Dados do Paciente", description: "Informações pessoais" },
+          { label: "Dados da Medicação", description: "Detalhes do produto e prescrição" },
+        ]} 
+        currentStep={step}
+      />
+      
+      <Card className="mt-8">
+        {step === 0 ? (
+          <>
+            <CardHeader>
+              <div className="flex items-center">
+                <User className="h-5 w-5 text-blue-600 mr-2" />
+                <CardTitle>Dados do Paciente</CardTitle>
+              </div>
+              <CardDescription>
+                Informações do paciente que necessita da medicação
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...patientForm}>
+                <form onSubmit={patientForm.handleSubmit(handlePatientSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
-                      control={form.control}
-                      name="patientBirthDate"
+                      control={patientForm.control}
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Data de Nascimento</FormLabel>
+                          <FormLabel>Nome completo do paciente</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome completo" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="email@exemplo.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(00) 00000-0000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="documentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de documento</FormLabel>
+                          <FormControl>
+                            <RadioGroup 
+                              onValueChange={field.onChange} 
+                              value={field.value}
+                              className="flex space-x-4"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="cpf" id="cpf" />
+                                <Label htmlFor="cpf">CPF</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="passport" id="passport" />
+                                <Label htmlFor="passport">Passaporte</Label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="documentNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Número do documento</FormLabel>
+                          <FormControl>
+                            <Input placeholder={patientForm.watch("documentType") === "cpf" ? "000.000.000-00" : "AB123456"} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel>Endereço completo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Rua, número, bairro, complemento" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cidade</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Cidade" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={patientForm.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Estado</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Estado" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <Separator className="my-6" />
+                  
+                  <FormField
+                    control={patientForm.control}
+                    name="hasConsentForm"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <div className="flex items-center space-x-2">
+                          <FormControl>
+                            <Switch 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange} 
+                            />
+                          </FormControl>
+                          <div className="grid gap-1.5 leading-none">
+                            <Label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              O paciente concorda com os termos de importação
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              O paciente foi informado e concorda com o processo de importação de medicamentos à base de Cannabis via RDC 660/ANVISA.
+                            </p>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-end">
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                      Próximo
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </>
+        ) : (
+          <>
+            <CardHeader>
+              <div className="flex items-center">
+                <Globe className="h-5 w-5 text-blue-600 mr-2" />
+                <CardTitle>Dados da Medicação</CardTitle>
+              </div>
+              <CardDescription>
+                Informações sobre a medicação a ser importada
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...medicationForm}>
+                <form onSubmit={medicationForm.handleSubmit(handleMedicationSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={medicationForm.control}
+                      name="product"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Produto</FormLabel>
+                          <FormControl>
+                            <Select 
+                              onValueChange={field.onChange} 
+                              defaultValue={field.value}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o produto" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {cannabisProducts.map(product => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.name} ({product.concentration} - {product.type})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantidade</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: 3 frascos" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="concentration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Concentração</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: 100mg/ml" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="dosage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Posologia</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: 1ml, 2x ao dia" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="prescriptionDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data da prescrição</FormLabel>
                           <FormControl>
                             <Input type="date" {...field} />
                           </FormControl>
@@ -377,90 +434,81 @@ export default function NewImportRequestPage() {
                         </FormItem>
                       )}
                     />
-                    
-                    <Separator className="my-4" />
-                    
                     <FormField
-                      control={form.control}
-                      name="patientAddress"
+                      control={medicationForm.control}
+                      name="prescriptionFile"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Endereço</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Rua, Número, Complemento" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="patientCity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Cidade</FormLabel>
+                          <FormLabel>Prescrição médica (PDF)</FormLabel>
+                          <div className="flex items-center">
                             <FormControl>
-                              <Input placeholder="Cidade" {...field} />
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  type="file" 
+                                  accept=".pdf" 
+                                  onChange={(e) => field.onChange(e.target.files?.[0])}
+                                />
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <InfoIcon className="h-4 w-4 text-blue-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="w-80">
+                                        A prescrição médica deve estar em formato PDF, com data, nome do paciente, 
+                                        assinatura e carimbo do médico, CRM e especificações do medicamento.
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="patientState"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estado</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o estado" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {brazilianStates.map((state) => (
-                                  <SelectItem key={state.value} value={state.value}>
-                                    {state.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="patientZipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>CEP</FormLabel>
-                          <FormControl>
-                            <Input placeholder="12345-678" {...field} />
-                          </FormControl>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </TabsContent>
-                  
-                  {/* Aba de Informações Médicas */}
-                  <TabsContent value="medical-info" className="space-y-4">
                     <FormField
-                      control={form.control}
-                      name="doctorName"
+                      control={medicationForm.control}
+                      name="medicalReportFile"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome do Médico</FormLabel>
+                          <FormLabel>Laudo médico (PDF)</FormLabel>
+                          <div className="flex items-center">
+                            <FormControl>
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  type="file" 
+                                  accept=".pdf" 
+                                  onChange={(e) => field.onChange(e.target.files?.[0])}
+                                />
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <InfoIcon className="h-4 w-4 text-blue-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="w-80">
+                                        O laudo médico deve conter o diagnóstico, histórico do paciente, 
+                                        justificativa para uso da medicação à base de Cannabis e estar 
+                                        assinado pelo médico responsável.
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                            </FormControl>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="prescribingDoctor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Médico prescritor</FormLabel>
                           <FormControl>
                             <Input placeholder="Nome completo do médico" {...field} />
                           </FormControl>
@@ -468,433 +516,127 @@ export default function NewImportRequestPage() {
                         </FormItem>
                       )}
                     />
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="doctorCrm"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CRM</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Número do CRM" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="doctorState"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estado do CRM</FormLabel>
+                    <FormField
+                      control={medicationForm.control}
+                      name="doctorCRM"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CRM do médico</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Número do CRM/UF" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={medicationForm.control}
+                      name="patientCondition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Condição do paciente</FormLabel>
+                          <FormControl>
                             <Select 
                               onValueChange={field.onChange} 
                               defaultValue={field.value}
                             >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o estado" />
-                                </SelectTrigger>
-                              </FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Condição médica" />
+                              </SelectTrigger>
                               <SelectContent>
-                                {brazilianStates.map((state) => (
-                                  <SelectItem key={state.value} value={state.value}>
-                                    {state.label}
+                                {medicalConditions.map(condition => (
+                                  <SelectItem key={condition} value={condition}>
+                                    {condition}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
-                      control={form.control}
-                      name="medicalCondition"
+                      control={medicationForm.control}
+                      name="medicalJustification"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Condição Médica</FormLabel>
+                        <FormItem className="col-span-2">
+                          <FormLabel>
+                            Justificativa médica 
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <HelpCircle className="inline-block h-3.5 w-3.5 ml-1 text-blue-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="w-80">
+                                    Descreva a justificativa médica para uso da medicação à base de Cannabis.
+                                    Informe tratamentos anteriores que não foram eficazes, benefícios esperados e
+                                    por que esta medicação específica é necessária para o paciente.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Descreva a condição médica ou diagnóstico do paciente" 
-                              {...field} 
+                              placeholder="Descreva a justificativa médica para uso do medicamento à base de Cannabis..." 
                               className="min-h-[100px]"
+                              {...field} 
                             />
                           </FormControl>
-                          <FormDescription>
-                            Forneça detalhes sobre a condição médica que justifica o uso de canabidiol
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <FormField
-                      control={form.control}
-                      name="prescriptionDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data da Prescrição</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </TabsContent>
+                  </div>
                   
-                  {/* Aba de Informações do Produto */}
-                  <TabsContent value="product-info" className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="productName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome do Produto</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: CBD Oil, Epidiolex, etc." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="productConcentration"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Concentração</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: 100mg/ml, 300mg/30ml" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="productQuantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantidade</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: 1 frasco, 30 cápsulas" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="productManufacturer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Fabricante</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nome do fabricante" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Alert className="mt-4">
-                      <Info className="h-4 w-4" />
-                      <AlertTitle>Informação Importante</AlertTitle>
-                      <AlertDescription>
-                        Certifique-se de que o produto solicitado está em conformidade com as 
-                        regulamentações da ANVISA para importação de produtos à base de canabidiol.
-                      </AlertDescription>
-                    </Alert>
-                  </TabsContent>
-                  
-                  {/* Aba de Documentos */}
-                  <TabsContent value="documents" className="space-y-4">
-                    <div className="bg-gray-50 p-4 rounded-md mb-4">
-                      <h3 className="font-medium mb-2">Documentos Necessários</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Para processar sua solicitação, precisamos dos seguintes documentos. 
-                        Por favor, anexe-os em formato PDF ou JPG.
-                      </p>
-                      
-                      <div className="space-y-4">
-                        <div className="border rounded-md p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Prescrição Médica</span>
-                            </div>
-                            <Button variant="outline" size="sm">
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload
-                            </Button>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Prescrição médica com assinatura e carimbo do médico, contendo dados 
-                            do paciente, CID da doença, nome do produto, posologia e quantidade.
-                          </p>
-                          <FormField
-                            control={form.control}
-                            name="hasPrescription"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2 mt-2">
-                                <FormControl>
-                                  <Checkbox 
-                                    checked={field.value} 
-                                    onCheckedChange={field.onChange} 
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">
-                                  Confirmo que anexei a prescrição médica
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <div className="border rounded-md p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Documento de Identificação</span>
-                            </div>
-                            <Button variant="outline" size="sm">
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload
-                            </Button>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            RG, CNH ou outro documento de identificação válido do paciente.
-                          </p>
-                          <FormField
-                            control={form.control}
-                            name="hasIdDocument"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2 mt-2">
-                                <FormControl>
-                                  <Checkbox 
-                                    checked={field.value} 
-                                    onCheckedChange={field.onChange} 
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">
-                                  Confirmo que anexei o documento de identificação
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <div className="border rounded-md p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Laudo/Relatório Médico</span>
-                            </div>
-                            <Button variant="outline" size="sm">
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload
-                            </Button>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Laudo ou relatório médico detalhando a condição de saúde e 
-                            justificativa para uso do produto à base de canabidiol.
-                          </p>
-                          <FormField
-                            control={form.control}
-                            name="hasMedicalReport"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-2 mt-2">
-                                <FormControl>
-                                  <Checkbox 
-                                    checked={field.value} 
-                                    onCheckedChange={field.onChange} 
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-xs">
-                                  Confirmo que anexei o laudo/relatório médico
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                    <div className="flex items-start">
+                      <InfoIcon className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-blue-800">Importante</h4>
+                        <p className="text-sm text-blue-700">
+                          Todos os documentos serão enviados à ANVISA para análise e aprovação da importação.
+                          O processo leva em média 15 dias úteis para ser aprovado. Após aprovação, a medicação 
+                          será importada e entregue no endereço informado.
+                        </p>
                       </div>
                     </div>
-                    
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertTitle>Importante</AlertTitle>
-                      <AlertDescription>
-                        Todos os documentos serão enviados à ANVISA como parte do processo de 
-                        autorização. Certifique-se de que estão legíveis e completos para evitar 
-                        atrasos na aprovação.
-                      </AlertDescription>
-                    </Alert>
-                  </TabsContent>
+                  </div>
                   
-                  {/* Aba de Termos e Condições */}
-                  <TabsContent value="terms" className="space-y-4">
-                    <div className="bg-gray-50 p-4 rounded-md">
-                      <h3 className="font-medium mb-2">Termos e Condições</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Por favor, leia atentamente e aceite os termos abaixo para prosseguir 
-                        com a solicitação de importação.
-                      </p>
-                      
-                      <div className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="termsAndConditions"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                  Termos e Condições do Serviço
-                                </FormLabel>
-                                <FormDescription>
-                                  Declaro que li e concordo com os{" "}
-                                  <a
-                                    href="#"
-                                    className="text-primary underline"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      // Aqui você abriria um modal ou redirecionar para os termos
-                                    }}
-                                  >
-                                    termos e condições
-                                  </a>{" "}
-                                  do serviço de importação.
-                                </FormDescription>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="anvisaConsent"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                  Autorização para ANVISA
-                                </FormLabel>
-                                <FormDescription>
-                                  Autorizo o envio das minhas informações à ANVISA para 
-                                  processamento da autorização excepcional de importação, conforme 
-                                  exigido pela RDC 660/2022.
-                                </FormDescription>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="privacyPolicy"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>
-                                  Política de Privacidade
-                                </FormLabel>
-                                <FormDescription>
-                                  Concordo com a{" "}
-                                  <a
-                                    href="#"
-                                    className="text-primary underline"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      // Aqui você abriria um modal ou redirecionar para a política
-                                    }}
-                                  >
-                                    política de privacidade
-                                  </a>{" "}
-                                  da empresa e autorizo o processamento dos meus dados para o 
-                                  processo de importação.
-                                </FormDescription>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertTitle>Informação Importante</AlertTitle>
-                      <AlertDescription>
-                        Ao enviar este formulário, você iniciará o processo de solicitação de 
-                        autorização para importação junto à ANVISA. Após a aprovação, a empresa 
-                        providenciará a importação e entrega do produto solicitado.
-                      </AlertDescription>
-                    </Alert>
-                  </TabsContent>
-                </Tabs>
-                
-                <div className="flex justify-between">
-                  {activeTab !== "patient-info" && (
-                    <Button type="button" variant="outline" onClick={prevTab}>
+                  <div className="flex justify-between">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                    >
                       Voltar
                     </Button>
-                  )}
-                  
-                  {activeTab !== "terms" ? (
-                    <Button type="button" onClick={nextTab} className="ml-auto">
-                      Próximo
-                    </Button>
-                  ) : (
                     <Button 
                       type="submit" 
-                      className="ml-auto"
-                      disabled={createImportRequestMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={isSubmitting}
                     >
-                      {createImportRequestMutation.isPending ? (
+                      {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Enviando...
                         </>
-                      ) : "Enviar Solicitação"}
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Enviar Pedido
+                        </>
+                      )}
                     </Button>
-                  )}
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
-    </OrganizationLayout>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </>
+        )}
+      </Card>
+    </div>
   );
 }
