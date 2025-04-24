@@ -12,6 +12,11 @@ import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
+
+// Módulo de importação RDC 660
+import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
+import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
+import ImportDetails from "@/pages/organization/import-company/ImportDetails";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
@@ -272,10 +277,7 @@ import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 
-// Importar páginas do módulo de Importação (RDC 660)
-import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
-import NewImportRequestPage from "@/pages/organization/import-company/NewImportRequest";
-import ImportDetailsPage from "@/pages/organization/import-company/ImportDetails";
+// As importações para o módulo de Importação (RDC 660) já foram feitas anteriormente no arquivo
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -1515,7 +1517,7 @@ function AppContent() {
     
     if (currentPath === '/organization/import-company/new-request') {
       return <OrganizationLayout>
-        <NewImportRequestPage />
+        <NewImportRequest />
       </OrganizationLayout>;
     }
     
@@ -1524,7 +1526,7 @@ function AppContent() {
     if (importDetailMatch) {
       const importId = importDetailMatch[1];
       return <OrganizationLayout>
-        <ImportDetailsPage />
+        <ImportDetails />
       </OrganizationLayout>;
     }
     
