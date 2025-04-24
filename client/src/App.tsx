@@ -1506,6 +1506,28 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    // Rotas do módulo de Importação (RDC 660)
+    if (currentPath === '/organization/import-company' || currentPath === '/organization/import-company/dashboard') {
+      return <OrganizationLayout>
+        <ImportCompanyDashboard />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/import-company/new-request') {
+      return <OrganizationLayout>
+        <NewImportRequestPage />
+      </OrganizationLayout>;
+    }
+    
+    // Rota para detalhes de importação com ID dinâmico
+    const importDetailMatch = currentPath.match(/^\/organization\/import-company\/(\d+)$/);
+    if (importDetailMatch) {
+      const importId = importDetailMatch[1];
+      return <OrganizationLayout>
+        <ImportDetailsPage />
+      </OrganizationLayout>;
+    }
+    
     // Rotas para compatibilidade com a estrutura antiga - redirecionamentos
     if (currentPath === '/organization/pedidos') {
       // Redirecionar para a nova URL
