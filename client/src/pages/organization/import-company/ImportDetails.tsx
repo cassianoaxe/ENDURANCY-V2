@@ -188,7 +188,7 @@ const StatusTimeline = ({ statusHistory, currentStatus }: { statusHistory: Impor
 // Componente principal de detalhes da importação
 export default function ImportDetailsPage() {
   const { id } = useParams();
-  const importId = parseInt(id);
+  const importId = id ? parseInt(id) : 0;
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = React.useState('overview');
   

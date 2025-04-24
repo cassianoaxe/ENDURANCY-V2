@@ -95,8 +95,17 @@ interface ImportOrder {
   notes?: string;
 }
 
+// Interface para o componente StatCard
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  description: string;
+  className?: string;
+}
+
 // Componente para mostrar estatísticas do dashboard
-const StatCard = ({ title, value, icon, description, className = '' }) => (
+const StatCard = ({ title, value, icon, description, className = '' }: StatCardProps) => (
   <Card className={className}>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>

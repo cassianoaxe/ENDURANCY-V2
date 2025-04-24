@@ -181,7 +181,7 @@ export default function NewImportRequestPage() {
         "patientCity", 
         "patientState", 
         "patientZipCode"
-      ]).then(isValid => {
+      ] as const).then(isValid => {
         if (isValid) {
           setActiveTab("medical-info");
         }
@@ -193,7 +193,7 @@ export default function NewImportRequestPage() {
         "doctorState", 
         "medicalCondition", 
         "prescriptionDate"
-      ]).then(isValid => {
+      ] as const).then(isValid => {
         if (isValid) {
           setActiveTab("product-info");
         }
@@ -204,7 +204,7 @@ export default function NewImportRequestPage() {
         "productConcentration", 
         "productQuantity", 
         "productManufacturer"
-      ]).then(isValid => {
+      ] as const).then(isValid => {
         if (isValid) {
           setActiveTab("documents");
         }
