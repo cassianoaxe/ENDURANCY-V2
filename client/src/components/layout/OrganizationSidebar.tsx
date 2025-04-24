@@ -47,6 +47,7 @@ import {
   Shapes, Target, GraduationCap, Video, Radio, Headphones, Phone,
   BadgePercent, Printer, QrCode, Box, Trash2, Puzzle, Bot, 
   Plane, Mailbox, Share2, Scissors, ScrollText, Library, Layers, HeartHandshake,
+  Globe, FileCheck, AlertTriangle, FileUp,
   
   // Aliases
   CreditCard as CreditCardIcon
@@ -58,6 +59,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenuItem } from "./SidebarMenuItem";
 
 export default function OrganizationSidebar() {
+  // Classe CSS para o tema da organização
+  const sidebarClassNames = cn(
+    "organization-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-screen transition-transform bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-800 overflow-hidden flex flex-col",
+  );
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -124,6 +129,28 @@ export default function OrganizationSidebar() {
     queryKey: ['/api/organizations', user?.organizationId],
     enabled: !!user?.organizationId,
   });
+  
+  // Verifica se a organização é do tipo importadora
+  const isImportCompany = organization?.type === 'import_company' || 
+                          currentPath.includes('/organization/import-company');
+                          
+  // Aplicar classe CSS com base no tipo de organização
+  useEffect(() => {
+    const sidebarElement = document.querySelector('.organization-sidebar');
+    if (sidebarElement) {
+      if (isImportCompany) {
+        sidebarElement.classList.add('import-company-theme');
+        document.documentElement.classList.add('import-company-theme');
+      } else {
+        sidebarElement.classList.remove('import-company-theme');
+        document.documentElement.classList.remove('import-company-theme');
+      }
+    }
+    
+    return () => {
+      document.documentElement.classList.remove('import-company-theme');
+    };
+  }, [isImportCompany, currentPath]);
 
   // Function to navigate to a path, ensuring session is maintained
   const navigateTo = (path: string, keepSubmenuOpen = false) => {
@@ -1052,6 +1079,79 @@ export default function OrganizationSidebar() {
   
   // Módulos do portal da farmácia (movido para módulos premium)
   const pharmacyModules = [];
+  // Módulo específico de Importação RDC 660
+  const importModules = [
+    {
+      title: "Importação RDC 660",
+      path: "/organization/import-company",
+      active: currentPath === "/organization/import-company" || 
+              currentPath.startsWith("/organization/import-company/"),
+      icon: <Globe size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Importação",
+          path: "/organization/import-company",
+          active: currentPath === "/organization/import-company" && !currentPath.includes("/organization/import-company/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Novo Pedido",
+          path: "/organization/import-company/novo-pedido",
+          active: currentPath === "/organization/import-company/novo-pedido",
+          icon: <FilePlus size={16} />
+        },
+        {
+          title: "Pedidos em Análise",
+          path: "/organization/import-company/pedidos-analise",
+          active: currentPath === "/organization/import-company/pedidos-analise",
+          icon: <FileSearch size={16} />
+        },
+        {
+          title: "Enviados para ANVISA",
+          path: "/organization/import-company/anvisa",
+          active: currentPath === "/organization/import-company/anvisa",
+          icon: <FileUp size={16} />
+        },
+        {
+          title: "Aprovados",
+          path: "/organization/import-company/aprovados",
+          active: currentPath === "/organization/import-company/aprovados",
+          icon: <FileCheck size={16} />
+        },
+        {
+          title: "Rejeitados",
+          path: "/organization/import-company/rejeitados",
+          active: currentPath === "/organization/import-company/rejeitados",
+          icon: <AlertTriangle size={16} />
+        },
+        {
+          title: "Em Trânsito",
+          path: "/organization/import-company/transito",
+          active: currentPath === "/organization/import-company/transito",
+          icon: <Plane size={16} />
+        },
+        {
+          title: "Entregues",
+          path: "/organization/import-company/entregues",
+          active: currentPath === "/organization/import-company/entregues",
+          icon: <Check size={16} />
+        }
+      ]
+    }
+  ];
+
+  // Filtragem de módulos baseada no tipo de organização
+  const filteredPaidModules = paidModules.filter(module => {
+    if (isImportCompany) {
+      // Remove módulos não relevantes para importadoras
+      return !module.title.includes("Cultivo") && 
+             !module.title.includes("Produção Industrial") && 
+             !module.title.includes("Transparência") &&
+             !module.title.includes("Anuidade");
+    }
+    return true;
+  });
   
   return (
     <div className={cn(
