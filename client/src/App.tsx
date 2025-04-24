@@ -272,6 +272,11 @@ import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 
+// Importar páginas do módulo de Importação (RDC 660)
+import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
+import NewImportRequestPage from "@/pages/organization/import-company/NewImportRequest";
+import ImportDetailsPage from "@/pages/organization/import-company/ImportDetails";
+
 // Simple AppContent component with no external routing library
 function AppContent() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
