@@ -1141,6 +1141,20 @@ export default function OrganizationSidebar() {
     }
   ];
 
+  // Todos os módulos pagos disponíveis
+  const paidModules = [
+    ...financialModules,
+    ...communicationModules,
+    ...purchaseStockModules,
+    ...hrModules,
+    ...legalModules,
+    ...salesModules,
+    ...importModules,
+    ...patrimonioModules,
+    ...taskModules,
+    ...pharmacyModules
+  ];
+  
   // Filtragem de módulos baseada no tipo de organização
   const filteredPaidModules = paidModules.filter(module => {
     if (isImportCompany) {
