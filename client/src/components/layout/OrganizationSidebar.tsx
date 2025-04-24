@@ -1161,7 +1161,7 @@ export default function OrganizationSidebar() {
   
   // Filtragem de módulos baseada no tipo de organização
   const filteredPaidModules = paidModules.filter(module => {
-    if (isImportCompany) {
+    if (isImportCompany && module && module.title) {
       // Remove módulos não relevantes para importadoras
       return !module.title.includes("Cultivo") && 
              !module.title.includes("Produção Industrial") && 
