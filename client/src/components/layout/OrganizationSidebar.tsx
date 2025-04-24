@@ -1306,7 +1306,8 @@ export default function OrganizationSidebar() {
           {/* Módulos premium filtrados - remove Cultivo, Produção Industrial e Transparência para importadoras */}
           {premiumModules
             .filter(item => !isImportCompany || 
-              (!item.title.includes("Cultivo") && 
+              (item && item.title && 
+               !item.title.includes("Cultivo") && 
                !item.title.includes("Produção Industrial") && 
                !item.title.includes("Transparência")))
             .map((item, index) => (
@@ -1334,7 +1335,8 @@ export default function OrganizationSidebar() {
           {/* Módulos enterprise filtrados - remove de acordo com o tipo de organização */}
           {enterpriseModules
             .filter(item => !isImportCompany || 
-              (!item.title.includes("Cultivo") && 
+              (item && item.title && 
+               !item.title.includes("Cultivo") && 
                !item.title.includes("Produção Industrial") && 
                !item.title.includes("Transparência") &&
                !item.title.includes("Anuidade")))
