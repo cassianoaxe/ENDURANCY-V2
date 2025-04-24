@@ -1141,17 +1141,21 @@ export default function OrganizationSidebar() {
     }
   ];
 
+  // Definir arrays vazios para módulos que não foram declarados ainda
+  const financialModules = [];
+  const communicationModules = [];
+  const purchaseStockModules = [];
+  const hrModules = [];
+  const legalModules = [];
+  const salesModules = [];
+  const patrimonioModules = [];
+  const taskModules = [];
+  
   // Todos os módulos pagos disponíveis
   const paidModules = [
-    ...financialModules,
-    ...communicationModules,
-    ...purchaseStockModules,
-    ...hrModules,
-    ...legalModules,
-    ...salesModules,
+    ...premiumModules,
+    ...enterpriseModules,
     ...importModules,
-    ...patrimonioModules,
-    ...taskModules,
     ...pharmacyModules
   ];
   
