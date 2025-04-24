@@ -79,7 +79,7 @@ const medicalConditions = [
 
 export default function NewImportRequest() {
   const [step, setStep] = useState(0);
-  const [_, navigate] = useNavigate();
+  const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
