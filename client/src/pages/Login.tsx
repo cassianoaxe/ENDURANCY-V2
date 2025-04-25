@@ -321,6 +321,9 @@ export default function Login() {
         document.documentElement.classList.remove('importadora-theme');
         localStorage.removeItem('userType');
         console.log("Redirecionando para dashboard de importadora:", redirectUrl);
+        
+        // Adicionando marcador para verificar após o login
+        localStorage.setItem('check_org_type', 'true');
       }
       // Portal de empresa normal
       else if (userType === 'company_admin') {
