@@ -20,6 +20,39 @@ export default function OrganizationDashboard() {
   
   // Adicionar verificação de autenticação explícita para corrigir problemas de redirecionamento
   useEffect(() => {
+    // Verificar se este é o redirecionamento de uma empresa importadora
+    const checkOrgType = localStorage.getItem('check_org_type');
+    
+    if (checkOrgType === 'true' && user?.organizationId) {
+      console.log("Dashboard: Verificando se esta organização é uma importadora...");
+      
+      fetch(`/api/organizations/${user.organizationId}`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(orgData => {
+        console.log("Dashboard: Tipo de organização detectado:", orgData.type);
+        
+        // Se é uma importadora, redirecionar imediatamente
+        if (orgData.type === 'import_company') {
+          console.log("Dashboard: REDIRECIONANDO para dashboard de importadora");
+          localStorage.removeItem('check_org_type');
+          window.location.href = '/organization/import-company/dashboard';
+          return;
+        } else {
+          // Limpar o flag se não é importadora
+          localStorage.removeItem('check_org_type');
+        }
+      })
+      .catch(error => {
+        console.error("Dashboard: Erro ao verificar tipo de organização:", error);
+        localStorage.removeItem('check_org_type');
+      });
+    }
+    
     if (user) {
       // Usuário já está autenticado, não precisamos verificar
       setIsCheckingAuth(false);

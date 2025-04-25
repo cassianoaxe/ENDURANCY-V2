@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,6 +115,22 @@ export default function ImportCompanyDashboard() {
   const { user } = useAuth();
   const [_, navigate] = useLocation();
   const { toast } = useToast();
+  
+  // Garantir que tenhamos a classe de tema da importadora e limpar flags
+  useEffect(() => {
+    // Aplicar tema da importadora
+    document.documentElement.classList.add('importadora-theme');
+    // Limpar flags utilizados na navegação
+    localStorage.removeItem('check_org_type');
+    localStorage.removeItem('userType');
+    
+    console.log("Dashboard de importadora: tema aplicado e flags limpos");
+    
+    return () => {
+      // Limpar a classe ao desmontar o componente
+      document.documentElement.classList.remove('importadora-theme');
+    };
+  }, []);
 
   // Simulamos uma consulta de dados
   const { data: importRequests, isLoading } = useQuery({
