@@ -146,11 +146,11 @@ export default function ImportCompanyDashboard() {
   });
 
   const handleNewRequest = () => {
-    navigate('/organization/import-company/novo-pedido');
+    navigate('/organization/import-company/new-request');
   };
 
   const handleViewRequest = (id: number) => {
-    navigate(`/organization/import-company/pedido/${id}`);
+    navigate(`/organization/import-company/${id}`);
   };
 
   return (
