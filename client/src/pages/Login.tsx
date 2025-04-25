@@ -311,9 +311,19 @@ export default function Login() {
       let redirectUrl = '/dashboard';
       
       // Portais de organização
-      if (userType === 'association_admin' || userType === 'company_admin') {
+      if (userType === 'association_admin') {
         redirectUrl = '/organization/dashboard';
-      } 
+      }
+      // Portal de empresa importadora (usando a classe CSS definida)
+      else if (userType === 'company_admin' && document.documentElement.classList.contains('importadora-theme')) {
+        redirectUrl = '/organization/import-company/dashboard';
+        // Após definir o redirecionamento, limpar a classe para não afetar futuros logins
+        document.documentElement.classList.remove('importadora-theme');
+      }
+      // Portal de empresa normal
+      else if (userType === 'company_admin') {
+        redirectUrl = '/organization/dashboard';
+      }
       // Portal de farmácia
       else if (userType === 'pharmacist') {
         redirectUrl = '/pharmacist/dashboard';
