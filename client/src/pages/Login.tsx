@@ -619,6 +619,9 @@ export default function Login() {
                           // Adiciona class para informar que é uma importadora e armazena em localStorage
                           document.documentElement.classList.add('importadora-theme');
                           localStorage.setItem('userType', 'import_company');
+                          localStorage.setItem('check_org_type', 'true');
+                          
+                          console.log("Configurado para login de importadora");
                         }}
                         className={cn(
                           "p-2 rounded-lg border transition-all",
