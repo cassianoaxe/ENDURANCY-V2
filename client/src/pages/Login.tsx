@@ -314,15 +314,18 @@ export default function Login() {
       if (userType === 'association_admin') {
         redirectUrl = '/organization/dashboard';
       }
-      // Portal de empresa importadora (usando a classe CSS definida)
-      else if (userType === 'company_admin' && document.documentElement.classList.contains('importadora-theme')) {
+      // Portal de empresa importadora
+      else if (userType === 'company_admin' && (localStorage.getItem('userType') === 'import_company' || document.documentElement.classList.contains('importadora-theme'))) {
         redirectUrl = '/organization/import-company/dashboard';
-        // Após definir o redirecionamento, limpar a classe para não afetar futuros logins
+        // Após definir o redirecionamento, limpar os marcadores
         document.documentElement.classList.remove('importadora-theme');
+        localStorage.removeItem('userType');
+        console.log("Redirecionando para dashboard de importadora:", redirectUrl);
       }
       // Portal de empresa normal
       else if (userType === 'company_admin') {
         redirectUrl = '/organization/dashboard';
+        console.log("Redirecionando para dashboard de empresa normal");
       }
       // Portal de farmácia
       else if (userType === 'pharmacist') {
@@ -610,8 +613,9 @@ export default function Login() {
                           form.setValue('username', 'admin@importadora.com');
                           form.setValue('password', 'import123');
                           
-                          // Adiciona class para informar que é uma importadora
+                          // Adiciona class para informar que é uma importadora e armazena em localStorage
                           document.documentElement.classList.add('importadora-theme');
+                          localStorage.setItem('userType', 'import_company');
                         }}
                         className={cn(
                           "p-2 rounded-lg border transition-all",
