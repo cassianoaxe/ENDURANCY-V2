@@ -472,12 +472,7 @@ export default function OrganizationSidebar() {
         }
       ]
     },
-    {
-      title: "ChatGPT AI",
-      path: "/organization/ai",
-      active: currentPath === "/organization/ai",
-      icon: <Bot size={18} />
-    },
+    
     
     {
       title: "Comunicação",
@@ -532,7 +527,10 @@ export default function OrganizationSidebar() {
       active: currentPath === "/organization/integracoes" || 
               currentPath.startsWith("/organization/integracoes/"),
       icon: <Puzzle size={18} />
-    }
+    },
+    
+    // Adiciona o módulo de importação como módulo base para importadoras
+    ...(isImportCompany ? importModules : [])
   ];
   
   // Configurações da organização
@@ -743,6 +741,12 @@ export default function OrganizationSidebar() {
           icon: <Users size={16} />
         }
       ]
+    },
+    {
+      title: "ChatGPT AI",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai",
+      icon: <Bot size={18} />
     },
     {
       title: "Produção Industrial",
@@ -1073,12 +1077,10 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos vazios para retrocompatibilidade
-  const doctorManagementModules = [];
+  // Variáveis vazias para compatibilidade
   const medicalModules = [];
-  
-  // Módulos do portal da farmácia (movido para módulos premium)
   const pharmacyModules = [];
+  
   // Módulo específico de Importação
   const importModules = [
     {
@@ -1290,19 +1292,7 @@ export default function OrganizationSidebar() {
             </h3>
           )}
           
-          {/* Exibe módulo específico de importação se for uma empresa importadora */}
-          {isImportCompany && importModules.map((item, index) => (
-            <SidebarMenuItem
-              key={`import-${index}`}
-              item={item}
-              expandedMenu={expandedMenu}
-              toggleSubmenu={toggleSubmenu}
-              closeSubmenu={closeSubmenu}
-              navigateTo={navigateTo}
-              openSubmenu={openSubmenu}
-              collapsed={collapsed}
-            />
-          ))}
+          {/* Módulo de importação movido para módulos base */}
           
           {/* Módulos premium filtrados - remove módulos não relevantes para importadoras */}
           {premiumModules
