@@ -1086,56 +1086,56 @@ export default function OrganizationSidebar() {
       path: "/organization/import-company",
       active: currentPath === "/organization/import-company" || 
               currentPath.startsWith("/organization/import-company/"),
-      icon: <Globe size={18} />,
+      icon: <Globe size={18} className="text-blue-500" />,
       isSubmenu: true,
       subItems: [
         {
           title: "Dashboard Importação",
           path: "/organization/import-company",
           active: currentPath === "/organization/import-company" && !currentPath.includes("/organization/import-company/"),
-          icon: <LayoutDashboard size={16} />
+          icon: <LayoutDashboard size={16} className="text-blue-500" />
         },
         {
           title: "Novo Pedido",
           path: "/organization/import-company/novo-pedido",
           active: currentPath === "/organization/import-company/novo-pedido",
-          icon: <FilePlus size={16} />
+          icon: <FilePlus size={16} className="text-blue-500" />
         },
         {
           title: "Pedidos em Análise",
           path: "/organization/import-company/pedidos-analise",
           active: currentPath === "/organization/import-company/pedidos-analise",
-          icon: <FileSearch size={16} />
+          icon: <FileSearch size={16} className="text-blue-500" />
         },
         {
           title: "Enviados para ANVISA",
           path: "/organization/import-company/anvisa",
           active: currentPath === "/organization/import-company/anvisa",
-          icon: <FileUp size={16} />
+          icon: <FileUp size={16} className="text-blue-500" />
         },
         {
           title: "Aprovados",
           path: "/organization/import-company/aprovados",
           active: currentPath === "/organization/import-company/aprovados",
-          icon: <FileCheck size={16} />
+          icon: <FileCheck size={16} className="text-blue-500" />
         },
         {
           title: "Rejeitados",
           path: "/organization/import-company/rejeitados",
           active: currentPath === "/organization/import-company/rejeitados",
-          icon: <AlertTriangle size={16} />
+          icon: <AlertTriangle size={16} className="text-blue-500" />
         },
         {
           title: "Em Trânsito",
           path: "/organization/import-company/transito",
           active: currentPath === "/organization/import-company/transito",
-          icon: <Plane size={16} />
+          icon: <Plane size={16} className="text-blue-500" />
         },
         {
           title: "Entregues",
           path: "/organization/import-company/entregues",
           active: currentPath === "/organization/import-company/entregues",
-          icon: <Check size={16} />
+          icon: <Check size={16} className="text-blue-500" />
         }
       ]
     }
