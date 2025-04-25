@@ -1166,6 +1166,7 @@ export default function OrganizationSidebar() {
       return !module.title.includes("Cultivo") && 
              !module.title.includes("Produção Industrial") && 
              !module.title.includes("Transparência") &&
+             !module.title.includes("Portal") &&
              !module.title.includes("Anuidade");
     }
     return true;
@@ -1303,13 +1304,15 @@ export default function OrganizationSidebar() {
             />
           ))}
           
-          {/* Módulos premium filtrados - remove Cultivo, Produção Industrial e Transparência para importadoras */}
+          {/* Módulos premium filtrados - remove módulos não relevantes para importadoras */}
           {premiumModules
             .filter(item => !isImportCompany || 
               (item && item.title && 
                !item.title.includes("Cultivo") && 
                !item.title.includes("Produção Industrial") && 
-               !item.title.includes("Transparência")))
+               !item.title.includes("Transparência") && 
+               !item.title.includes("Portal") &&
+               !item.title.includes("Anuidade")))
             .map((item, index) => (
               <SidebarMenuItem
                 key={`premium-${index}`}
@@ -1332,13 +1335,14 @@ export default function OrganizationSidebar() {
             </h3>
           )}
           
-          {/* Módulos enterprise filtrados - remove de acordo com o tipo de organização */}
+          {/* Módulos enterprise filtrados - remove módulos não relevantes para importadoras */}
           {enterpriseModules
             .filter(item => !isImportCompany || 
               (item && item.title && 
                !item.title.includes("Cultivo") && 
                !item.title.includes("Produção Industrial") && 
                !item.title.includes("Transparência") &&
+               !item.title.includes("Portal") &&
                !item.title.includes("Anuidade")))
             .map((item, index) => (
               <SidebarMenuItem
