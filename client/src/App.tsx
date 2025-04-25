@@ -327,6 +327,43 @@ function AppContent() {
       return;
     }
     
+    // Verificar redirecionamento para dashboard de importadora
+    if (isAuthenticated && user && currentPath === '/organization/dashboard') {
+      const checkOrgType = localStorage.getItem('check_org_type');
+      
+      if (checkOrgType === 'true') {
+        console.log("Verificando se é uma organização importadora...");
+        
+        // Buscar detalhes da organização
+        if (user.organizationId) {
+          fetch(`/api/organizations/${user.organizationId}`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(orgData => {
+            console.log("Tipo de organização:", orgData.type);
+            
+            // Se é uma importadora, redirecionar
+            if (orgData.type === 'import_company') {
+              console.log("Redirecionando para dashboard de importadora");
+              localStorage.removeItem('check_org_type');
+              window.location.href = '/organization/import-company/dashboard';
+            } else {
+              // Limpar o flag
+              localStorage.removeItem('check_org_type');
+            }
+          })
+          .catch(error => {
+            console.error("Erro ao verificar o tipo de organização:", error);
+            localStorage.removeItem('check_org_type');
+          });
+        }
+      }
+    }
+    
     if (isAuthenticated && user) {
       console.log("Verificando papel do usuário para redirecionamento correto:", user.role);
       const path = window.location.pathname;
