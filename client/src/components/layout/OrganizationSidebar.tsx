@@ -229,6 +229,72 @@ export default function OrganizationSidebar() {
     localStorage.setItem('expandedSubmenu', menuTitle);
   };
   
+  // Todos os módulos específicos para diferentes papéis
+  const medicalModules: any[] = [];
+  const pharmacyModules: any[] = [];
+  
+  // Módulo específico de Importação
+  const importModules = [
+    {
+      title: "Importação",
+      path: "/organization/import-company",
+      active: currentPath === "/organization/import-company" || 
+              currentPath.startsWith("/organization/import-company/"),
+      icon: <Globe size={18} className="text-blue-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Importação",
+          path: "/organization/import-company",
+          active: currentPath === "/organization/import-company" && !currentPath.includes("/organization/import-company/"),
+          icon: <LayoutDashboard size={16} className="text-blue-500" />
+        },
+        {
+          title: "Novo Pedido",
+          path: "/organization/import-company/novo-pedido",
+          active: currentPath === "/organization/import-company/novo-pedido",
+          icon: <FilePlus size={16} className="text-blue-500" />
+        },
+        {
+          title: "Pedidos em Análise",
+          path: "/organization/import-company/pedidos-analise",
+          active: currentPath === "/organization/import-company/pedidos-analise",
+          icon: <FileSearch size={16} className="text-blue-500" />
+        },
+        {
+          title: "Enviados para ANVISA",
+          path: "/organization/import-company/anvisa",
+          active: currentPath === "/organization/import-company/anvisa",
+          icon: <FileUp size={16} className="text-blue-500" />
+        },
+        {
+          title: "Aprovados",
+          path: "/organization/import-company/aprovados",
+          active: currentPath === "/organization/import-company/aprovados",
+          icon: <FileCheck size={16} className="text-blue-500" />
+        },
+        {
+          title: "Rejeitados",
+          path: "/organization/import-company/rejeitados",
+          active: currentPath === "/organization/import-company/rejeitados",
+          icon: <AlertTriangle size={16} className="text-blue-500" />
+        },
+        {
+          title: "Em Trânsito",
+          path: "/organization/import-company/transito",
+          active: currentPath === "/organization/import-company/transito",
+          icon: <Plane size={16} className="text-blue-500" />
+        },
+        {
+          title: "Entregues",
+          path: "/organization/import-company/entregues",
+          active: currentPath === "/organization/import-company/entregues",
+          icon: <Check size={16} className="text-blue-500" />
+        }
+      ]
+    }
+  ];
+  
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)
   const freeModules = [
     {
@@ -749,12 +815,6 @@ export default function OrganizationSidebar() {
       ]
     },
     {
-      title: "ChatGPT AI",
-      path: "/organization/ai",
-      active: currentPath === "/organization/ai",
-      icon: <Bot size={18} />
-    },
-    {
       title: "Produção Industrial",
       path: "/organization/producao-industrial",
       active: currentPath === "/organization/producao-industrial" || 
@@ -1083,72 +1143,6 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Variáveis vazias para compatibilidade
-  const medicalModules = [];
-  const pharmacyModules = [];
-  
-  // Módulo específico de Importação
-  const importModules = [
-    {
-      title: "Importação",
-      path: "/organization/import-company",
-      active: currentPath === "/organization/import-company" || 
-              currentPath.startsWith("/organization/import-company/"),
-      icon: <Globe size={18} className="text-blue-500" />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Importação",
-          path: "/organization/import-company",
-          active: currentPath === "/organization/import-company" && !currentPath.includes("/organization/import-company/"),
-          icon: <LayoutDashboard size={16} className="text-blue-500" />
-        },
-        {
-          title: "Novo Pedido",
-          path: "/organization/import-company/novo-pedido",
-          active: currentPath === "/organization/import-company/novo-pedido",
-          icon: <FilePlus size={16} className="text-blue-500" />
-        },
-        {
-          title: "Pedidos em Análise",
-          path: "/organization/import-company/pedidos-analise",
-          active: currentPath === "/organization/import-company/pedidos-analise",
-          icon: <FileSearch size={16} className="text-blue-500" />
-        },
-        {
-          title: "Enviados para ANVISA",
-          path: "/organization/import-company/anvisa",
-          active: currentPath === "/organization/import-company/anvisa",
-          icon: <FileUp size={16} className="text-blue-500" />
-        },
-        {
-          title: "Aprovados",
-          path: "/organization/import-company/aprovados",
-          active: currentPath === "/organization/import-company/aprovados",
-          icon: <FileCheck size={16} className="text-blue-500" />
-        },
-        {
-          title: "Rejeitados",
-          path: "/organization/import-company/rejeitados",
-          active: currentPath === "/organization/import-company/rejeitados",
-          icon: <AlertTriangle size={16} className="text-blue-500" />
-        },
-        {
-          title: "Em Trânsito",
-          path: "/organization/import-company/transito",
-          active: currentPath === "/organization/import-company/transito",
-          icon: <Plane size={16} className="text-blue-500" />
-        },
-        {
-          title: "Entregues",
-          path: "/organization/import-company/entregues",
-          active: currentPath === "/organization/import-company/entregues",
-          icon: <Check size={16} className="text-blue-500" />
-        }
-      ]
-    }
-  ];
-
   // Definir arrays vazios para módulos que não foram declarados ainda
   const financialModules = [];
   const communicationModules = [];
