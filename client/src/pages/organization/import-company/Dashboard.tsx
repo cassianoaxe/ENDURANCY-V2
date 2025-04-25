@@ -172,7 +172,7 @@ export default function ImportCompanyDashboard() {
             <CardTitle className="text-sm font-medium">
               Aprovados ANVISA
             </CardTitle>
-            <FileCheck className="h-4 w-4 text-green-500" />
+            <FileCheck className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
