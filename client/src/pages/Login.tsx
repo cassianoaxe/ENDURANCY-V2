@@ -566,31 +566,59 @@ export default function Login() {
                   <div className="mb-4">
                     <h4 className="text-sm text-gray-600 mb-2">Organizações</h4>
                     <div className="grid grid-cols-2 gap-2">
-                      {['association_admin', 'company_admin'].map((role) => {
-                        const info = userTypeInfo[role as UserRole];
-                        return (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => setUserType(role as UserRole)}
-                            className={cn(
-                              "p-2 rounded-lg border transition-all",
-                              role === userType 
-                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
-                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                            )}
-                          >
-                            <div className="text-center">
-                              <div className="text-sm font-medium">{info.label}</div>
-                              {role === userType && (
-                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
-                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
-                                </div>
-                              )}
+                      {/* Botão Associação */}
+                      <button
+                        key="association_admin"
+                        type="button"
+                        onClick={() => setUserType('association_admin')}
+                        className={cn(
+                          "p-2 rounded-lg border transition-all",
+                          'association_admin' === userType 
+                            ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        )}
+                      >
+                        <div className="text-center">
+                          <div className="text-sm font-medium">Associação</div>
+                          {'association_admin' === userType && (
+                            <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                              <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
                             </div>
-                          </button>
-                        );
-                      })}
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Botão Empresa (modificado para importadoras) */}
+                      <button
+                        key="company_admin"
+                        type="button"
+                        onClick={() => {
+                          // Define o tipo de usuário como company_admin
+                          setUserType('company_admin');
+                          
+                          // Atualiza o formulário para incluir o tipo de empresa
+                          form.setValue('username', 'admin@importadora.com');
+                          form.setValue('password', 'import123');
+                          
+                          // Adiciona class para informar que é uma importadora
+                          document.documentElement.classList.add('importadora-theme');
+                        }}
+                        className={cn(
+                          "p-2 rounded-lg border transition-all",
+                          'company_admin' === userType 
+                            ? "border-[#0066cc] bg-[#0066cc]/5 shadow-sm" 
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        )}
+                      >
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-blue-700">Empresa</div>
+                          {'company_admin' === userType && (
+                            <div className="text-xs text-blue-700 flex items-center justify-center mt-1">
+                              <div className="h-1 w-1 rounded-full bg-blue-700 inline-block"></div>
+                            </div>
+                          )}
+                        </div>
+                      </button>
                     </div>
                   </div>
                   
@@ -666,14 +694,21 @@ export default function Login() {
                     variant="outline"
                     className={cn(
                       "rounded-full px-3 py-1 text-xs font-medium",
-                      userTypeInfo[userType].color
+                      userType === 'company_admin' 
+                        ? "bg-blue-50 text-blue-700 border-blue-100"
+                        : userTypeInfo[userType].color
                     )}
                   >
                     <span>
-                      {userTypeInfo[userType].label}
+                      {userType === 'company_admin' ? 'Importadora' : userTypeInfo[userType].label}
                     </span>
                   </Badge>
-                  <p className="text-sm text-gray-500 mt-2">{userTypeInfo[userType].description}</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {userType === 'company_admin' 
+                      ? 'Acesse como administrador de empresa importadora (RDC 660)'
+                      : userTypeInfo[userType].description
+                    }
+                  </p>
                 </div>
                 
                 <Form {...form}>
@@ -723,7 +758,11 @@ export default function Login() {
                     />
                     <Button 
                       type="submit" 
-                      className="w-full h-12 bg-[#4CAF50] hover:bg-[#43a047] text-white flex items-center justify-center gap-2"
+                      className={`w-full h-12 text-white flex items-center justify-center gap-2 ${
+                        userType === 'company_admin' 
+                          ? "bg-[#0066cc] hover:bg-[#0055bb]" 
+                          : "bg-[#4CAF50] hover:bg-[#43a047]"
+                      }`}
                       disabled={isLoading}
                     >
                       {isLoading ? (
