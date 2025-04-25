@@ -1552,7 +1552,7 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
-    if (currentPath === '/organization/import-company/new-request') {
+    if (currentPath === '/organization/import-company/new-request' || currentPath === '/organization/import-company/novo-pedido') {
       return <OrganizationLayout>
         <NewImportRequest />
       </OrganizationLayout>;
