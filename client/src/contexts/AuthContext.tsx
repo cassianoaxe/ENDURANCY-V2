@@ -143,6 +143,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Verificar se a entrada parece um email
       const isEmail = username.includes('@');
       
+      // Verificar se estamos tentando login em uma empresa importadora
+      const isImportCompany = localStorage.getItem('userType') === 'import_company' || 
+        document.documentElement.classList.contains('importadora-theme') ||
+        username.toLowerCase().includes('importadora');
+
+      if (isImportCompany) {
+        console.log("Detectado tentativa de login como importadora");
+        // Marcar para redirecionamento posterior
+        localStorage.setItem('userType', 'import_company');
+        localStorage.setItem('check_org_type', 'true');
+      }
+      
       // Se parece um email, enviar como 'email', caso contrário como 'username'
       if (isEmail) {
         requestBody.email = username;
