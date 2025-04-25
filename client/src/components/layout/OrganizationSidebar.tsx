@@ -553,6 +553,12 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
+      title: "ChatGPT AI",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai",
+      icon: <Bot size={18} />
+    },
+    {
       title: "Cultivo",
       path: "/organization/cultivation",
       active: currentPath === "/organization/cultivation" || 
