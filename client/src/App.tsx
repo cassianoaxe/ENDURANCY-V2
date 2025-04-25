@@ -1558,6 +1558,99 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    // Importar componente de visualização filtrada para as páginas de status específicos
+    const FilterView = React.lazy(() => import('./pages/organization/import-company/FilterView'));
+    
+    // Rota para pedidos em análise
+    if (currentPath === '/organization/import-company/pedidos-analise') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="em_analise" 
+            title="Pedidos em Análise" 
+            description="Pedidos que estão em fase de análise interna antes de serem enviados para a ANVISA"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos enviados para ANVISA
+    if (currentPath === '/organization/import-company/anvisa') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="enviado_anvisa" 
+            title="Enviados para ANVISA" 
+            description="Pedidos que já foram enviados para análise da ANVISA e aguardam aprovação"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos aprovados
+    if (currentPath === '/organization/import-company/aprovados') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="aprovado" 
+            title="Pedidos Aprovados" 
+            description="Pedidos que foram aprovados pela ANVISA e estão prontos para a próxima etapa"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos rejeitados
+    if (currentPath === '/organization/import-company/rejeitados') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="rejeitado" 
+            title="Pedidos Rejeitados" 
+            description="Pedidos que foram rejeitados pela ANVISA e precisam ser revisados"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos em trânsito
+    if (currentPath === '/organization/import-company/transito') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="em_transito" 
+            title="Pedidos em Trânsito" 
+            description="Pedidos que já foram despachados do exterior e estão a caminho do Brasil"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos entregues
+    if (currentPath === '/organization/import-company/entregues') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="entregue" 
+            title="Pedidos Entregues" 
+            description="Pedidos que foram entregues com sucesso aos pacientes"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
     // Rota para detalhes de importação com ID dinâmico
     const importDetailMatch = currentPath.match(/^\/organization\/import-company\/(\d+)$/);
     if (importDetailMatch) {
