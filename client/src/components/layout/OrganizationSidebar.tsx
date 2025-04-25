@@ -1079,10 +1079,10 @@ export default function OrganizationSidebar() {
   
   // Módulos do portal da farmácia (movido para módulos premium)
   const pharmacyModules = [];
-  // Módulo específico de Importação
+  // Módulo específico de Importação RDC 660
   const importModules = [
     {
-      title: "Importação",
+      title: "Importação RDC 660",
       path: "/organization/import-company",
       active: currentPath === "/organization/import-company" || 
               currentPath.startsWith("/organization/import-company/"),

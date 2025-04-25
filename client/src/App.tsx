@@ -13,7 +13,7 @@ import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 
-// Módulo de importação
+// Módulo de importação RDC 660
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
 import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
 import ImportDetails from "@/pages/organization/import-company/ImportDetails";
@@ -1545,7 +1545,7 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
-    // Rotas do módulo de Importação
+    // Rotas do módulo de Importação (RDC 660)
     if (currentPath === '/organization/import-company' || currentPath === '/organization/import-company/dashboard') {
       return <OrganizationLayout>
         <ImportCompanyDashboard />
