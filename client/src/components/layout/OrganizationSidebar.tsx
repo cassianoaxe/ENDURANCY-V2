@@ -663,6 +663,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/ai/"),
       icon: <Sparkles size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard IA",
