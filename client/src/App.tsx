@@ -549,9 +549,31 @@ function AppContent() {
     return <LandingPageWithLogout />;
   }
   
-  // Rota específica para o Portal do Laboratório de Análises
+  // Rotas específicas para o Portal do Laboratório de Análises
   if (currentPath === '/laboratorio' || currentPath === '/laboratory') {
     return <LaboratoryLandingPage />;
+  }
+  
+  // Rotas para o portal do laboratório (requerem autenticação)
+  if (currentPath.startsWith('/laboratory/')) {
+    if (!isAuthenticated) {
+      // Redirecionar para a página de landing do laboratório
+      return <Navigate to="/laboratory" />;
+    }
+    
+    // Verificar se o usuário tem o papel adequado
+    if (userRole !== 'laboratory') {
+      // Redirecionar para a página de landing se não for um usuário de laboratório
+      return <Navigate to="/laboratory" />;
+    }
+    
+    // Rotas protegidas do laboratório
+    return (
+      <LaboratoryLayout>
+        {currentPath === '/laboratory/dashboard' && <LaboratoryDashboard />}
+        {/* Adicionar outras rotas do laboratório aqui */}
+      </LaboratoryLayout>
+    );
   }
   
   // If not authenticated, handle public pages
