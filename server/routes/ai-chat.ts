@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import OpenAI from 'openai';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
-import { plans, planModules, modules } from '@shared/schema';
+import { plans, planModules, modules, organizations } from '@shared/schema';
 
 const router = Router();
 
@@ -17,7 +17,8 @@ interface AuthenticatedRequest extends Request {
 
 // Middleware para autenticação
 function authenticate(req: AuthenticatedRequest, res: Response, next: Function) {
-  if (req.session && req.isAuthenticated && req.isAuthenticated()) {
+  if (req.session && req.session.user) {
+    // Se temos o objeto user na sessão, então o usuário está autenticado
     return next();
   }
   return res.status(401).json({ message: 'Não autenticado' });
@@ -26,16 +27,19 @@ function authenticate(req: AuthenticatedRequest, res: Response, next: Function) 
 // Middleware para verificar acesso ao módulo de IA
 async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, next: Function) {
   try {
-    if (!req.user || !req.user.organizationId) {
+    if (!req.session || !req.session.user || !req.session.user.organizationId) {
       return res.status(403).json({ message: 'Acesso negado ao módulo de IA' });
     }
+
+    // Atribuir o usuário da sessão ao req.user para usar no resto do código
+    req.user = req.session.user;
 
     // Verificar se a organização tem acesso ao módulo de IA através de seu plano
     const organizationId = req.user.organizationId;
     
     // Buscar o plano atual da organização
     const organization = await db.query.organizations.findFirst({
-      where: eq(db.query.organizations.id, organizationId),
+      where: eq(organizations.id, organizationId),
       columns: {
         planId: true
       }
