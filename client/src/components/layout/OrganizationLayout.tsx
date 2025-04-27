@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import OrganizationSidebar from "./OrganizationSidebar";
 import Header from "./Header";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import Copilot from "@/components/copilot/Copilot";
 
 interface OrganizationLayoutProps {
   children: React.ReactNode;
@@ -46,6 +47,7 @@ export default function OrganizationLayout({ children }: OrganizationLayoutProps
             {children}
           </main>
         </div>
+        <Copilot />
       </div>
     </ThemeProvider>
   );
