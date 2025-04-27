@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 import { db } from '../db';
-import { eq } from 'drizzle-orm';
-import { planos, planosModulos, modulosTable } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import { plans, planModules, modules } from '@shared/schema';
 
 const router = Router();
 
@@ -46,10 +46,10 @@ async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, nex
     }
 
     // Verificar se o plano inclui o módulo de IA
-    const moduleAccess = await db.query.planosModulos.findFirst({
-      where: (planosModulos, { and, eq }) => and(
-        eq(planosModulos.planoId, organization.planId),
-        eq(planosModulos.moduloId, 19) // ID do módulo de IA
+    const moduleAccess = await db.query.planModules.findFirst({
+      where: (planModules, { and, eq }) => and(
+        eq(planModules.planId, organization.planId),
+        eq(planModules.moduleId, 19) // ID do módulo de IA
       )
     });
 
@@ -67,10 +67,9 @@ async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, nex
 }
 
 // Configuração da API do OpenAI
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 // Rota de chat com o assistente de IA
 router.post('/chat', authenticate, checkAIModuleAccess, async (req: AuthenticatedRequest, res: Response) => {
@@ -88,8 +87,8 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
     };
     
     // Chamada à API do OpenAI
-    const completion = await openai.createChatCompletion({
-      model: "gpt-4",
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o", // o modelo mais recente da OpenAI
       messages: [
         { 
           role: "system", 
@@ -117,7 +116,7 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
       temperature: 0.7,
     });
     
-    const response = completion.data.choices[0].message?.content || 
+    const response = completion.choices[0].message?.content || 
       "Desculpe, não consegui processar sua solicitação no momento.";
     
     return res.json({ response });
