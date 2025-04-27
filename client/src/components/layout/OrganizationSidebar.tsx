@@ -686,11 +686,7 @@ export default function OrganizationSidebar() {
           active: currentPath === "/organization/ai/settings",
           icon: <Settings size={16} />
         }
-      ],
-      badge: {
-        text: "Premium",
-        variant: "premium"
-      }
+      ]
     },
     {
       title: "Cultivo",
