@@ -19,11 +19,15 @@ import NewImportRequest from "@/pages/organization/import-company/NewImportReque
 import ImportDetails from "@/pages/organization/import-company/ImportDetails";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
+import LaboratoryAmostras from "@/pages/laboratory/Amostras";
+import LaboratoryResultados from "@/pages/laboratory/Resultados";
+import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";
 import LaboratoryTeam from "@/pages/laboratory/Team";
 import LaboratorySettings from "@/pages/laboratory/Settings";
+import LaboratoryLogin from "@/pages/laboratory-login";
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
@@ -573,7 +577,15 @@ function AppContent() {
     return (
       <LaboratoryLayout>
         {currentPath === '/laboratory/dashboard' && <LaboratoryDashboard />}
-        {/* Adicionar outras rotas do laboratório aqui */}
+        {currentPath === '/laboratory/amostras' && <LaboratoryAmostras />}
+        {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
+        {currentPath === '/laboratory/configuracoes' && <LaboratoryConfiguracoes />}
+        {currentPath === '/laboratory/settings' && <LaboratorySettings />}
+        {currentPath === '/laboratory/samples' && <LaboratorySamples />}
+        {currentPath === '/laboratory/reports' && <LaboratoryReports />}
+        {currentPath === '/laboratory/team' && <LaboratoryTeam />}
+        {currentPath.startsWith('/laboratory/samples/') && <SampleDetail />}
+        {currentPath.startsWith('/laboratory/tests/') && <TestDetail />}
       </LaboratoryLayout>
     );
   }
