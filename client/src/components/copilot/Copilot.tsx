@@ -446,7 +446,7 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
         </div>
         
         <TabsContent value="chat" className="flex-1 flex flex-col">
-          <div className="flex-1 px-4 overflow-y-auto bg-gray-50">
+          <div className="flex-1 px-4 overflow-y-auto bg-gray-50 h-[calc(100vh-240px)]">
             {messages.map((message) => (
               <div
                 key={message.id}
