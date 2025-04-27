@@ -1,0 +1,1123 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Building,
+  Calculator,
+  FileCheck,
+  FlaskConical,
+  LayoutGrid,
+  Mail,
+  Plus,
+  Save,
+  Settings,
+  UserPlus,
+  Users
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
+
+// Interface para métodos analíticos
+interface AnalyticalMethod {
+  id: number;
+  code: string;
+  name: string;
+  testType: string;
+  equipment: string;
+  version: string;
+  status: 'active' | 'inactive' | 'in_development' | 'deprecated';
+  lastUpdated: string;
+}
+
+// Interface para equipamentos
+interface Equipment {
+  id: number;
+  name: string;
+  model: string;
+  serialNumber: string;
+  manufacturer: string;
+  lastCalibration: string;
+  nextCalibration: string;
+  status: 'operational' | 'maintenance' | 'calibration' | 'out_of_service';
+}
+
+// Interface para usuários do laboratório
+interface LabUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'analyst' | 'technician' | 'manager' | 'viewer';
+  status: 'active' | 'inactive';
+  lastActive: string;
+}
+
+export default function LaboratoryConfiguracoes() {
+  const [activeTab, setActiveTab] = useState('general');
+  const [labSettings, setLabSettings] = useState({
+    labName: 'LabAnalytics Brasil',
+    address: 'Av. Paulista, 1000, São Paulo - SP',
+    phone: '(11) 3456-7890',
+    email: 'contato@labanalytics.com.br',
+    director: 'Dr. Ana Oliveira',
+    licenseNumber: 'ANVISA-LAB-2025-0123',
+    autoBackups: true,
+    emailNotifications: true,
+    resultApprovalWorkflow: true,
+    allowClientAccess: true,
+    defaultSamplePrefix: 'LAB',
+    defaultReportPrefix: 'REP',
+    retentionPeriod: '3',
+    defaultTestSuite: 'basic',
+    logoUrl: '/lab-logo.png'
+  });
+  const [analyticalMethods, setAnalyticalMethods] = useState<AnalyticalMethod[]>(mockMethods);
+  const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
+  const [users, setUsers] = useState<LabUser[]>(mockUsers);
+  const [showNewMethodDialog, setShowNewMethodDialog] = useState(false);
+  const [showNewEquipmentDialog, setShowNewEquipmentDialog] = useState(false);
+  const [showNewUserDialog, setShowNewUserDialog] = useState(false);
+  const { toast } = useToast();
+
+  // Função para atualizar as configurações
+  const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setLabSettings({
+      ...labSettings,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // Função para atualizar toggles
+  const handleToggleChange = (key: string, value: boolean) => {
+    setLabSettings({
+      ...labSettings,
+      [key]: value
+    });
+  };
+
+  // Função para salvar configurações
+  const saveSettings = () => {
+    // Aqui seria a integração com a API
+    toast({
+      title: 'Configurações Salvas',
+      description: 'As configurações do laboratório foram atualizadas com sucesso.',
+    });
+  };
+
+  // Função para adicionar novo método analítico
+  const handleAddMethod = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui seria a integração com a API
+    toast({
+      title: 'Método Adicionado',
+      description: 'O novo método analítico foi registrado com sucesso.',
+    });
+    setShowNewMethodDialog(false);
+  };
+
+  // Função para adicionar novo equipamento
+  const handleAddEquipment = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui seria a integração com a API
+    toast({
+      title: 'Equipamento Adicionado',
+      description: 'O novo equipamento foi registrado com sucesso.',
+    });
+    setShowNewEquipmentDialog(false);
+  };
+
+  // Função para adicionar novo usuário
+  const handleAddUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui seria a integração com a API
+    toast({
+      title: 'Usuário Adicionado',
+      description: 'O novo usuário foi adicionado com sucesso.',
+    });
+    setShowNewUserDialog(false);
+  };
+
+  // Traduções de status
+  const translateMethodStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'active': 'Ativo',
+      'inactive': 'Inativo',
+      'in_development': 'Em Desenvolvimento',
+      'deprecated': 'Descontinuado'
+    };
+    return statusMap[status] || status;
+  };
+
+  const translateEquipmentStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'operational': 'Operacional',
+      'maintenance': 'Em Manutenção',
+      'calibration': 'Em Calibração',
+      'out_of_service': 'Fora de Serviço'
+    };
+    return statusMap[status] || status;
+  };
+
+  const translateUserRole = (role: string) => {
+    const roleMap: Record<string, string> = {
+      'admin': 'Administrador',
+      'analyst': 'Analista',
+      'technician': 'Técnico',
+      'manager': 'Gerente',
+      'viewer': 'Visualizador'
+    };
+    return roleMap[role] || role;
+  };
+
+  // Cores para os badges de status
+  const getMethodStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'active': 'bg-green-500 hover:bg-green-600',
+      'inactive': 'bg-gray-500 hover:bg-gray-600',
+      'in_development': 'bg-blue-500 hover:bg-blue-600',
+      'deprecated': 'bg-red-500 hover:bg-red-600'
+    };
+    return colorMap[status] || 'bg-gray-500 hover:bg-gray-600';
+  };
+
+  const getEquipmentStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'operational': 'bg-green-500 hover:bg-green-600',
+      'maintenance': 'bg-yellow-500 hover:bg-yellow-600',
+      'calibration': 'bg-blue-500 hover:bg-blue-600',
+      'out_of_service': 'bg-red-500 hover:bg-red-600'
+    };
+    return colorMap[status] || 'bg-gray-500 hover:bg-gray-600';
+  };
+
+  const getUserRoleColor = (role: string) => {
+    const colorMap: Record<string, string> = {
+      'admin': 'bg-purple-500 hover:bg-purple-600',
+      'analyst': 'bg-blue-500 hover:bg-blue-600',
+      'technician': 'bg-green-500 hover:bg-green-600',
+      'manager': 'bg-yellow-500 hover:bg-yellow-600',
+      'viewer': 'bg-gray-500 hover:bg-gray-600'
+    };
+    return colorMap[role] || 'bg-gray-500 hover:bg-gray-600';
+  };
+
+  return (
+    <LaboratoryLayout>
+      <div className="space-y-4 p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Configurações do Laboratório</h1>
+          <div>
+            <Button onClick={saveSettings}>
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Alterações
+            </Button>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-5 w-full">
+            <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="methods">Métodos Analíticos</TabsTrigger>
+            <TabsTrigger value="equipment">Equipamentos</TabsTrigger>
+            <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="integration">Integrações</TabsTrigger>
+          </TabsList>
+
+          {/* Aba de Configurações Gerais */}
+          <TabsContent value="general" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações do Laboratório</CardTitle>
+                <CardDescription>
+                  Informações básicas sobre o laboratório
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="labName">Nome do Laboratório</Label>
+                    <Input 
+                      id="labName" 
+                      name="labName" 
+                      value={labSettings.labName} 
+                      onChange={handleSettingsChange} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="licenseNumber">Número de Licença/Registro</Label>
+                    <Input 
+                      id="licenseNumber" 
+                      name="licenseNumber" 
+                      value={labSettings.licenseNumber} 
+                      onChange={handleSettingsChange} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Endereço</Label>
+                  <Input 
+                    id="address" 
+                    name="address" 
+                    value={labSettings.address} 
+                    onChange={handleSettingsChange} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input 
+                      id="phone" 
+                      name="phone" 
+                      value={labSettings.phone} 
+                      onChange={handleSettingsChange} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      value={labSettings.email} 
+                      onChange={handleSettingsChange} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="director">Diretor Técnico</Label>
+                  <Input 
+                    id="director" 
+                    name="director" 
+                    value={labSettings.director} 
+                    onChange={handleSettingsChange} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Preferências do Sistema</CardTitle>
+                <CardDescription>
+                  Configure como o sistema de laboratório funciona
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Backups Automáticos</Label>
+                        <p className="text-sm text-gray-500">Realizar backups diários automaticamente</p>
+                      </div>
+                      <Switch 
+                        checked={labSettings.autoBackups} 
+                        onCheckedChange={(checked) => handleToggleChange('autoBackups', checked)} 
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Notificações por Email</Label>
+                        <p className="text-sm text-gray-500">Enviar emails sobre atualizações e resultados</p>
+                      </div>
+                      <Switch 
+                        checked={labSettings.emailNotifications} 
+                        onCheckedChange={(checked) => handleToggleChange('emailNotifications', checked)} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Fluxo de Aprovação</Label>
+                        <p className="text-sm text-gray-500">Requer aprovação para resultados finais</p>
+                      </div>
+                      <Switch 
+                        checked={labSettings.resultApprovalWorkflow} 
+                        onCheckedChange={(checked) => handleToggleChange('resultApprovalWorkflow', checked)} 
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Acesso de Clientes</Label>
+                        <p className="text-sm text-gray-500">Permitir que clientes vejam seus resultados</p>
+                      </div>
+                      <Switch 
+                        checked={labSettings.allowClientAccess} 
+                        onCheckedChange={(checked) => handleToggleChange('allowClientAccess', checked)} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <h3 className="text-lg font-medium mb-4">Configurações de Nomenclatura</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="defaultSamplePrefix">Prefixo de Amostras</Label>
+                      <Input 
+                        id="defaultSamplePrefix" 
+                        name="defaultSamplePrefix" 
+                        value={labSettings.defaultSamplePrefix} 
+                        onChange={handleSettingsChange} 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="defaultReportPrefix">Prefixo de Relatórios</Label>
+                      <Input 
+                        id="defaultReportPrefix" 
+                        name="defaultReportPrefix" 
+                        value={labSettings.defaultReportPrefix} 
+                        onChange={handleSettingsChange} 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="retentionPeriod">Período de Retenção (anos)</Label>
+                      <Select 
+                        value={labSettings.retentionPeriod} 
+                        onValueChange={(value) => handleSettingsChange({ target: { name: 'retentionPeriod', value } } as any)}
+                      >
+                        <SelectTrigger id="retentionPeriod">
+                          <SelectValue placeholder="Selecione um período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 ano</SelectItem>
+                          <SelectItem value="2">2 anos</SelectItem>
+                          <SelectItem value="3">3 anos</SelectItem>
+                          <SelectItem value="5">5 anos</SelectItem>
+                          <SelectItem value="7">7 anos</SelectItem>
+                          <SelectItem value="10">10 anos</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba de Métodos Analíticos */}
+          <TabsContent value="methods" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Métodos Analíticos</CardTitle>
+                  <CardDescription>
+                    Gerencie os métodos e protocolos analíticos utilizados no laboratório
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowNewMethodDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Método
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Código</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead className="hidden md:table-cell">Tipo de Teste</TableHead>
+                      <TableHead className="hidden lg:table-cell">Equipamento</TableHead>
+                      <TableHead className="hidden lg:table-cell">Versão</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analyticalMethods.map((method) => (
+                      <TableRow key={method.id}>
+                        <TableCell className="font-medium">{method.code}</TableCell>
+                        <TableCell>{method.name}</TableCell>
+                        <TableCell className="hidden md:table-cell">{method.testType}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{method.equipment}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{method.version}</TableCell>
+                        <TableCell>
+                          <Badge className={getMethodStatusColor(method.status)}>
+                            {translateMethodStatus(method.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">Editar</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba de Equipamentos */}
+          <TabsContent value="equipment" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Equipamentos de Laboratório</CardTitle>
+                  <CardDescription>
+                    Gerencie os equipamentos utilizados para análises
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowNewEquipmentDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Equipamento
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead className="hidden md:table-cell">Modelo</TableHead>
+                      <TableHead className="hidden lg:table-cell">Nº de Série</TableHead>
+                      <TableHead className="hidden md:table-cell">Fabricante</TableHead>
+                      <TableHead>Próxima Calibração</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {equipments.map((equipment) => (
+                      <TableRow key={equipment.id}>
+                        <TableCell className="font-medium">{equipment.name}</TableCell>
+                        <TableCell className="hidden md:table-cell">{equipment.model}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{equipment.serialNumber}</TableCell>
+                        <TableCell className="hidden md:table-cell">{equipment.manufacturer}</TableCell>
+                        <TableCell>{new Date(equipment.nextCalibration).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell>
+                          <Badge className={getEquipmentStatusColor(equipment.status)}>
+                            {translateEquipmentStatus(equipment.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">Gerenciar</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba de Usuários */}
+          <TabsContent value="users" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Usuários do Sistema</CardTitle>
+                  <CardDescription>
+                    Gerencie usuários e permissões de acesso ao sistema
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowNewUserDialog(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Adicionar Usuário
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Função</TableHead>
+                      <TableHead className="hidden md:table-cell">Status</TableHead>
+                      <TableHead className="hidden lg:table-cell">Última Atividade</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Badge className={getUserRoleColor(user.role)}>
+                            {translateUserRole(user.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <Badge className={user.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}>
+                            {user.status === 'active' ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">{new Date(user.lastActive).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm">Editar</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba de Integrações */}
+          <TabsContent value="integration" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Integrações com Sistemas</CardTitle>
+                <CardDescription>
+                  Configure integrações com outros sistemas e serviços
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-md">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-blue-100 rounded-md mr-4">
+                        <Building className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Endurancy Platform</h3>
+                        <p className="text-sm text-gray-500">Integração com a plataforma principal</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500">Conectado</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-md">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-purple-100 rounded-md mr-4">
+                        <Mail className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Sistema de Email</h3>
+                        <p className="text-sm text-gray-500">Configurações para envio de notificações</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">Configurar</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-md">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-amber-100 rounded-md mr-4">
+                        <LayoutGrid className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Importação/Exportação</h3>
+                        <p className="text-sm text-gray-500">Configurações para troca de dados</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">Configurar</Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-md">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-green-100 rounded-md mr-4">
+                        <Calculator className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">Sistema Financeiro</h3>
+                        <p className="text-sm text-gray-500">Integração para faturamento e pagamentos</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">Configurar</Button>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <h3 className="text-lg font-medium mb-4">API e Acessos Externos</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="apiKey">Chave de API</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="apiKey"
+                          value="••••••••••••••••••••••••••••••"
+                          type="password"
+                          readOnly
+                        />
+                        <Button variant="outline">Renovar</Button>
+                      </div>
+                      <p className="text-sm text-gray-500">Chave para acesso à API do LabAnalytics</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="webhookUrl">URL de Webhook</Label>
+                      <Input
+                        id="webhookUrl"
+                        placeholder="https://exemplo.com/webhook"
+                      />
+                      <p className="text-sm text-gray-500">URL para envio de notificações automáticas</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button>Salvar Configurações de Integração</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Diálogo para adicionar novo método analítico */}
+      <Dialog open={showNewMethodDialog} onOpenChange={setShowNewMethodDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Método Analítico</DialogTitle>
+            <DialogDescription>
+              Registre um novo método ou protocolo de análise
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleAddMethod}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="methodCode">Código</Label>
+                  <Input id="methodCode" placeholder="Ex: MET-CAN-001" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="methodVersion">Versão</Label>
+                  <Input id="methodVersion" placeholder="Ex: 1.0" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodName">Nome do Método</Label>
+                <Input id="methodName" placeholder="Ex: Análise de Canabinoides por HPLC" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodType">Tipo de Teste</Label>
+                <Select defaultValue="cannabinoid_profile">
+                  <SelectTrigger id="methodType">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cannabinoid_profile">Perfil de Canabinoides</SelectItem>
+                    <SelectItem value="terpene_profile">Perfil de Terpenos</SelectItem>
+                    <SelectItem value="potency">Potência</SelectItem>
+                    <SelectItem value="pesticides">Pesticidas</SelectItem>
+                    <SelectItem value="heavy_metals">Metais Pesados</SelectItem>
+                    <SelectItem value="microbials">Microbianos</SelectItem>
+                    <SelectItem value="residual_solvents">Solventes Residuais</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodEquipment">Equipamento Principal</Label>
+                <Select defaultValue="hplc1">
+                  <SelectTrigger id="methodEquipment">
+                    <SelectValue placeholder="Selecione o equipamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hplc1">HPLC-01</SelectItem>
+                    <SelectItem value="hplc2">HPLC-02</SelectItem>
+                    <SelectItem value="gcms1">GC-MS-01</SelectItem>
+                    <SelectItem value="icp1">ICP-MS-01</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodDescription">Descrição</Label>
+                <Textarea
+                  id="methodDescription"
+                  placeholder="Descreva o método analítico..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="methodStatus">Status</Label>
+                <Select defaultValue="in_development">
+                  <SelectTrigger id="methodStatus">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_development">Em Desenvolvimento</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowNewMethodDialog(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Adicionar Método</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para adicionar novo equipamento */}
+      <Dialog open={showNewEquipmentDialog} onOpenChange={setShowNewEquipmentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Equipamento</DialogTitle>
+            <DialogDescription>
+              Registre um novo equipamento de laboratório
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleAddEquipment}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="equipmentName">Nome do Equipamento</Label>
+                <Input id="equipmentName" placeholder="Ex: HPLC-03" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="equipmentModel">Modelo</Label>
+                  <Input id="equipmentModel" placeholder="Ex: Agilent 1260" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="equipmentSerial">Número de Série</Label>
+                  <Input id="equipmentSerial" placeholder="Ex: SN12345678" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipmentManufacturer">Fabricante</Label>
+                <Input id="equipmentManufacturer" placeholder="Ex: Agilent Technologies" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lastCalibration">Última Calibração</Label>
+                  <Input id="lastCalibration" type="date" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nextCalibration">Próxima Calibração</Label>
+                  <Input id="nextCalibration" type="date" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipmentStatus">Status</Label>
+                <Select defaultValue="operational">
+                  <SelectTrigger id="equipmentStatus">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="operational">Operacional</SelectItem>
+                    <SelectItem value="maintenance">Em Manutenção</SelectItem>
+                    <SelectItem value="calibration">Em Calibração</SelectItem>
+                    <SelectItem value="out_of_service">Fora de Serviço</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipmentNotes">Observações</Label>
+                <Textarea
+                  id="equipmentNotes"
+                  placeholder="Observações adicionais sobre o equipamento..."
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowNewEquipmentDialog(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Adicionar Equipamento</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para adicionar novo usuário */}
+      <Dialog open={showNewUserDialog} onOpenChange={setShowNewUserDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+            <DialogDescription>
+              Adicione um novo usuário ao sistema do laboratório
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleAddUser}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="userName">Nome Completo</Label>
+                <Input id="userName" placeholder="Ex: João Silva" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="userEmail">Email</Label>
+                <Input id="userEmail" type="email" placeholder="Ex: joao.silva@empresa.com" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="userRole">Função</Label>
+                  <Select defaultValue="analyst">
+                    <SelectTrigger id="userRole">
+                      <SelectValue placeholder="Selecione a função" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Administrador</SelectItem>
+                      <SelectItem value="manager">Gerente</SelectItem>
+                      <SelectItem value="analyst">Analista</SelectItem>
+                      <SelectItem value="technician">Técnico</SelectItem>
+                      <SelectItem value="viewer">Visualizador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="userStatus">Status</Label>
+                  <Select defaultValue="active">
+                    <SelectTrigger id="userStatus">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="sendInvite" className="rounded" />
+                  <Label htmlFor="sendInvite">Enviar convite por email</Label>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowNewUserDialog(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Adicionar Usuário</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </LaboratoryLayout>
+  );
+}
+
+// Dados fictícios para desenvolvimento
+const mockMethods: AnalyticalMethod[] = [
+  {
+    id: 1,
+    code: 'MET-CAN-001',
+    name: 'Análise de Canabinoides por HPLC',
+    testType: 'Perfil de Canabinoides',
+    equipment: 'HPLC-01',
+    version: '2.1',
+    status: 'active',
+    lastUpdated: '2025-01-15'
+  },
+  {
+    id: 2,
+    code: 'MET-TER-001',
+    name: 'Análise de Terpenos por GC-MS',
+    testType: 'Perfil de Terpenos',
+    equipment: 'GC-MS-01',
+    version: '1.3',
+    status: 'active',
+    lastUpdated: '2025-02-10'
+  },
+  {
+    id: 3,
+    code: 'MET-HM-001',
+    name: 'Determinação de Metais Pesados por ICP-MS',
+    testType: 'Metais Pesados',
+    equipment: 'ICP-MS-01',
+    version: '1.0',
+    status: 'active',
+    lastUpdated: '2025-03-05'
+  },
+  {
+    id: 4,
+    code: 'MET-MIC-001',
+    name: 'Análise Microbiológica',
+    testType: 'Microbianos',
+    equipment: 'Diversos',
+    version: '2.0',
+    status: 'active',
+    lastUpdated: '2025-01-20'
+  },
+  {
+    id: 5,
+    code: 'MET-PES-001',
+    name: 'Detecção de Pesticidas por LC-MS/MS',
+    testType: 'Pesticidas',
+    equipment: 'LC-MS-01',
+    version: '1.2',
+    status: 'in_development',
+    lastUpdated: '2025-03-20'
+  },
+  {
+    id: 6,
+    code: 'MET-SOL-001',
+    name: 'Análise de Solventes Residuais',
+    testType: 'Solventes Residuais',
+    equipment: 'GC-MS-02',
+    version: '1.1',
+    status: 'active',
+    lastUpdated: '2025-02-25'
+  },
+  {
+    id: 7,
+    code: 'MET-CAN-002',
+    name: 'Análise Rápida de Canabinoides',
+    testType: 'Potência',
+    equipment: 'HPLC-02',
+    version: '1.0',
+    status: 'deprecated',
+    lastUpdated: '2024-10-10'
+  }
+];
+
+const mockEquipments: Equipment[] = [
+  {
+    id: 1,
+    name: 'HPLC-01',
+    model: 'Agilent 1260 Infinity II',
+    serialNumber: 'SGAHS87456',
+    manufacturer: 'Agilent Technologies',
+    lastCalibration: '2025-03-15',
+    nextCalibration: '2025-09-15',
+    status: 'operational'
+  },
+  {
+    id: 2,
+    name: 'GC-MS-01',
+    model: 'Shimadzu GCMS-QP2020 NX',
+    serialNumber: 'JH52645789',
+    manufacturer: 'Shimadzu',
+    lastCalibration: '2025-02-20',
+    nextCalibration: '2025-08-20',
+    status: 'operational'
+  },
+  {
+    id: 3,
+    name: 'ICP-MS-01',
+    model: 'Thermo Scientific iCAP RQ',
+    serialNumber: 'ICP87632145',
+    manufacturer: 'Thermo Fisher Scientific',
+    lastCalibration: '2025-01-10',
+    nextCalibration: '2025-07-10',
+    status: 'maintenance'
+  },
+  {
+    id: 4,
+    name: 'LC-MS-01',
+    model: 'Waters Xevo TQ-S',
+    serialNumber: 'LC98761234',
+    manufacturer: 'Waters Corporation',
+    lastCalibration: '2025-04-05',
+    nextCalibration: '2025-10-05',
+    status: 'operational'
+  },
+  {
+    id: 5,
+    name: 'HPLC-02',
+    model: 'Agilent 1290 Infinity II',
+    serialNumber: 'SGHJ87235',
+    manufacturer: 'Agilent Technologies',
+    lastCalibration: '2025-03-25',
+    nextCalibration: '2025-09-25',
+    status: 'calibration'
+  },
+  {
+    id: 6,
+    name: 'Balança Analítica',
+    model: 'Mettler Toledo XPE205',
+    serialNumber: 'BL21354687',
+    manufacturer: 'Mettler Toledo',
+    lastCalibration: '2025-04-10',
+    nextCalibration: '2025-05-10',
+    status: 'operational'
+  },
+  {
+    id: 7,
+    name: 'Incubadora',
+    model: 'Thermo Scientific Heratherm',
+    serialNumber: 'IN54687233',
+    manufacturer: 'Thermo Fisher Scientific',
+    lastCalibration: '2025-02-15',
+    nextCalibration: '2025-08-15',
+    status: 'operational'
+  }
+];
+
+const mockUsers: LabUser[] = [
+  {
+    id: 1,
+    name: 'Ana Silva',
+    email: 'ana.silva@labanalytics.com.br',
+    role: 'admin',
+    status: 'active',
+    lastActive: '2025-04-27'
+  },
+  {
+    id: 2,
+    name: 'Carlos Mendes',
+    email: 'carlos.mendes@labanalytics.com.br',
+    role: 'manager',
+    status: 'active',
+    lastActive: '2025-04-26'
+  },
+  {
+    id: 3,
+    name: 'Pedro Alves',
+    email: 'pedro.alves@labanalytics.com.br',
+    role: 'analyst',
+    status: 'active',
+    lastActive: '2025-04-25'
+  },
+  {
+    id: 4,
+    name: 'Mariana Costa',
+    email: 'mariana.costa@labanalytics.com.br',
+    role: 'analyst',
+    status: 'active',
+    lastActive: '2025-04-27'
+  },
+  {
+    id: 5,
+    name: 'Juliana Ferreira',
+    email: 'juliana.ferreira@labanalytics.com.br',
+    role: 'technician',
+    status: 'active',
+    lastActive: '2025-04-24'
+  },
+  {
+    id: 6,
+    name: 'Roberto Santos',
+    email: 'roberto.santos@labanalytics.com.br',
+    role: 'technician',
+    status: 'inactive',
+    lastActive: '2025-03-15'
+  },
+  {
+    id: 7,
+    name: 'Renata Oliveira',
+    email: 'renata.oliveira@clientelab.com.br',
+    role: 'viewer',
+    status: 'active',
+    lastActive: '2025-04-20'
+  }
+];
