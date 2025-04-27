@@ -1196,7 +1196,12 @@ export default function OrganizationSidebar() {
                   <Building className="h-6 w-6 text-primary mr-2" />
                 )}
                 <span className="text-sm font-semibold truncate" style={{ maxWidth: "150px" }}>
-                  {organization?.name || "Endurancy"}
+                  {organization?.name || (
+                    <div className="flex items-center">
+                      <span>Endurancy</span>
+                      <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+                    </div>
+                  )}
                 </span>
               </>
             )}
