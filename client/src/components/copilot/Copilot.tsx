@@ -54,11 +54,14 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isLoading) return;
+    
+    // Armazenar o valor atual antes de limpar o input
+    const currentInputValue = inputValue;
     
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: currentInputValue,
       sender: 'user',
       timestamp: new Date(),
     };
@@ -68,18 +71,33 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     
     try {
-      const response = await axios.post('/api/ai/chat', { message: inputValue });
+      console.log('Enviando requisição para /api/ai/chat...');
+      const response = await axios.post('/api/ai/chat', { message: currentInputValue });
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.data.response,
-        sender: 'assistant',
-        timestamp: new Date(),
-      };
+      console.log('Resposta recebida:', response.data); // Log para debug
       
-      setMessages(prev => [...prev, assistantMessage]);
+      // Se a resposta contém um campo 'response'
+      if (response.data && typeof response.data.response === 'string') {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        console.error('Resposta inválida da API:', response.data);
+        throw new Error('Resposta inválida do servidor');
+      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      
+      // Verificar se é um erro de axios para mostrar detalhes
+      if (axios.isAxiosError(error)) {
+        console.error('Status:', error.response?.status);
+        console.error('Dados:', error.response?.data);
+      }
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),

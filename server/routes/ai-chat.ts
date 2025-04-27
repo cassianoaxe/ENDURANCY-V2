@@ -84,6 +84,8 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
       return res.status(400).json({ message: 'Mensagem não fornecida' });
     }
     
+    console.log(`Processando mensagem do usuário: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+    
     const userContext = {
       organizationId: req.user?.organizationId,
       username: req.user?.username,
@@ -91,43 +93,71 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
     };
     
     // Chamada à API do OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // o modelo mais recente da OpenAI
-      messages: [
-        { 
-          role: "system", 
-          content: `Você é o Endurancy Copilot, um assistente de IA para a plataforma Endurancy de gestão de organizações médicas e associações.
+    try {
+      console.log("Iniciando chamada para a API do OpenAI...");
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // o modelo mais recente da OpenAI
+        messages: [
+          { 
+            role: "system", 
+            content: `Você é o Endurancy Copilot, um assistente de IA para a plataforma Endurancy de gestão de organizações médicas e associações.
+            
+            Diretivas importantes:
+            - Seja conciso e direto em suas respostas.
+            - Responda sempre em português do Brasil.
+            - Você é experiente em todos os módulos da plataforma: Financeiro, Administrativo, Estoque, Vendas, ComplyPay, Importação, Cultivo, Transparência, etc.
+            - Você pode ajudar com fluxos de trabalho, navegação, recursos disponíveis e boas práticas.
+            - Não invente recursos que não existem na plataforma.
+            - Não forneça aconselhamento médico, jurídico ou financeiro específico.
+            - Evite respostas muito longas, preferindo uma abordagem direta e prática.
+            
+            Contexto do usuário:
+            - Organização ID: ${userContext.organizationId}
+            - Nome de usuário: ${userContext.username}
+            - Papel: ${userContext.role}
+            
+            Responda de forma útil e profissional.`
+          },
+          { role: "user", content: message }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
+      
+      console.log("Resposta do OpenAI recebida com sucesso");
+      
+      if (completion && completion.choices && completion.choices.length > 0 && completion.choices[0].message) {
+        const responseText = completion.choices[0].message.content || 
+          "Desculpe, não consegui processar sua solicitação no momento.";
           
-          Diretivas importantes:
-          - Seja conciso e direto em suas respostas.
-          - Responda sempre em português do Brasil.
-          - Você é experiente em todos os módulos da plataforma: Financeiro, Administrativo, Estoque, Vendas, ComplyPay, Importação, Cultivo, Transparência, etc.
-          - Você pode ajudar com fluxos de trabalho, navegação, recursos disponíveis e boas práticas.
-          - Não invente recursos que não existem na plataforma.
-          - Não forneça aconselhamento médico, jurídico ou financeiro específico.
-          - Evite respostas muito longas, preferindo uma abordagem direta e prática.
-          
-          Contexto do usuário:
-          - Organização ID: ${userContext.organizationId}
-          - Nome de usuário: ${userContext.username}
-          - Papel: ${userContext.role}
-          
-          Responda de forma útil e profissional.`
-        },
-        { role: "user", content: message }
-      ],
-      max_tokens: 500,
-      temperature: 0.7,
-    });
-    
-    const response = completion.choices[0].message?.content || 
-      "Desculpe, não consegui processar sua solicitação no momento.";
-    
-    return res.json({ response });
-    
+        console.log(`Enviando resposta: "${responseText.substring(0, 50)}${responseText.length > 50 ? '...' : ''}"`);
+        
+        return res.json({ 
+          success: true,
+          response: responseText 
+        });
+      } else {
+        console.error("Resposta da OpenAI não contém choices ou mensagem válida:", completion);
+        return res.json({ 
+          success: false,
+          response: "Desculpe, ocorreu um erro ao processar sua solicitação." 
+        });
+      }
+    } catch (openaiError) {
+      console.error("Erro específico da API OpenAI:", openaiError);
+      return res.json({ 
+        success: false,
+        response: "O serviço de IA está temporariamente indisponível. Por favor, tente novamente mais tarde." 
+      });
+    }
   } catch (error) {
-    console.error('Erro na API de chat:', error);
-    return res.status(500).json({ message: 'Erro ao processar resposta do assistente' });
+    console.error('Erro geral na API de chat:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Erro ao processar resposta do assistente',
+      response: "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+    });
   }
 });
 
