@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Settings, X, User, BarChart3, Cpu } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import { Send, Bot, X, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
 
 interface CopilotProps {
   isOpen: boolean;
@@ -13,326 +12,242 @@ interface CopilotProps {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
   content: string;
+  sender: 'user' | 'assistant';
   timestamp: Date;
 }
 
-export default function Copilot({ isOpen, onClose }: CopilotProps) {
-  const { user } = useAuth();
+const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      role: 'assistant',
-      content: 'Olá! Sou o Copilot da Endurancy. Como posso ajudar você hoje?',
+      id: 'welcome',
+      content: 'Olá! Eu sou o Endurancy Copilot. Como posso ajudar você hoje?',
+      sender: 'assistant',
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Sugestões de perguntas para o usuário
+  const suggestions = [
+    "Como posso cadastrar um novo paciente?",
+    "Gere um relatório financeiro do último mês",
+    "Quais são os módulos disponíveis no meu plano?",
+    "Preciso de ajuda com o fluxo de prescrições"
+  ];
 
-  // Rolagem para a mensagem mais recente
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Scroll para o final das mensagens quando uma nova é adicionada
   useEffect(() => {
-    scrollToBottom();
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
+  // Foco no campo de input quando o Copilot é aberto
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 300);
     }
   }, [isOpen]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!input.trim()) return;
     
-    // Adicionar mensagem do usuário
     const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputMessage,
+      id: `user-${Date.now()}`,
+      content: input.trim(),
+      sender: 'user',
       timestamp: new Date()
     };
     
     setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setInput('');
     setIsLoading(true);
     
     try {
-      // Enviar mensagem para a API
-      const response = await axios.post('/api/ai/chat', {
-        message: inputMessage,
-        history: messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }))
+      // Chamada para a API de chat
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage.content }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Falha na comunicação com o assistente');
+      }
+      
+      const data = await response.json();
       
       // Adicionar resposta do assistente
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.data.message || 'Desculpe, ocorreu um erro ao processar sua mensagem.',
+        id: `assistant-${Date.now()}`,
+        content: data.response || 'Desculpe, não consegui processar sua solicitação.',
+        sender: 'assistant',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      // Adicionar mensagem de erro como resposta do assistente
+      toast({
+        title: "Erro na comunicação",
+        description: "Não foi possível conectar ao serviço de IA. Tente novamente mais tarde.",
+        variant: "destructive"
+      });
+      
+      // Mensagem de erro como resposta do assistente
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente mais tarde.',
+        id: `assistant-error-${Date.now()}`,
+        content: "Desculpe, estou enfrentando dificuldades técnicas no momento. Por favor, tente novamente mais tarde.",
+        sender: 'assistant',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, errorMessage]);
-      
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível processar sua mensagem.',
-        variant: 'destructive'
-      });
     } finally {
       setIsLoading(false);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+  
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
 
   return (
-    <>
-      {/* Overlay para fechar o copilot ao clicar fora */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          onClick={onClose}
-        />
+    <div 
+      className={cn(
+        "fixed top-0 right-0 h-full bg-white dark:bg-gray-900 shadow-lg z-40 w-96 max-w-full flex flex-col transition-transform duration-300 transform border-l border-gray-200 dark:border-gray-800",
+        isOpen ? "translate-x-0" : "translate-x-full"
       )}
-      
-      {/* Painel deslizante do copilot */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-background z-50 shadow-xl
-          transition-transform duration-300 ease-in-out 
-          ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      >
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between border-b p-4">
-          <div className="flex items-center gap-2">
-            <Cpu className="h-5 w-5 text-primary" />
-            <div>
-              <h2 className="font-bold">Endurancy Copilot</h2>
-              <p className="text-xs text-muted-foreground">Powered by Claude MCP</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => {
-                toast({
-                  title: 'Configurações',
-                  description: 'As configurações do Copilot estarão disponíveis em breve.',
-                });
-              }}
-            >
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+    >
+      {/* Cabeçalho */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-green-600 text-white">
+        <div className="flex items-center">
+          <Bot className="h-6 w-6 mr-2" />
+          <h2 className="text-lg font-semibold">Endurancy Copilot</h2>
         </div>
-        
-        {/* Abas */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="border-b">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
-              <TabsTrigger 
-                value="chat" 
-                className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Chat
-              </TabsTrigger>
-              <TabsTrigger 
-                value="insights" 
-                className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Insights
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ajuda" 
-                className="rounded-none border-b-2 border-transparent px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Ajuda
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          
-          {/* Conteúdo das abas */}
-          <TabsContent value="chat" className="flex flex-col h-[calc(100vh-120px)]">
-            {/* Ações rápidas */}
-            <div className="p-4 space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => {
-                    setInputMessage('Como criar um novo paciente?');
-                    if (inputRef.current) inputRef.current.focus();
-                  }}
-                >
-                  <User className="h-4 w-4" />
-                  Criar Paciente
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => {
-                    setInputMessage('Como analisar o relatório de vendas?');
-                    if (inputRef.current) inputRef.current.focus();
-                  }}
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Análise de Vendas
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="flex items-center gap-1"
-                  onClick={() => {
-                    setInputMessage('Como buscar um paciente específico?');
-                    if (inputRef.current) inputRef.current.focus();
-                  }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"/>
-                    <path d="m21 21-4.3-4.3"/>
-                  </svg>
-                  Buscar Paciente
-                </Button>
-              </div>
-            </div>
-            
-            {/* Área de mensagens */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map(message => (
-                <div 
-                  key={message.id} 
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div 
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-              
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                    <div className="flex space-x-2">
-                      <div className="h-2 w-2 rounded-full bg-primary animate-bounce"></div>
-                      <div className="h-2 w-2 rounded-full bg-primary animate-bounce delay-75"></div>
-                      <div className="h-2 w-2 rounded-full bg-primary animate-bounce delay-150"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Área de input */}
-            <div className="p-4 border-t">
-              <div className="flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Digite sua mensagem..."
-                  className="flex-1 min-h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isLoading}
-                />
-                <Button 
-                  size="icon" 
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isLoading}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="insights" className="p-4">
-            <div className="flex flex-col items-center justify-center h-[calc(100vh-140px)] text-center">
-              <div className="mb-4 p-3 rounded-full bg-primary/10">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Insights</h3>
-              <p className="text-muted-foreground">
-                Insights baseados em dados estarão disponíveis em breve. Fique ligado para análises e recomendações personalizadas.
+        <button 
+          onClick={onClose}
+          className="p-1 rounded-full hover:bg-green-500 transition-colors"
+          aria-label="Fechar Copilot"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      
+      {/* Área de mensagens */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <div 
+            key={message.id} 
+            className={cn(
+              "flex w-full max-w-[85%] rounded-lg p-3 animate-fadeIn",
+              message.sender === 'user' 
+                ? "bg-gray-100 dark:bg-gray-800 ml-auto" 
+                : "bg-green-50 dark:bg-gray-700 mr-auto"
+            )}
+          >
+            {message.sender === 'assistant' && (
+              <Bot className="h-5 w-5 mr-2 text-green-600 dark:text-green-400 shrink-0 mt-1" />
+            )}
+            <div>
+              <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                {message.content}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="ajuda" className="p-4">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Como posso ajudar você?</h3>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Pergunte sobre:</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Como criar um novo paciente ou produto</li>
-                  <li>Como acessar relatórios específicos</li>
-                  <li>Explicações sobre funcionalidades da plataforma</li>
-                  <li>Dicas de uso e melhores práticas</li>
-                  <li>Solução de problemas comuns</li>
-                </ul>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Comandos úteis:</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>
-                    <strong>Explique:</strong> "Explique como funciona o módulo financeiro"
-                  </li>
-                  <li>
-                    <strong>Mostre:</strong> "Mostre como criar uma nova prescrição"
-                  </li>
-                  <li>
-                    <strong>Ajuda:</strong> "Preciso de ajuda com importação de dados"
-                  </li>
-                </ul>
+            {message.sender === 'user' && (
+              <div className="w-5 ml-2"></div> // Espaçador para manter alinhamento
+            )}
+          </div>
+        ))}
+        
+        {isLoading && (
+          <div className="flex w-full max-w-[85%] rounded-lg p-3 bg-green-50 dark:bg-gray-700 mr-auto">
+            <Bot className="h-5 w-5 mr-2 text-green-600 dark:text-green-400 shrink-0 mt-1" />
+            <div>
+              <div className="flex space-x-2 items-center">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
+        
+        {/* Referência para rolar para o fim da lista */}
+        <div ref={messagesEndRef} />
       </div>
-    </>
+      
+      {/* Sugestões */}
+      {messages.length < 3 && (
+        <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center">
+            <Sparkles className="h-3 w-3 mr-1" /> Sugestões
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={index}
+                className="text-xs text-left p-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                {suggestion.length > 35 ? `${suggestion.substring(0, 35)}...` : suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Área de input */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex space-x-2">
+          <Textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Digite sua mensagem..."
+            className="min-h-[60px] flex-1 resize-none"
+            maxLength={500}
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            size="icon"
+            disabled={isLoading || !input.trim()}
+            className="shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Pressione Enter para enviar. Use Shift+Enter para nova linha.
+        </p>
+      </div>
+    </div>
   );
-}
+};
+
+export default Copilot;
