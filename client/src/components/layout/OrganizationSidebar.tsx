@@ -36,6 +36,9 @@ import {
   // Ícones de UI
   Settings, LogOut, HelpCircle, Loader2, Check, Ban, X, Receipt,
   
+  // Ícones de tecnologia
+  Cpu, 
+  
   // Ícones de natureza
   Leaf, Brain, Beaker, Droplet, FlaskConical,
   
@@ -327,8 +330,36 @@ export default function OrganizationSidebar() {
     {
       title: "Inteligência Artificial",
       path: "/organization/ai",
-      active: currentPath === "/organization/ai",
-      icon: <Brain size={18} />
+      active: currentPath === "/organization/ai" || 
+              currentPath.startsWith("/organization/ai/"),
+      icon: <Cpu size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard IA",
+          path: "/organization/ai",
+          active: currentPath === "/organization/ai" && !currentPath.includes("/organization/ai/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Assistente",
+          path: "/organization/ai/assistant",
+          active: currentPath === "/organization/ai/assistant",
+          icon: <MessageSquare size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/ai/analysis",
+          active: currentPath === "/organization/ai/analysis",
+          icon: <BarChart3 size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/ai/settings",
+          active: currentPath === "/organization/ai/settings",
+          icon: <Settings size={16} />
+        }
+      ]
     },
 
     {

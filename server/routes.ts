@@ -19,6 +19,7 @@ import { registerHplcValidationRoutes } from './routes/hplc-validation-routes';
 import { registerHplcTrainingRoutes } from './routes/hplc-training-routes';
 import { registerTrainerRoutes } from './routes/trainer-routes';
 import equipmentRoutes from './routes/equipment-routes';
+import aiChatRouter from './routes/ai-chat';
 import { registerPlanRoutes } from './routes/plans';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
