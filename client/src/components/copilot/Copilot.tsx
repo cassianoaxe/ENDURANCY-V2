@@ -388,6 +388,15 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
           <p className="text-xs text-gray-100">Powered by Claude MCP</p>
         </div>
         <div className="flex items-center space-x-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={clearChatHistory} 
+            className="text-white hover:bg-green-700"
+            title="Limpar histórico de conversa"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
           <Button variant="ghost" size="icon" className="text-white hover:bg-green-700">
             <Settings className="h-4 w-4" />
           </Button>
