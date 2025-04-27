@@ -70,10 +70,30 @@ async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, nex
   }
 }
 
+// Verificação da API Key
+const openaiApiKey = process.env.OPENAI_API_KEY;
+console.log("OpenAI API Key configurada:", openaiApiKey ? "Sim" : "Não");
+if (!openaiApiKey) {
+  console.error("AVISO: OPENAI_API_KEY não está configurada. A API do OpenAI não funcionará.");
+}
+
 // Configuração da API do OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: openaiApiKey,
 });
+
+// Função auxiliar para logs detalhados
+function logDetailedError(title: string, error: any) {
+  console.error(`===== ${title} =====`);
+  console.error('Message:', error.message);
+  console.error('Name:', error.name);
+  if (error.response) {
+    console.error('Response status:', error.response.status);
+    console.error('Response data:', error.response.data);
+  }
+  console.error('Full error:', error);
+  console.error('========================');
+}
 
 // Rota de chat com o assistente de IA
 router.post('/chat', authenticate, checkAIModuleAccess, async (req: AuthenticatedRequest, res: Response) => {
@@ -145,14 +165,14 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
         });
       }
     } catch (openaiError) {
-      console.error("Erro específico da API OpenAI:", openaiError);
+      logDetailedError("ERRO API OPENAI", openaiError);
       return res.json({ 
         success: false,
         response: "O serviço de IA está temporariamente indisponível. Por favor, tente novamente mais tarde." 
       });
     }
   } catch (error) {
-    console.error('Erro geral na API de chat:', error);
+    logDetailedError('ERRO GERAL NA API DE CHAT', error);
     return res.status(500).json({ 
       success: false,
       message: 'Erro ao processar resposta do assistente',
