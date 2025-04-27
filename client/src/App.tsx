@@ -558,6 +558,11 @@ function AppContent() {
     return <LaboratoryLandingPage />;
   }
   
+  // Página de login do Laboratório
+  if (currentPath === '/laboratory-login') {
+    return <LaboratoryLogin />;
+  }
+  
   // Rotas para o portal do laboratório (requerem autenticação)
   if (currentPath.startsWith('/laboratory/')) {
     if (!isAuthenticated) {
