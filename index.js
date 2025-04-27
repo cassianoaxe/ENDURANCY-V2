@@ -6,8 +6,11 @@
  * através do protocolo MCP.
  */
 
-const MCPClient = require('./mcpClient');
-require('dotenv').config();
+import { MCPClient } from './mcpClient.js';
+import dotenv from 'dotenv';
+
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
 
 // Banner de início
 console.log(`
