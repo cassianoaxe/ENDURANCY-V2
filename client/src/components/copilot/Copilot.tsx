@@ -173,21 +173,157 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
   const getCommandType = (command: string): string => {
     if (command.toLowerCase().includes('criar paciente')) return 'criar_paciente';
     if (command.toLowerCase().includes('buscar paciente')) return 'buscar_paciente';
-    if (command.toLowerCase().includes('análise de vendas')) return 'analise_vendas';
+    if (command.toLowerCase().includes('análise de vendas') || 
+        command.toLowerCase().includes('vendas recentes')) return 'analise_vendas';
     return 'geral';
   };
 
-  // Handlers para botões de atalho
-  const handleCriarPaciente = () => {
-    executeCommand("Quero criar um novo paciente");
+  // Handlers para botões de atalho que usam diretamente os tipos de comando
+  const handleCriarPaciente = async () => {
+    setActiveTab('chat');
+    
+    const commandMessage: Message = {
+      id: Date.now().toString(),
+      content: "Criar Paciente",
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, commandMessage]);
+    setIsLoading(true);
+    
+    try {
+      // Chamada direta com o tipo de comando, sem depender da análise de texto
+      const response = await axios.post('/api/ai/chat', { 
+        message: "Como criar um novo paciente?",
+        isCommand: true, 
+        commandType: 'criar_paciente', // Tipo explícito
+      });
+      
+      if (response.data && typeof response.data.response === 'string') {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
+    } catch (error) {
+      console.error('Erro ao executar comando:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Não foi possível executar este comando no momento. Por favor, tente novamente mais tarde.',
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleBuscarPaciente = () => {
-    executeCommand("Quero buscar um paciente");
+  // Função semelhante para buscar paciente
+  const handleBuscarPaciente = async () => {
+    setActiveTab('chat');
+    
+    const commandMessage: Message = {
+      id: Date.now().toString(),
+      content: "Buscar Paciente",
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, commandMessage]);
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.post('/api/ai/chat', { 
+        message: "Como buscar um paciente?",
+        isCommand: true, 
+        commandType: 'buscar_paciente', // Tipo explícito
+      });
+      
+      if (response.data && typeof response.data.response === 'string') {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
+    } catch (error) {
+      console.error('Erro ao executar comando:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Não foi possível executar este comando no momento. Por favor, tente novamente mais tarde.',
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAnaliseVendas = () => {
-    executeCommand("Mostrar análise de vendas recentes");
+  // Função para análise de vendas
+  const handleAnaliseVendas = async () => {
+    setActiveTab('chat');
+    
+    const commandMessage: Message = {
+      id: Date.now().toString(),
+      content: "Análise de Vendas",
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    
+    setMessages(prev => [...prev, commandMessage]);
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.post('/api/ai/chat', { 
+        message: "Mostrar análise de vendas recentes",
+        isCommand: true, 
+        commandType: 'analise_vendas', // Tipo explícito
+      });
+      
+      if (response.data && typeof response.data.response === 'string') {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
+    } catch (error) {
+      console.error('Erro ao executar comando:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Não foi possível executar este comando no momento. Por favor, tente novamente mais tarde.',
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Função para sugerir comandos diretamente no chat
