@@ -767,68 +767,7 @@ export default function DoctorDashboard() {
         </TabsContent>
       </Tabs>
       
-      {/* Tour Guide */}
-      <TourGuide
-        tourId="doctor-dashboard-tour"
-        steps={[
-          {
-            selector: '.doctor-stats',
-            title: 'Estatísticas do Dia',
-            content: 'Veja suas consultas agendadas para hoje e informações sobre seus pacientes.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.today-appointments',
-            title: 'Agenda do Dia',
-            content: 'Consulte as informações sobre as consultas agendadas para hoje, com horários e detalhes dos pacientes.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.completed-appointments',
-            title: 'Consultas Concluídas',
-            content: 'Veja as consultas que já foram realizadas hoje e acesse rapidamente os prontuários.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.patient-list',
-            title: 'Lista de Pacientes',
-            content: 'Acesse a lista completa de seus pacientes, com informações de contato e histórico médico.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.medical-record-selector',
-            title: 'Seleção de Prontuários',
-            content: 'Selecione um paciente para visualizar seu prontuário completo.',
-            buttonText: 'Próximo',
-            placementBeacon: 'right',
-          },
-          {
-            selector: '.medical-record-view',
-            title: 'Visualização de Prontuário',
-            content: 'Consulte e edite as informações médicas do paciente, histórico de consultas e exames.',
-            buttonText: 'Próximo',
-            placementBeacon: 'left',
-          },
-          {
-            selector: '.diagnoses-chart',
-            title: 'Estatísticas de Diagnósticos',
-            content: 'Acompanhe os diagnósticos mais frequentes entre seus pacientes.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.doctor-profile',
-            title: 'Seu Perfil',
-            content: 'Visualize e mantenha atualizadas suas informações profissionais.',
-            buttonText: 'Finalizar Tour',
-            placementBeacon: 'right',
-          },
-        ]}
-      />
+      {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );
 }
