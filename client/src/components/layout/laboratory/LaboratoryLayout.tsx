@@ -168,7 +168,7 @@ export default function LaboratoryLayout({ children }: LaboratoryLayoutProps) {
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-auto bg-gray-50 text-gray-900">
           {children}
         </main>
       </div>
