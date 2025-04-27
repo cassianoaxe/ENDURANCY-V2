@@ -9,6 +9,10 @@ interface MenuItemProps {
     active: boolean;
     isSubmenu?: boolean;
     icon: React.ReactNode;
+    badge?: {
+      text: string;
+      variant: string;
+    };
     subItems?: {
       title: string;
       path: string;
@@ -72,12 +76,24 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
                   ? "text-green-600 dark:text-green-400" 
                   : "text-gray-500 dark:text-gray-400" 
               }) : null}
-              <span className={cn(
-                "text-sm", // Menor tamanho de fonte
-                item.active && "font-medium" // Médio em vez de semibold
-              )}>
-                {item.title}
-              </span>
+              <div className="flex flex-col">
+                <span className={cn(
+                  "text-sm", // Menor tamanho de fonte
+                  item.active && "font-medium" // Médio em vez de semibold
+                )}>
+                  {item.title}
+                </span>
+                {item.badge && (
+                  <span className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded-full leading-none mt-1",
+                    item.badge.variant === "premium" && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+                    item.badge.variant === "enterprise" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                    item.badge.variant === "new" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                  )}>
+                    {item.badge.text}
+                  </span>
+                )}
+              </div>
             </div>
             {item.isSubmenu && (
               <div className="flex items-center gap-1">
@@ -156,7 +172,7 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
       ) : (
         <div 
           className={cn(
-            "flex items-center justify-center px-4 py-2 cursor-pointer",
+            "flex flex-col items-center justify-center px-4 py-2 cursor-pointer relative",
             item.active 
               ? "text-green-600 dark:text-green-400 font-medium" 
               : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -185,6 +201,17 @@ export const SidebarMenuItem: React.FC<MenuItemProps> = ({
               ? "text-green-600 dark:text-green-400" 
               : "text-gray-600 dark:text-gray-300" 
           }) : null}
+          
+          {item.badge && (
+            <span className={cn(
+              "absolute top-0 right-0 text-[9px] px-1 py-0.5 leading-none rounded-full -mt-0.5 -mr-0.5",
+              item.badge.variant === "premium" && "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+              item.badge.variant === "enterprise" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+              item.badge.variant === "new" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+            )}>
+              •
+            </span>
+          )}
         </div>
       )}
     </div>
