@@ -121,6 +121,7 @@ import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
 import NewLandingPage from "@/pages/NewLandingPage";
+import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
@@ -546,6 +547,11 @@ function AppContent() {
     };
     
     return <LandingPageWithLogout />;
+  }
+  
+  // Rota específica para o Portal do Laboratório de Análises
+  if (currentPath === '/laboratorio' || currentPath === '/laboratory') {
+    return <LaboratoryLandingPage />;
   }
   
   // If not authenticated, handle public pages
