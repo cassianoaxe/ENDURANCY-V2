@@ -115,6 +115,7 @@ import PatientDashboardPage from "@/pages/patient/Dashboard";
 import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
+import NewLandingPage from "@/pages/NewLandingPage";
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
@@ -536,7 +537,7 @@ function AppContent() {
         }
       }, [isAuthenticated, logout]);
       
-      return <LandingPage />;
+      return <NewLandingPage />;
     };
     
     return <LandingPageWithLogout />;
