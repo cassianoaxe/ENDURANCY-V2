@@ -173,7 +173,9 @@ router.post('/chat', authenticate, checkAIModuleAccess, async (req: Authenticate
     // Verificar se é um comando especial
     if (isCommand && commandType) {
       try {
+        console.log(`Processando comando especial: ${commandType}`);
         const commandResponse = await processCommand(commandType, userContext);
+        console.log(`Resposta do comando gerada com sucesso: ${commandType}`);
         return res.json({
           success: true,
           response: commandResponse,
