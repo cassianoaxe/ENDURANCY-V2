@@ -12,7 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
-import TourGuide from '@/components/features/TourGuide';
+// Tour Guide removido pois ficou tecnologicamente defasado
 import { Calendar, Clock, Users, FileText, Settings, UserCircle, Clipboard, HeartPulse } from 'lucide-react';
 
 // Dados de demonstração
