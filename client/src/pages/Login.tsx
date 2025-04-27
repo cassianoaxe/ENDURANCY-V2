@@ -322,8 +322,9 @@ export default function Login() {
         localStorage.removeItem('userType');
         console.log("Redirecionando para dashboard de importadora:", redirectUrl);
         
-        // Adicionando marcador para verificar após o login
-        localStorage.setItem('check_org_type', 'true');
+        // Nova lógica: usar direct_import_company ao invés de check_org_type
+        // Para evitar a passagem pelo dashboard geral
+        localStorage.setItem('direct_import_company', 'true');
       }
       // Portal de empresa normal
       else if (userType === 'company_admin') {
@@ -619,7 +620,8 @@ export default function Login() {
                           // Adiciona class para informar que é uma importadora e armazena em localStorage
                           document.documentElement.classList.add('importadora-theme');
                           localStorage.setItem('userType', 'import_company');
-                          localStorage.setItem('check_org_type', 'true');
+                          // Definir flag para redirecionamento direto (nova lógica)
+                          localStorage.setItem('direct_import_company', 'true');
                           
                           console.log("Configurado para login de importadora");
                         }}
