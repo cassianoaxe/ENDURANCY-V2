@@ -641,10 +641,11 @@ const Sitemap = () => {
         </Card>
 
         <Tabs defaultValue="admin" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-6 bg-green-100">
+          <TabsList className="grid grid-cols-5 mb-6 bg-green-100">
             <TabsTrigger value="admin" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Administração</TabsTrigger>
             <TabsTrigger value="doctor" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Portal do Médico</TabsTrigger>
             <TabsTrigger value="patient" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Portal do Paciente</TabsTrigger>
+            <TabsTrigger value="laboratory" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Portal do Laboratório</TabsTrigger>
             <TabsTrigger value="api" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">APIs e Integrações</TabsTrigger>
           </TabsList>
 
