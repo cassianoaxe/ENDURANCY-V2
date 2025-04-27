@@ -323,6 +323,13 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/gerenciar-pacientes",
       icon: <Users size={18} />
     },
+    
+    {
+      title: "Inteligência Artificial",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai",
+      icon: <Brain size={18} />
+    },
 
     {
       title: "Financeiro",
