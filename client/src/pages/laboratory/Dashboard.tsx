@@ -218,10 +218,10 @@ export default function LaboratoryDashboard() {
             </CardHeader>
             <CardContent>
               <div className="h-[200px] flex items-center justify-center bg-gray-50 rounded border">
-                <div className="text-center text-gray-500">
-                  <PieChart className="h-8 w-8 mx-auto mb-2 text-blue-400" />
+                <div className="text-center text-gray-700">
+                  <PieChart className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                   <p>Gráfico de tendências de análises realizadas</p>
-                  <p className="text-sm text-gray-400">(Visualização seria renderizada aqui em um ambiente de produção)</p>
+                  <p className="text-sm text-gray-600">(Visualização seria renderizada aqui em um ambiente de produção)</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 mt-4">
@@ -268,8 +268,8 @@ export default function LaboratoryDashboard() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="text-xs text-gray-500">{activity.description}</p>
-                      <div className="flex items-center text-xs text-gray-400">
+                      <p className="text-xs text-gray-700">{activity.description}</p>
+                      <div className="flex items-center text-xs text-gray-600">
                         <Clock className="h-3 w-3 mr-1" />
                         {activity.time}
                       </div>
@@ -340,7 +340,7 @@ export default function LaboratoryDashboard() {
                       <td className="py-3 px-4">
                         <div className="flex items-center">
                           <div className="flex-1 mr-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-700 font-medium">
                               {sample.status === 'awaiting_processing' ? 'Aguardando' : 'Em Preparação'}
                             </span>
                             <Progress 
@@ -433,7 +433,7 @@ export default function LaboratoryDashboard() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Ana Silva</p>
-                    <p className="text-xs text-gray-500">Analista Sênior - Em serviço</p>
+                    <p className="text-xs text-gray-700">Analista Sênior - Em serviço</p>
                   </div>
                   <div className="ml-auto">
                     <Badge variant="outline" className="bg-green-50">Online</Badge>
@@ -447,7 +447,7 @@ export default function LaboratoryDashboard() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Carlos Mendes</p>
-                    <p className="text-xs text-gray-500">Supervisor - 3 relatórios pendentes</p>
+                    <p className="text-xs text-gray-700">Supervisor - 3 relatórios pendentes</p>
                   </div>
                   <div className="ml-auto">
                     <Badge variant="outline" className="bg-green-50">Online</Badge>
@@ -461,7 +461,7 @@ export default function LaboratoryDashboard() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Mariana Costa</p>
-                    <p className="text-xs text-gray-500">Técnica - Em manutenção</p>
+                    <p className="text-xs text-gray-700">Técnica - Em manutenção</p>
                   </div>
                   <div className="ml-auto">
                     <Badge variant="outline" className="bg-gray-50">Ausente</Badge>
