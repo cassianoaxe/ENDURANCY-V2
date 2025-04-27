@@ -1,6 +1,8 @@
 import { Express, Request, Response } from "express";
 import { processMultiContext, ContextType, analyzeTicket, generateReport, getSuggestions } from "./services/ai-service";
 import { z } from "zod";
+import aiChatRouter from './routes/ai-chat';
+import { db } from './db';
 
 // Interface estendida do Request com informações do usuário autenticado
 interface AuthenticatedRequest extends Request {
@@ -22,12 +24,32 @@ function authenticate(req: AuthenticatedRequest, res: Response, next: Function) 
 }
 
 // Middleware para verificar se o usuário tem acesso ao módulo de IA
-function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, next: Function) {
-  // Aqui você implementaria a lógica para verificar se o usuário tem acesso ao módulo de IA
-  // Por exemplo, verificando em um banco de dados se a organização dele tem o módulo ativado
-  
-  // Para fins de demonstração, vamos permitir o acesso para todos os usuários autenticados
-  next();
+async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, next: Function) {
+  if (!req.user?.organizationId) {
+    return res.status(403).json({ message: 'Acesso negado: usuário não pertence a uma organização' });
+  }
+
+  try {
+    // Verifica se a organização possui acesso ao módulo de IA
+    const organizationModules = await db.query(
+      `SELECT * FROM organization_modules 
+       WHERE organization_id = $1 AND module_id = (SELECT id FROM modules WHERE code = 'ai')`,
+      [req.user.organizationId]
+    );
+
+    if (organizationModules.rowCount === 0) {
+      return res.status(403).json({ 
+        message: 'Sua organização não possui acesso ao módulo de Inteligência Artificial',
+        module: 'ai',
+        type: 'access_denied'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Erro ao verificar acesso ao módulo de IA:', error);
+    return res.status(500).json({ message: 'Erro interno ao verificar permissões' });
+  }
 }
 
 // Middleware combinado para autenticação e acesso ao módulo
