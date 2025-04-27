@@ -1240,6 +1240,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/pesquisa/"),
       icon: <FlaskConical size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Pesquisa",
