@@ -215,13 +215,6 @@ export default function PharmacistDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Botão de tour guiado */}
-      <div className="fixed bottom-6 right-6">
-        <Button className="rounded-full shadow-lg bg-primary text-white">
-          <Clock className="mr-2 h-4 w-4" /> Tour Guiado
-        </Button>
-      </div>
     </div>
   );
 }
