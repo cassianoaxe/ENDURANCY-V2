@@ -47,6 +47,8 @@ import adminRouter from "./routes/admin";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
+// Importar rota de chat AI
+import aiChatRouter from './routes/ai-chat';
 // Importar rotas de links de pagamento
 import paymentLinksRouter from './routes/payment-links';
 // Importar rotas de pagamento por email
