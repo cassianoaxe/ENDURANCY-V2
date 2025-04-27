@@ -14,7 +14,8 @@ interface AuthenticatedRequest extends Request {
 
 // Middleware para verificar se o usuário está autenticado
 function authenticate(req: AuthenticatedRequest, res: Response, next: Function) {
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
+  // Verificar se o usuário está autenticado (verificando se o objeto user existe)
+  if (!req.user) {
     return res.status(401).json({ message: "Não autenticado" });
   }
   next();

@@ -1,12 +1,15 @@
 import OpenAI from "openai";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
-import { tickets, ticketComments } from "../schema/tickets";
-import { organizations } from "../schema/organizations";
-import { users } from "../schema/users";
-import { products } from "../schema/products";
-import { patients } from "../schema/patients";
-import { financialTransactions } from "../schema/financeiro";
+import { 
+  supportTickets as tickets, 
+  ticketComments, 
+  organizations, 
+  users, 
+  products, 
+  patients, 
+  financialTransactions 
+} from "@shared/schema";
 
 // O modelo mais recente da OpenAI é "gpt-4o", lançado em 13 de maio de 2024.
 // Não altere este valor a menos que seja explicitamente solicitado pelo usuário
@@ -283,7 +286,7 @@ export async function generateReport(parameters: {
     const { reportType, timePeriod, organizationId, filters } = parameters;
     
     // Buscar dados contextuais com base no tipo de relatório
-    let contextualData;
+    let contextualData: { type: ContextType; data: any[] };
     
     switch (reportType.toLowerCase()) {
       case 'financial':
@@ -373,7 +376,7 @@ export async function getSuggestions(userId: number, organizationId: number, con
     }
     
     // Determinar o tipo de sugestão baseado no contexto
-    let contextualData = [];
+    let contextualData: { type: ContextType; data: any[] }[] = [];
     
     if (context === 'dashboard') {
       // Para o dashboard, queremos sugerir visualizações e relatórios relevantes
