@@ -13,7 +13,7 @@ import {
   PersonStanding, FlaskConical, Boxes, Network,
   MessageSquare, ClipboardList, HardHat, BellRing,
   FileSearch, Import, ExternalLink, BrainCircuit,
-  Sparkles, Building2
+  Sparkles
 } from 'lucide-react';
 
 // Definição de tipos para módulos do sistema
@@ -643,10 +643,6 @@ const NewLandingPage = () => {
             <a href="#portais" className="text-green-700 hover:text-green-500 font-medium">Portais</a>
             <a href="#beneficios" className="text-green-700 hover:text-green-500 font-medium">Benefícios</a>
             <a href="#precos" className="text-green-700 hover:text-green-500 font-medium">Preços</a>
-            <a href="/laboratory" className="text-blue-600 hover:text-blue-500 font-medium flex items-center">
-              <FlaskConical className="h-4 w-4 mr-1" />
-              LabAnalytics
-            </a>
           </nav>
           <div className="flex items-center space-x-4">
             <Button 
@@ -1043,7 +1039,7 @@ const NewLandingPage = () => {
               <div className="relative">
                 <div className="absolute -top-6 -left-6 bg-white px-4 py-2 rounded-lg shadow-md border border-blue-100 z-10">
                   <div className="flex items-center">
-                    <Building2 className="h-5 w-5 text-blue-600 mr-2" />
+                    <Building className="h-5 w-5 text-blue-600 mr-2" />
                     <span className="font-medium text-blue-800">Dall Solutions</span>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">Primeiro cliente</div>
