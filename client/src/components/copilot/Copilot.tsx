@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Bot, Settings, PlusCircle, Search, BarChart3 } from 'lucide-react';
+import { 
+  X, Send, Bot, Settings, PlusCircle, Search, BarChart3, 
+  TrendingUp, DollarSign, HelpCircle, Ticket as TicketIcon,
+  Trash2
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
@@ -53,6 +57,28 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     // Rolar para o último mensagem quando novas mensagens são adicionadas
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Adicionar atalho de teclado para limpar histórico (Ctrl+Shift+C)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        if (messages.length > 0) {
+          // Manter apenas a mensagem de boas-vindas
+          setMessages([
+            {
+              id: 'welcome',
+              content: 'Olá! Sou o Copilot da Endurancy. Como posso ajudar você hoje?',
+              sender: 'assistant',
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -333,6 +359,18 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
       inputRef.current.focus();
     }
   };
+  
+  // Função para limpar o histórico de mensagens
+  const clearChatHistory = () => {
+    setMessages([
+      {
+        id: 'welcome',
+        content: 'Olá! Sou o Copilot da Endurancy. Como posso ajudar você hoje?',
+        sender: 'assistant',
+        timestamp: new Date(),
+      },
+    ]);
+  };
 
   return (
     <div
@@ -535,15 +573,27 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
               )}
             
               <div className="flex space-x-2">
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Digite sua mensagem..."
-                  disabled={isLoading}
-                  className="flex-1"
-                />
+                <div className="flex items-center space-x-2 flex-1">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={clearChatHistory} 
+                    title="Limpar histórico"
+                    className="h-9 w-9 text-gray-400 hover:text-gray-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Digite sua mensagem..."
+                    disabled={isLoading}
+                    className="flex-1"
+                  />
+                </div>
                 <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="bg-gray-400 hover:bg-gray-500">
                   <Send className="h-4 w-4" />
                 </Button>
@@ -552,12 +602,12 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
           </form>
         </TabsContent>
         
-        <TabsContent value="insights" className="h-[calc(100vh-150px)] flex flex-col p-4">
-          <div className="flex-1 overflow-y-auto">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold mb-2">Insights do MCP</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Análises inteligentes geradas pelo Multi-Context Processing com base nos dados da sua organização.
+        <TabsContent value="insights" className="px-4 py-2 h-[calc(100vh-140px)] overflow-y-auto">
+          <div className="flex flex-col space-y-4">
+            {/* Mensagem de introdução */}
+            <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg">
+              <p className="text-sm text-green-700">
+                <span className="font-semibold">Insights personalizados</span> gerados automaticamente pelo Endurancy Copilot para ajudar na gestão da sua organização.
               </p>
             </div>
             
@@ -565,17 +615,22 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
             <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-medium text-green-700">Tendências de Vendas</h4>
+                  <h4 className="font-medium text-green-700">Vendas Mensais</h4>
                   <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
                 </div>
                 <BarChart3 className="h-5 w-5 text-green-600" />
               </div>
               
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Crescimento</span>
-                  <span className="text-xs font-medium text-green-600">+12.5%</span>
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-xl font-semibold">R$ 32.450,75</p>
+                <div className="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  <span>+12.5%</span>
                 </div>
+              </div>
+              
+              <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-1">Evolução de vendas</p>
                 <div className="w-full h-2 bg-gray-200 rounded-full">
                   <div className="w-[65%] h-full bg-green-500 rounded-full"></div>
                 </div>
@@ -651,46 +706,184 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
               </div>
               
               <div className="mt-3 text-sm">
-                <p className="text-amber-600 text-xs font-medium">Compras sugeridas:</p>
+                <p className="text-amber-600 text-xs font-medium">Produtos próximos da validade:</p>
                 <ul className="text-gray-600 text-xs mt-1 space-y-1">
-                  <li>• Atualizar estoque de óleo de canabidiol</li>
-                  <li>• Considerar novos fornecedores para cremes</li>
+                  <li>• CBD Capsules Isolate - 45 dias para o vencimento</li>
                 </ul>
               </div>
               
               <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
-                Gerar pedido de compra
+                Gerenciar estoque
+              </Button>
+            </div>
+            
+            {/* Card de Insights Financeiros */}
+            <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-indigo-700">Saúde Financeira</h4>
+                  <p className="text-sm text-gray-600 mt-1">Relatório mensal</p>
+                </div>
+                <DollarSign className="h-5 w-5 text-indigo-600" />
+              </div>
+              
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Receitas</p>
+                  <p className="font-medium text-green-700">R$ 48.320,50</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Despesas</p>
+                  <p className="font-medium text-red-700">R$ 29.750,25</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Lucro</p>
+                  <p className="font-medium text-indigo-700">R$ 18.570,25</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Margem</p>
+                  <p className="font-medium text-indigo-700">38.4%</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-gray-700 font-medium">Análise MCP:</p>
+                <p className="text-gray-600 text-xs mt-1">
+                  A margem de lucro aumentou 3.2% em relação ao mês anterior. Os custos com 
+                  marketing apresentaram o maior aumento (12.5%), mas com retorno positivo 
+                  de conversão.
+                </p>
+              </div>
+              
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Ver relatório financeiro
+              </Button>
+            </div>
+            
+            {/* Card de Insights de Tickets */}
+            <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-purple-700">Suporte Técnico</h4>
+                  <p className="text-sm text-gray-600 mt-1">Visão geral de tickets</p>
+                </div>
+                <TicketIcon className="h-5 w-5 text-purple-600" />
+              </div>
+              
+              <div className="mt-3 flex justify-between">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Abertos</p>
+                  <p className="font-medium text-purple-700">8</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Em progresso</p>
+                  <p className="font-medium text-blue-700">5</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Resolvidos</p>
+                  <p className="font-medium text-green-700">23</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-gray-700 font-medium">Tickets prioritários:</p>
+                <ul className="text-gray-600 text-xs mt-1 space-y-1">
+                  <li>• #1245 - Problema de integração com ERP (Alta prioridade)</li>
+                  <li>• #1253 - Error ao gerar relatório (Média prioridade)</li>
+                </ul>
+              </div>
+              
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Ver todos os tickets
               </Button>
             </div>
           </div>
         </TabsContent>
         
-        <TabsContent value="ajuda" className="h-[calc(100vh-150px)] flex flex-col p-4">
-          <div className="flex-1 overflow-y-auto">
-            <h3 className="font-semibold mb-2">Comandos disponíveis</h3>
+        <TabsContent value="ajuda" className="px-4 py-2 h-[calc(100vh-140px)] overflow-y-auto">
+          <div className="flex flex-col space-y-4">
+            {/* Introdução */}
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+              <p className="text-sm text-blue-700">
+                <span className="font-semibold">Olá! 👋</span> Estou aqui para ajudar você a tirar o máximo proveito do Endurancy Copilot. Veja abaixo os comandos e dicas mais úteis!
+              </p>
+            </div>
+            
+            <h3 className="font-semibold mb-2">Comandos populares</h3>
             <ul className="space-y-2 text-sm">
-              <li className="p-2 bg-gray-100 rounded">
-                <p className="font-medium">💬 "Criar paciente"</p>
-                <p className="text-gray-600">Inicia o assistente para criação rápida de pacientes</p>
+              <li className="p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="font-medium flex items-center gap-1">
+                  <PlusCircle className="h-4 w-4 text-green-600" />
+                  "Criar paciente"
+                </p>
+                <p className="text-gray-600 mt-1">Inicia o assistente para criação rápida de pacientes e explica o processo passo a passo</p>
               </li>
-              <li className="p-2 bg-gray-100 rounded">
-                <p className="font-medium">💬 "Buscar paciente [nome]"</p>
-                <p className="text-gray-600">Ajuda a localizar pacientes por nome, CPF ou ID</p>
+              <li className="p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="font-medium flex items-center gap-1">
+                  <Search className="h-4 w-4 text-blue-600" />
+                  "Buscar paciente [nome]"
+                </p>
+                <p className="text-gray-600 mt-1">Ajuda a localizar pacientes por nome, CPF ou ID e mostra como acessar prontuários</p>
               </li>
-              <li className="p-2 bg-gray-100 rounded">
-                <p className="font-medium">💬 "Análise de vendas"</p>
-                <p className="text-gray-600">Mostra insights sobre desempenho de vendas recentes</p>
+              <li className="p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="font-medium flex items-center gap-1">
+                  <BarChart3 className="h-4 w-4 text-indigo-600" />
+                  "Análise de vendas"
+                </p>
+                <p className="text-gray-600 mt-1">Mostra insights sobre desempenho de vendas recentes e tendências importantes</p>
               </li>
-              <li className="p-2 bg-gray-100 rounded">
-                <p className="font-medium">💬 "Como faço para..."</p>
-                <p className="text-gray-600">Pergunte qualquer procedimento na plataforma</p>
+              <li className="p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="font-medium flex items-center gap-1">
+                  <HelpCircle className="h-4 w-4 text-amber-600" />
+                  "Como faço para..."
+                </p>
+                <p className="text-gray-600 mt-1">Pergunte qualquer procedimento na plataforma para obter instruções detalhadas</p>
               </li>
             </ul>
             
-            <h3 className="font-semibold mt-4 mb-2">Sobre o MCP</h3>
-            <p className="text-sm text-gray-600 bg-gray-100 p-2 rounded">
-              Multi-Context Processing (MCP) é a tecnologia que permite ao Copilot entender e integrar informações de diferentes módulos da plataforma Endurancy para fornecer respostas mais precisas e contextualizadas.
-            </p>
+            <h3 className="font-semibold mt-5 mb-2">Atalhos de teclado</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="p-2 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="text-gray-700">Abrir/Fechar Copilot</p>
+                <p className="font-mono bg-gray-200 px-2 py-1 rounded mt-1 text-xs inline-block">Ctrl + K</p>
+              </div>
+              <div className="p-2 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="text-gray-700">Enviar mensagem</p>
+                <p className="font-mono bg-gray-200 px-2 py-1 rounded mt-1 text-xs inline-block">Enter</p>
+              </div>
+              <div className="p-2 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="text-gray-700">Limpar mensagens</p>
+                <p className="font-mono bg-gray-200 px-2 py-1 rounded mt-1 text-xs inline-block">Ctrl + Shift + C</p>
+              </div>
+              <div className="p-2 bg-gray-50 border border-gray-100 rounded-lg">
+                <p className="text-gray-700">Mudar de aba</p>
+                <p className="font-mono bg-gray-200 px-2 py-1 rounded mt-1 text-xs inline-block">Alt + Tab</p>
+              </div>
+            </div>
+            
+            <h3 className="font-semibold mt-5 mb-2">O que é MCP?</h3>
+            <div className="bg-green-50 border border-green-100 p-3 rounded-lg text-sm">
+              <p className="font-medium text-green-800 mb-2">Multi-Context Processing (MCP)</p>
+              <p className="text-gray-700">
+                É a tecnologia exclusiva do Endurancy Copilot que permite integrar informações de diferentes módulos (Financeiro, Pacientes, Estoque, etc.) para fornecer respostas mais precisas e contextualizadas.
+              </p>
+              <div className="mt-3 p-2 bg-white rounded border border-green-100">
+                <p className="text-xs text-green-800 font-medium">Exemplo de MCP em ação:</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Ao analisar tendências de vendas, o Copilot correlaciona automaticamente dados de estoque, perfil de pacientes e sazonalidade para gerar recomendações mais eficazes.
+                </p>
+              </div>
+            </div>
+            
+            <h3 className="font-semibold mt-5 mb-2">Acesso Beta</h3>
+            <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg text-sm mb-4">
+              <p className="text-gray-700">
+                <span className="font-medium text-blue-700">Recurso em fase Beta</span> - O Endurancy Copilot está disponível gratuitamente para todos os planos durante o período de testes. Suas sugestões são fundamentais para aprimorarmos a experiência.
+              </p>
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Enviar feedback
+              </Button>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
