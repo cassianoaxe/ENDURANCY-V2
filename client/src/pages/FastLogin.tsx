@@ -77,7 +77,10 @@ export default function FastLogin() {
                 <Leaf className="h-6 w-6 text-green-600" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Endurancy</h2>
+            <div className="flex items-center">
+              <h2 className="text-2xl font-bold text-gray-800">Endurancy</h2>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
             <p className="text-sm text-gray-500">Faça login para acessar o sistema</p>
           </CardHeader>
           

@@ -17,7 +17,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
             <Leaf className="h-8 w-8 text-green-600" />
-            <span className="ml-2 text-xl font-bold text-green-800">Endurancy</span>
+            <div className="ml-2 flex items-center">
+              <span className="text-xl font-bold text-green-800">Endurancy</span>
+              <span className="ml-1.5 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
           </div>
           <nav className="hidden md:flex space-x-8">
             <a href="#plataforma" className="text-green-700 hover:text-green-500 font-medium">Plataforma</a>
@@ -438,7 +441,10 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center mb-4">
                 <Leaf className="h-6 w-6 text-green-300" />
-                <span className="ml-2 text-xl font-bold text-white">Endurancy</span>
+                <div className="ml-2 flex items-center">
+                  <span className="text-xl font-bold text-white">Endurancy</span>
+                  <span className="ml-1.5 px-1.5 py-0.5 text-xs font-medium bg-white/20 text-white rounded">Beta</span>
+                </div>
               </div>
               <p className="text-green-300 mb-4">
                 Plataforma completa para o setor medicinal cannabidiol.
@@ -477,7 +483,7 @@ const LandingPage = () => {
           </div>
           
           <div className="border-t border-green-800 mt-12 pt-6 text-center text-green-400">
-            <p>&copy; {new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Endurancy <span className="inline-block px-1 py-0.5 text-[0.6rem] font-medium bg-green-200 text-green-800 rounded">Beta</span>. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

@@ -399,7 +399,10 @@ export default function Login() {
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
               <Leaf className="h-6 w-6 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Endurancy</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-800">Endurancy</h1>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
           </div>
           
           <div className="flex-grow flex flex-col justify-center max-w-md mx-auto">
@@ -543,7 +546,10 @@ export default function Login() {
             <div className="w-16 h-16 bg-[#e6f7e6] rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Leaf className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
+            <div className="flex items-center justify-center">
+              <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
             <p className="text-gray-500 mt-1">Plataforma de Controle e Regulação</p>
           </div>
           
