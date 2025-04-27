@@ -1,7 +1,18 @@
 import { Express, Request, Response } from "express";
 import { db } from "../db";
 import { eq, and, desc, asc, gte, lte, like, sql } from "drizzle-orm";
-import { laboratories, samples, tests, cannabinoidResults, terpeneResults, insertLaboratorySchema, insertSampleSchema, insertTestSchema, insertCannabinoidResultSchema, insertTerpeneResultSchema } from "../../shared/schema-laboratory";
+import { 
+  laboratories, 
+  samples, 
+  tests, 
+  cannabinoidResults, 
+  terpeneResults, 
+  insertLaboratorySchema, 
+  insertSampleSchema, 
+  insertTestSchema, 
+  insertCannabinoidResultSchema, 
+  insertTerpeneResultSchema 
+} from "../../shared/schema-laboratory";
 import { formatDate, generateRandomString } from "../utils";
 import { z } from "zod";
 import { users } from "../../shared/schema";
