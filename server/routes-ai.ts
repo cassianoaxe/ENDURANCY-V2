@@ -57,6 +57,12 @@ const authenticateAndCheckAccess = [authenticate, checkAIModuleAccess];
 
 // Função para registrar as rotas de IA
 export function registerAIRoutes(app: Express) {
+  // Registrando o router de chat AI
+  app.use('/api/ai', aiChatRouter);
+  
+  // Log para debug
+  console.log("Router de chat AI registrado com sucesso em /api/ai");
+  
   // Rota para processamento multi-contexto
   app.post('/api/ai/process', authenticateAndCheckAccess, async (req: AuthenticatedRequest, res: Response) => {
     try {
