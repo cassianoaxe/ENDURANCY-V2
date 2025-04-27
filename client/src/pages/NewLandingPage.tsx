@@ -15,6 +15,31 @@ import {
   FileSearch, Import, ExternalLink, BrainCircuit
 } from 'lucide-react';
 
+// Definição de tipos para módulos do sistema
+type ModuleColor = "green" | "blue" | "purple" | "amber" | "red";
+
+// Interface para os módulos do sistema
+interface ModuleItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: ModuleColor;
+  features: string[];
+  fullDescription: string;
+}
+
+// Interface para os portais do sistema
+interface PortalItem {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: ModuleColor;
+  gradientStart: string;
+  gradientEnd: string;
+}
+
 // Componente de Módulo com efeito hover
 const ModuleCard = ({ 
   icon, 
@@ -28,7 +53,7 @@ const ModuleCard = ({
   title: string, 
   description: string, 
   features: string[],
-  color?: "green" | "blue" | "purple" | "amber" | "red",
+  color?: ModuleColor,
   onClick: () => void
 }) => {
   const colorClasses = {
@@ -125,7 +150,7 @@ const PortalCard = ({
   icon: React.ReactNode, 
   title: string, 
   description: string,
-  color?: "green" | "blue" | "purple" | "amber" | "red",
+  color?: ModuleColor,
   onClick: () => void,
   gradientStart: string,
   gradientEnd: string
@@ -165,7 +190,7 @@ const FeatureCard = ({
   icon: React.ReactNode, 
   title: string, 
   description: string, 
-  color?: "green" | "blue" | "purple" | "amber" | "red" 
+  color?: ModuleColor 
 }) => {
   const colorClasses = {
     green: {
@@ -219,7 +244,7 @@ const FeatureCard = ({
 };
 
 // Módulos do sistema para exibição na landing page
-const modules = [
+const modules: ModuleItem[] = [
   {
     id: "rh",
     title: "Módulo RH",
@@ -391,7 +416,7 @@ const modules = [
 ];
 
 // Portais do sistema
-const portals = [
+const portals: PortalItem[] = [
   {
     id: "paciente",
     title: "Portal do Paciente",
@@ -475,15 +500,66 @@ const NewLandingPage = () => {
     const module = modules.find(m => m.id === currentModule);
     if (!module) return null;
     
+    // Mapeamento de cores para classes Tailwind
+    type ColorClassMap = {
+      [key in ModuleColor]: {
+        bg100: string;
+        text600: string;
+        text800: string;
+        text500: string;
+        btnBg: string;
+      }
+    };
+
+    const colorMap: ColorClassMap = {
+      green: {
+        bg100: "bg-green-100",
+        text600: "text-green-600",
+        text800: "text-green-800",
+        text500: "text-green-500",
+        btnBg: "bg-green-600 hover:bg-green-700"
+      },
+      blue: {
+        bg100: "bg-blue-100",
+        text600: "text-blue-600",
+        text800: "text-blue-800",
+        text500: "text-blue-500",
+        btnBg: "bg-blue-600 hover:bg-blue-700"
+      },
+      purple: {
+        bg100: "bg-purple-100",
+        text600: "text-purple-600",
+        text800: "text-purple-800",
+        text500: "text-purple-500",
+        btnBg: "bg-purple-600 hover:bg-purple-700"
+      },
+      amber: {
+        bg100: "bg-amber-100",
+        text600: "text-amber-600",
+        text800: "text-amber-800",
+        text500: "text-amber-500",
+        btnBg: "bg-amber-600 hover:bg-amber-700"
+      },
+      red: {
+        bg100: "bg-red-100",
+        text600: "text-red-600",
+        text800: "text-red-800",
+        text500: "text-red-500",
+        btnBg: "bg-red-600 hover:bg-red-700"
+      }
+    };
+    
+    const colors = colorMap[module.color];
+    
     return (
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-8">
             <div className="flex items-center mb-6">
-              <div className={`w-12 h-12 bg-${module.color}-100 rounded-full flex items-center justify-center mr-4`}>
-                <div className={`text-${module.color}-600`}>{module.icon}</div>
+              <div className={`w-12 h-12 ${colors.bg100} rounded-full flex items-center justify-center mr-4`}>
+                <div className={colors.text600}>{module.icon}</div>
               </div>
-              <h2 className={`text-2xl font-bold text-${module.color}-800`}>{module.title}</h2>
+              <h2 className={`text-2xl font-bold ${colors.text800}`}>{module.title}</h2>
             </div>
             
             <p className="text-gray-700 mb-6">{module.fullDescription}</p>
@@ -492,7 +568,7 @@ const NewLandingPage = () => {
             <ul className="space-y-3 mb-6">
               {module.features.map((feature, index) => (
                 <li key={index} className="flex items-start">
-                  <CheckCircle className={`h-5 w-5 mr-2 text-${module.color}-500 flex-shrink-0 mt-0.5`} />
+                  <CheckCircle className={`h-5 w-5 mr-2 ${colors.text500} flex-shrink-0 mt-0.5`} />
                   <span>{feature}</span>
                 </li>
               ))}
@@ -506,7 +582,7 @@ const NewLandingPage = () => {
                 Fechar
               </Button>
               <Button 
-                className={`bg-${module.color}-600 hover:bg-${module.color}-700`}
+                className={colors.btnBg}
                 onClick={() => {
                   window.location.href = "/organization-registration";
                 }}
@@ -700,25 +776,28 @@ const NewLandingPage = () => {
       <section id="modulos" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-green-800 mb-4">Módulos Especializados</h2>
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-600 text-sm font-medium mb-4">
+              Módulos Completos
+            </div>
+            <h2 className="text-4xl font-bold text-green-800 mb-4">Módulos Especializados</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
               Personalize sua experiência com nossos módulos integrados para atender às necessidades 
-              específicas do seu negócio.
+              específicas do seu negócio. Todos os módulos se comunicam entre si em tempo real.
             </p>
             
             <Tabs defaultValue="todos" value={activeTab} onValueChange={setActiveTab} className="w-full max-w-4xl mx-auto">
-              <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-8">
-                <TabsTrigger value="todos">Todos</TabsTrigger>
-                <TabsTrigger value="gestao">Gestão</TabsTrigger>
-                <TabsTrigger value="producao">Produção</TabsTrigger>
-                <TabsTrigger value="comercial">Comercial</TabsTrigger>
-                <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="portais">Portais</TabsTrigger>
+              <TabsList className="grid grid-cols-3 md:grid-cols-6 mb-8 bg-green-50/80 p-1">
+                <TabsTrigger value="todos" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Todos</TabsTrigger>
+                <TabsTrigger value="gestao" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">Gestão</TabsTrigger>
+                <TabsTrigger value="producao" className="data-[state=active]:bg-amber-600 data-[state=active]:text-white">Produção</TabsTrigger>
+                <TabsTrigger value="comercial" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Comercial</TabsTrigger>
+                <TabsTrigger value="compliance" className="data-[state=active]:bg-red-600 data-[state=active]:text-white">Compliance</TabsTrigger>
+                <TabsTrigger value="portais" className="data-[state=active]:bg-green-600 data-[state=active]:text-white">Portais</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {getFilteredModules().map((module) => (
               <ModuleCard 
                 key={module.id}
@@ -731,21 +810,52 @@ const NewLandingPage = () => {
               />
             ))}
           </div>
+          
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-xl border border-green-100 mt-6">
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                <BrainCircuit className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-green-800 mb-2">Módulos Inteligentes e Interconectados</h3>
+                <p className="text-gray-600">
+                  Todos os módulos da plataforma Endurancy foram projetados para trabalhar em conjunto,
+                  compartilhando dados e processos de forma segura e eficiente. A modularidade permite
+                  que você comece com o que precisa agora e expanda conforme seu negócio cresce.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <Button 
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  onClick={() => window.location.href = "/organization-registration"}
+                >
+                  Experimentar Agora
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Portais Section com visual diferente */}
-      <section id="portais" className="py-20 px-4 bg-gradient-to-b from-green-50 to-white">
-        <div className="container mx-auto max-w-6xl">
+      <section id="portais" className="py-20 px-4 bg-gradient-to-b from-green-50 to-white relative overflow-hidden">
+        {/* Background elements decorativos */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-green-200 rounded-full opacity-20 -translate-y-1/2 translate-x-1/3 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-200 rounded-full opacity-20 translate-y-1/3 -translate-x-1/3 blur-3xl"></div>
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-green-800 mb-4">Portais Especializados</h2>
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-sm font-medium mb-4">
+              Acesso Otimizado
+            </div>
+            <h2 className="text-4xl font-bold text-green-800 mb-4">Portais Especializados</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Interfaces dedicadas para cada perfil de usuário, garantindo experiências 
-              otimizadas para diferentes necessidades.
+              otimizadas para diferentes necessidades e fluxos de trabalho.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             {portals.map((portal) => (
               <PortalCard 
                 key={portal.id}
@@ -758,6 +868,63 @@ const NewLandingPage = () => {
                 gradientEnd={portal.gradientEnd}
               />
             ))}
+          </div>
+          
+          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+            <div className="flex flex-col lg:flex-row items-center gap-6">
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-green-800 mb-4">Fluxo de Trabalho Integrado</h3>
+                <p className="text-gray-600 mb-6">
+                  Nossos portais especializados funcionam em sincronia, permitindo que médicos, farmacêuticos e 
+                  pacientes interajam de forma eficiente e segura. Toda informação é compartilhada em tempo real 
+                  entre os portais autorizados, eliminando a necessidade de múltiplos cadastros e reduzindo erros.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <ShieldCheck className="h-5 w-5 mr-2 text-green-500" />
+                    <span className="text-sm">Segurança de ponta a ponta</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 mr-2 text-green-500" />
+                    <span className="text-sm">Controle de acesso granular</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Network className="h-5 w-5 mr-2 text-green-500" />
+                    <span className="text-sm">Integração perfeita</span>
+                  </div>
+                  <div className="flex items-center">
+                    <BellRing className="h-5 w-5 mr-2 text-green-500" />
+                    <span className="text-sm">Notificações em tempo real</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex-1 bg-gradient-to-br from-green-50 to-blue-50 p-8 rounded-xl">
+                <div className="relative">
+                  <div className="flex justify-between mb-6">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                      <HeartPulse className="h-8 w-8 text-green-600" />
+                    </div>
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Pill className="h-8 w-8 text-purple-600" />
+                    </div>
+                  </div>
+                  
+                  <div className="h-0.5 bg-gradient-to-r from-green-300 to-purple-300 my-6"></div>
+                  
+                  <div className="flex justify-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </div>
+                  
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    <Network className="h-48 w-48 text-green-800" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
