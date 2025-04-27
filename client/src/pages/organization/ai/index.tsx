@@ -82,7 +82,7 @@ const AIModulePage: React.FC = () => {
     queryKey: ['/api/ai/status'],
     queryFn: async () => {
       try {
-        const res = await apiRequest({ method: 'GET', url: '/api/ai/status' });
+        const res = await apiRequest('/api/ai/status');
         return res;
       } catch (error) {
         console.error('Erro ao verificar status do módulo de IA:', error);
@@ -94,8 +94,11 @@ const AIModulePage: React.FC = () => {
   // Mutação para processar consultas de IA
   const processMutation = useMutation({
     mutationFn: async (requestData: AIRequest) => {
-      const res = await apiRequest('POST', '/api/ai/process', requestData);
-      return await res.json() as AIResponse;
+      const res = await apiRequest('/api/ai/process', { 
+        method: 'POST',
+        data: requestData 
+      });
+      return res as AIResponse;
     },
     onSuccess: () => {
       toast({
@@ -115,8 +118,8 @@ const AIModulePage: React.FC = () => {
   // Mutação para analisar tickets
   const analyzeTicketMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest('GET', `/api/ai/analyze-ticket/${id}`);
-      return await res.json() as TicketAnalysis;
+      const res = await apiRequest(`/api/ai/analyze-ticket/${id}`);
+      return res as TicketAnalysis;
     },
     onSuccess: () => {
       toast({
@@ -136,8 +139,11 @@ const AIModulePage: React.FC = () => {
   // Mutação para gerar relatórios
   const generateReportMutation = useMutation({
     mutationFn: async (data: { reportType: string; timePeriod: { start: string; end: string } }) => {
-      const res = await apiRequest('POST', '/api/ai/generate-report', data);
-      return await res.json();
+      const res = await apiRequest('/api/ai/generate-report', { 
+        method: 'POST', 
+        data 
+      });
+      return res;
     },
     onSuccess: () => {
       toast({
