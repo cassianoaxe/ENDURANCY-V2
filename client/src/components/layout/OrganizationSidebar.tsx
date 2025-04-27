@@ -657,10 +657,36 @@ export default function OrganizationSidebar() {
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
     {
-      title: "ChatGPT AI",
+      title: "Inteligência Artificial",
       path: "/organization/ai",
-      active: currentPath === "/organization/ai",
-      icon: <Bot size={18} />
+      active: currentPath === "/organization/ai" || 
+              currentPath.startsWith("/organization/ai/"),
+      icon: <Sparkles size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard IA",
+          path: "/organization/ai",
+          active: currentPath === "/organization/ai" && !currentPath.includes("/organization/ai/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Assistente IA",
+          path: "/organization/ai/assistant",
+          active: currentPath === "/organization/ai/assistant",
+          icon: <Bot size={16} />
+        },
+        {
+          title: "Configurações IA",
+          path: "/organization/ai/settings",
+          active: currentPath === "/organization/ai/settings",
+          icon: <Settings size={16} />
+        }
+      ],
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      }
     },
     {
       title: "Cultivo",
