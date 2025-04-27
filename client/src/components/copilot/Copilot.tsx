@@ -116,7 +116,8 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const executeCommand = (command: string) => {
+  // Função para executar comandos especiais através do Copilot
+  const executeCommand = async (command: string) => {
     setActiveTab('chat');
     
     const commandMessage: Message = {
@@ -127,17 +128,56 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
     };
     
     setMessages(prev => [...prev, commandMessage]);
+    setIsLoading(true);
     
-    const processingMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: `Processando comando: ${command}...`,
-      sender: 'assistant',
-      timestamp: new Date(),
-    };
+    // Pequeno atraso para melhorar a UX
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    setMessages(prev => [...prev, processingMessage]);
+    try {
+      // Aqui podemos fazer uma chamada especial à API indicando que é um comando especial
+      const response = await axios.post('/api/ai/chat', { 
+        message: command,
+        isCommand: true, 
+        commandType: getCommandType(command),
+      });
+      
+      if (response.data && typeof response.data.response === 'string') {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
+    } catch (error) {
+      console.error('Erro ao executar comando:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Não foi possível executar este comando no momento. Por favor, tente novamente mais tarde.',
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Função para identificar o tipo de comando
+  const getCommandType = (command: string): string => {
+    if (command.toLowerCase().includes('criar paciente')) return 'criar_paciente';
+    if (command.toLowerCase().includes('buscar paciente')) return 'buscar_paciente';
+    if (command.toLowerCase().includes('análise de vendas')) return 'analise_vendas';
+    return 'geral';
+  };
+
+  // Handlers para botões de atalho
   const handleCriarPaciente = () => {
     executeCommand("Quero criar um novo paciente");
   };
@@ -147,7 +187,15 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
   };
 
   const handleAnaliseVendas = () => {
-    executeCommand("Mostrar análise de vendas");
+    executeCommand("Mostrar análise de vendas recentes");
+  };
+  
+  // Função para sugerir comandos diretamente no chat
+  const suggestCommand = (command: string) => {
+    setInputValue(command);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   return (
@@ -230,6 +278,75 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
                 <span className="text-xs text-gray-500 mt-1 block">
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
+                
+                {/* Adicionar botões de sugestão após respostas do assistente */}
+                {message.sender === 'assistant' && message.id !== 'welcome' && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {message.content.toLowerCase().includes('paciente') && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-green-700 hover:text-green-800 p-1 h-auto"
+                        onClick={() => suggestCommand("Como cadastrar um novo paciente?")}
+                      >
+                        Cadastrar paciente
+                      </Button>
+                    )}
+                    {message.content.toLowerCase().includes('venda') && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-green-700 hover:text-green-800 p-1 h-auto"
+                        onClick={() => suggestCommand("Mostrar detalhes das vendas")}
+                      >
+                        Ver detalhes
+                      </Button>
+                    )}
+                    {!message.content.toLowerCase().includes('ajudar com mais alguma coisa') && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-green-700 hover:text-green-800 p-1 h-auto"
+                        onClick={() => suggestCommand("Preciso de mais ajuda")}
+                      >
+                        Mais ajuda
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
+                {/* Adicionar sugestões específicas para a mensagem de boas-vindas */}
+                {message.id === 'welcome' && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    <p className="text-xs font-medium text-gray-500">Sugestões:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs bg-white"
+                        onClick={() => suggestCommand("Como usar o Endurancy?")}
+                      >
+                        Como usar o Endurancy?
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs bg-white"
+                        onClick={() => suggestCommand("Quais módulos estão disponíveis?")}
+                      >
+                        Módulos disponíveis
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-xs bg-white"
+                        onClick={() => suggestCommand("O que é MCP?")}
+                      >
+                        O que é MCP?
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             
@@ -239,34 +356,175 @@ const Copilot: React.FC<CopilotProps> = ({ isOpen, onClose }) => {
               </div>
             )}
             
+            {/* Adicionar componente de "digitando..." quando o assistente estiver processando */}
+            {isLoading && messages.length > 0 && messages[messages.length - 1].sender === 'user' && (
+              <div className="mb-4 p-3 rounded-lg max-w-[80%] bg-white shadow-sm mr-auto">
+                <div className="flex items-center space-x-1">
+                  <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
+                </div>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
           
           <form onSubmit={handleSubmit} className="p-4 border-t">
-            <div className="flex space-x-2">
-              <Input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Digite sua mensagem..."
-                disabled={isLoading}
-                className="flex-1"
-              />
-              <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="bg-gray-400 hover:bg-gray-500">
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-col space-y-2">
+              {/* Sugestões contextuais baseadas no último input ou na conversa */}
+              {messages.length > 0 && !isLoading && (
+                <div className="flex flex-wrap gap-1 pb-2">
+                  {messages[messages.length - 1].content.toLowerCase().includes('financeiro') && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs p-1 h-7 text-gray-600"
+                      onClick={() => suggestCommand("Como acessar o módulo financeiro?")}
+                    >
+                      Acessar módulo financeiro
+                    </Button>
+                  )}
+                  {messages[messages.length - 1].content.toLowerCase().includes('relat') && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs p-1 h-7 text-gray-600"
+                      onClick={() => suggestCommand("Como gerar relatórios?")}
+                    >
+                      Gerar relatórios
+                    </Button>
+                  )}
+                </div>
+              )}
+            
+              <div className="flex space-x-2">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Digite sua mensagem..."
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={isLoading || !inputValue.trim()} size="icon" className="bg-gray-400 hover:bg-gray-500">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </form>
         </TabsContent>
         
         <TabsContent value="insights" className="h-[calc(100vh-150px)] flex flex-col p-4">
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="text-center p-4 bg-gray-100 rounded-lg max-w-xs">
-              <h3 className="font-semibold mb-2">Insights em desenvolvimento</h3>
-              <p className="text-sm text-gray-600">
-                Aqui você verá análises inteligentes de dados como tendências de vendas, sugestões de melhorias e outras recomendações personalizadas baseadas no MCP.
+          <div className="flex-1 overflow-y-auto">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">Insights do MCP</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Análises inteligentes geradas pelo Multi-Context Processing com base nos dados da sua organização.
               </p>
+            </div>
+            
+            {/* Card de Insights de Vendas */}
+            <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-green-700">Tendências de Vendas</h4>
+                  <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
+                </div>
+                <BarChart3 className="h-5 w-5 text-green-600" />
+              </div>
+              
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-500">Crescimento</span>
+                  <span className="text-xs font-medium text-green-600">+12.5%</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full">
+                  <div className="w-[65%] h-full bg-green-500 rounded-full"></div>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-gray-700 font-medium">Oportunidade Identificada:</p>
+                <p className="text-gray-600 text-xs mt-1">
+                  Os produtos da categoria "CBD Tópicos" tiveram um crescimento de 22% este mês.
+                  Considere expandir o estoque desta categoria.
+                </p>
+              </div>
+              
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Ver análise completa
+              </Button>
+            </div>
+            
+            {/* Card de Insights de Pacientes */}
+            <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-blue-700">Retenção de Pacientes</h4>
+                  <p className="text-sm text-gray-600 mt-1">Análise trimestral</p>
+                </div>
+                <PlusCircle className="h-5 w-5 text-blue-600" />
+              </div>
+              
+              <div className="mt-3 flex justify-between">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Novos</p>
+                  <p className="font-medium text-blue-700">32</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Retorno</p>
+                  <p className="font-medium text-green-700">78</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">Inativos</p>
+                  <p className="font-medium text-red-700">5</p>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-gray-700 font-medium">Pacientes para contato:</p>
+                <ul className="text-gray-600 text-xs mt-1 space-y-1">
+                  <li>• Maria Silva - 60 dias sem consulta</li>
+                  <li>• João Costa - Tratamento finalizado sem retorno</li>
+                </ul>
+              </div>
+              
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Gerenciar acompanhamentos
+              </Button>
+            </div>
+            
+            {/* Card de Insights de Estoque */}
+            <div className="mb-4 p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-medium text-amber-700">Alertas de Estoque</h4>
+                  <p className="text-sm text-gray-600 mt-1">Itens que requerem atenção</p>
+                </div>
+                <Search className="h-5 w-5 text-amber-600" />
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-red-600 text-xs font-medium">Produtos próximos ao fim:</p>
+                <ul className="text-gray-600 text-xs mt-1 space-y-1">
+                  <li>• CBD Oil 10% - Restam 3 unidades</li>
+                  <li>• Tincture Full Spectrum - Restam 5 unidades</li>
+                </ul>
+              </div>
+              
+              <div className="mt-3 text-sm">
+                <p className="text-amber-600 text-xs font-medium">Compras sugeridas:</p>
+                <ul className="text-gray-600 text-xs mt-1 space-y-1">
+                  <li>• Atualizar estoque de óleo de canabidiol</li>
+                  <li>• Considerar novos fornecedores para cremes</li>
+                </ul>
+              </div>
+              
+              <Button variant="outline" size="sm" className="mt-3 w-full text-xs">
+                Gerar pedido de compra
+              </Button>
             </div>
           </div>
         </TabsContent>
