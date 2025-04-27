@@ -253,7 +253,15 @@ const AIModulePage: React.FC = () => {
   return (
     <OrganizationLayout>
       <div className="container mx-auto py-6">
-        <h1 className="text-3xl font-bold tracking-tight mb-8">Inteligência Artificial</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Inteligência Artificial</h1>
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <a href="/organization/ai/assistant">
+              <MessageSquare className="h-4 w-4" />
+              <span>Abrir Assistente</span>
+            </a>
+          </Button>
+        </div>
         
         {renderStatus()}
 

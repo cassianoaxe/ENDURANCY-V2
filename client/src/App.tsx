@@ -105,8 +105,9 @@ import NotificacoesComunicacao from "@/pages/organization/comunicacao/notificaco
 import ArquivosComunicacao from "@/pages/organization/comunicacao/arquivos";
 import CredenciaisComunicacao from "@/pages/organization/comunicacao/credenciais";
 
-// Importar página do módulo de IA
+// Importar páginas do módulo de IA
 import AIModulePage from "@/pages/organization/ai/index";
+import AIAssistantPage from "@/pages/organization/ai/assistant";
 
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
@@ -945,6 +946,10 @@ function AppContent() {
     // Módulo de Inteligência Artificial
     if (currentPath === '/organization/ai') {
       return <AIModulePage />;
+    }
+    
+    if (currentPath === '/organization/ai/assistant') {
+      return <AIAssistantPage />;
     }
     
     // Módulo Jurídico
