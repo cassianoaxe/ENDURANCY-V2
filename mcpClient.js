@@ -256,4 +256,4 @@ class MCPClient {
   }
 }
 
-module.exports = MCPClient;
+export { MCPClient };
