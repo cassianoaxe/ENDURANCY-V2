@@ -28,6 +28,9 @@ import LaboratoryReports from "@/pages/laboratory/Reports";
 import LaboratoryTeam from "@/pages/laboratory/Team";
 import LaboratorySettings from "@/pages/laboratory/Settings";
 import LaboratoryLogin from "@/pages/laboratory-login";
+import Clientes from "@/pages/laboratory/Clientes";
+import Equipamentos from "@/pages/laboratory/Equipamentos";
+import TestAnalysis from "@/pages/laboratory/TestAnalysis";
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
@@ -589,6 +592,9 @@ function AppContent() {
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
         {currentPath === '/laboratory/team' && <LaboratoryTeam />}
+        {currentPath === '/laboratory/clientes' && <Clientes />}
+        {currentPath === '/laboratory/equipamentos' && <Equipamentos />}
+        {currentPath === '/laboratory/test-analysis' && <TestAnalysis />}
         {currentPath.startsWith('/laboratory/samples/') && <SampleDetail />}
         {currentPath.startsWith('/laboratory/tests/') && <TestDetail />}
       </LaboratoryLayout>

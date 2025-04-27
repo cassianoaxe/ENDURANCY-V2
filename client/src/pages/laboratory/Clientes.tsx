@@ -1,0 +1,805 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+  Building,
+  Clock,
+  Download,
+  Eye,
+  Filter,
+  FlaskConical,
+  MoreHorizontal,
+  Plus,
+  Search,
+  UserPlus,
+  Users
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
+
+// Tipos
+interface LaboratoryClient {
+  id: number;
+  name: string;
+  type: 'company' | 'association' | 'clinic' | 'research' | 'individual';
+  email: string;
+  phone: string;
+  contactPerson: string;
+  status: 'active' | 'inactive' | 'pending';
+  lastOrder?: string;
+  totalOrders: number;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  registrationDate: string;
+  notes?: string;
+}
+
+// Componente principal
+export default function LaboratoryClientes() {
+  const [clients, setClients] = useState<LaboratoryClient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false);
+  const [showClientDetailDialog, setShowClientDetailDialog] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<LaboratoryClient | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const { toast } = useToast();
+
+  // Buscar clientes
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setIsLoading(true);
+        // Na implementação real, isso seria uma chamada à API
+        // const response = await fetch('/api/laboratory/clients');
+        // const data = await response.json();
+        // setClients(data);
+        
+        // Simulação com dados fictícios para desenvolvimento
+        setTimeout(() => {
+          setClients(mockClients);
+          setIsLoading(false);
+        }, 800);
+      } catch (error) {
+        console.error('Erro ao buscar clientes:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar a lista de clientes.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, [toast]);
+
+  // Filtragem de clientes
+  const filteredClients = clients.filter(client => {
+    // Filtro de busca pelo nome ou email
+    const matchesSearch = 
+      searchQuery === '' || 
+      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.contactPerson.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filtro por status
+    const matchesStatus = 
+      selectedStatus === 'all' || 
+      client.status === selectedStatus;
+    
+    // Filtro por tipo
+    const matchesType = 
+      selectedType === 'all' || 
+      client.type === selectedType;
+    
+    // Filtro por tab
+    if (activeTab === 'recent') {
+      // Considerar cliente recente se tiver feito pedido nos últimos 30 dias
+      if (!client.lastOrder) return false;
+      const lastOrderDate = new Date(client.lastOrder);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return matchesSearch && matchesStatus && matchesType && lastOrderDate >= thirtyDaysAgo;
+    }
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  // Função para traduzir tipo de cliente
+  const translateClientType = (type: string) => {
+    const typeMap: Record<string, string> = {
+      'company': 'Empresa',
+      'association': 'Associação',
+      'clinic': 'Clínica',
+      'research': 'Pesquisa',
+      'individual': 'Individual'
+    };
+    return typeMap[type] || type;
+  };
+
+  // Função para traduzir status do cliente
+  const translateClientStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'active': 'Ativo',
+      'inactive': 'Inativo',
+      'pending': 'Pendente'
+    };
+    return statusMap[status] || status;
+  };
+
+  // Função para obter a cor do status
+  const getStatusColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'active': 'bg-green-500 hover:bg-green-600',
+      'inactive': 'bg-gray-500 hover:bg-gray-600',
+      'pending': 'bg-yellow-500 hover:bg-yellow-600'
+    };
+    return colorMap[status] || 'bg-blue-500 hover:bg-blue-600';
+  };
+
+  // Função para visualizar detalhes do cliente
+  const viewClientDetails = (client: LaboratoryClient) => {
+    setSelectedClient(client);
+    setShowClientDetailDialog(true);
+  };
+
+  // Função para adicionar novo cliente
+  const handleAddClient = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: 'Cliente Adicionado',
+      description: 'O novo cliente foi registrado com sucesso.',
+    });
+    setShowNewClientDialog(false);
+  };
+
+  // Renderização do estado de carregamento
+  if (isLoading) {
+    return (
+      <LaboratoryLayout>
+        <div className="flex justify-center items-center h-[calc(100vh-150px)]">
+          <div className="flex flex-col items-center">
+            <FlaskConical className="h-12 w-12 animate-pulse text-blue-500 mb-2" />
+            <p className="text-lg text-gray-600">Carregando clientes...</p>
+          </div>
+        </div>
+      </LaboratoryLayout>
+    );
+  }
+
+  return (
+    <LaboratoryLayout>
+      <div className="space-y-4 p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Gerenciamento de Clientes</h1>
+          <Button onClick={() => setShowNewClientDialog(true)}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Novo Cliente
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Clientes</CardTitle>
+            <CardDescription>
+              Gerencie os clientes do laboratório e suas solicitações
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList>
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                <TabsTrigger value="recent">Recentes</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+              <div className="relative w-full md:w-auto flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por nome ou email..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex items-center space-x-2">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  <Select
+                    value={selectedStatus}
+                    onValueChange={setSelectedStatus}
+                  >
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Status</SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="inactive">Inativo</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Building className="h-4 w-4 text-gray-400" />
+                  <Select
+                    value={selectedType}
+                    onValueChange={setSelectedType}
+                  >
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Tipos</SelectItem>
+                      <SelectItem value="company">Empresa</SelectItem>
+                      <SelectItem value="association">Associação</SelectItem>
+                      <SelectItem value="clinic">Clínica</SelectItem>
+                      <SelectItem value="research">Pesquisa</SelectItem>
+                      <SelectItem value="individual">Individual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="hidden md:table-cell">Contato</TableHead>
+                    <TableHead className="hidden lg:table-cell">Último Pedido</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredClients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        Nenhum cliente encontrado com os filtros atuais.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">
+                          <div>
+                            {client.name}
+                            <div className="text-sm text-gray-500">
+                              {client.totalOrders} {client.totalOrders === 1 ? 'pedido' : 'pedidos'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{translateClientType(client.type)}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div>
+                            {client.contactPerson}
+                            <div className="text-sm text-gray-500">
+                              {client.email}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {client.lastOrder ? (
+                            <div className="flex items-center">
+                              <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                              {new Date(client.lastOrder).toLocaleDateString('pt-BR')}
+                            </div>
+                          ) : (
+                            <span className="text-gray-500">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(client.status)}>
+                            {translateClientStatus(client.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => viewClientDetails(client)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <div className="text-sm text-gray-500">
+              Mostrando {filteredClients.length} de {clients.length} clientes
+            </div>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Lista
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Diálogo para adicionar novo cliente */}
+      <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+            <DialogDescription>
+              Preencha os dados para registrar um novo cliente no sistema
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleAddClient} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="clientName">Nome do Cliente</Label>
+              <Input id="clientName" placeholder="Nome da empresa ou instituição" required />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="clientType">Tipo de Cliente</Label>
+                <Select defaultValue="company">
+                  <SelectTrigger id="clientType">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="company">Empresa</SelectItem>
+                    <SelectItem value="association">Associação</SelectItem>
+                    <SelectItem value="clinic">Clínica</SelectItem>
+                    <SelectItem value="research">Pesquisa</SelectItem>
+                    <SelectItem value="individual">Individual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="clientStatus">Status</Label>
+                <Select defaultValue="active">
+                  <SelectTrigger id="clientStatus">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="contactPerson">Pessoa de Contato</Label>
+              <Input id="contactPerson" placeholder="Nome do contato principal" required />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="email@exemplo.com" required />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input id="phone" placeholder="(00) 00000-0000" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="address">Endereço</Label>
+              <Input id="address" placeholder="Endereço completo" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">Cidade</Label>
+                <Input id="city" placeholder="Cidade" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="state">Estado</Label>
+                <Input id="state" placeholder="Estado" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="country">País</Label>
+                <Input id="country" placeholder="País" defaultValue="Brasil" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="postalCode">CEP</Label>
+                <Input id="postalCode" placeholder="00000-000" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="notes">Observações</Label>
+              <textarea 
+                id="notes" 
+                className="w-full min-h-[80px] rounded-md border border-input p-2"
+                placeholder="Informações adicionais sobre o cliente"
+              ></textarea>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox id="notifications" />
+              <Label htmlFor="notifications">Enviar notificações sobre resultados e atualizações</Label>
+            </div>
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowNewClientDialog(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Adicionar Cliente</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para detalhes do cliente */}
+      {selectedClient && (
+        <Dialog open={showClientDetailDialog} onOpenChange={setShowClientDetailDialog}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Detalhes do Cliente</DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre {selectedClient.name}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Tabs defaultValue="info">
+              <TabsList>
+                <TabsTrigger value="info">Informações</TabsTrigger>
+                <TabsTrigger value="orders">Pedidos</TabsTrigger>
+                <TabsTrigger value="samples">Amostras</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Nome</h3>
+                      <p className="text-lg">{selectedClient.name}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Tipo</h3>
+                      <p className="text-lg">{translateClientType(selectedClient.type)}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      <Badge className={getStatusColor(selectedClient.status)}>
+                        {translateClientStatus(selectedClient.status)}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Data de Registro</h3>
+                      <p className="text-lg">{new Date(selectedClient.registrationDate).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Pessoa de Contato</h3>
+                      <p className="text-lg">{selectedClient.contactPerson}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                      <p className="text-lg">{selectedClient.email}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Telefone</h3>
+                      <p className="text-lg">{selectedClient.phone}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Total de Pedidos</h3>
+                      <p className="text-lg">{selectedClient.totalOrders}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-gray-500">Endereço</h3>
+                  <p className="text-lg">
+                    {selectedClient.address}, {selectedClient.city} - {selectedClient.state}, {selectedClient.postalCode}
+                    <br />
+                    {selectedClient.country}
+                  </p>
+                </div>
+                
+                {selectedClient.notes && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-gray-500">Observações</h3>
+                    <p className="text-lg">{selectedClient.notes}</p>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="orders">
+                <div className="py-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Histórico de Pedidos</h3>
+                    <Button variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Novo Pedido
+                    </Button>
+                  </div>
+                  
+                  {selectedClient.totalOrders === 0 ? (
+                    <div className="text-center py-8 border rounded-md">
+                      <div className="flex flex-col items-center">
+                        <FlaskConical className="h-10 w-10 text-gray-400 mb-2" />
+                        <h3 className="text-lg font-medium">Nenhum Pedido</h3>
+                        <p className="text-gray-500 max-w-md mt-1">
+                          Este cliente ainda não realizou nenhum pedido.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border rounded-md overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">ORD-2025-042</TableCell>
+                            <TableCell>{new Date().toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell>Análise de Canabinoides</TableCell>
+                            <TableCell>
+                              <Badge className="bg-yellow-500">Em Progresso</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm">Ver</Button>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="samples">
+                <div className="py-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Amostras Enviadas</h3>
+                    <Button variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Amostra
+                    </Button>
+                  </div>
+                  
+                  {selectedClient.totalOrders === 0 ? (
+                    <div className="text-center py-8 border rounded-md">
+                      <div className="flex flex-col items-center">
+                        <FlaskConical className="h-10 w-10 text-gray-400 mb-2" />
+                        <h3 className="text-lg font-medium">Nenhuma Amostra</h3>
+                        <p className="text-gray-500 max-w-md mt-1">
+                          Este cliente ainda não enviou nenhuma amostra para análise.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border rounded-md overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Data de Recebimento</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">SAMPLE-001-25</TableCell>
+                            <TableCell>Planta</TableCell>
+                            <TableCell>{new Date().toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-green-500">Concluída</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm">Ver Resultados</Button>
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setShowClientDetailDialog(false)}>
+                Fechar
+              </Button>
+              <Button>
+                <Users className="h-4 w-4 mr-2" />
+                Editar Cliente
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </LaboratoryLayout>
+  );
+}
+
+// Dados fictícios para desenvolvimento
+const mockClients: LaboratoryClient[] = [
+  {
+    id: 1,
+    name: 'Associação MedCanna',
+    type: 'association',
+    email: 'contato@medcanna.org.br',
+    phone: '(11) 3456-7890',
+    contactPerson: 'Maria Silva',
+    status: 'active',
+    lastOrder: '2025-04-20',
+    totalOrders: 12,
+    address: 'Av. Paulista, 1000, Sala 501',
+    city: 'São Paulo',
+    state: 'SP',
+    country: 'Brasil',
+    postalCode: '01310-100',
+    registrationDate: '2024-01-15',
+    notes: 'Associação focada em pesquisa medicinal para epilepsia.'
+  },
+  {
+    id: 2,
+    name: 'CBD Brasil Cultivo',
+    type: 'company',
+    email: 'operacoes@cbdbrasil.com.br',
+    phone: '(31) 2345-6789',
+    contactPerson: 'João Oliveira',
+    status: 'active',
+    lastOrder: '2025-04-15',
+    totalOrders: 25,
+    address: 'Rodovia BR-040, Km 688',
+    city: 'Belo Horizonte',
+    state: 'MG',
+    country: 'Brasil',
+    postalCode: '30494-500',
+    registrationDate: '2023-08-20'
+  },
+  {
+    id: 3,
+    name: 'Farmácia Medigreen',
+    type: 'clinic',
+    email: 'farmacia@medigreen.com.br',
+    phone: '(21) 4567-8901',
+    contactPerson: 'Ana Costa',
+    status: 'active',
+    lastOrder: '2025-04-10',
+    totalOrders: 8,
+    address: 'Rua Voluntários da Pátria, 320',
+    city: 'Rio de Janeiro',
+    state: 'RJ',
+    country: 'Brasil',
+    postalCode: '22270-010',
+    registrationDate: '2024-02-28'
+  },
+  {
+    id: 4,
+    name: 'Instituto de Pesquisa Canábica',
+    type: 'research',
+    email: 'pesquisa@ipc.edu.br',
+    phone: '(41) 5678-9012',
+    contactPerson: 'Dr. Roberto Mendes',
+    status: 'active',
+    lastOrder: '2025-03-15',
+    totalOrders: 6,
+    address: 'Av. das Universidades, 2000',
+    city: 'Curitiba',
+    state: 'PR',
+    country: 'Brasil',
+    postalCode: '80540-900',
+    registrationDate: '2023-11-10',
+    notes: 'Instituto vinculado à universidade para pesquisa de aplicações medicinais.'
+  },
+  {
+    id: 5,
+    name: 'Vida Verde Produtos',
+    type: 'company',
+    email: 'comercial@vidaverde.com',
+    phone: '(85) 6789-0123',
+    contactPerson: 'Carolina Freitas',
+    status: 'inactive',
+    totalOrders: 0,
+    address: 'Av. Santos Dumont, 1500',
+    city: 'Fortaleza',
+    state: 'CE',
+    country: 'Brasil',
+    postalCode: '60175-050',
+    registrationDate: '2024-03-05'
+  },
+  {
+    id: 6,
+    name: 'Importadora CanaTrade',
+    type: 'company',
+    email: 'imports@canatrade.com.br',
+    phone: '(11) 7890-1234',
+    contactPerson: 'Fernando Santos',
+    status: 'active',
+    lastOrder: '2025-04-05',
+    totalOrders: 15,
+    address: 'Alameda Santos, 700, Conj. 92',
+    city: 'São Paulo',
+    state: 'SP',
+    country: 'Brasil',
+    postalCode: '01418-100',
+    registrationDate: '2023-07-12'
+  },
+  {
+    id: 7,
+    name: 'Dr. Marcelo Gomes',
+    type: 'individual',
+    email: 'dr.marcelo@gmail.com',
+    phone: '(48) 8901-2345',
+    contactPerson: 'Dr. Marcelo Gomes',
+    status: 'pending',
+    totalOrders: 0,
+    address: 'Rua das Acácias, 150, Apto 301',
+    city: 'Florianópolis',
+    state: 'SC',
+    country: 'Brasil',
+    postalCode: '88035-200',
+    registrationDate: '2025-04-18',
+    notes: 'Médico interessado em prescrição de derivados canábicos.'
+  }
+];

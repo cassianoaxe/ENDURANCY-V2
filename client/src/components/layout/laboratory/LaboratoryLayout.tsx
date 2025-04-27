@@ -1,115 +1,215 @@
-import React, { ReactNode } from 'react';
-import LaboratorySidebar from './LaboratorySidebar';
-import { BellIcon, FlaskConical, MenuIcon, User, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, ChevronLeft, ChevronRight, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import LaboratorySidebar from './LaboratorySidebar';
+import { useToast } from '@/hooks/use-toast';
 
 interface LaboratoryLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-const LaboratoryLayout: React.FC<LaboratoryLayoutProps> = ({ children }) => {
-  // Na implementação real, isso deveria vir de um estado global de autenticação
-  const userData = {
-    name: 'Ana Silva',
-    role: 'admin',
-    avatar: '/avatars/ana-silva.jpg',
+export default function LaboratoryLayout({ children }: LaboratoryLayoutProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { toast } = useToast();
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Função para fazer logout
-  const handleLogout = () => {
-    window.location.href = '/login';
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast({
+        title: 'Pesquisa iniciada',
+        description: `Buscando por "${searchQuery}"...`,
+      });
+      // Aqui você implementaria a pesquisa real
+      setSearchQuery('');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/laboratory-login';
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
-      {/* Barra lateral para desktop */}
-      <div className="hidden md:flex">
-        <LaboratorySidebar />
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* Sidebar */}
+      <div className={cn(
+        "h-full transition-all duration-300 ease-in-out",
+        sidebarCollapsed ? "w-[60px]" : "w-[240px]"
+      )}>
+        <LaboratorySidebar isCollapsed={sidebarCollapsed} />
       </div>
 
-      {/* Barra lateral responsiva para mobile */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden absolute left-3 top-3 z-10">
-            <MenuIcon className="h-6 w-6" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0">
-          <LaboratorySidebar />
-        </SheetContent>
-      </Sheet>
+      {/* Main content */}
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
+        {/* Header */}
+        <header className="border-b bg-white px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="text-gray-500 hover:text-blue-600"
+            >
+              {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </Button>
 
-      {/* Área principal de conteúdo */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Barra superior */}
-        <header className="bg-white border-b h-16 flex items-center justify-between px-4 md:px-6">
-          <div className="flex items-center">
-            <FlaskConical className="h-6 w-6 text-blue-600 mr-2" />
-            <h1 className="text-xl font-semibold tracking-tight text-blue-800">LabAnalytics Portal</h1>
-            <Badge variant="outline" className="ml-2 text-xs bg-blue-50 text-blue-700 border-blue-300">
-              Beta
-            </Badge>
+            <div className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu size={20} />
+              </Button>
+            </div>
+
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex relative">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Pesquisar..."
+                  className="h-9 rounded-md border border-input bg-transparent pl-8 pr-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </form>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" className="text-gray-500">
-              <BellIcon className="h-5 w-5" />
-            </Button>
+          <div className="flex items-center space-x-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell size={20} />
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-[300px] overflow-auto p-2">
+                  <div className="flex items-start gap-4 rounded-lg p-2 hover:bg-gray-100">
+                    <div className="rounded-full bg-blue-100 p-2">
+                      <User size={16} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Nova solicitação de análise</p>
+                      <p className="text-xs text-gray-500">MedCanna enviou 3 amostras para análise</p>
+                      <p className="text-xs text-gray-400">10 minutos atrás</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4 rounded-lg p-2 hover:bg-gray-100">
+                    <div className="rounded-full bg-yellow-100 p-2">
+                      <Bell size={16} className="text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Calibração requerida</p>
+                      <p className="text-xs text-gray-500">HPLC-01 precisa de calibração em 3 dias</p>
+                      <p className="text-xs text-gray-400">1 hora atrás</p>
+                    </div>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <div className="p-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todas as notificações
+                  </Button>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center px-2 gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userData.avatar} alt={userData.name} />
-                    <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {userData.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="/avatar-lab.png" alt="Avatar" />
+                    <AvatarFallback className="bg-blue-100 text-blue-800">LA</AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col items-start text-sm">
-                    <span className="font-medium">{userData.name}</span>
-                    <span className="text-xs text-gray-500">{userData.role === 'admin' ? 'Administrador' : 'Usuário'}</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <FlaskConical className="mr-2 h-4 w-4" />
-                  <span>Status do Laboratório</span>
-                </DropdownMenuItem>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => window.location.href = '/laboratory/configuracoes'}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  Sair
+                <DropdownMenuItem onSelect={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        {/* Área de conteúdo principal com rolagem */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Main content area */}
+        <main className="flex-1 overflow-auto bg-gray-50">
           {children}
         </main>
       </div>
     </div>
   );
-};
+}
 
-export default LaboratoryLayout;
+// Componentes adicionais para o layout
+function Settings(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function LogOut(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  );
+}
