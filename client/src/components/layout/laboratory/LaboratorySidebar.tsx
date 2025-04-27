@@ -1,231 +1,259 @@
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  Archive,
-  BarChart2,
-  Brain,
+  Beaker,
   ChevronDown,
   ClipboardList,
-  Database,
-  FileCheck,
+  Cog,
+  FileText,
   FlaskConical,
+  Gauge,
   Home,
+  Laptop,
   LayoutDashboard,
-  LineChart,
   Microscope,
-  Plus,
   Settings,
-  Users
+  Users,
+  TestTube, // Usando TestTube no lugar de Vial
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-interface SidebarItemProps {
+interface SidebarLinkProps {
+  href: string;
   icon: React.ReactNode;
   label: string;
-  active?: boolean;
-  premium?: boolean;
-  href?: string;
-  onClick?: () => void;
-  children?: React.ReactNode;
+  isActive?: boolean;
+  isCollapsed?: boolean;
+  isExternal?: boolean;
+  badge?: React.ReactNode;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({
+const SidebarLink = ({
+  href,
   icon,
   label,
-  active = false,
-  premium = false,
-  href,
-  onClick,
-  children
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  
-  const handleClick = () => {
-    if (children) {
-      setIsOpen(!isOpen);
-    } else if (onClick) {
-      onClick();
-    } else if (href) {
-      window.location.href = href;
-    }
-  };
-
-  return (
-    <div>
-      <Button
-        variant="ghost"
-        className={cn(
-          "relative w-full justify-start gap-3 pl-3 pr-2 py-2 h-10 rounded-md text-left font-normal text-gray-600",
-          active && !children && "bg-blue-50 text-blue-700",
-          children && isOpen && "bg-gray-100"
-        )}
-        onClick={handleClick}
-      >
-        <span className="flex items-center gap-3">
-          {icon}
+  isActive,
+  isCollapsed,
+  isExternal,
+  badge,
+}: SidebarLinkProps) => {
+  const content = (
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
+        isActive
+          ? 'bg-blue-100 text-blue-900'
+          : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
+      )}
+    >
+      <div className="text-lg">{icon}</div>
+      {!isCollapsed && (
+        <div className="flex flex-1 items-center justify-between">
           <span>{label}</span>
-        </span>
-        
-        {premium && (
-          <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-[10px] font-medium text-blue-600">
-            PRO
-          </span>
-        )}
-        
-        {children && (
-          <ChevronDown
-            className={cn(
-              "ml-auto h-4 w-4 transition-transform",
-              isOpen && "rotate-180"
-            )}
-          />
-        )}
-      </Button>
-      
-      {children && isOpen && (
-        <div className="ml-4 mt-1 pl-2 border-l border-gray-200">
-          {children}
+          {badge && <span>{badge}</span>}
         </div>
       )}
     </div>
   );
-};
 
-const LaboratorySidebar: React.FC = () => {
-  // Determinar página atual
-  const currentPath = window.location.pathname;
+  // Render content with or without tooltip
+  if (isCollapsed) {
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <a href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}>
+              {content}
+            </a>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-normal">
+            {label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
   return (
-    <div className="flex flex-col w-64 bg-white border-r min-h-screen p-4 overflow-y-auto">
-      <div className="flex items-center mb-6 pl-2">
-        <FlaskConical className="h-6 w-6 text-blue-600 mr-2" />
-        <h1 className="text-xl font-bold text-blue-800">LabAnalytics</h1>
-      </div>
-      
-      <nav className="space-y-1 flex-1">
-        <SidebarItem
-          icon={<Home className="h-5 w-5" />}
-          label="Dashboard"
-          active={currentPath === '/laboratory'}
-          href="/laboratory"
-        />
-        
-        <SidebarItem
-          icon={<ClipboardList className="h-5 w-5" />}
-          label="Amostras"
-          active={currentPath.includes('/laboratory/amostras')}
-          href="/laboratory/amostras"
-        >
-          <SidebarItem
-            icon={<Plus className="h-4 w-4" />}
-            label="Nova Amostra"
-            href="/laboratory/amostras/nova"
-          />
-          <SidebarItem
-            icon={<Archive className="h-4 w-4" />}
-            label="Histórico"
-            href="/laboratory/amostras/historico"
-          />
-        </SidebarItem>
-        
-        <SidebarItem
-          icon={<Database className="h-5 w-5" />}
-          label="Resultados"
-          active={currentPath.includes('/laboratory/resultados')}
-          href="/laboratory/resultados"
-        >
-          <SidebarItem
-            icon={<FileCheck className="h-4 w-4" />}
-            label="Certificados"
-            href="/laboratory/resultados/certificados"
-          />
-          <SidebarItem
-            icon={<BarChart2 className="h-4 w-4" />}
-            label="Relatórios"
-            href="/laboratory/resultados/relatorios"
-          />
-        </SidebarItem>
-        
-        <SidebarItem
-          icon={<Microscope className="h-5 w-5" />}
-          label="Análises"
-          active={currentPath.includes('/laboratory/analises')}
-          href="/laboratory/analises"
-        >
-          <SidebarItem
-            icon={<FileCheck className="h-4 w-4" />}
-            label="Canabinoides"
-            href="/laboratory/analises/canabinoides"
-          />
-          <SidebarItem
-            icon={<FileCheck className="h-4 w-4" />}
-            label="Terpenos"
-            href="/laboratory/analises/terpenos"
-          />
-          <SidebarItem
-            icon={<FileCheck className="h-4 w-4" />}
-            label="Contaminantes"
-            href="/laboratory/analises/contaminantes"
-          />
-        </SidebarItem>
-        
-        <SidebarItem
-          icon={<LineChart className="h-5 w-5" />}
-          label="Estatísticas"
-          active={currentPath.includes('/laboratory/estatisticas')}
-          href="/laboratory/estatisticas"
-        />
-        
-        <SidebarItem
-          icon={<LayoutDashboard className="h-5 w-5" />}
-          label="Operações"
-          active={currentPath.includes('/laboratory/operacoes')}
-          href="/laboratory/operacoes"
-        >
-          <SidebarItem
-            icon={<Users className="h-4 w-4" />}
-            label="Equipe"
-            href="/laboratory/operacoes/equipe"
-          />
-          <SidebarItem
-            icon={<Archive className="h-4 w-4" />}
-            label="Inventário"
-            href="/laboratory/operacoes/inventario"
-          />
-        </SidebarItem>
+    <a href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}>
+      {content}
+    </a>
+  );
+};
 
-        <SidebarItem
-          icon={<Brain className="h-5 w-5" />}
-          label="Assistente AI"
-          active={currentPath.includes('/laboratory/ai-assistant')}
-          href="/laboratory/ai-assistant"
-          premium
-        />
-        
-        <SidebarItem
-          icon={<Settings className="h-5 w-5" />}
-          label="Configurações"
-          active={currentPath.includes('/laboratory/configuracoes')}
-          href="/laboratory/configuracoes"
-        />
-      </nav>
-      
-      <div className="pt-4 mt-4 border-t border-gray-200">
-        <div className="px-3 py-2">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Status do Laboratório
-          </div>
-          <div className="mt-2 flex items-center">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="ml-2 text-sm text-gray-600">Operacional</span>
-          </div>
-          <div className="mt-1 text-xs text-gray-500">
-            Último sincronismo: 27/04/2025
-          </div>
-        </div>
-      </div>
+interface SidebarSectionProps {
+  title?: string;
+  children: React.ReactNode;
+  isCollapsed?: boolean;
+  defaultOpen?: boolean;
+}
+
+const SidebarSection = ({ title, children, isCollapsed, defaultOpen = false }: SidebarSectionProps) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  // If collapsed, render without expandable section
+  if (isCollapsed) {
+    return <div className="mt-2">{children}</div>;
+  }
+
+  // If no title, render without expandable section
+  if (!title) {
+    return <div className="mt-2">{children}</div>;
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-gray-600 hover:text-blue-700"
+      >
+        {title}
+        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+      </button>
+      <div className={cn("mt-1 space-y-1", !isOpen && "hidden")}>{children}</div>
     </div>
   );
 };
 
-export default LaboratorySidebar;
+interface LaboratorySidebarProps {
+  isCollapsed?: boolean;
+}
+
+export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySidebarProps) {
+  // Get current path to determine active link
+  const currentPath = window.location.pathname;
+
+  return (
+    <div
+      className={cn(
+        "flex h-full flex-col gap-2 border-r bg-white p-2",
+        isCollapsed ? "w-[60px]" : "w-[240px]"
+      )}
+    >
+      <div className="flex h-14 items-center justify-center border-b px-2">
+        {isCollapsed ? (
+          <FlaskConical className="h-6 w-6 text-blue-600" />
+        ) : (
+          <div className="flex items-center">
+            <FlaskConical className="h-6 w-6 text-blue-600 mr-2" />
+            <span className="text-lg font-bold text-blue-700">LabAnalytics</span>
+            <span className="text-xs bg-blue-100 text-blue-800 px-1 rounded ml-1">BETA</span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <div className="flex flex-col gap-1 px-2">
+          <SidebarLink
+            href="/laboratory/dashboard"
+            icon={<LayoutDashboard size={20} />}
+            label="Dashboard"
+            isActive={currentPath === '/laboratory/dashboard'}
+            isCollapsed={isCollapsed}
+          />
+
+          <SidebarSection 
+            title="Amostras & Testes" 
+            isCollapsed={isCollapsed}
+            defaultOpen={
+              currentPath.includes('/laboratory/amostras') || 
+              currentPath.includes('/laboratory/resultados') ||
+              currentPath.includes('/laboratory/test-analysis')
+            }
+          >
+            <SidebarLink
+              href="/laboratory/amostras"
+              icon={<TestTube size={20} />}
+              label="Amostras"
+              isActive={currentPath === '/laboratory/amostras'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/resultados"
+              icon={<FileText size={20} />}
+              label="Resultados"
+              isActive={currentPath === '/laboratory/resultados'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/test-analysis"
+              icon={<ClipboardList size={20} />}
+              label="Análise de Teste"
+              isActive={currentPath === '/laboratory/test-analysis'}
+              isCollapsed={isCollapsed}
+            />
+          </SidebarSection>
+
+          <SidebarSection 
+            title="Gerenciamento" 
+            isCollapsed={isCollapsed}
+            defaultOpen={
+              currentPath.includes('/laboratory/clientes') || 
+              currentPath.includes('/laboratory/equipamentos')
+            }
+          >
+            <SidebarLink
+              href="/laboratory/clientes"
+              icon={<Users size={20} />}
+              label="Clientes"
+              isActive={currentPath === '/laboratory/clientes'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/equipamentos"
+              icon={<Microscope size={20} />}
+              label="Equipamentos"
+              isActive={currentPath === '/laboratory/equipamentos'}
+              isCollapsed={isCollapsed}
+            />
+          </SidebarSection>
+
+          <SidebarSection 
+            title="HPLC" 
+            isCollapsed={isCollapsed}
+            defaultOpen={currentPath.includes('/laboratory/hplc')}
+          >
+            <SidebarLink
+              href="/laboratory/hplc/dashboard"
+              icon={<Gauge size={20} />}
+              label="Dashboard HPLC"
+              isActive={currentPath === '/laboratory/hplc/dashboard'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/hplc/equipments"
+              icon={<Laptop size={20} />}
+              label="Equipamentos HPLC"
+              isActive={currentPath === '/laboratory/hplc/equipments'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/hplc/runs"
+              icon={<Beaker size={20} />}
+              label="Corridas"
+              isActive={currentPath === '/laboratory/hplc/runs'}
+              isCollapsed={isCollapsed}
+            />
+          </SidebarSection>
+        </div>
+      </div>
+
+      <div className="mt-auto border-t pt-2">
+        <SidebarLink
+          href="/laboratory/configuracoes"
+          icon={<Settings size={20} />}
+          label="Configurações"
+          isActive={currentPath === '/laboratory/configuracoes'}
+          isCollapsed={isCollapsed}
+        />
+        <SidebarLink
+          href="/api/auth/logout"
+          icon={<Cog size={20} />}
+          label="Sair"
+          isCollapsed={isCollapsed}
+        />
+      </div>
+    </div>
+  );
+}
