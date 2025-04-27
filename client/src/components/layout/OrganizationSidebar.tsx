@@ -1006,6 +1006,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/compras/"),
       icon: <ShoppingCart size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Compras",
@@ -1052,6 +1056,10 @@ export default function OrganizationSidebar() {
       active: currentPath.startsWith("/organization/patrimonio"),
       icon: <Building2 size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard",
@@ -1092,6 +1100,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/medical-portal/"),
       icon: <HeartPulse size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Médico",
@@ -1132,6 +1144,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/doctor-management/"),
       icon: <Stethoscope size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard",
