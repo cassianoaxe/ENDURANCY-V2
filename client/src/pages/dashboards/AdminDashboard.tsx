@@ -17,7 +17,7 @@ import {
   Cell
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
-import TourGuide from '@/components/features/TourGuide';
+// Tour Guide removido pois ficou tecnologicamente defasado
 import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings, Layers } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
