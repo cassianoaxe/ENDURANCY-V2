@@ -13,7 +13,7 @@ import {
   PersonStanding, FlaskConical, Boxes, Network,
   MessageSquare, ClipboardList, HardHat, BellRing,
   FileSearch, Import, ExternalLink, BrainCircuit,
-  Sparkles
+  Sparkles, Building2
 } from 'lucide-react';
 
 // Definição de tipos para módulos do sistema
@@ -643,6 +643,10 @@ const NewLandingPage = () => {
             <a href="#portais" className="text-green-700 hover:text-green-500 font-medium">Portais</a>
             <a href="#beneficios" className="text-green-700 hover:text-green-500 font-medium">Benefícios</a>
             <a href="#precos" className="text-green-700 hover:text-green-500 font-medium">Preços</a>
+            <a href="/laboratory" className="text-blue-600 hover:text-blue-500 font-medium flex items-center">
+              <FlaskConical className="h-4 w-4 mr-1" />
+              LabAnalytics
+            </a>
           </nav>
           <div className="flex items-center space-x-4">
             <Button 
@@ -993,6 +997,76 @@ const NewLandingPage = () => {
       </section>
 
       {/* Benefícios Section */}
+      {/* Seção LabAnalytics */}
+      <section className="py-20 px-4 bg-blue-50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <div className="flex items-center mb-4">
+                <FlaskConical className="h-10 w-10 text-blue-600 mr-3" />
+                <h2 className="text-3xl font-bold text-blue-800">LabAnalytics</h2>
+              </div>
+              <p className="text-lg text-gray-700 mb-6">
+                Uma solução completa para laboratórios de análises, especialmente focada em testes de canabinóides e terpenos. 
+                Já utilizada pela Dall Solutions, nossa primeira parceira no Paraná.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <span className="text-gray-700">Gestão completa de amostras e análises</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <span className="text-gray-700">Controle de equipamentos HPLC e manutenções</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <span className="text-gray-700">Integração com o ecossistema Endurancy</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                  <span className="text-gray-700">Receba amostras e envie resultados automaticamente</span>
+                </div>
+              </div>
+              
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white group transition-all"
+                onClick={() => window.location.href = "/laboratory"}
+              >
+                Conheça o LabAnalytics
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+            
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute -top-6 -left-6 bg-white px-4 py-2 rounded-lg shadow-md border border-blue-100 z-10">
+                  <div className="flex items-center">
+                    <Building2 className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="font-medium text-blue-800">Dall Solutions</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Primeiro cliente</div>
+                </div>
+                
+                <img 
+                  src="/dashboard-image.png"
+                  alt="Dashboard do LabAnalytics"
+                  className="rounded-lg shadow-xl border-4 border-white"
+                />
+                
+                <div className="absolute -bottom-5 -right-5 bg-green-50 px-4 py-2 rounded-lg shadow-md border border-green-100 z-10">
+                  <div className="flex items-center">
+                    <Leaf className="h-5 w-5 text-green-600 mr-2" />
+                    <span className="font-medium text-green-800">Integrado ao Endurancy</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <section id="beneficios" className="py-20 px-4 bg-white relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-green-100 rounded-full opacity-30"></div>
