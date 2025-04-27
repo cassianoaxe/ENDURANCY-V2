@@ -944,9 +944,7 @@ function AppContent() {
 
     // Módulo de Inteligência Artificial
     if (currentPath === '/organization/ai') {
-      return <OrganizationLayout>
-        <AIModulePage />
-      </OrganizationLayout>;
+      return <AIModulePage />;
     }
     
     // Módulo Jurídico
