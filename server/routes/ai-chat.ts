@@ -34,7 +34,15 @@ async function checkAIModuleAccess(req: AuthenticatedRequest, res: Response, nex
     // Atribuir o usuário da sessão ao req.user para usar no resto do código
     req.user = req.session.user;
 
-    // Verificar se a organização tem acesso ao módulo de IA através de seu plano
+    // Durante o período beta, permitir acesso a todas as organizações
+    const BETA_ACCESS_ENABLED = true;
+    
+    if (BETA_ACCESS_ENABLED) {
+      console.log(`[BETA] Concedendo acesso ao Copilot para a organização ID ${req.user.organizationId} - Período beta`);
+      return next();
+    }
+    
+    // Se não estiver no período beta, verificar se a organização tem acesso ao módulo de IA
     const organizationId = req.user.organizationId;
     
     // Buscar o plano atual da organização
