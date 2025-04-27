@@ -720,8 +720,56 @@ const NewLandingPage = () => {
           
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div className="bg-white p-8 rounded-xl shadow-lg border border-green-100">
-              <div className="aspect-square relative">
-                <EcosystemGraphV2 />
+              <div className="grid grid-cols-3 gap-4">
+                {/* Primeira linha */}
+                <div className="bg-blue-100 rounded-xl p-4 text-center">
+                  <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <span className="text-blue-800 font-medium text-sm">Pacientes</span>
+                </div>
+                <div className="bg-green-100 rounded-xl p-4 text-center">
+                  <Leaf className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <span className="text-green-800 font-medium text-sm">Cultivo</span>
+                </div>
+                <div className="bg-purple-100 rounded-xl p-4 text-center">
+                  <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                  <span className="text-purple-800 font-medium text-sm">Relatórios</span>
+                </div>
+                
+                {/* Segunda linha */}
+                <div className="bg-red-100 rounded-xl p-4 text-center">
+                  <HeartPulse className="h-8 w-8 text-red-600 mx-auto mb-2" />
+                  <span className="text-red-800 font-medium text-sm">Médicos</span>
+                </div>
+                <div className="col-span-1 row-span-1 bg-green-600 rounded-xl p-4 text-center flex flex-col items-center justify-center">
+                  <Leaf className="h-10 w-10 text-white mx-auto mb-1" />
+                  <span className="text-white font-bold text-sm">Endurancy</span>
+                </div>
+                <div className="bg-amber-100 rounded-xl p-4 text-center">
+                  <FlaskConical className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                  <span className="text-amber-800 font-medium text-sm">Produção</span>
+                </div>
+                
+                {/* Terceira linha */}
+                <div className="bg-indigo-100 rounded-xl p-4 text-center">
+                  <ShieldCheck className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                  <span className="text-indigo-800 font-medium text-sm">Compliance</span>
+                </div>
+                <div className="bg-pink-100 rounded-xl p-4 text-center">
+                  <Pill className="h-8 w-8 text-pink-600 mx-auto mb-2" />
+                  <span className="text-pink-800 font-medium text-sm">Farmácia</span>
+                </div>
+                <div className="bg-blue-100 rounded-xl p-4 text-center">
+                  <DollarSign className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <span className="text-blue-800 font-medium text-sm">Financeiro</span>
+                </div>
+              </div>
+              
+              {/* Conexões entre os elementos */}
+              <div className="mt-4 flex justify-center">
+                <div className="bg-green-100 rounded-full px-4 py-2 text-sm text-green-800 flex items-center">
+                  <Network className="h-4 w-4 mr-2 text-green-600" />
+                  Todos conectados na mesma plataforma
+                </div>
               </div>
             </div>
             
