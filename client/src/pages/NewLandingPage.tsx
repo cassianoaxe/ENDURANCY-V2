@@ -12,7 +12,8 @@ import {
   FileText, Scale, ShoppingCart, DollarSign,
   PersonStanding, FlaskConical, Boxes, Network,
   MessageSquare, ClipboardList, HardHat, BellRing,
-  FileSearch, Import, ExternalLink, BrainCircuit
+  FileSearch, Import, ExternalLink, BrainCircuit,
+  Sparkles
 } from 'lucide-react';
 
 // Definição de tipos para módulos do sistema
@@ -930,17 +931,24 @@ const NewLandingPage = () => {
       </section>
 
       {/* Benefícios Section */}
-      <section id="beneficios" className="py-20 px-4 bg-white">
-        <div className="container mx-auto max-w-6xl">
+      <section id="beneficios" className="py-20 px-4 bg-white relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-green-100 rounded-full opacity-30"></div>
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-100 rounded-full opacity-30"></div>
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-green-800 mb-4">Benefícios da Plataforma</h2>
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-sm font-medium mb-4">
+              Resultados Comprovados
+            </div>
+            <h2 className="text-4xl font-bold text-green-800 mb-4">Benefícios da Plataforma</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Descubra como a Endurancy pode transformar os processos da sua organização 
-              e trazer resultados significativos.
+              e trazer resultados significativos para seu negócio.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
             <FeatureCard 
               icon={<DollarSign className="h-6 w-6" />}
               title="Redução de Custos"
@@ -983,20 +991,82 @@ const NewLandingPage = () => {
               color="green"
             />
           </div>
+          
+          {/* Success metrics */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8 shadow-sm">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-green-800">Resultados Reais</h3>
+              <p className="text-gray-600">
+                Veja o que nossas organizações parceiras estão conseguindo com a Endurancy:
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                <div className="text-3xl font-bold text-green-700 mb-2">35%</div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Redução nos custos operacionais</h4>
+                <p className="text-gray-600 text-sm">
+                  Automação de processos e eliminação de tarefas manuais repetitivas resultam em 
+                  economia significativa.
+                </p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100">
+                <div className="text-3xl font-bold text-blue-700 mb-2">50%</div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Mais rapidez nos atendimentos</h4>
+                <p className="text-gray-600 text-sm">
+                  Pacientes são atendidos com mais agilidade devido aos fluxos de trabalho otimizados 
+                  e integração entre módulos.
+                </p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100">
+                <div className="text-3xl font-bold text-purple-700 mb-2">99%</div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Conformidade regulatória</h4>
+                <p className="text-gray-600 text-sm">
+                  Nossa plataforma garante o cumprimento das normas da ANVISA e outras 
+                  regulamentações do setor.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="precos" className="py-20 px-4 bg-gradient-to-b from-white to-green-50">
-        <div className="container mx-auto max-w-6xl">
+      <section id="precos" className="py-20 px-4 bg-gradient-to-b from-white to-green-50 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-green-300 rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-blue-300 rounded-full opacity-10 blur-3xl"></div>
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-green-800 mb-4">Planos Flexíveis</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-3">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-600 text-sm font-medium mb-4">
+              Planos para Todas as Necessidades
+            </div>
+            <h2 className="text-4xl font-bold text-green-800 mb-4">Planos Flexíveis</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
               Escolha o plano ideal para o tamanho e as necessidades do seu negócio.
             </p>
-            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
-              <span className="mr-2 font-medium">OFERTA BETA:</span> 
-              <span>Acesso gratuito a todos os recursos por 1 ano</span>
+            
+            <div className="max-w-2xl mx-auto bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-xl p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+              <div className="flex flex-col md:flex-row items-center justify-between">
+                <div className="mb-4 md:mb-0">
+                  <h3 className="text-xl font-bold mb-2 flex items-center">
+                    <Medal className="mr-2 h-5 w-5" />
+                    OFERTA BETA EXCLUSIVA
+                  </h3>
+                  <p className="text-blue-100">
+                    Acesso gratuito a todos os recursos por 1 ano completo
+                  </p>
+                </div>
+                <Button 
+                  className="bg-white text-blue-700 hover:bg-blue-50 font-bold"
+                  onClick={() => window.location.href = "/organization-registration"}
+                >
+                  Aproveitar Agora
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -1188,19 +1258,27 @@ const NewLandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-green-700 to-green-900 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-6">Pronto para transformar seu negócio?</h2>
+      <section className="py-20 px-4 bg-gradient-to-r from-green-700 to-green-900 text-white relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-green-600 rounded-full opacity-20"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-green-600 rounded-full opacity-20"></div>
+        
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-600/30 text-green-100 text-sm font-medium mb-4">
+            Comece sua transformação digital
+          </div>
+          <h2 className="text-4xl font-bold mb-6">Pronto para transformar seu negócio?</h2>
           <p className="text-lg text-green-100 mb-8 max-w-2xl mx-auto">
             Junte-se às empresas que estão otimizando seus processos e aumentando seus resultados 
             com a plataforma Endurancy.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 
-              className="bg-white text-green-800 hover:bg-green-100 py-6 px-8 text-lg"
+              className="bg-white text-green-800 hover:bg-green-100 py-6 px-8 text-lg group"
               onClick={() => window.location.href = "/organization-registration"}
             >
-              Começar Agora
+              Começar Gratuitamente
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
               variant="outline" 
@@ -1209,6 +1287,21 @@ const NewLandingPage = () => {
             >
               Fazer Login
             </Button>
+          </div>
+          
+          <div className="mt-12 pt-12 border-t border-green-600 flex flex-wrap justify-center gap-8">
+            <div className="flex items-center">
+              <Lock className="h-6 w-6 text-green-300 mr-2" />
+              <span>Proteção de dados LGPD</span>
+            </div>
+            <div className="flex items-center">
+              <ShieldCheck className="h-6 w-6 text-green-300 mr-2" />
+              <span>Ambiente seguro</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="h-6 w-6 text-green-300 mr-2" />
+              <span>Suporte especializado</span>
+            </div>
           </div>
         </div>
       </section>
