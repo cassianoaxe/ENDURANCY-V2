@@ -48,8 +48,7 @@ import adminRouter from "./routes/admin";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
-// Importar rota de chat AI
-import aiChatRouter from './routes/ai-chat';
+// Já importamos o aiChatRouter acima
 // Importar rotas de links de pagamento
 import paymentLinksRouter from './routes/payment-links';
 // Importar rotas de pagamento por email
@@ -5554,6 +5553,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
+  
+  // Rotas de AI Chat
+  app.use('/api/ai', aiChatRouter);
   
   // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);

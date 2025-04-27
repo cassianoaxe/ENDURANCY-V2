@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
-import Copilot from '../copilot/Copilot';
-import CopilotButton from '../copilot/CopilotButton';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import Copilot from '@/components/copilot/Copilot';
+import CopilotButton from '@/components/copilot/CopilotButton';
 
 interface CopilotContextType {
   isOpen: boolean;
@@ -9,12 +9,12 @@ interface CopilotContextType {
   toggleCopilot: () => void;
 }
 
-const CopilotContext = createContext<CopilotContextType | undefined>(undefined);
+const CopilotContext = createContext<CopilotContextType | null>(null);
 
 export const useCopilot = () => {
   const context = useContext(CopilotContext);
   if (!context) {
-    throw new Error('useCopilot must be used within a CopilotProvider');
+    throw new Error('useCopilot deve ser usado dentro de um CopilotProvider');
   }
   return context;
 };
@@ -22,39 +22,30 @@ export const useCopilot = () => {
 export default function CopilotProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const openCopilot = useCallback(() => {
-    setIsOpen(true);
-  }, []);
+  const openCopilot = () => setIsOpen(true);
+  const closeCopilot = () => setIsOpen(false);
+  const toggleCopilot = () => setIsOpen(prev => !prev);
 
-  const closeCopilot = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  const toggleCopilot = useCallback(() => {
-    setIsOpen(prev => !prev);
-  }, []);
-
-  // Keyboard shortcut to toggle Copilot (Ctrl/Cmd + Shift + E)
+  // Ouvinte de tecla para abrir/fechar o Copilot com Ctrl+K ou Command+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if Ctrl (Windows/Linux) or Command (Mac) + Shift + E is pressed
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'e') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         toggleCopilot();
+      } else if (e.key === 'Escape' && isOpen) {
+        closeCopilot();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [toggleCopilot]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   return (
     <CopilotContext.Provider value={{ isOpen, openCopilot, closeCopilot, toggleCopilot }}>
       {children}
-      <CopilotButton isOpen={isOpen} onClick={toggleCopilot} />
       <Copilot isOpen={isOpen} onClose={closeCopilot} />
+      <CopilotButton isOpen={isOpen} onClick={toggleCopilot} />
     </CopilotContext.Provider>
   );
 }
