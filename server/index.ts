@@ -12,6 +12,8 @@ import { registerPatrimonioRoutes } from "./routes-patrimonio";
 import { registerPesquisaCientificaRoutes } from "./routes-pesquisa";
 import { registerTicketRoutes } from "./routes-tickets";
 import { registerAIRoutes } from "./routes-ai";
+import { registerLaboratoryPortalRoutes } from "./routes/laboratory-portal-routes";
+import { registerLaboratoryRoutes } from "./routes/laboratory-routes";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -810,6 +812,12 @@ app.use((req, res, next) => {
   registerPesquisaCientificaRoutes(app);
   registerTicketRoutes(app);
   registerAIRoutes(app);
+  
+  // Registrar rotas do Portal de Laboratório 
+  registerLaboratoryPortalRoutes(app);
+  registerLaboratoryRoutes(app);
+  
+  // Inicializando portal de laboratório para Dall Solutions
 
   // Inicializar dados de exemplo para tickets
   try {
