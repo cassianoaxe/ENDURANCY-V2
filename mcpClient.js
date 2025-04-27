@@ -6,9 +6,12 @@
  * contextos e fontes de dados.
  */
 
-const { OpenAI } = require('openai');
-const axios = require('axios');
-require('dotenv').config();
+import OpenAI from 'openai';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
 
 // Configuração do cliente OpenAI
 const openai = new OpenAI({
