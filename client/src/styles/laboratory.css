@@ -1,0 +1,106 @@
+/* Estilos específicos para o Portal de Laboratório */
+
+/* Cores e contraste para melhor legibilidade */
+.laboratory-theme {
+  --text-primary: #1a202c; /* Cinza escuro quase preto */
+  --text-secondary: #374151; /* Cinza escuro */
+  --text-tertiary: #4b5563; /* Cinza médio */
+  --background-primary: #f9fafb; /* Branco acinzentado claro */
+  --background-secondary: #f3f4f6; /* Cinza bem claro */
+  --accent-primary: #1d4ed8; /* Azul escuro */
+  --accent-secondary: #3b82f6; /* Azul médio */
+}
+
+/* Correção forçada para textos brancos */
+.laboratory-app .text-white,
+.laboratory-app .text-gray-100,
+.laboratory-app .text-gray-200 {
+  color: var(--text-primary) !important;
+}
+
+/* Aplicar tema a todo o portal de laboratório */
+.laboratory-app {
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+}
+
+/* Estilo para elementos de texto comuns */
+.laboratory-app p,
+.laboratory-app span,
+.laboratory-app div,
+.laboratory-app td,
+.laboratory-app th,
+.laboratory-app h1,
+.laboratory-app h2,
+.laboratory-app h3,
+.laboratory-app h4,
+.laboratory-app h5,
+.laboratory-app h6 {
+  color: var(--text-primary);
+}
+
+/* Estilo para texto secundário */
+.laboratory-app .text-secondary {
+  color: var(--text-secondary);
+}
+
+/* Estilo para texto terciário */
+.laboratory-app .text-tertiary {
+  color: var(--text-tertiary);
+}
+
+/* Melhorar contraste em cards */
+.laboratory-app .card {
+  background-color: white;
+  border-color: #e5e7eb;
+}
+
+/* Melhorar contraste em badges */
+.laboratory-app .badge {
+  font-weight: 600;
+}
+
+/* Melhorar visibilidade de texto em botões */
+.laboratory-app button,
+.laboratory-app .button {
+  color: currentColor;
+  font-weight: 500;
+}
+
+/* Garantir visibilidade em inputs, selects e áreas de texto */
+.laboratory-app input,
+.laboratory-app select,
+.laboratory-app textarea {
+  color: var(--text-primary);
+}
+
+/* Para textos pequenos como legendas */
+.laboratory-app .text-xs,
+.laboratory-app .text-sm {
+  color: var(--text-secondary);
+}
+
+/* Estilo para links */
+.laboratory-app a:not(.button) {
+  color: var(--accent-primary);
+}
+
+/* Melhorar visibilidade de tabelas */
+.laboratory-app table {
+  color: var(--text-primary);
+}
+
+.laboratory-app th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Estilo para tabelas zebradas */
+.laboratory-app tr:nth-child(even) {
+  background-color: var(--background-secondary);
+}
+
+/* Estilo para alertas e notificações */
+.laboratory-app .alert {
+  color: var(--text-primary);
+}

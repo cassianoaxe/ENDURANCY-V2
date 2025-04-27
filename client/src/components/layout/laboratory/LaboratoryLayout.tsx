@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, ChevronLeft, ChevronRight, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +14,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import LaboratorySidebar from './LaboratorySidebar';
 import { useToast } from '@/hooks/use-toast';
+
+// Importar estilos específicos para o laboratório
+import '@/styles/laboratory.css';
 
 interface LaboratoryLayoutProps {
   children: React.ReactNode;
@@ -50,7 +53,7 @@ export default function LaboratoryLayout({ children }: LaboratoryLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 laboratory-theme laboratory-app">
       {/* Sidebar */}
       <div className={cn(
         "h-full transition-all duration-300 ease-in-out",

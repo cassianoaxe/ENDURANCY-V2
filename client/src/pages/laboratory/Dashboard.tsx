@@ -33,6 +33,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 import { Progress } from '@/components/ui/progress';
+import '@/styles/laboratory.css';
 
 export default function LaboratoryDashboard() {
   const { toast } = useToast();
