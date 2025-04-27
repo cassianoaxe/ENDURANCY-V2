@@ -695,6 +695,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/cultivation/"),
       icon: <Leaf size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Cultivo",
@@ -729,6 +733,10 @@ export default function OrganizationSidebar() {
       active: currentPath === "/organization/transparencia/gerenciar" ||
               currentPath.startsWith("/organization/transparencia/"),
       icon: <FileSearch size={18} />,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      }
     },
     {
       title: "Tarefas",
@@ -737,6 +745,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/tarefas/"),
       icon: <FileClock size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Tarefas",
@@ -777,6 +789,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/rh/"),
       icon: <Users size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard RH",
@@ -811,6 +827,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/juridico/"),
       icon: <Scale size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Jurídico",
@@ -845,6 +865,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/farmacia/"),
       icon: <Pill size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Farmácia",
@@ -885,6 +909,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/producao-industrial/"),
       icon: <Factory size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Produção",
