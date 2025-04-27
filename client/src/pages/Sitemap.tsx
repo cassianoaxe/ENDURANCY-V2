@@ -787,6 +787,116 @@ const Sitemap = () => {
             </Card>
           </TabsContent>
 
+          {/* Seção do Portal do Laboratório */}
+          <TabsContent value="laboratory" className="space-y-6">
+            <Card className="shadow-md border-blue-100">
+              <CardHeader className="bg-blue-50">
+                <CardTitle className="flex items-center gap-2 text-blue-800">
+                  <Microscope className="h-5 w-5 text-blue-600" />
+                  <span>LabAnalytics Portal</span>
+                </CardTitle>
+                <CardDescription>Plataforma para gestão de laboratórios e análises</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-lg mb-2 text-blue-700">Navegação Principal</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <Home className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory"}
+                        >
+                          Dashboard
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Painel principal do laboratório</p>
+                    </div>
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <ClipboardList className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory/amostras"}
+                        >
+                          Gerenciamento de Amostras
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Controle de amostras e status de análises</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-lg mb-2 text-blue-700">Módulos Analíticos</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <Database className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory/resultados"}
+                        >
+                          Resultados Analíticos
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Gestão de resultados de análises</p>
+                    </div>
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <LineChart className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory/relatorios"}
+                        >
+                          Relatórios e Certificados
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Emissão de relatórios e certificados de análise</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium text-lg mb-2 text-blue-700">Ferramentas Avançadas</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <Settings className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory/configuracoes"}
+                        >
+                          Configurações
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Configurações do laboratório e métodos analíticos</p>
+                    </div>
+                    <div className="p-3 border border-blue-100 rounded-md shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <Brain className="h-4 w-4 mr-2 text-blue-500" />
+                        <Button 
+                          variant="link" 
+                          className="text-blue-600 hover:underline p-0 h-auto font-normal"
+                          onClick={() => window.location.href = "/laboratory/ai-assistant"}
+                        >
+                          Assistente AI
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 ml-6">Assistente de inteligência artificial para análises</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Seção de APIs e Integrações */}
           <TabsContent value="api" className="space-y-6">
             <Card className="shadow-md border-green-100">
@@ -854,6 +964,15 @@ const Sitemap = () => {
                       onClick={() => window.location.href = "/patient-login"}
                     >
                       <User className="h-3.5 w-3.5" /> Login de Pacientes
+                    </Button>
+                  </li>
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory-login"}
+                    >
+                      <Microscope className="h-3.5 w-3.5" /> Login de Laboratórios
                     </Button>
                   </li>
                   <li>
@@ -1089,6 +1208,58 @@ const Sitemap = () => {
                       onClick={() => window.location.href = "/pharmacy/reports"}
                     >
                       <LineChart className="h-3.5 w-3.5" /> Relatórios
+                    </Button>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Seção do Laboratório */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-blue-700 border-b border-blue-100 pb-2">LabAnalytics Portal</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory"}
+                    >
+                      <Home className="h-3.5 w-3.5" /> Dashboard Laboratório
+                    </Button>
+                  </li>
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory/amostras"}
+                    >
+                      <ClipboardList className="h-3.5 w-3.5" /> Amostras
+                    </Button>
+                  </li>
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory/resultados"}
+                    >
+                      <Database className="h-3.5 w-3.5" /> Resultados Analíticos
+                    </Button>
+                  </li>
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory/relatorios"}
+                    >
+                      <LineChart className="h-3.5 w-3.5" /> Relatórios e Certificados
+                    </Button>
+                  </li>
+                  <li>
+                    <Button 
+                      variant="link" 
+                      className="text-blue-600 hover:underline flex items-center gap-1 p-0 h-auto font-normal"
+                      onClick={() => window.location.href = "/laboratory/ai-assistant"}
+                    >
+                      <Brain className="h-3.5 w-3.5" /> Assistente AI
                     </Button>
                   </li>
                 </ul>
