@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Send, BrainCircuit, Search, FileBarChart, Lightbulb } from 'lucide-react';
+import { Send, BrainCircuit, Search, FileBarChart, Lightbulb, MessageSquare, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import OrganizationLayout from '@/components/layout/OrganizationLayout';
@@ -255,12 +255,20 @@ const AIModulePage: React.FC = () => {
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Inteligência Artificial</h1>
-          <Button asChild variant="outline" className="flex items-center gap-2">
-            <a href="/organization/ai/assistant">
-              <MessageSquare className="h-4 w-4" />
-              <span>Abrir Assistente</span>
-            </a>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button asChild variant="outline" className="flex items-center gap-2">
+              <a href="/organization/ai/settings">
+                <Settings className="h-4 w-4" />
+                <span>Configurações</span>
+              </a>
+            </Button>
+            <Button asChild variant="default" className="flex items-center gap-2">
+              <a href="/organization/ai/assistant">
+                <MessageSquare className="h-4 w-4" />
+                <span>Abrir Assistente</span>
+              </a>
+            </Button>
+          </div>
         </div>
         
         {renderStatus()}
