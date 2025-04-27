@@ -413,6 +413,20 @@ const modules: ModuleItem[] = [
       "Publicação de resultados"
     ],
     fullDescription: "O módulo de Pesquisa Científica foi desenvolvido para instituições que realizam pesquisas com cannabis medicinal. Oferece ferramentas para coleta e análise de dados, gestão de estudos clínicos, integração com equipamentos laboratoriais e publicação de resultados."
+  },
+  {
+    id: "labanalytics",
+    title: "LabAnalytics",
+    description: "Gestão completa para laboratórios de análises.",
+    icon: <FlaskConical className="h-6 w-6" />,
+    color: "blue",
+    features: [
+      "Rastreamento de amostras",
+      "Análises de canabinóides",
+      "Gestão de equipamentos HPLC",
+      "Integração com Endurancy"
+    ],
+    fullDescription: "O LabAnalytics é uma solução completa para laboratórios de análises, especialmente focada em testes de canabinóides e terpenos. Integra-se ao ecossistema Endurancy, permitindo o envio de amostras diretamente do sistema principal para análise, com resultados automaticamente sincronizados. Inclui gestão de equipamentos HPLC, controle de qualidade e emissão de laudos profissionais."
   }
 ];
 
