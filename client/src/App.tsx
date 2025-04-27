@@ -558,13 +558,15 @@ function AppContent() {
   if (currentPath.startsWith('/laboratory/')) {
     if (!isAuthenticated) {
       // Redirecionar para a página de landing do laboratório
-      return <Navigate to="/laboratory" />;
+      window.location.href = "/laboratory";
+      return null;
     }
     
     // Verificar se o usuário tem o papel adequado
     if (userRole !== 'laboratory') {
       // Redirecionar para a página de landing se não for um usuário de laboratório
-      return <Navigate to="/laboratory" />;
+      window.location.href = "/laboratory";
+      return null;
     }
     
     // Rotas protegidas do laboratório
