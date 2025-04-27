@@ -776,12 +776,6 @@ export default function OrganizationSidebar() {
         }
       ]
     },
-    {/* Módulo de Patrimônio removido daqui e integrado no módulo de Compras e Estoque */},
-    /* 
-      Menu Compras e Estoque removido daqui para evitar duplicação.
-      Já existe no array 'enterpriseModules' para evitar a duplicação
-      que causava o problema de menu duplo.
-    */
     {
       title: "RH",
       path: "/organization/rh",
