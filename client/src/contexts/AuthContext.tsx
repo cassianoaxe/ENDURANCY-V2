@@ -150,9 +150,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (isImportCompany) {
         console.log("Detectado tentativa de login como importadora");
-        // Marcar para redirecionamento posterior
+        // Definir flag diretamente para redirecionamento imediato
         localStorage.setItem('userType', 'import_company');
-        localStorage.setItem('check_org_type', 'true');
+        // Definindo direct_import_company evita a passagem pelo dashboard geral
+        localStorage.setItem('direct_import_company', 'true');
       }
       
       // Se parece um email, enviar como 'email', caso contrário como 'username'
