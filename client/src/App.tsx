@@ -328,10 +328,25 @@ function AppContent() {
     }
     
     // Verificar redirecionamento para dashboard de importadora
-    if (isAuthenticated && user && currentPath === '/organization/dashboard') {
+    if (isAuthenticated && user) {
+      // Primeiro verificar se é login direto de importadora (nova flag)
+      const directImportCompany = localStorage.getItem('direct_import_company');
+      
+      if (directImportCompany === 'true') {
+        console.log("Login direto detectado para importadora, redirecionando imediatamente");
+        localStorage.removeItem('direct_import_company');
+        
+        if (currentPath !== '/organization/import-company/dashboard') {
+          console.log("Redirecionando diretamente para o dashboard de importadora");
+          window.location.replace('/organization/import-company/dashboard');
+          return; // Importante: interrompemos o fluxo aqui para evitar outros redirecionamentos
+        }
+      }
+      
+      // Verificação padrão para usuários já na tela de dashboard geral
       const checkOrgType = localStorage.getItem('check_org_type');
       
-      if (checkOrgType === 'true') {
+      if (checkOrgType === 'true' && currentPath === '/organization/dashboard') {
         console.log("Verificando se é uma organização importadora...");
         
         // Buscar detalhes da organização
@@ -350,7 +365,7 @@ function AppContent() {
             if (orgData.type === 'import_company') {
               console.log("Redirecionando para dashboard de importadora");
               localStorage.removeItem('check_org_type');
-              window.location.href = '/organization/import-company/dashboard';
+              window.location.replace('/organization/import-company/dashboard');
             } else {
               // Limpar o flag
               localStorage.removeItem('check_org_type');
