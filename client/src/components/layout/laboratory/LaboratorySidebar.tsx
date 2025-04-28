@@ -315,17 +315,17 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             defaultOpen={currentPath.includes('/laboratory/regulatorio')}
           >
             <SidebarLink
-              href="/laboratory/regulatorio"
-              icon={<ScrollText size={20} />}
-              label="Base de Documentos"
-              isActive={currentPath === '/laboratory/regulatorio'}
-              isCollapsed={isCollapsed}
-            />
-            <SidebarLink
               href="/laboratory/regulatorio/dashboard"
               icon={<LayoutDashboard size={20} />}
               label="Dashboard"
               isActive={currentPath === '/laboratory/regulatorio/dashboard'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio"
+              icon={<ScrollText size={20} />}
+              label="Base de Documentos"
+              isActive={currentPath === '/laboratory/regulatorio'}
               isCollapsed={isCollapsed}
             />
             <SidebarLink
