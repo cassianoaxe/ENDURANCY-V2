@@ -181,8 +181,8 @@ const initialDocuments = [
 export default function RegulatoryDocuments() {
   const { toast } = useToast();
   const [documents, setDocuments] = useState(initialDocuments);
-  const [documentFilter, setDocumentFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [documentFilter, setDocumentFilter] = useState('todos');
+  const [statusFilter, setStatusFilter] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [documentViewId, setDocumentViewId] = useState<number | null>(null);
@@ -294,8 +294,8 @@ export default function RegulatoryDocuments() {
   
   // Filtrar documentos
   const filteredDocuments = documents.filter(doc => {
-    const matchesDocType = documentFilter ? doc.documentType === documentFilter : true;
-    const matchesStatus = statusFilter ? doc.status === statusFilter : true;
+    const matchesDocType = documentFilter === 'todos' ? true : doc.documentType === documentFilter;
+    const matchesStatus = statusFilter === 'todos' ? true : doc.status === statusFilter;
     const matchesSearch = searchTerm 
       ? doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         doc.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -688,7 +688,7 @@ export default function RegulatoryDocuments() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tipos</SelectItem>
+                    <SelectItem value="todos">Todos os tipos</SelectItem>
                     {documentTypes.map(type => (
                       <SelectItem key={type.value} value={type.value}>{type.value}</SelectItem>
                     ))}
@@ -700,7 +700,7 @@ export default function RegulatoryDocuments() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os status</SelectItem>
+                    <SelectItem value="todos">Todos os status</SelectItem>
                     {statusOptions.map(status => (
                       <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
                     ))}
