@@ -287,7 +287,11 @@ export default function LaboratoryLogin() {
                       type="button"
                       variant="outline"
                       className="w-full border-blue-300 text-blue-700"
-                      onClick={onSubmit}
+                      onClick={() => onSubmit({ 
+                        email: "admin@laboratorio.com", 
+                        password: "lab123",
+                        rememberMe: true
+                      })}
                     >
                       Acessar Demonstração
                     </Button>

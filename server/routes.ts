@@ -14,6 +14,7 @@ import { registerDocumentRoutes } from './routes/document-routes';
 import { registerProductionRoutes } from './routes/production-routes';
 import { registerDoctorAffiliationRoutes } from './routes/doctor-affiliation-routes';
 import { registerLaboratoryRoutes } from './routes/laboratory-routes';
+import { registerLaboratorySamplesRoutes } from './routes/laboratory-samples';
 import { registerHplcRoutes } from './routes/hplc-routes';
 import { registerHplcValidationRoutes } from './routes/hplc-validation-routes';
 import { registerHplcTrainingRoutes } from './routes/hplc-training-routes';
@@ -6814,6 +6815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========= Rotas do Portal de Laboratório =========
   registerLaboratoryRoutes(app);
+  registerLaboratorySamplesRoutes(app);
   
   return server;
 }
