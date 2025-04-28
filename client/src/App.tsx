@@ -349,33 +349,17 @@ function AppContent() {
   useEffect(() => {
     if (isLoading) return; // Não fazer nada enquanto estiver carregando
     
-    // Verificar se a autenticação já foi tratada por redirecionamento da API
-    const apiRedirectHandled = sessionStorage.getItem('api_redirect_handled');
-    if (apiRedirectHandled === 'true') {
-      // Já tratamos o redirecionamento da API, limpar a flag e não fazer mais nada
-      console.log("Redirecionamento pela API já foi tratado");
-      sessionStorage.removeItem('api_redirect_handled');
+    // Verificar se há um redirecionamento de login em andamento
+    const loginRedirect = sessionStorage.getItem('loginRedirect');
+    if (loginRedirect === 'true') {
+      // Se estamos em processo de redirecionamento de login, não interferir
+      console.log("Redirecionamento de login em andamento, não interferir");
       return;
     }
     
-    // Verificar se há um redirecionamento específico da API de login
-    if (isAuthenticated && user && user.redirectUrl) {
-      // Temos uma URL de redirecionamento específica da API
-      console.log("Detectada URL de redirecionamento da API:", user.redirectUrl);
-      
-      // Verificar se já não estamos nessa URL para evitar loop
-      if (currentPath !== user.redirectUrl) {
-        console.log("Redirecionando para URL específica da API:", user.redirectUrl);
-        // Marcar que já tratamos este redirecionamento
-        sessionStorage.setItem('api_redirect_handled', 'true');
-        window.location.replace(user.redirectUrl);
-        return;
-      }
-    }
-    
-    // Verificar redirecionamento para dashboard de importadora (compatibilidade)
+    // Verificar redirecionamento para dashboard de importadora
     if (isAuthenticated && user) {
-      // Verificar se é login direto de importadora (flag de compatibilidade)
+      // Primeiro verificar se é login direto de importadora (nova flag)
       const directImportCompany = localStorage.getItem('direct_import_company');
       
       if (directImportCompany === 'true') {
@@ -385,15 +369,11 @@ function AppContent() {
         if (currentPath !== '/organization/import-company/dashboard') {
           console.log("Redirecionando diretamente para o dashboard de importadora");
           window.location.replace('/organization/import-company/dashboard');
-          return;
+          return; // Importante: interrompemos o fluxo aqui para evitar outros redirecionamentos
         }
       }
       
-      // DESATIVADO: Verificação padrão para usuários já na tela de dashboard geral
-      // Isso causava o problema de redirecionamento duplo
-      // A verificação agora é feita no servidor e a URL é retornada na API 
-      
-      /* 
+      // Verificação padrão para usuários já na tela de dashboard geral
       const checkOrgType = localStorage.getItem('check_org_type');
       
       if (checkOrgType === 'true' && currentPath === '/organization/dashboard') {
@@ -418,11 +398,15 @@ function AppContent() {
               window.location.replace('/organization/import-company/dashboard');
             } else {
               // Limpar o flag
+              localStorage.removeItem('check_org_type');
             }
+          })
+          .catch(error => {
+            console.error("Erro ao verificar o tipo de organização:", error);
+            localStorage.removeItem('check_org_type');
           });
         }
       }
-      */
     }
     
     if (isAuthenticated && user) {
