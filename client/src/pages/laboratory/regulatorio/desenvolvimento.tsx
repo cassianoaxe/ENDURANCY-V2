@@ -623,7 +623,7 @@ export default function Desenvolvimento() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="todos">Todos</SelectItem>
               {statusUnicos.map(status => (
                 <SelectItem key={status} value={status}>{status}</SelectItem>
               ))}
@@ -634,7 +634,7 @@ export default function Desenvolvimento() {
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos</SelectItem>
+              <SelectItem value="todos">Todos</SelectItem>
               {tiposUnicos.map(tipo => (
                 <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
               ))}
