@@ -123,16 +123,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? '/api/auth/org-login'
         : '/api/auth/login';
       
-      const userData = await apiRequest(endpoint, {
+      const response = await apiRequest(endpoint, {
         method: 'POST',
         data: {
           username, 
           password,
-          ...(userType && { role: userType }),
+          ...(userType && { userType: userType }),
           ...(orgCode && { orgCode })
         }
       });
       
+      // Verifica se a resposta inclui a URL de redirecionamento
+      const userData = response.redirectUrl 
+        ? { ...response, redirectUrl: response.redirectUrl } 
+        : response;
+        
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       

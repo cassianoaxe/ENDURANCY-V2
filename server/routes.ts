@@ -600,8 +600,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Erro ao salvar sessão:", error);
         }
         
-        console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
-        res.json(userWithoutPassword);
+        // Determinar a rota correta com base no papel do usuário
+        let redirectUrl = '/dashboard'; // Padrão
+        
+        // Definir destino específico baseado no papel do usuário
+        switch(user.role) {
+          case 'laboratory':
+            redirectUrl = '/laboratory/dashboard';
+            break;
+          case 'doctor':
+            redirectUrl = '/doctor/dashboard';
+            break;
+          case 'patient':
+            redirectUrl = '/patient/dashboard';
+            break;
+          case 'pharmacist':
+            redirectUrl = '/pharmacist/dashboard';
+            break;
+          case 'researcher':
+            redirectUrl = '/researcher/dashboard';
+            break;
+          case 'org_admin':
+            redirectUrl = `/organization/${orgsFound[0].id}/dashboard`;
+            break;
+          case 'admin':
+            redirectUrl = '/admin/dashboard';
+            break;
+          default:
+            redirectUrl = '/dashboard';
+        }
+        
+        console.log("Login successful for:", { 
+          username: user.username, 
+          email: user.email, 
+          role: user.role, 
+          orgId: orgsFound[0].id, 
+          sessionID: req.sessionID,
+          redirectUrl
+        });
+        
+        // Incluir a URL de redirecionamento na resposta para o cliente
+        res.json({
+          ...userWithoutPassword,
+          redirectUrl
+        });
         return;
       }
       
@@ -688,8 +730,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Erro ao salvar sessão:", error);
       }
       
-      console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, sessionID: req.sessionID });
-      res.json(userWithoutPassword);
+      // Determinar a rota correta com base no papel do usuário
+      let redirectUrl = '/dashboard'; // Padrão
+      
+      // Definir destino específico baseado no papel do usuário
+      switch(user.role) {
+        case 'laboratory':
+          redirectUrl = '/laboratory/dashboard';
+          break;
+        case 'doctor':
+          redirectUrl = '/doctor/dashboard';
+          break;
+        case 'patient':
+          redirectUrl = '/patient/dashboard';
+          break;
+        case 'pharmacist':
+          redirectUrl = '/pharmacist/dashboard';
+          break;
+        case 'researcher':
+          redirectUrl = '/researcher/dashboard';
+          break;
+        case 'org_admin':
+          redirectUrl = `/organization/${user.organizationId}/dashboard`;
+          break;
+        case 'admin':
+          redirectUrl = '/admin/dashboard';
+          break;
+        default:
+          redirectUrl = '/dashboard';
+      }
+      
+      console.log("Login successful for:", { 
+        username: user.username, 
+        email: user.email, 
+        role: user.role, 
+        sessionID: req.sessionID,
+        redirectUrl
+      });
+      
+      // Incluir a URL de redirecionamento na resposta para o cliente
+      res.json({
+        ...userWithoutPassword,
+        redirectUrl
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Falha no login. Tente novamente." });
