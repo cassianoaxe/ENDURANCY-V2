@@ -17,6 +17,7 @@ import {
   Settings,
   Users,
   TestTube, // Usando TestTube no lugar de Vial
+  CircleDollarSign,
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -190,7 +191,8 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             isCollapsed={isCollapsed}
             defaultOpen={
               currentPath.includes('/laboratory/clientes') || 
-              currentPath.includes('/laboratory/equipamentos')
+              currentPath.includes('/laboratory/equipamentos') ||
+              currentPath.includes('/laboratory/financeiro')
             }
           >
             <SidebarLink
@@ -205,6 +207,13 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
               icon={<Microscope size={20} />}
               label="Equipamentos"
               isActive={currentPath === '/laboratory/equipamentos'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/financeiro"
+              icon={<CircleDollarSign size={20} />}
+              label="Financeiro"
+              isActive={currentPath === '/laboratory/financeiro'}
               isCollapsed={isCollapsed}
             />
           </SidebarSection>
