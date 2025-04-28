@@ -413,16 +413,19 @@ export default function Metodos() {
     // Filtro de tipo
     const matchesTipo = 
       tipoFilter === null || 
+      tipoFilter === 'todos' || 
       metodo.tipo === tipoFilter;
     
     // Filtro de categoria
     const matchesCategoria = 
       categoriaFilter === null || 
+      categoriaFilter === 'todos' || 
       metodo.categoria === categoriaFilter;
     
     // Filtro de status
     const matchesStatus = 
       statusFilter === null || 
+      statusFilter === 'todos' || 
       metodo.status === statusFilter;
     
     return matchesSearch && matchesTipo && matchesCategoria && matchesStatus;
@@ -859,7 +862,7 @@ export default function Metodos() {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os status</SelectItem>
+            <SelectItem value="todos">Todos os status</SelectItem>
             {statusUnicos.map(status => (
               <SelectItem key={status} value={status}>{status}</SelectItem>
             ))}
