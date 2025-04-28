@@ -18,6 +18,10 @@ import {
   Users,
   TestTube, // Usando TestTube no lugar de Vial
   CircleDollarSign,
+  Receipt,
+  CreditCard,
+  BarChart4,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -210,13 +214,47 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             />
           </SidebarSection>
           
-          <SidebarLink
-            href="/laboratory/financeiro"
-            icon={<CircleDollarSign size={20} />}
-            label="Financeiro"
-            isActive={currentPath === '/laboratory/financeiro'}
+          <SidebarSection 
+            title="Financeiro" 
             isCollapsed={isCollapsed}
-          />
+            defaultOpen={currentPath.includes('/laboratory/financeiro')}
+          >
+            <SidebarLink
+              href="/laboratory/financeiro"
+              icon={<CircleDollarSign size={20} />}
+              label="Dashboard"
+              isActive={currentPath === '/laboratory/financeiro'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/financeiro/faturas"
+              icon={<Receipt size={20} />}
+              label="Faturas"
+              isActive={currentPath === '/laboratory/financeiro/faturas'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/financeiro/pagamentos"
+              icon={<CreditCard size={20} />}
+              label="Pagamentos"
+              isActive={currentPath === '/laboratory/financeiro/pagamentos'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/financeiro/relatorios"
+              icon={<BarChart4 size={20} />}
+              label="Relatórios"
+              isActive={currentPath === '/laboratory/financeiro/relatorios'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/financeiro/links"
+              icon={<LinkIcon size={20} />}
+              label="Links de Pagamento"
+              isActive={currentPath === '/laboratory/financeiro/links'}
+              isCollapsed={isCollapsed}
+            />
+          </SidebarSection>
 
           <SidebarSection 
             title="HPLC" 
