@@ -51,7 +51,7 @@ export default function LaboratoryLogin() {
     defaultValues: {
       email: 'laboratorio',
       password: 'lab123',
-      rememberMe: false,
+      rememberMe: true,
     },
   });
 
@@ -61,6 +61,7 @@ export default function LaboratoryLogin() {
     setError(null);
 
     try {
+      console.log("Iniciando tentativa de login com:", data.email);
       // Enviar requisição para a API
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -288,7 +289,7 @@ export default function LaboratoryLogin() {
                       variant="outline"
                       className="w-full border-blue-300 text-blue-700"
                       onClick={() => onSubmit({ 
-                        email: "admin@laboratorio.com", 
+                        email: "laboratorio", 
                         password: "lab123",
                         rememberMe: true
                       })}
