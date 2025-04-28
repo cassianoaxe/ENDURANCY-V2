@@ -835,7 +835,7 @@ export default function Metodos() {
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="todos">Todos os tipos</SelectItem>
             {tiposUnicos.map(tipo => (
               <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
             ))}
@@ -847,7 +847,7 @@ export default function Metodos() {
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="todos">Todas as categorias</SelectItem>
             {categoriasUnicas.map(cat => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
