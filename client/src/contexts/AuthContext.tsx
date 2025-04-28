@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   organizationId: number | null;
+  redirectUrl?: string; // URL de redirecionamento específica retornada pela API
 }
 
 interface AuthContextType {
