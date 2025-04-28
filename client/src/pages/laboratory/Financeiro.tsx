@@ -176,9 +176,13 @@ interface FinancialSummary {
   }[];
 }
 
-export default function LaboratoryFinanceiro() {
+interface LaboratoryFinanceiroProps {
+  initialTab?: 'summary' | 'invoices' | 'payment-links' | 'pending-tests';
+}
+
+export default function LaboratoryFinanceiro({ initialTab = 'summary' }: LaboratoryFinanceiroProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([]);

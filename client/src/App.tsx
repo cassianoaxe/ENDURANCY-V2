@@ -591,6 +591,10 @@ function AppContent() {
         {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
         {currentPath === '/laboratory/configuracoes' && <LaboratoryConfiguracoes />}
         {currentPath === '/laboratory/financeiro' && <LaboratoryFinanceiro />}
+        {currentPath === '/laboratory/financeiro/faturas' && <LaboratoryFinanceiro initialTab="invoices" />}
+        {currentPath === '/laboratory/financeiro/pagamentos' && <LaboratoryFinanceiro initialTab="invoices" />}
+        {currentPath === '/laboratory/financeiro/relatorios' && <LaboratoryFinanceiro initialTab="summary" />}
+        {currentPath === '/laboratory/financeiro/links' && <LaboratoryFinanceiro initialTab="payment-links" />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
