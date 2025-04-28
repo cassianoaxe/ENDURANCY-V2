@@ -23,6 +23,10 @@ import LaboratoryAmostras from "@/pages/laboratory/Amostras";
 import LaboratoryResultados from "@/pages/laboratory/Resultados";
 import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
 import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
+import FinanceiroFaturas from "@/pages/laboratory/financeiro/Faturas";
+import FinanceiroPagamentos from "@/pages/laboratory/financeiro/Pagamentos";
+import FinanceiroRelatorios from "@/pages/laboratory/financeiro/Relatorios";
+import FinanceiroLinks from "@/pages/laboratory/financeiro/Links";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";
@@ -591,10 +595,10 @@ function AppContent() {
         {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
         {currentPath === '/laboratory/configuracoes' && <LaboratoryConfiguracoes />}
         {currentPath === '/laboratory/financeiro' && <LaboratoryFinanceiro />}
-        {currentPath === '/laboratory/financeiro/faturas' && <LaboratoryFinanceiro initialTab="invoices" />}
-        {currentPath === '/laboratory/financeiro/pagamentos' && <LaboratoryFinanceiro initialTab="invoices" />}
-        {currentPath === '/laboratory/financeiro/relatorios' && <LaboratoryFinanceiro initialTab="summary" />}
-        {currentPath === '/laboratory/financeiro/links' && <LaboratoryFinanceiro initialTab="payment-links" />}
+        {currentPath === '/laboratory/financeiro/faturas' && <FinanceiroFaturas />}
+        {currentPath === '/laboratory/financeiro/pagamentos' && <FinanceiroPagamentos />}
+        {currentPath === '/laboratory/financeiro/relatorios' && <FinanceiroRelatorios />}
+        {currentPath === '/laboratory/financeiro/links' && <FinanceiroLinks />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
