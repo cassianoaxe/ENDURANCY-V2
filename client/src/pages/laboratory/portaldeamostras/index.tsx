@@ -612,9 +612,9 @@ export default function PortalDeAmostras() {
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>Necessito de coleta no local</FormLabel>
+                                <FormLabel>Coleta no local</FormLabel>
                                 <FormDescription>
-                                  Marque esta opção caso deseje que o laboratório realize a coleta da amostra.
+                                  Marque esta opção se precisar que nosso serviço de coleta retire a amostra em seu endereço.
                                 </FormDescription>
                               </div>
                             </FormItem>
@@ -678,30 +678,31 @@ export default function PortalDeAmostras() {
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>Aceito os termos e condições</FormLabel>
+                              <FormLabel>Termos e Condições</FormLabel>
                               <FormDescription>
-                                Concordo com os <a href="#" className="text-blue-600 hover:underline">termos de serviço</a> e <a href="#" className="text-blue-600 hover:underline">política de privacidade</a> do laboratório.
+                                Aceito os <a href="#" className="text-blue-600 hover:underline">termos e condições</a> para análise de amostras, incluindo as políticas de privacidade e proteção de dados.
                               </FormDescription>
+                              <FormMessage />
                             </div>
                           </FormItem>
                         )}
                       />
                     </div>
                     
-                    <Button 
-                      type="submit" 
-                      className="w-full md:w-auto bg-blue-600 hover:bg-blue-700"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <RotateCw className="animate-spin h-4 w-4 mr-2" />
-                          Enviando...
-                        </>
-                      ) : (
-                        'Enviar Solicitação'
-                      )}
-                    </Button>
+                    <div className="flex justify-end mt-6">
+                      <Button 
+                        type="submit" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <RotateCw className="animate-spin h-4 w-4 mr-2" />
+                            Enviando...
+                          </>
+                        ) : "Enviar Solicitação"}
+                      </Button>
+                    </div>
                   </form>
                 </Form>
               </CardContent>
@@ -711,32 +712,29 @@ export default function PortalDeAmostras() {
               <CardHeader>
                 <CardTitle>Instruções para Envio</CardTitle>
                 <CardDescription>
-                  Informações importantes para o envio correto das amostras
+                  Após o envio da solicitação, siga estas instruções
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="prose max-w-none">
-                  <h4>Como enviar suas amostras:</h4>
-                  <ol className="list-decimal pl-5 space-y-2">
-                    <li>Preencha o formulário acima com todos os detalhes necessários.</li>
-                    <li>Após a aprovação da solicitação, você receberá um email com instruções e etiquetas para envio.</li>
-                    <li>Embale as amostras de acordo com as diretrizes de segurança específicas para o tipo de material.</li>
-                    <li>Inclua o código da solicitação em todos os pacotes e documentação.</li>
-                    <li>Envie para o endereço fornecido usando o método de transporte recomendado.</li>
-                  </ol>
-                  
-                  <h4 className="mt-4">Recomendações para embalagem:</h4>
-                  <ul className="list-disc pl-5 space-y-2">
-                    <li>Use recipientes à prova de vazamento e resistentes a impactos.</li>
-                    <li>Embale cada amostra separadamente e identifique claramente.</li>
-                    <li>Para amostras sensíveis à temperatura, use embalagem térmica apropriada.</li>
-                    <li>Mantenha uma cópia de toda a documentação enviada.</li>
-                  </ul>
-                  
-                  <p className="text-sm text-gray-600 mt-4">
-                    Para mais informações sobre o preparo adequado de amostras, consulte nosso <a href="#" className="text-blue-600 hover:underline">guia completo</a> ou entre em contato com nossa equipe técnica pelo email <a href="mailto:amostras@laboratorio.com" className="text-blue-600 hover:underline">amostras@laboratorio.com</a>.
-                  </p>
-                </div>
+              <CardContent>
+                <ol className="list-decimal pl-5 space-y-2">
+                  <li>Preencha o formulário acima com todos os detalhes necessários.</li>
+                  <li>Após a aprovação da solicitação, você receberá um email com instruções e etiquetas para envio.</li>
+                  <li>Embale as amostras de acordo com as diretrizes de segurança específicas para o tipo de material.</li>
+                  <li>Inclua o código da solicitação em todos os pacotes e documentação.</li>
+                  <li>Envie para o endereço fornecido usando o método de transporte recomendado.</li>
+                </ol>
+                
+                <h4 className="mt-4">Recomendações para embalagem:</h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>Use recipientes à prova de vazamento e resistentes a impactos.</li>
+                  <li>Embale cada amostra separadamente e identifique claramente.</li>
+                  <li>Para amostras sensíveis à temperatura, use embalagem térmica apropriada.</li>
+                  <li>Mantenha uma cópia de toda a documentação enviada.</li>
+                </ul>
+                
+                <p className="text-sm text-gray-600 mt-4">
+                  Para mais informações sobre o preparo adequado de amostras, consulte nosso <a href="#" className="text-blue-600 hover:underline">guia completo</a> ou entre em contato com nossa equipe técnica pelo email <a href="mailto:amostras@laboratorio.com" className="text-blue-600 hover:underline">amostras@laboratorio.com</a>.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
