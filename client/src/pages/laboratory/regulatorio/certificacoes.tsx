@@ -276,11 +276,13 @@ export default function Certificacoes() {
     // Filtro de status
     const matchesStatus = 
       statusFilter === null || 
+      statusFilter === 'todos' || 
       cert.status === statusFilter;
     
     // Filtro de tipo
     const matchesTipo = 
       tipoFilter === null || 
+      tipoFilter === 'todos' || 
       cert.tipo === tipoFilter;
     
     return matchesSearch && matchesStatus && matchesTipo;
@@ -601,7 +603,7 @@ export default function Certificacoes() {
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="Válido">Válido</SelectItem>
                 <SelectItem value="Expirado">Expirado</SelectItem>
                 <SelectItem value="Em Renovação">Em Renovação</SelectItem>
@@ -613,7 +615,7 @@ export default function Certificacoes() {
                 <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="todos">Todos os tipos</SelectItem>
                 {tiposUnicos.map(tipo => (
                   <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
                 ))}
