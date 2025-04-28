@@ -22,6 +22,7 @@ import LaboratorySamples from "@/pages/laboratory/Samples";
 import LaboratoryAmostras from "@/pages/laboratory/Amostras";
 import LaboratoryResultados from "@/pages/laboratory/Resultados";
 import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
+import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";
@@ -589,6 +590,7 @@ function AppContent() {
         {currentPath === '/laboratory/amostras' && <LaboratoryAmostras />}
         {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
         {currentPath === '/laboratory/configuracoes' && <LaboratoryConfiguracoes />}
+        {currentPath === '/laboratory/financeiro' && <LaboratoryFinanceiro />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
