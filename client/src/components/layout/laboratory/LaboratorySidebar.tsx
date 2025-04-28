@@ -322,17 +322,38 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
               isCollapsed={isCollapsed}
             />
             <SidebarLink
-              href="/laboratory/regulatorio/rdc-16-2014"
-              icon={<FileCheck size={20} />}
-              label="RDC 16/2014"
-              isActive={currentPath === '/laboratory/regulatorio/rdc-16-2014'}
+              href="/laboratory/regulatorio/dashboard"
+              icon={<LayoutDashboard size={20} />}
+              label="Dashboard"
+              isActive={currentPath === '/laboratory/regulatorio/dashboard'}
               isCollapsed={isCollapsed}
             />
             <SidebarLink
-              href="/laboratory/regulatorio/rdc-658-2022"
+              href="/laboratory/regulatorio/certificacoes"
               icon={<FileCheck size={20} />}
-              label="RDC 658/2022"
-              isActive={currentPath === '/laboratory/regulatorio/rdc-658-2022'}
+              label="Certificações"
+              isActive={currentPath === '/laboratory/regulatorio/certificacoes'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio/documentacao"
+              icon={<FileText size={20} />}
+              label="Documentação"
+              isActive={currentPath === '/laboratory/regulatorio/documentacao'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio/desenvolvimento"
+              icon={<Beaker size={20} />}
+              label="Desenvolvimento"
+              isActive={currentPath === '/laboratory/regulatorio/desenvolvimento'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio/metodos"
+              icon={<BookOpen size={20} />}
+              label="Métodos"
+              isActive={currentPath === '/laboratory/regulatorio/metodos'}
               isCollapsed={isCollapsed}
             />
           </SidebarSection>
