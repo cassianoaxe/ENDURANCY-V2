@@ -690,7 +690,7 @@ export default function PortalDeAmostras() {
                         filteredSamples.map((sample) => (
                           <TableRow key={sample.id}>
                             <TableCell className="font-medium">{sample.id}</TableCell>
-                            <TableCell>{formatDate(sample.date)}</TableCell>
+                            <TableCell>{formatDate(new Date(sample.date))}</TableCell>
                             <TableCell className="hidden md:table-cell">{sample.sampleType}</TableCell>
                             <TableCell className="hidden md:table-cell">{sample.analysisType}</TableCell>
                             <TableCell>
