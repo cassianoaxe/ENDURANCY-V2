@@ -307,16 +307,26 @@ export default function Login() {
       // Mostrar estado de loading que já existe através do botão
       setIsLoading(true);
       
-      // Definir URL de redirecionamento baseado no tipo de usuário
-      let redirectUrl = '/dashboard';
-      
-      // Portais de organização
-      if (userType === 'association_admin') {
-        redirectUrl = '/organization/dashboard';
+      // Obter a URL de redirecionamento da sessão do usuário (localStorage)
+      let user;
+      try {
+        const userData = localStorage.getItem('user');
+        user = userData ? JSON.parse(userData) : null;
+      } catch (e) {
+        console.error("Erro ao obter dados do usuário do localStorage:", e);
+        user = null;
       }
-      // Portal de empresa importadora
-      else if (userType === 'company_admin' && (localStorage.getItem('userType') === 'import_company' || document.documentElement.classList.contains('importadora-theme'))) {
+      
+      // Usar URL de redirecionamento da API, ou determinar com base no tipo de usuário
+      let redirectUrl = user?.redirectUrl || '/dashboard';
+      
+      // Caso especial para portal de empresa importadora (mantido para compatibilidade)
+      if (userType === 'company_admin' && 
+          (localStorage.getItem('userType') === 'import_company' || 
+           document.documentElement.classList.contains('importadora-theme'))) {
+        // Forçar redirecionamento para dashboard de importadora
         redirectUrl = '/organization/import-company/dashboard';
+        
         // Após definir o redirecionamento, limpar os marcadores
         document.documentElement.classList.remove('importadora-theme');
         localStorage.removeItem('userType');
@@ -326,31 +336,9 @@ export default function Login() {
         // Para evitar a passagem pelo dashboard geral
         localStorage.setItem('direct_import_company', 'true');
       }
-      // Portal de empresa normal
-      else if (userType === 'company_admin') {
-        redirectUrl = '/organization/dashboard';
-        console.log("Redirecionando para dashboard de empresa normal");
-      }
-      // Portal de farmácia
-      else if (userType === 'pharmacist') {
-        redirectUrl = '/pharmacist/dashboard';
-      } 
-      // Portal de laboratório
-      else if (userType === 'laboratory') {
-        redirectUrl = '/laboratory/dashboard';
-      } 
-      // Portal de pesquisa
-      else if (userType === 'researcher') {
-        redirectUrl = '/researcher/dashboard';
-      } 
-      // Portais de prescritor
-      else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
-        redirectUrl = '/doctor/dashboard';
-      } 
-      // Portal do paciente
-      else if (userType === 'patient') {
-        redirectUrl = '/patient/dashboard';
-      }
+      
+      console.log("URL de redirecionamento (da API):", user?.redirectUrl);
+      console.log("URL de redirecionamento (final):", redirectUrl);
       
       console.log(`Usuário autenticado como ${userType}, redirecionando para ${redirectUrl}`);
       
