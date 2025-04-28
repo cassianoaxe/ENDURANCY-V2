@@ -196,295 +196,337 @@ export default function TestAnalysis() {
   }
 
   return (
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center">
-              <FlaskConical className="mr-2 h-6 w-6 text-blue-600" />
-              Análise Detalhada
-            </h1>
-            <p className="text-gray-500">
-              {analysisData.testType === 'cannabinoid_profile' 
-                ? 'Perfil de Canabinoides' 
-                : analysisData.testType}
-              {' - '}
-              Amostra {analysisData.sampleCode}
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <Badge className={getStatusColor(analysisData.status)}>
-              {translateStatus(analysisData.status)}
-            </Badge>
-            
-            <Button variant="outline" size="sm" onClick={generateReport}>
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-            
-            <Button variant="outline" size="sm" onClick={shareResults}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartilhar
-            </Button>
-            
-            {analysisData.status === 'pending' && (
-              <Button size="sm" onClick={approveResults}>
-                <ThumbsUp className="mr-2 h-4 w-4" />
-                Aprovar
-              </Button>
-            )}
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center">
+            <FlaskConical className="mr-2 h-6 w-6 text-blue-600" />
+            Análise Detalhada
+          </h1>
+          <p className="text-gray-500">
+            {analysisData.testType === 'cannabinoid_profile' 
+              ? 'Perfil de Canabinoides' 
+              : analysisData.testType}
+            {' - '}
+            Amostra {analysisData.sampleCode}
+          </p>
         </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full md:w-auto">
-            <TabsTrigger value="results">Resultados</TabsTrigger>
-            <TabsTrigger value="metadata">Metadados</TabsTrigger>
-            <TabsTrigger value="visualization">Visualização</TabsTrigger>
-          </TabsList>
-          
-          {/* Results Tab */}
-          <TabsContent value="results" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Resultados da Análise</CardTitle>
-                <CardDescription>
-                  Resultados detalhados da análise realizada em {new Date(analysisData.date).toLocaleDateString('pt-BR')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-2 text-left border-b">Componente</th>
-                        <th className="px-4 py-2 text-left border-b">Resultado</th>
-                        <th className="px-4 py-2 text-left border-b">Unidade</th>
-                        <th className="px-4 py-2 text-left border-b">Incerteza</th>
-                        <th className="px-4 py-2 text-left border-b">Limites</th>
-                        <th className="px-4 py-2 text-left border-b">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(analysisData.results).map(([component, result]) => (
-                        <tr key={component} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-3 font-medium">{component}</td>
-                          <td className="px-4 py-3">{result.value.toFixed(2)}</td>
-                          <td className="px-4 py-3">{result.unit}</td>
-                          <td className="px-4 py-3">
-                            {result.uncertainty 
-                              ? `± ${result.uncertainty.toFixed(2)} ${result.unit}` 
-                              : '-'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {analysisData.limits && analysisData.limits[component] 
-                              ? <>
-                                  {analysisData.limits[component].min && `Min: ${analysisData.limits[component].min} ${analysisData.limits[component].unit}`}
-                                  {analysisData.limits[component].min && analysisData.limits[component].max && ' / '}
-                                  {analysisData.limits[component].max && `Max: ${analysisData.limits[component].max} ${analysisData.limits[component].unit}`}
-                                </>
-                              : '-'}
-                          </td>
-                          <td className="px-4 py-3">
-                            {result.status === 'normal' && (
-                              <Badge className="bg-green-500">Conforme</Badge>
-                            )}
-                            {result.status === 'warning' && (
-                              <Badge className="bg-yellow-500">Alerta</Badge>
-                            )}
-                            {result.status === 'critical' && (
-                              <Badge className="bg-red-500">Crítico</Badge>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {analysisData.notes && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-200">
-                    <h3 className="font-medium text-blue-800 mb-2 flex items-center">
-                      <Info className="h-4 w-4 mr-2" />
-                      Observações
-                    </h3>
-                    <p className="text-gray-700">{analysisData.notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Metadata Tab */}
-          <TabsContent value="metadata" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações da Análise</CardTitle>
-                <CardDescription>
-                  Metadados e informações de rastreabilidade
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">ID da Análise</h3>
-                      <p className="text-lg">{analysisData.id}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Código da Amostra</h3>
-                      <p className="text-lg">{analysisData.sampleCode}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Tipo de Teste</h3>
-                      <p className="text-lg">
-                        {analysisData.testType === 'cannabinoid_profile' 
-                          ? 'Perfil de Canabinoides' 
-                          : analysisData.testType}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Data da Análise</h3>
-                      <p className="text-lg">{new Date(analysisData.date).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    {analysisData.batchId && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">ID do Lote</h3>
-                        <p className="text-lg">{analysisData.batchId}</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Técnico Responsável</h3>
-                      <p className="text-lg">{analysisData.technician}</p>
-                    </div>
-                    {analysisData.reviewer && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Revisor</h3>
-                        <p className="text-lg">{analysisData.reviewer}</p>
-                      </div>
-                    )}
-                    {analysisData.reviewDate && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Data da Revisão</h3>
-                        <p className="text-lg">{new Date(analysisData.reviewDate).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                      <Badge className={getStatusColor(analysisData.status)}>
-                        {translateStatus(analysisData.status)}
-                      </Badge>
-                    </div>
-                    {analysisData.controlSample !== undefined && (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-500">Amostra de Controle</h3>
-                        <p className="text-lg">{analysisData.controlSample ? 'Sim' : 'Não'}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="mt-8 space-y-4">
-                  <div>
-                    <h3 className="text-md font-medium border-b pb-2">Equipamentos Utilizados</h3>
-                    <ul className="mt-2 pl-5 list-disc">
-                      {analysisData.equipmentUsed.map((equipment, index) => (
-                        <li key={index} className="py-1">{equipment}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-md font-medium border-b pb-2">Métodos Analíticos</h3>
-                    <ul className="mt-2 pl-5 list-disc">
-                      {analysisData.methodsUsed.map((method, index) => (
-                        <li key={index} className="py-1">{method}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="mt-6 flex items-center p-4 bg-green-50 rounded-md border border-green-200">
-                  <Shield className="h-5 w-5 text-green-600 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-green-800">Verificação de Integridade</h3>
-                    <p className="text-green-700 text-sm">
-                      Esta análise foi validada digitalmente e registrada com tecnologia de verificação de integridade.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Visualization Tab */}
-          <TabsContent value="visualization" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Visualização Gráfica</CardTitle>
-                <CardDescription>
-                  Visualização dos resultados em formato gráfico
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-3 flex items-center">
-                    <LineChart className="h-5 w-5 mr-2 text-blue-600" />
-                    Concentração de Canabinoides
-                  </h3>
-                  <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <PieChart className="h-8 w-8 mx-auto mb-2 text-blue-400" />
-                      <p>Gráfico de barras mostrando a concentração de cada canabinoide</p>
-                      <p className="text-sm text-gray-400">(Visualização seria renderizada aqui em um ambiente de produção)</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-3 flex items-center">
-                    <LineChart className="h-5 w-5 mr-2 text-green-600" />
-                    Comparação com Limites
-                  </h3>
-                  <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <LineChart className="h-8 w-8 mx-auto mb-2 text-green-400" />
-                      <p>Gráfico comparativo entre resultados e limites regulatórios</p>
-                      <p className="text-sm text-gray-400">(Visualização seria renderizada aqui em um ambiente de produção)</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Exportar Gráficos
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
         
-        <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={() => window.history.back()}>
-            Voltar
+        <div className="flex flex-wrap gap-2">
+          <Badge className={getStatusColor(analysisData.status)}>
+            {translateStatus(analysisData.status)}
+          </Badge>
+          
+          <Button variant="outline" size="sm" onClick={generateReport}>
+            <Download className="mr-2 h-4 w-4" />
+            Exportar PDF
           </Button>
           
-          <div className="space-x-2">
-            <Button variant="outline">
-              <FileCheck className="mr-2 h-4 w-4" />
-              Gerar Certificado
+          <Button variant="outline" size="sm" onClick={shareResults}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Compartilhar
+          </Button>
+          
+          {analysisData.status === 'pending' && (
+            <Button size="sm" onClick={approveResults}>
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Aprovar
             </Button>
-            
-            <Button>
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartilhar com Cliente
-            </Button>
-          </div>
+          )}
         </div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-3 w-full md:w-auto">
+          <TabsTrigger value="results">Resultados</TabsTrigger>
+          <TabsTrigger value="metadata">Metadados</TabsTrigger>
+          <TabsTrigger value="visualization">Visualização</TabsTrigger>
+        </TabsList>
+        
+        {/* Results Tab */}
+        <TabsContent value="results" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resultados da Análise</CardTitle>
+              <CardDescription>
+                Resultados detalhados da análise realizada em {new Date(analysisData.date).toLocaleDateString('pt-BR')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-2 text-left border-b">Componente</th>
+                      <th className="px-4 py-2 text-left border-b">Resultado</th>
+                      <th className="px-4 py-2 text-left border-b">Unidade</th>
+                      <th className="px-4 py-2 text-left border-b">Incerteza</th>
+                      <th className="px-4 py-2 text-left border-b">Limites</th>
+                      <th className="px-4 py-2 text-left border-b">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(analysisData.results).map(([component, result]) => (
+                      <tr key={component} className="border-b hover:bg-gray-50">
+                        <td className="px-4 py-3 font-medium">{component}</td>
+                        <td className="px-4 py-3">{result.value.toFixed(2)}</td>
+                        <td className="px-4 py-3">{result.unit}</td>
+                        <td className="px-4 py-3">
+                          {result.uncertainty 
+                            ? `± ${result.uncertainty.toFixed(2)} ${result.unit}` 
+                            : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {analysisData.limits && analysisData.limits[component] 
+                            ? <>
+                                {analysisData.limits[component].min && `Min: ${analysisData.limits[component].min} ${analysisData.limits[component].unit}`}
+                                {analysisData.limits[component].min && analysisData.limits[component].max && ' / '}
+                                {analysisData.limits[component].max && `Max: ${analysisData.limits[component].max} ${analysisData.limits[component].unit}`}
+                              </>
+                            : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {result.status === 'normal' && (
+                            <Badge className="bg-green-500">Conforme</Badge>
+                          )}
+                          {result.status === 'warning' && (
+                            <Badge className="bg-yellow-500">Alerta</Badge>
+                          )}
+                          {result.status === 'critical' && (
+                            <Badge className="bg-red-500">Crítico</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {analysisData.notes && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-200">
+                  <h3 className="font-medium text-blue-800 mb-2 flex items-center">
+                    <Info className="h-4 w-4 mr-2" />
+                    Observações
+                  </h3>
+                  <p className="text-gray-700">{analysisData.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Metadata Tab */}
+        <TabsContent value="metadata" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações da Análise</CardTitle>
+              <CardDescription>
+                Metadados e informações de rastreabilidade
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">ID da Análise</h3>
+                    <p className="text-lg">{analysisData.id}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Código da Amostra</h3>
+                    <p className="text-lg">{analysisData.sampleCode}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Tipo de Teste</h3>
+                    <p className="text-lg">
+                      {analysisData.testType === 'cannabinoid_profile' 
+                        ? 'Perfil de Canabinoides' 
+                        : analysisData.testType}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Data da Análise</h3>
+                    <p className="text-lg">{new Date(analysisData.date).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  {analysisData.batchId && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">ID do Lote</h3>
+                      <p className="text-lg">{analysisData.batchId}</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Técnico Responsável</h3>
+                    <p className="text-lg">{analysisData.technician}</p>
+                  </div>
+                  {analysisData.reviewer && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Revisor</h3>
+                      <p className="text-lg">{analysisData.reviewer}</p>
+                    </div>
+                  )}
+                  {analysisData.reviewDate && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Data da Revisão</h3>
+                      <p className="text-lg">{new Date(analysisData.reviewDate).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                    <Badge className={getStatusColor(analysisData.status)}>
+                      {translateStatus(analysisData.status)}
+                    </Badge>
+                  </div>
+                  {analysisData.controlSample !== undefined && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Amostra de Controle</h3>
+                      <p className="text-lg">{analysisData.controlSample ? 'Sim' : 'Não'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="mt-8 space-y-4">
+                <div>
+                  <h3 className="text-md font-medium border-b pb-2">Equipamentos Utilizados</h3>
+                  <ul className="mt-2 pl-5 list-disc">
+                    {analysisData.equipmentUsed.map((equipment, index) => (
+                      <li key={index} className="py-1">{equipment}</li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="text-md font-medium border-b pb-2">Métodos Analíticos</h3>
+                  <ul className="mt-2 pl-5 list-disc">
+                    {analysisData.methodsUsed.map((method, index) => (
+                      <li key={index} className="py-1">{method}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex items-center p-4 bg-green-50 rounded-md border border-green-200">
+                <Shield className="h-5 w-5 text-green-600 mr-3" />
+                <div>
+                  <h3 className="font-medium text-green-800">Verificação de Integridade</h3>
+                  <p className="text-green-700 text-sm">
+                    Esta análise foi validada digitalmente e registrada com tecnologia de verificação de integridade.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Visualization Tab */}
+        <TabsContent value="visualization" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Visualização Gráfica</CardTitle>
+              <CardDescription>
+                Gráficos e representações visuais dos resultados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Distribuição de Canabinoides</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <PieChart className="mx-auto h-8 w-8 mb-2 text-blue-500" />
+                        <p className="text-sm mb-1 font-medium">Gráfico de Distribuição</p>
+                        <p className="text-xs">
+                          (Visualização indisponível no ambiente de desenvolvimento)
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Comparação com Limites Regulatórios</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <LineChart className="mx-auto h-8 w-8 mb-2 text-blue-500" />
+                        <p className="text-sm mb-1 font-medium">Gráfico de Barras</p>
+                        <p className="text-xs">
+                          (Visualização indisponível no ambiente de desenvolvimento)
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Tendência Temporal</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <LineChart className="mx-auto h-8 w-8 mb-2 text-blue-500" />
+                        <p className="text-sm mb-1 font-medium">Gráfico de Linhas</p>
+                        <p className="text-xs">
+                          (Visualização indisponível no ambiente de desenvolvimento)
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Cromatograma</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 bg-gray-50 border rounded-md flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <LineChart className="mx-auto h-8 w-8 mb-2 text-blue-500" />
+                        <p className="text-sm mb-1 font-medium">Visualização do Cromatograma</p>
+                        <p className="text-xs">
+                          (Visualização indisponível no ambiente de desenvolvimento)
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full">
+                <FileText className="mr-2 h-4 w-4" />
+                Exportar Gráficos
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
+      
+      <div className="flex justify-between mt-8">
+        <Button variant="outline" onClick={() => window.history.back()}>
+          Voltar
+        </Button>
+        
+        <div className="space-x-2">
+          <Button variant="outline">
+            <FileCheck className="mr-2 h-4 w-4" />
+            Gerar Certificado
+          </Button>
+          
+          <Button>
+            <Share2 className="mr-2 h-4 w-4" />
+            Compartilhar com Cliente
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
