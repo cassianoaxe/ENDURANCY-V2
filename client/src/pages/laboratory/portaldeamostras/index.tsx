@@ -47,11 +47,11 @@ import {
   FileUp, 
   Package, 
   Filter, 
-  Clock, 
-  ExternalLink, 
+  Clock,
   Download,
-  RotateCw,
-  MailCheck
+  ExternalLink,
+  MailCheck,
+  RotateCw
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -833,6 +833,60 @@ export default function PortalDeAmostras() {
                               >
                                 Ver detalhes
                               </Button>
+                              
+                              {/* Botões de atualização de status (apenas mostrar em modo demonstração) */}
+                              {sample.status === 'solicitada' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="ml-2 text-blue-600"
+                                  onClick={() => {
+                                    const trackingCode = prompt("Informe o código de rastreamento:");
+                                    if (trackingCode) {
+                                      updateSampleStatus(sample.id, 'em_transito', trackingCode);
+                                    }
+                                  }}
+                                >
+                                  <Truck className="h-4 w-4 mr-1" />
+                                  Em trânsito
+                                </Button>
+                              )}
+                              
+                              {sample.status === 'em_transito' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="ml-2 text-indigo-600"
+                                  onClick={() => updateSampleStatus(sample.id, 'recebida')}
+                                >
+                                  <Package className="h-4 w-4 mr-1" />
+                                  Recebida
+                                </Button>
+                              )}
+                              
+                              {sample.status === 'recebida' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="ml-2 text-yellow-600"
+                                  onClick={() => updateSampleStatus(sample.id, 'em_analise')}
+                                >
+                                  <FlaskConical className="h-4 w-4 mr-1" />
+                                  Em análise
+                                </Button>
+                              )}
+                              
+                              {sample.status === 'em_analise' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="ml-2 text-green-600"
+                                  onClick={() => updateSampleStatus(sample.id, 'concluida')}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  Concluída
+                                </Button>
+                              )}
                               
                               {sample.status === 'concluida' && (
                                 <Button
