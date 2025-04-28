@@ -36,6 +36,7 @@ interface SidebarLinkProps {
   isCollapsed?: boolean;
   isExternal?: boolean;
   badge?: React.ReactNode;
+  onClick?: () => void;
 }
 
 const SidebarLink = ({
@@ -46,11 +47,12 @@ const SidebarLink = ({
   isCollapsed,
   isExternal,
   badge,
+  onClick,
 }: SidebarLinkProps) => {
   const content = (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
+        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm cursor-pointer',
         isActive
           ? 'bg-blue-100 text-blue-900 font-medium'
           : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
@@ -65,6 +67,27 @@ const SidebarLink = ({
       )}
     </div>
   );
+
+  // Se onClick estiver definido, usamos isso ao invés de navegação por href
+  if (onClick) {
+    if (isCollapsed) {
+      return (
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <div onClick={onClick}>
+                {content}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="font-normal">
+              {label}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return <div onClick={onClick}>{content}</div>;
+  }
 
   // Render content with or without tooltip
   if (isCollapsed) {
@@ -153,6 +176,16 @@ interface LaboratorySidebarProps {
 export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySidebarProps) {
   // Get current path to determine active link
   const currentPath = window.location.pathname;
+  
+  // Função para fazer logout
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/laboratory-login';
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
   return (
     <div
@@ -369,9 +402,10 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
           isCollapsed={isCollapsed}
         />
         <SidebarLink
-          href="/api/auth/logout"
+          href="#"
           icon={<Cog size={20} />}
           label="Sair"
+          onClick={handleLogout}
           isCollapsed={isCollapsed}
         />
       </div>
