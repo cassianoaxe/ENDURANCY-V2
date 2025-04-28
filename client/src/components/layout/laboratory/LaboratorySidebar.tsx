@@ -309,13 +309,33 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             />
           </SidebarSection>
           
-          <SidebarLink
-            href="/laboratory/regulatorio"
-            icon={<ScrollText size={20} />}
-            label="Regulatório"
-            isActive={currentPath.includes('/laboratory/regulatorio')}
+          <SidebarSection 
+            title="Regulatório" 
             isCollapsed={isCollapsed}
-          />
+            defaultOpen={currentPath.includes('/laboratory/regulatorio')}
+          >
+            <SidebarLink
+              href="/laboratory/regulatorio"
+              icon={<ScrollText size={20} />}
+              label="Base de Documentos"
+              isActive={currentPath === '/laboratory/regulatorio'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio/rdc-16-2014"
+              icon={<FileCheck size={20} />}
+              label="RDC 16/2014"
+              isActive={currentPath === '/laboratory/regulatorio/rdc-16-2014'}
+              isCollapsed={isCollapsed}
+            />
+            <SidebarLink
+              href="/laboratory/regulatorio/rdc-658-2022"
+              icon={<BookOpen size={20} />}
+              label="RDC 658/2022"
+              isActive={currentPath === '/laboratory/regulatorio/rdc-658-2022'}
+              isCollapsed={isCollapsed}
+            />
+          </SidebarSection>
         </div>
       </div>
 
