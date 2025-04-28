@@ -182,7 +182,7 @@ interface LaboratoryFinanceiroProps {
 
 export default function LaboratoryFinanceiro({ initialTab = 'summary' }: LaboratoryFinanceiroProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState<'summary' | 'invoices' | 'payment-links' | 'pending-tests'>(initialTab);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [paymentLinks, setPaymentLinks] = useState<PaymentLink[]>([]);
@@ -617,7 +617,7 @@ export default function LaboratoryFinanceiro({ initialTab = 'summary' }: Laborat
         </div>
       </div>
 
-      <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs defaultValue="summary" value={activeTab} onValueChange={(value) => setActiveTab(value as 'summary' | 'invoices' | 'payment-links' | 'pending-tests')} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="summary">
             <BarChart className="h-4 w-4 mr-2" />

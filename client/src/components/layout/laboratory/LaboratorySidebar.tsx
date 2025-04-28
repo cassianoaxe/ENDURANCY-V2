@@ -46,10 +46,10 @@ const SidebarLink = ({
   const content = (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all',
+        'flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-sm',
         isActive
-          ? 'bg-blue-100 text-blue-900'
-          : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700'
+          ? 'bg-blue-100 text-blue-900 font-medium'
+          : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
       )}
     >
       <div className="text-lg">{icon}</div>
@@ -99,24 +99,43 @@ const SidebarSection = ({ title, children, isCollapsed, defaultOpen = false }: S
 
   // If collapsed, render without expandable section
   if (isCollapsed) {
-    return <div className="mt-2">{children}</div>;
+    return <div className="mt-3">{children}</div>;
   }
 
   // If no title, render without expandable section
   if (!title) {
-    return <div className="mt-2">{children}</div>;
+    return <div className="mt-3">{children}</div>;
   }
 
+  // Get the appropriate icon based on the title
+  const getIcon = () => {
+    switch (title) {
+      case "Amostras & Testes":
+        return <TestTube className="h-5 w-5 mr-2 text-blue-600" />;
+      case "Gerenciamento":
+        return <Users className="h-5 w-5 mr-2 text-blue-600" />;
+      case "Financeiro":
+        return <CircleDollarSign className="h-5 w-5 mr-2 text-blue-600" />;
+      case "HPLC":
+        return <Beaker className="h-5 w-5 mr-2 text-blue-600" />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="mt-2">
+    <div className="mt-3">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-gray-600 hover:text-blue-700"
+        className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
       >
-        {title}
-        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+        <div className="flex items-center">
+          {getIcon()}
+          <span>{title}</span>
+        </div>
+        <ChevronDown className={cn("h-5 w-5 transition-transform", isOpen && "rotate-180")} />
       </button>
-      <div className={cn("mt-1 space-y-1", !isOpen && "hidden")}>{children}</div>
+      <div className={cn("mt-1 space-y-1 pl-4", !isOpen && "hidden")}>{children}</div>
     </div>
   );
 };
