@@ -28,6 +28,10 @@ import LaboratoryRegulatorio from "@/pages/laboratory/regulatorio";
 import RDC16_2014 from "@/pages/laboratory/regulatorio/rdc-16-2014";
 import RDC658_2022 from "@/pages/laboratory/regulatorio/rdc-658-2022";
 import RegulatorioDashboard from "@/pages/laboratory/regulatorio/dashboard";
+import Certificacoes from "@/pages/laboratory/regulatorio/certificacoes";
+import Documentacao from "@/pages/laboratory/regulatorio/documentacao";
+import Desenvolvimento from "@/pages/laboratory/regulatorio/desenvolvimento";
+import Metodos from "@/pages/laboratory/regulatorio/metodos";
 import { 
   FinanceiroFaturas,
   FinanceiroPagamentos,
@@ -609,10 +613,10 @@ function AppContent() {
         {currentPath === '/laboratory/portaldeamostras' && <LaboratoryPortalDeAmostras />}
         {currentPath === '/laboratory/regulatorio' && <LaboratoryRegulatorio />}
         {currentPath === '/laboratory/regulatorio/dashboard' && <RegulatorioDashboard />}
-        {currentPath === '/laboratory/regulatorio/certificacoes' && <div>Certificações</div>}
-        {currentPath === '/laboratory/regulatorio/documentacao' && <div>Documentação</div>}
-        {currentPath === '/laboratory/regulatorio/desenvolvimento' && <div>Desenvolvimento</div>}
-        {currentPath === '/laboratory/regulatorio/metodos' && <div>Métodos</div>}
+        {currentPath === '/laboratory/regulatorio/certificacoes' && <Certificacoes />}
+        {currentPath === '/laboratory/regulatorio/documentacao' && <Documentacao />}
+        {currentPath === '/laboratory/regulatorio/desenvolvimento' && <Desenvolvimento />}
+        {currentPath === '/laboratory/regulatorio/metodos' && <Metodos />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
