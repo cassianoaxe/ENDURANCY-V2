@@ -1,558 +1,375 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { Search, Plus, Download, Printer, MoreVertical, FileText, Eye, Calendar, CheckCircle, CreditCard, DollarSign, Receipt } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Download, Search, Filter, Plus, Receipt, CreditCard } from 'lucide-react';
+import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 
-// Tipos
-interface Payment {
+// Tipos de dados para os pagamentos
+interface Pagamento {
   id: number;
-  invoiceId?: number;
-  invoiceNumber?: string;
-  clientName: string;
-  amount: number;
-  paymentMethod: 'credit_card' | 'bank_transfer' | 'pix' | 'cash' | 'other';
-  paymentDate: string;
-  status: 'confirmed' | 'pending' | 'failed' | 'refunded';
-  notes?: string;
-  receiptUrl?: string;
+  cliente: string;
+  referencia: string;
+  dataPagamento: string;
+  valor: number;
+  metodo: 'pix' | 'credito' | 'boleto' | 'transferencia';
+  status: 'confirmado' | 'pendente' | 'rejeitado';
+  numeroFatura?: string;
 }
 
-export default function FinanceiroPagamentos() {
-  const { toast } = useToast();
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [currentPayment, setCurrentPayment] = useState<Payment | null>(null);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+// Dados simulados para demonstração
+const pagamentosMock: Pagamento[] = [
+  {
+    id: 1,
+    cliente: 'Dall Solutions',
+    referencia: 'PAG-2025-0001',
+    dataPagamento: '2025-04-01',
+    valor: 1500.00,
+    metodo: 'pix',
+    status: 'confirmado',
+    numeroFatura: 'FAT-2025-0001'
+  },
+  {
+    id: 2,
+    cliente: 'Farmácia Vida Verde',
+    referencia: 'PAG-2025-0002',
+    dataPagamento: '2025-04-05',
+    valor: 2750.50,
+    metodo: 'boleto',
+    status: 'confirmado',
+    numeroFatura: 'FAT-2025-0002'
+  },
+  {
+    id: 3,
+    cliente: 'Associação Esperança',
+    referencia: 'PAG-2025-0003',
+    dataPagamento: '2025-04-10',
+    valor: 1230.75,
+    metodo: 'credito',
+    status: 'confirmado',
+    numeroFatura: 'FAT-2025-0003'
+  },
+  {
+    id: 4,
+    cliente: 'Instituto Cannabis Brasil',
+    referencia: 'PAG-2025-0004',
+    dataPagamento: '2025-04-15',
+    valor: 3200.00,
+    metodo: 'transferencia',
+    status: 'pendente',
+    numeroFatura: 'FAT-2025-0004'
+  },
+  {
+    id: 5,
+    cliente: 'Distribuidora Medicinal',
+    referencia: 'PAG-2025-0005',
+    dataPagamento: '2025-04-20',
+    valor: 950.25,
+    metodo: 'pix',
+    status: 'pendente',
+    numeroFatura: 'FAT-2025-0005'
+  },
+  {
+    id: 6,
+    cliente: 'CannaTech Solutions',
+    referencia: 'PAG-2025-0006',
+    dataPagamento: '2025-03-25',
+    valor: 4500.00,
+    metodo: 'boleto',
+    status: 'rejeitado',
+    numeroFatura: 'FAT-2025-0006'
+  },
+  {
+    id: 7,
+    cliente: 'Farmácia Bem Estar',
+    referencia: 'PAG-2025-0007',
+    dataPagamento: '2025-04-01',
+    valor: 1875.50,
+    metodo: 'pix',
+    status: 'confirmado',
+    numeroFatura: 'FAT-2025-0007'
+  },
+  {
+    id: 8,
+    cliente: 'Centro de Pesquisa Cannábica',
+    referencia: 'PAG-2025-0008',
+    dataPagamento: '2025-04-01',
+    valor: 6250.00,
+    metodo: 'credito',
+    status: 'confirmado',
+    numeroFatura: 'FAT-2025-0008'
+  },
+];
+
+// Componente para o status do pagamento com cores diferentes
+const StatusBadge = ({ status }: { status: Pagamento['status'] }) => {
+  const styles = {
+    confirmado: { bg: 'bg-green-100', text: 'text-green-800', label: 'Confirmado' },
+    pendente: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pendente' },
+    rejeitado: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejeitado' },
+  };
+
+  const style = styles[status];
   
-  // Form states para registrar novo pagamento
-  const [newPaymentClientName, setNewPaymentClientName] = useState('');
-  const [newPaymentInvoiceNumber, setNewPaymentInvoiceNumber] = useState('');
-  const [newPaymentAmount, setNewPaymentAmount] = useState('');
-  const [newPaymentMethod, setNewPaymentMethod] = useState('pix');
-  const [newPaymentDate, setNewPaymentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newPaymentNotes, setNewPaymentNotes] = useState('');
+  return (
+    <Badge variant="outline" className={`${style.bg} ${style.text} border-0`}>
+      {style.label}
+    </Badge>
+  );
+};
 
-  useEffect(() => {
-    // Carregar dados
-    loadMockData();
-  }, []);
-
-  const loadMockData = () => {
-    // Mock data para demonstração
-    const mockPayments = [
-      {
-        id: 1,
-        invoiceId: 1,
-        invoiceNumber: 'INV-2025-001',
-        clientName: 'Laboratório MedCanna',
-        amount: 2850.00,
-        paymentMethod: 'bank_transfer' as const,
-        paymentDate: '2025-04-12',
-        status: 'confirmed' as const,
-        notes: 'Pagamento recebido via transferência bancária',
-        receiptUrl: 'https://example.com/receipts/receipt-1.pdf'
-      },
-      {
-        id: 2,
-        invoiceId: 4,
-        invoiceNumber: 'INV-2025-004',
-        clientName: 'HempMed Brasil',
-        amount: 1500.00,
-        paymentMethod: 'pix' as const,
-        paymentDate: '2025-04-25',
-        status: 'pending' as const,
-        notes: 'Pagamento parcial da fatura'
-      },
-      {
-        id: 3,
-        clientName: 'Universidade Federal',
-        amount: 1200.00,
-        paymentMethod: 'credit_card' as const,
-        paymentDate: '2025-04-18',
-        status: 'confirmed' as const,
-        notes: 'Pagamento de treinamento',
-        receiptUrl: 'https://example.com/receipts/receipt-3.pdf'
-      },
-      {
-        id: 4,
-        invoiceId: 3,
-        invoiceNumber: 'INV-2025-003',
-        clientName: 'Associação Esperança',
-        amount: 1890.00,
-        paymentMethod: 'pix' as const,
-        paymentDate: '2025-04-20',
-        status: 'confirmed' as const,
-        receiptUrl: 'https://example.com/receipts/receipt-4.pdf'
-      },
-      {
-        id: 5,
-        clientName: 'Centro de Pesquisa Canábica',
-        amount: 3500.00,
-        paymentMethod: 'bank_transfer' as const,
-        paymentDate: '2025-04-05',
-        status: 'refunded' as const,
-        notes: 'Reembolso integral por cancelamento'
-      }
-    ];
-
-    setPayments(mockPayments);
+// Componente para o método de pagamento
+const MetodoPagamento = ({ metodo }: { metodo: Pagamento['metodo'] }) => {
+  const methods = {
+    pix: { label: 'PIX', icon: <Receipt size={14} className="mr-1" /> },
+    credito: { label: 'Cartão de Crédito', icon: <CreditCard size={14} className="mr-1" /> },
+    boleto: { label: 'Boleto', icon: <Receipt size={14} className="mr-1" /> },
+    transferencia: { label: 'Transferência', icon: <Receipt size={14} className="mr-1" /> },
   };
 
-  // Funções para gerenciar pagamentos
-  const viewPayment = (payment: Payment) => {
-    setCurrentPayment(payment);
-    setViewDialogOpen(true);
-  };
+  const method = methods[metodo];
+  
+  return (
+    <div className="flex items-center">
+      {method.icon}
+      <span>{method.label}</span>
+    </div>
+  );
+};
 
-  const createNewPayment = () => {
-    // Validação básica
-    if (!newPaymentClientName || !newPaymentAmount || !newPaymentMethod || !newPaymentDate) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha todos os campos obrigatórios",
-        variant: "destructive",
-      });
-      return;
-    }
+// Formatar valores monetários
+const formatCurrency = (value: number) => {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+};
 
-    const amount = parseFloat(newPaymentAmount.replace(',', '.'));
-    if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Valor inválido",
-        description: "O valor deve ser um número positivo",
-        variant: "destructive",
-      });
-      return;
-    }
+// Formatar datas
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR');
+};
 
-    const newPayment: Payment = {
-      id: Math.max(0, ...payments.map(payment => payment.id)) + 1,
-      clientName: newPaymentClientName,
-      amount,
-      paymentMethod: newPaymentMethod as any,
-      paymentDate: newPaymentDate,
-      status: 'confirmed',
-      notes: newPaymentNotes,
-    };
+export default function FinanceiroPagamentos() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentTab, setCurrentTab] = useState('todos');
+  const itemsPerPage = 5;
 
-    if (newPaymentInvoiceNumber) {
-      newPayment.invoiceNumber = newPaymentInvoiceNumber;
-      // Aqui poderia buscar o ID da fatura pelo número
-      newPayment.invoiceId = 999; // ID fictício
-    }
+  // Filtrar pagamentos com base na tab atual
+  const filteredByTab = currentTab === 'todos' 
+    ? pagamentosMock 
+    : pagamentosMock.filter(pagamento => pagamento.status === currentTab);
 
-    setPayments([...payments, newPayment]);
-    resetNewPaymentForm();
-    setCreateDialogOpen(false);
-    
-    toast({
-      title: "Pagamento registrado",
-      description: "O pagamento foi registrado com sucesso",
-    });
-  };
-
-  const resetNewPaymentForm = () => {
-    setNewPaymentClientName('');
-    setNewPaymentInvoiceNumber('');
-    setNewPaymentAmount('');
-    setNewPaymentMethod('pix');
-    setNewPaymentDate(new Date().toISOString().split('T')[0]);
-    setNewPaymentNotes('');
-  };
-
-  // Filtros
-  const filteredPayments = payments.filter(payment => {
+  // Filtrar pagamentos com base na busca e filtro de status
+  const filteredPagamentos = filteredByTab.filter(pagamento => {
     const matchesSearch = 
-      payment.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.invoiceNumber && payment.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (payment.notes && payment.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      pagamento.referencia.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pagamento.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pagamento.numeroFatura && pagamento.numeroFatura.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
+    const matchesStatus = statusFilter === '' || pagamento.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
 
-  // Função para exibir o ícone do método de pagamento
-  const renderPaymentMethodIcon = (method: string) => {
-    switch (method) {
-      case 'credit_card':
-        return <CreditCard className="h-4 w-4" />;
-      case 'bank_transfer':
-        return <DollarSign className="h-4 w-4" />;
-      case 'pix':
-        return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 4C18.8 4 16.9 5.6 16.9 5.6L11.9 10.7L7.1 5.9C7.1 5.9 5.8 4 3 4C0.2 4 0 6.3 0 6.3C0 8.8 2.1 10.8 2.1 10.8L11.8 20.3L21.6 10.7C21.6 10.7 24 8.6 24 6.1C24 6.1 23.2 4 21 4Z" fill="currentColor" />
-        </svg>;
-      case 'cash':
-        return <Receipt className="h-4 w-4" />;
-      default:
-        return <DollarSign className="h-4 w-4" />;
-    }
-  };
+  // Paginação
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredPagamentos.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPagamentos.length / itemsPerPage);
 
-  const getPaymentMethodName = (method: string) => {
-    switch (method) {
-      case 'credit_card': return 'Cartão de Crédito';
-      case 'bank_transfer': return 'Transferência Bancária';
-      case 'pix': return 'PIX';
-      case 'cash': return 'Dinheiro';
-      default: return 'Outro';
-    }
-  };
+  // Stats
+  const totalConfirmados = pagamentosMock.filter(p => p.status === 'confirmado').reduce((acc, curr) => acc + curr.valor, 0);
+  const totalPendentes = pagamentosMock.filter(p => p.status === 'pendente').reduce((acc, curr) => acc + curr.valor, 0);
+  const totalRejeitados = pagamentosMock.filter(p => p.status === 'rejeitado').reduce((acc, curr) => acc + curr.valor, 0);
 
   return (
-    <div className="container mx-auto py-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pagamentos</h1>
-          <p className="text-gray-500">Registre e acompanhe todos os pagamentos recebidos</p>
-        </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Registrar Pagamento
-        </Button>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between my-4">
-        <div className="flex w-full sm:w-auto gap-2">
-          <div className="relative w-full sm:w-[300px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-            <Input
-              type="search"
-              placeholder="Buscar pagamentos..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="confirmed">Confirmados</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-              <SelectItem value="failed">Falha</SelectItem>
-              <SelectItem value="refunded">Estornados</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-lg font-medium text-blue-800">Histórico de Pagamentos</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-blue-50">
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Fatura</TableHead>
-                <TableHead className="text-center">Método</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{new Date(payment.paymentDate).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell className="font-medium">{payment.clientName}</TableCell>
-                  <TableCell>{payment.invoiceNumber || "-"}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="inline-flex items-center justify-center p-1.5 bg-gray-100 rounded-md">
-                      {renderPaymentMethodIcon(payment.paymentMethod)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    R$ {payment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        payment.status === 'confirmed' && "bg-green-50 text-green-700 border-green-200",
-                        payment.status === 'pending' && "bg-yellow-50 text-yellow-700 border-yellow-200",
-                        payment.status === 'failed' && "bg-red-50 text-red-700 border-red-200",
-                        payment.status === 'refunded' && "bg-gray-50 text-gray-700 border-gray-200"
-                      )}
-                    >
-                      {
-                        payment.status === 'confirmed' ? 'Confirmado' :
-                        payment.status === 'pending' ? 'Pendente' :
-                        payment.status === 'failed' ? 'Falha' :
-                        'Estornado'
-                      }
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => viewPayment(payment)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Visualizar
-                        </DropdownMenuItem>
-                        {payment.status === 'confirmed' && payment.receiptUrl && (
-                          <DropdownMenuItem onClick={() => window.open(payment.receiptUrl, '_blank')}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Baixar Comprovante
-                          </DropdownMenuItem>
-                        )}
-                        {payment.invoiceId && (
-                          <DropdownMenuItem>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Ver Fatura
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Dialog para visualizar detalhes do pagamento */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Pagamento</DialogTitle>
-          </DialogHeader>
-          {currentPayment && (
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Data</div>
-                  <div>{new Date(currentPayment.paymentDate).toLocaleDateString('pt-BR')}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Status</div>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      currentPayment.status === 'confirmed' && "bg-green-50 text-green-700 border-green-200",
-                      currentPayment.status === 'pending' && "bg-yellow-50 text-yellow-700 border-yellow-200",
-                      currentPayment.status === 'failed' && "bg-red-50 text-red-700 border-red-200",
-                      currentPayment.status === 'refunded' && "bg-gray-50 text-gray-700 border-gray-200"
-                    )}
-                  >
-                    {
-                      currentPayment.status === 'confirmed' ? 'Confirmado' :
-                      currentPayment.status === 'pending' ? 'Pendente' :
-                      currentPayment.status === 'failed' ? 'Falha' :
-                      'Estornado'
-                    }
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Cliente</div>
-                  <div>{currentPayment.clientName}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Valor</div>
-                  <div>R$ {currentPayment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Método de Pagamento</div>
-                  <div className="flex items-center gap-2">
-                    {renderPaymentMethodIcon(currentPayment.paymentMethod)}
-                    <span>{getPaymentMethodName(currentPayment.paymentMethod)}</span>
-                  </div>
-                </div>
-                {currentPayment.invoiceNumber && (
-                  <div>
-                    <div className="text-sm font-semibold text-gray-500">Fatura</div>
-                    <div>{currentPayment.invoiceNumber}</div>
-                  </div>
-                )}
-              </div>
-
-              {currentPayment.notes && (
-                <div>
-                  <div className="text-sm font-semibold text-gray-500">Observações</div>
-                  <div className="text-gray-700">{currentPayment.notes}</div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2 pt-4">
-                {currentPayment.receiptUrl && (
-                  <Button
-                    variant="outline"
-                    onClick={() => window.open(currentPayment.receiptUrl, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Baixar Comprovante
-                  </Button>
-                )}
-                {currentPayment.invoiceId && (
-                  <Button variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Ver Fatura
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para criar novo pagamento */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Registrar Novo Pagamento</DialogTitle>
-            <DialogDescription>
-              Preencha as informações para registrar um novo pagamento
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="clientName" className="text-right">
-                Cliente
-              </Label>
-              <Input
-                id="clientName"
-                value={newPaymentClientName}
-                onChange={(e) => setNewPaymentClientName(e.target.value)}
-                className="col-span-3"
-                placeholder="Nome do cliente"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="invoiceNumber" className="text-right">
-                Fatura (opcional)
-              </Label>
-              <Input
-                id="invoiceNumber"
-                value={newPaymentInvoiceNumber}
-                onChange={(e) => setNewPaymentInvoiceNumber(e.target.value)}
-                className="col-span-3"
-                placeholder="Número da fatura"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="amount" className="text-right">
-                Valor (R$)
-              </Label>
-              <Input
-                id="amount"
-                value={newPaymentAmount}
-                onChange={(e) => setNewPaymentAmount(e.target.value)}
-                className="col-span-3"
-                placeholder="0,00"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="paymentMethod" className="text-right">
-                Método
-              </Label>
-              <Select value={newPaymentMethod} onValueChange={setNewPaymentMethod}>
-                <SelectTrigger id="paymentMethod" className="col-span-3">
-                  <SelectValue placeholder="Selecione o método" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pix">PIX</SelectItem>
-                  <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                  <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
-                  <SelectItem value="cash">Dinheiro</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="paymentDate" className="text-right">
-                Data
-              </Label>
-              <Input
-                id="paymentDate"
-                type="date"
-                value={newPaymentDate}
-                onChange={(e) => setNewPaymentDate(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="notes" className="text-right pt-2">
-                Observações
-              </Label>
-              <Textarea
-                id="notes"
-                value={newPaymentNotes}
-                onChange={(e) => setNewPaymentNotes(e.target.value)}
-                className="col-span-3"
-                placeholder="Informações adicionais sobre o pagamento"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Cancelar
+    <LaboratoryLayout>
+      <div className="space-y-6 p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Pagamentos</h1>
+          <div className="flex space-x-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download size={16} />
+              Exportar
             </Button>
-            <Button onClick={createNewPayment}>
-              <CheckCircle className="h-4 w-4 mr-2" />
+            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+              <Plus size={16} />
               Registrar Pagamento
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        </div>
+
+        {/* Cards de resumo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Pagamentos Confirmados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(totalConfirmados)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {pagamentosMock.filter(p => p.status === 'confirmado').length} transações
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Pagamentos Pendentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {formatCurrency(totalPendentes)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {pagamentosMock.filter(p => p.status === 'pendente').length} transações
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Pagamentos Rejeitados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {formatCurrency(totalRejeitados)}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {pagamentosMock.filter(p => p.status === 'rejeitado').length} transações
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Tabs defaultValue="todos" value={currentTab} onValueChange={setCurrentTab}>
+          <TabsList>
+            <TabsTrigger value="todos">Todos</TabsTrigger>
+            <TabsTrigger value="confirmado">Confirmados</TabsTrigger>
+            <TabsTrigger value="pendente">Pendentes</TabsTrigger>
+            <TabsTrigger value="rejeitado">Rejeitados</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={currentTab}>
+            <div className="flex flex-col md:flex-row gap-4 my-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  placeholder="Buscar por referência, cliente ou fatura..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="w-full md:w-52">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <div className="flex items-center gap-2">
+                      <Filter size={16} />
+                      <SelectValue placeholder="Filtrar por método" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os métodos</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="credito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-40">Referência</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Fatura</TableHead>
+                      <TableHead className="text-center">Data</TableHead>
+                      <TableHead>Método</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentItems.length > 0 ? (
+                      currentItems.map((pagamento) => (
+                        <TableRow key={pagamento.id}>
+                          <TableCell className="font-medium">{pagamento.referencia}</TableCell>
+                          <TableCell>{pagamento.cliente}</TableCell>
+                          <TableCell>{pagamento.numeroFatura || '-'}</TableCell>
+                          <TableCell className="text-center">{formatDate(pagamento.dataPagamento)}</TableCell>
+                          <TableCell><MetodoPagamento metodo={pagamento.metodo} /></TableCell>
+                          <TableCell className="text-right">{formatCurrency(pagamento.valor)}</TableCell>
+                          <TableCell className="text-center">
+                            <StatusBadge status={pagamento.status} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                          Nenhum pagamento encontrado com os filtros aplicados.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {filteredPagamentos.length > 0 && (
+              <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-gray-500">
+                  Exibindo {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredPagamentos.length)} de {filteredPagamentos.length} pagamentos
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          isActive={page === currentPage}
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </LaboratoryLayout>
   );
 }
