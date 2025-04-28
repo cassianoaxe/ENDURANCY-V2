@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 import {
   Card,
@@ -187,6 +188,39 @@ export default function PortalDeAmostras() {
   const [currentTab, setCurrentTab] = useState('solicitar');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sampleRequests, setSampleRequests] = useState<any[]>(sampleRequestsHistory); // Iniciar com dados de exemplo
+  
+  // Carregar amostras do servidor
+  const loadSampleRequests = async () => {
+    if (currentTab === 'historico') {
+      setIsLoading(true);
+      try {
+        const response = await axios.get('/api/laboratory/samples');
+        if (response.data.success) {
+          console.log("Amostras carregadas:", response.data.data);
+          // Se houver dados reais, substituir os dados de exemplo
+          if (response.data.data.length > 0) {
+            setSampleRequests(response.data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar amostras:", error);
+        toast({
+          title: "Erro ao carregar histórico",
+          description: "Não foi possível obter os dados das amostras. Serão exibidos dados de exemplo.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+  
+  // Carregar amostras quando a aba histórico for selecionada
+  useEffect(() => {
+    loadSampleRequests();
+  }, [currentTab]);
 
   // Inicializar formulário com react-hook-form e validação zod
   const form = useForm<SampleRequestValues>({
@@ -212,37 +246,75 @@ export default function PortalDeAmostras() {
     setIsSubmitting(true);
     
     try {
-      // Simular envio para a API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Converter dados do formulário para o formato esperado pela API
+      const requestData = {
+        companyName: values.companyName,
+        contactName: values.contactName,
+        email: values.email,
+        phone: values.phone,
+        sampleType: values.sampleType,
+        analysisType: values.analysisType,
+        sampleQuantity: parseInt(values.quantity) || 1,
+        samplePreservation: "",
+        observations: values.description,
+        priority: values.pickupNeeded ? "urgente" : "normal",
+        needsCollection: values.pickupNeeded,
+        address: {
+          street: values.address,
+          city: "",
+          state: "",
+          zipCode: ""
+        }
+      };
       
-      console.log("Dados do formulário enviados:", values);
+      // Enviar para a API
+      const response = await axios.post('/api/laboratory/samples/request', requestData);
       
-      // Simular resposta de sucesso
-      toast({
-        title: "Solicitação enviada com sucesso",
-        description: "Você receberá um email de confirmação em breve.",
-      });
+      console.log("Resposta da API:", response.data);
       
-      // Limpar formulário
-      form.reset();
-      
-      // Mostrar mensagem de sucesso
-      setSuccessMessage(
-        "Sua solicitação de análise foi enviada com sucesso. Um email de confirmação foi enviado para " +
-        values.email +
-        ". Você pode acompanhar o status da sua solicitação na aba 'Histórico'."
-      );
-      
-      // Redirecionar para a aba de histórico após 3 segundos
-      setTimeout(() => {
-        setCurrentTab('historico');
-        setSuccessMessage(null);
-      }, 3000);
-      
+      if (response.data.success) {
+        const { requestId } = response.data.data;
+        
+        toast({
+          title: "Solicitação enviada com sucesso",
+          description: `Sua solicitação #${requestId} foi registrada. Você receberá um email de confirmação em breve.`,
+        });
+        
+        // Limpar formulário
+        form.reset();
+        
+        // Mostrar mensagem de sucesso
+        setSuccessMessage(
+          `Sua solicitação de análise #${requestId} foi enviada com sucesso. Um email de confirmação foi enviado para ${values.email}. Você pode acompanhar o status da sua solicitação na aba 'Histórico'.`
+        );
+        
+        // Redirecionar para a aba de histórico após 3 segundos
+        setTimeout(() => {
+          setCurrentTab('historico');
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        throw new Error("Falha ao registrar solicitação");
+      }
     } catch (error) {
+      console.error("Erro ao enviar solicitação:", error);
+      
+      let errorMessage = "Ocorreu um erro ao processar sua solicitação. Tente novamente.";
+      
+      // Verificar se é um erro do axios com resposta do servidor
+      if (axios.isAxiosError(error) && error.response) {
+        const responseData = error.response.data;
+        errorMessage = responseData.message || errorMessage;
+        
+        // Se houver erros de validação
+        if (responseData.errors) {
+          errorMessage = "Há erros de validação no formulário. Verifique os campos e tente novamente.";
+        }
+      }
+      
       toast({
         title: "Erro ao enviar solicitação",
-        description: "Ocorreu um erro ao processar sua solicitação. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -251,13 +323,20 @@ export default function PortalDeAmostras() {
   };
 
   // Filtrar amostras baseado no status e termo de busca
-  const filteredSamples = sampleRequestsHistory.filter(sample => {
-    const matchesStatus = statusFilter ? sample.status === statusFilter : true;
+  const filteredSamples = sampleRequests.filter(sample => {
+    // Adaptar os campos para compatibilidade com os dados reais da API
+    const id = sample.id || '';
+    const company = sample.company || sample.companyName || '';
+    const sampleType = sample.sampleType || '';
+    const analysisType = sample.analysisType || '';
+    const status = sample.status || '';
+    
+    const matchesStatus = statusFilter ? status === statusFilter : true;
     const matchesSearch = searchTerm
-      ? sample.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sample.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sample.sampleType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sample.analysisType.toLowerCase().includes(searchTerm.toLowerCase())
+      ? id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sampleType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        analysisType.toLowerCase().includes(searchTerm.toLowerCase())
       : true;
     return matchesStatus && matchesSearch;
   });
@@ -269,6 +348,35 @@ export default function PortalDeAmostras() {
       toast({
         title: "Arquivo carregado",
         description: `${files.length} arquivo(s) selecionado(s) para upload.`,
+      });
+    }
+  };
+  
+  // Função para atualizar o status da amostra
+  const updateSampleStatus = async (id: string, status: string, trackingCode?: string) => {
+    try {
+      const response = await axios.post(`/api/laboratory/samples/${id}/update-status`, { 
+        status,
+        trackingCode
+      });
+      
+      if (response.data.success) {
+        toast({
+          title: "Status atualizado",
+          description: `O status da amostra ${id} foi atualizado com sucesso.`,
+        });
+        
+        // Recarregar as amostras
+        loadSampleRequests();
+      } else {
+        throw new Error(response.data.message || "Erro ao atualizar status");
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast({
+        title: "Erro na atualização",
+        description: "Não foi possível atualizar o status da amostra. Tente novamente.",
+        variant: "destructive",
       });
     }
   };
