@@ -30,8 +30,7 @@ import { AlertCircle, Beaker as BeakerIcon, EyeIcon, EyeOffIcon, FlaskConical, K
 const formSchema = z.object({
   email: z
     .string()
-    .min(1, 'E-mail é obrigatório')
-    .email('Digite um e-mail válido'),
+    .min(1, 'Nome de usuário é obrigatório'),
   password: z
     .string()
     .min(1, 'Senha é obrigatória'),
@@ -69,7 +68,7 @@ export default function LaboratoryLogin() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: data.email,
+          username: data.email,
           password: data.password,
           userType: 'laboratory'
         }),
@@ -93,7 +92,7 @@ export default function LaboratoryLogin() {
       setError(error.message || 'Ocorreu um erro durante o login. Tente novamente.');
       toast({
         title: 'Erro de login',
-        description: error.message || 'Credenciais inválidas. Verifique seu e-mail e senha.',
+        description: error.message || 'Credenciais inválidas. Verifique seu nome de usuário e senha.',
         variant: 'destructive',
       });
     } finally {
@@ -189,12 +188,12 @@ export default function LaboratoryLogin() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>E-mail</FormLabel>
+                          <FormLabel>Nome de Usuário</FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                               <Input 
-                                placeholder="seu.email@laboratorio.com"
+                                placeholder="seu.usuario"
                                 className="pl-9"
                                 {...field}
                               />

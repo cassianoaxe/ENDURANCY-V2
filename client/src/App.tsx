@@ -23,10 +23,12 @@ import LaboratoryAmostras from "@/pages/laboratory/Amostras";
 import LaboratoryResultados from "@/pages/laboratory/Resultados";
 import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
 import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
-import FinanceiroFaturas from "@/pages/laboratory/financeiro/Faturas";
-import FinanceiroPagamentos from "@/pages/laboratory/financeiro/Pagamentos";
-import FinanceiroRelatorios from "@/pages/laboratory/financeiro/Relatorios";
-import FinanceiroLinks from "@/pages/laboratory/financeiro/Links";
+import { 
+  FinanceiroFaturas,
+  FinanceiroPagamentos,
+  FinanceiroRelatorios,
+  FinanceiroLinks
+} from "@/pages/laboratory/financeiro/FinanceiroModule";
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";

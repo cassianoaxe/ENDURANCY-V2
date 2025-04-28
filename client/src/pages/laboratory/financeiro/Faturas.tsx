@@ -1,487 +1,289 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { Search, Plus, Eye, Send, Link as LinkIcon, CheckCircle, MoreVertical, FileText, Download, Printer, X, CreditCard } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'wouter';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Download, Search, Filter, Plus, Calendar, ArrowUpDown } from 'lucide-react';
+import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 
-// Tipos
-interface InvoiceItem {
+// Tipos de dados para as faturas
+interface Fatura {
   id: number;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-  sampleId?: string;
-  testType?: string;
+  numero: string;
+  cliente: string;
+  dataEmissao: string;
+  dataVencimento: string;
+  valor: number;
+  status: 'paga' | 'pendente' | 'atrasada' | 'cancelada';
 }
 
-interface Invoice {
-  id: number;
-  invoiceNumber: string;
-  clientId: number;
-  clientName: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'canceled';
-  issueDate: string;
-  dueDate: string;
-  totalAmount: number;
-  items: InvoiceItem[];
-  notes?: string;
-  paymentMethod?: string;
-  paymentDate?: string;
-  paymentLink?: string;
-}
+// Dados simulados para demonstração
+const faturasMock: Fatura[] = [
+  {
+    id: 1,
+    numero: 'FAT-2025-0001',
+    cliente: 'Dall Solutions',
+    dataEmissao: '2025-04-01',
+    dataVencimento: '2025-05-01',
+    valor: 1500.00,
+    status: 'pendente'
+  },
+  {
+    id: 2,
+    numero: 'FAT-2025-0002',
+    cliente: 'Farmácia Vida Verde',
+    dataEmissao: '2025-04-05',
+    dataVencimento: '2025-05-05',
+    valor: 2750.50,
+    status: 'paga'
+  },
+  {
+    id: 3,
+    numero: 'FAT-2025-0003',
+    cliente: 'Associação Esperança',
+    dataEmissao: '2025-04-10',
+    dataVencimento: '2025-05-10',
+    valor: 1230.75,
+    status: 'paga'
+  },
+  {
+    id: 4,
+    numero: 'FAT-2025-0004',
+    cliente: 'Instituto Cannabis Brasil',
+    dataEmissao: '2025-03-15',
+    dataVencimento: '2025-04-15',
+    valor: 3200.00,
+    status: 'atrasada'
+  },
+  {
+    id: 5,
+    numero: 'FAT-2025-0005',
+    cliente: 'Distribuidora Medicinal',
+    dataEmissao: '2025-04-20',
+    dataVencimento: '2025-05-20',
+    valor: 950.25,
+    status: 'pendente'
+  },
+  {
+    id: 6,
+    numero: 'FAT-2025-0006',
+    cliente: 'CannaTech Solutions',
+    dataEmissao: '2025-03-25',
+    dataVencimento: '2025-04-25',
+    valor: 4500.00,
+    status: 'atrasada'
+  },
+  {
+    id: 7,
+    numero: 'FAT-2025-0007',
+    cliente: 'Farmácia Bem Estar',
+    dataEmissao: '2025-04-01',
+    dataVencimento: '2025-05-01',
+    valor: 1875.50,
+    status: 'pendente'
+  },
+  {
+    id: 8,
+    numero: 'FAT-2025-0008',
+    cliente: 'Centro de Pesquisa Cannábica',
+    dataEmissao: '2025-04-01',
+    dataVencimento: '2025-05-01',
+    valor: 6250.00,
+    status: 'paga'
+  },
+];
+
+// Componente para o status da fatura com cores diferentes
+const StatusBadge = ({ status }: { status: Fatura['status'] }) => {
+  const styles = {
+    paga: { bg: 'bg-green-100', text: 'text-green-800', label: 'Paga' },
+    pendente: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Pendente' },
+    atrasada: { bg: 'bg-red-100', text: 'text-red-800', label: 'Atrasada' },
+    cancelada: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Cancelada' },
+  };
+
+  const style = styles[status];
+  
+  return (
+    <Badge variant="outline" className={`${style.bg} ${style.text} border-0`}>
+      {style.label}
+    </Badge>
+  );
+};
+
+// Formatar valores monetários
+const formatCurrency = (value: number) => {
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+};
+
+// Formatar datas
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('pt-BR');
+};
 
 export default function FinanceiroFaturas() {
-  const { toast } = useToast();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  useEffect(() => {
-    // Carregar dados das faturas
-    loadMockData();
-  }, []);
-
-  const loadMockData = () => {
-    // Mock data para demonstração
-    const mockInvoices = [
-      {
-        id: 1,
-        invoiceNumber: 'INV-2025-001',
-        clientId: 1,
-        clientName: 'Laboratório MedCanna',
-        status: 'paid' as const,
-        issueDate: '2025-04-01',
-        dueDate: '2025-04-15',
-        totalAmount: 2850.00,
-        items: [
-          { id: 1, description: 'Análise de potência CBD', quantity: 3, unitPrice: 350, total: 1050, sampleId: 'CBD-001', testType: 'HPLC' },
-          { id: 2, description: 'Análise de terpenos', quantity: 2, unitPrice: 450, total: 900, sampleId: 'CBD-002', testType: 'GCMS' },
-          { id: 3, description: 'Análise de contaminantes', quantity: 3, unitPrice: 300, total: 900, sampleId: 'CBD-003', testType: 'LCMS' }
-        ],
-        paymentMethod: 'Transferência bancária'
-      },
-      {
-        id: 2,
-        invoiceNumber: 'INV-2025-002',
-        clientId: 2,
-        clientName: 'CannaPharma Brasil',
-        status: 'sent' as const,
-        issueDate: '2025-04-05',
-        dueDate: '2025-05-05',
-        totalAmount: 4200.00,
-        paymentLink: 'https://pagamento.com/link-exemplo-1',
-        items: [
-          { id: 4, description: 'Análise completa - óleo CBD', quantity: 2, unitPrice: 1200, total: 2400, sampleId: 'CP-001', testType: 'HPLC+GCMS' },
-          { id: 5, description: 'Análise de metais pesados', quantity: 3, unitPrice: 600, total: 1800, sampleId: 'CP-002', testType: 'ICP-MS' }
-        ]
-      },
-      {
-        id: 3,
-        invoiceNumber: 'INV-2025-003',
-        clientId: 3,
-        clientName: 'Associação Esperança',
-        status: 'overdue' as const,
-        issueDate: '2025-03-10',
-        dueDate: '2025-04-10',
-        totalAmount: 1890.00,
-        paymentLink: 'https://pagamento.com/link-exemplo-2',
-        items: [
-          { id: 6, description: 'Análise de estabilidade', quantity: 3, unitPrice: 630, total: 1890, sampleId: 'AE-001', testType: 'Cromatografia' }
-        ]
-      },
-      {
-        id: 4,
-        invoiceNumber: 'INV-2025-004',
-        clientId: 4,
-        clientName: 'HempMed Brasil',
-        status: 'draft' as const,
-        issueDate: '2025-04-20',
-        dueDate: '2025-05-20',
-        totalAmount: 3450.00,
-        items: [
-          { id: 7, description: 'Análise de THC residual', quantity: 5, unitPrice: 450, total: 2250, sampleId: 'HM-001', testType: 'HPLC' },
-          { id: 8, description: 'Análise microbiológica', quantity: 3, unitPrice: 400, total: 1200, sampleId: 'HM-002', testType: 'Microbiologia' }
-        ]
-      },
-      {
-        id: 5,
-        invoiceNumber: 'INV-2025-005',
-        clientId: 5,
-        clientName: 'Farmácia de Manipulação Vida',
-        status: 'canceled' as const,
-        issueDate: '2025-03-25',
-        dueDate: '2025-04-25',
-        totalAmount: 750.00,
-        items: [
-          { id: 9, description: 'Validação de metodologia', quantity: 1, unitPrice: 750, total: 750, sampleId: 'FM-001', testType: 'Validação' }
-        ],
-        notes: 'Cancelado a pedido do cliente'
-      }
-    ];
-
-    setInvoices(mockInvoices);
-  };
-
-  // Funções para gerenciar as faturas
-  const viewInvoice = (invoice: Invoice) => {
-    setCurrentInvoice(invoice);
-    setDialogOpen(true);
-  };
-
-  const sendInvoice = (invoice: Invoice) => {
-    // Aqui seria a lógica para enviar a fatura por email
-    const updatedInvoices = invoices.map(inv => 
-      inv.id === invoice.id ? { ...inv, status: 'sent' as const } : inv
-    );
-    setInvoices(updatedInvoices);
-    
-    toast({
-      title: "Fatura enviada",
-      description: `A fatura ${invoice.invoiceNumber} foi enviada para ${invoice.clientName}`,
-    });
-  };
-
-  const markAsPaid = (invoice: Invoice) => {
-    // Aqui seria a lógica para marcar como paga
-    const today = new Date().toISOString().split('T')[0];
-    const updatedInvoices = invoices.map(inv => 
-      inv.id === invoice.id ? { 
-        ...inv, 
-        status: 'paid' as const,
-        paymentDate: today
-      } : inv
-    );
-    setInvoices(updatedInvoices);
-    
-    toast({
-      title: "Pagamento registrado",
-      description: `A fatura ${invoice.invoiceNumber} foi marcada como paga`,
-    });
-  };
-
-  const generatePaymentLink = (invoice: Invoice) => {
-    // Gerar link de pagamento
-    const paymentLinkUrl = `https://pagamento.com/fatura-${invoice.id}-${Date.now()}`;
-    const updatedInvoices = invoices.map(inv => 
-      inv.id === invoice.id ? { ...inv, paymentLink: paymentLinkUrl } : inv
-    );
-    setInvoices(updatedInvoices);
-    
-    toast({
-      title: "Link de pagamento gerado",
-      description: "O link foi gerado e pode ser compartilhado com o cliente",
-    });
-  };
-
-  // Filtrar as faturas
-  const filteredInvoices = invoices.filter(invoice => {
+  // Filtrar faturas
+  const filteredFaturas = faturasMock.filter(fatura => {
     const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase());
+      fatura.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fatura.cliente.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = filterStatus === 'all' || invoice.status === filterStatus;
+    const matchesStatus = statusFilter === '' || fatura.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
 
-  return (
-    <div className="container mx-auto py-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Faturas</h1>
-          <p className="text-gray-500">Gerencie todas as faturas de seus clientes</p>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Fatura
-        </Button>
-      </div>
+  // Paginação
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredFaturas.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredFaturas.length / itemsPerPage);
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between my-4">
-        <div className="flex w-full sm:w-auto gap-2">
-          <div className="relative w-full sm:w-[300px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+  return (
+    <LaboratoryLayout>
+      <div className="space-y-6 p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Faturas</h1>
+          <div className="flex space-x-2">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Download size={16} />
+              Exportar
+            </Button>
+            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+              <Plus size={16} />
+              Nova Fatura
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex flex-col md:flex-row gap-4 my-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <Input
-              type="search"
-              placeholder="Buscar faturas..."
-              className="pl-8"
+              placeholder="Buscar por número ou cliente..."
+              className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="draft">Rascunho</SelectItem>
-              <SelectItem value="sent">Enviada</SelectItem>
-              <SelectItem value="paid">Paga</SelectItem>
-              <SelectItem value="overdue">Atrasada</SelectItem>
-              <SelectItem value="canceled">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full md:w-52">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <div className="flex items-center gap-2">
+                  <Filter size={16} />
+                  <SelectValue placeholder="Status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="paga">Paga</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="atrasada">Atrasada</SelectItem>
+                <SelectItem value="cancelada">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader className="bg-blue-50">
-          <CardTitle className="text-lg font-medium text-blue-800">Faturas</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-hidden">
+        <Card>
+          <CardContent className="p-0">
             <Table>
-              <TableHeader className="bg-blue-50">
+              <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="w-[120px]">Número</TableHead>
+                  <TableHead className="w-40">Número</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="w-[100px]">Emissão</TableHead>
-                  <TableHead className="w-[100px]">Vencimento</TableHead>
-                  <TableHead className="w-[120px] text-right">Valor</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[120px] text-right">Ações</TableHead>
+                  <TableHead className="text-center">Data Emissão</TableHead>
+                  <TableHead className="text-center">Data Vencimento</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                    <TableCell>{invoice.clientName}</TableCell>
-                    <TableCell>{new Date(invoice.issueDate).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell>{new Date(invoice.dueDate).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell className="text-right">
-                      R$ {invoice.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          invoice.status === 'paid' && "bg-green-50 text-green-700 border-green-200",
-                          invoice.status === 'sent' && "bg-blue-50 text-blue-700 border-blue-200",
-                          invoice.status === 'draft' && "bg-gray-50 text-gray-700 border-gray-200",
-                          invoice.status === 'overdue' && "bg-red-50 text-red-700 border-red-200",
-                          invoice.status === 'canceled' && "bg-gray-50 text-gray-700 border-gray-200 line-through"
-                        )}
-                      >
-                        {
-                          invoice.status === 'paid' ? 'Paga' :
-                          invoice.status === 'sent' ? 'Enviada' :
-                          invoice.status === 'draft' ? 'Rascunho' :
-                          invoice.status === 'overdue' ? 'Atrasada' :
-                          'Cancelada'
-                        }
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Abrir menu</span>
-                            <MoreVertical className="h-4 w-4" />
+                {currentItems.length > 0 ? (
+                  currentItems.map((fatura) => (
+                    <TableRow key={fatura.id}>
+                      <TableCell className="font-medium">{fatura.numero}</TableCell>
+                      <TableCell>{fatura.cliente}</TableCell>
+                      <TableCell className="text-center">{formatDate(fatura.dataEmissao)}</TableCell>
+                      <TableCell className="text-center">{formatDate(fatura.dataVencimento)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(fatura.valor)}</TableCell>
+                      <TableCell className="text-center">
+                        <StatusBadge status={fatura.status} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <FileText size={16} />
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => viewInvoice(invoice)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Visualizar
-                          </DropdownMenuItem>
-                          {invoice.status !== 'paid' && invoice.status !== 'canceled' && (
-                            <>
-                              <DropdownMenuItem onClick={() => sendInvoice(invoice)}>
-                                <Send className="mr-2 h-4 w-4" />
-                                Enviar
-                              </DropdownMenuItem>
-                              {!invoice.paymentLink && (
-                                <DropdownMenuItem onClick={() => generatePaymentLink(invoice)}>
-                                  <LinkIcon className="mr-2 h-4 w-4" />
-                                  Gerar Link
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={() => markAsPaid(invoice)}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Marcar como Paga
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Download size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      Nenhuma fatura encontrada com os filtros aplicados.
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Dialog para visualizar fatura */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Fatura {currentInvoice?.invoiceNumber}</DialogTitle>
-          </DialogHeader>
-          {currentInvoice && (
-            <div className="mt-4">
-              <div className="flex justify-between mb-6">
-                <div>
-                  <h3 className="font-semibold">Cliente</h3>
-                  <p>{currentInvoice.clientName}</p>
-                </div>
-                <div className="text-right">
-                  <h3 className="font-semibold">Status</h3>
-                  <Badge 
-                    variant="outline"
-                    className={cn(
-                      currentInvoice.status === 'paid' && "bg-green-50 text-green-700 border-green-200",
-                      currentInvoice.status === 'sent' && "bg-blue-50 text-blue-700 border-blue-200",
-                      currentInvoice.status === 'draft' && "bg-gray-50 text-gray-700 border-gray-200",
-                      currentInvoice.status === 'overdue' && "bg-red-50 text-red-700 border-red-200"
-                    )}
-                  >
-                    {
-                      currentInvoice.status === 'paid' ? 'Paga' :
-                      currentInvoice.status === 'sent' ? 'Enviada' :
-                      currentInvoice.status === 'draft' ? 'Rascunho' :
-                      currentInvoice.status === 'overdue' ? 'Atrasada' :
-                      'Cancelada'
-                    }
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <h3 className="font-semibold">Data de Emissão</h3>
-                  <p>{new Date(currentInvoice.issueDate).toLocaleDateString('pt-BR')}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold">Data de Vencimento</h3>
-                  <p>{new Date(currentInvoice.dueDate).toLocaleDateString('pt-BR')}</p>
-                </div>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden mb-6">
-                <Table>
-                  <TableHeader className="bg-gray-50">
-                    <TableRow>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead className="text-right">Quantidade</TableHead>
-                      <TableHead className="text-right">Valor Unitário</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentInvoice.items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">
-                          R$ {item.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          R$ {item.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="flex justify-end mb-6">
-                <div className="w-64">
-                  <div className="flex justify-between py-2 border-t">
-                    <span className="font-semibold">Total:</span>
-                    <span className="font-semibold">
-                      R$ {currentInvoice.totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {currentInvoice.notes && (
-                <div className="mb-6">
-                  <h3 className="font-semibold mb-2">Observações</h3>
-                  <p className="text-gray-600">{currentInvoice.notes}</p>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  <X className="h-4 w-4 mr-2" />
-                  Fechar
-                </Button>
-                
-                <Button variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-                
-                <Button variant="outline">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimir
-                </Button>
-                
-                {currentInvoice.status !== 'paid' && currentInvoice.status !== 'canceled' && (
-                  <>
-                    <Button variant="outline" onClick={() => markAsPaid(currentInvoice)}>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Marcar como Paga
-                    </Button>
-                    
-                    {!currentInvoice.paymentLink && (
-                      <Button variant="outline" onClick={() => generatePaymentLink(currentInvoice)}>
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                        Gerar Link
-                      </Button>
-                    )}
-                    
-                    <Button onClick={() => sendInvoice(currentInvoice)}>
-                      <Send className="h-4 w-4 mr-2" />
-                      Enviar
-                    </Button>
-                  </>
-                )}
-              </div>
+        {filteredFaturas.length > 0 && (
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              Exibindo {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredFaturas.length)} de {filteredFaturas.length} faturas
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <PaginationItem key={page}>
+                    <PaginationLink 
+                      isActive={page === currentPage}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
+      </div>
+    </LaboratoryLayout>
   );
 }
