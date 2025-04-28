@@ -63,15 +63,15 @@ export default function LaboratoryLogin() {
     try {
       console.log("Iniciando tentativa de login com:", data.email);
       // Enviar requisição para a API
-      const response = await fetch('/api/auth/login', {
+      // Usando a rota específica para login de laboratório para evitar redirecionamento ao dashboard geral
+      const response = await fetch('/api/auth/laboratory/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           username: data.email,
-          password: data.password,
-          userType: 'laboratory'
+          password: data.password
         }),
       });
 
@@ -288,11 +288,47 @@ export default function LaboratoryLogin() {
                       type="button"
                       variant="outline"
                       className="w-full border-blue-300 text-blue-700"
-                      onClick={() => onSubmit({ 
-                        email: "laboratorio", 
-                        password: "lab123",
-                        rememberMe: true
-                      })}
+                      onClick={async () => {
+                        setIsLoading(true);
+                        setError(null);
+                        
+                        try {
+                          // Fazer login direto com credenciais de demonstração
+                          const response = await fetch('/api/auth/laboratory/login', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              username: "laboratorio",
+                              password: "lab123"
+                            }),
+                          });
+                    
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Falha ao acessar demonstração');
+                          }
+                    
+                          toast({
+                            title: 'Acesso de demonstração',
+                            description: 'Redirecionando para o painel do laboratório...',
+                          });
+                    
+                          // Redirecionar para o dashboard do laboratório
+                          window.location.href = '/laboratory/dashboard';
+                        } catch (error: any) {
+                          console.error('Erro no acesso de demonstração:', error);
+                          setError(error.message || 'Ocorreu um erro. Tente novamente.');
+                          toast({
+                            title: 'Erro de acesso',
+                            description: error.message || 'Não foi possível acessar a demonstração.',
+                            variant: 'destructive',
+                          });
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
                     >
                       Acessar Demonstração
                     </Button>
