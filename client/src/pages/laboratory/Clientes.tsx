@@ -24,8 +24,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,14 +37,13 @@ import {
   Eye,
   Filter,
   FlaskConical,
-  MoreHorizontal,
   Plus,
   Search,
   UserPlus,
   Users
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
+// Layout gerenciado pelo App.tsx
 
 // Tipos
 interface LaboratoryClient {
@@ -192,172 +190,168 @@ export default function LaboratoryClientes() {
   // Renderização do estado de carregamento
   if (isLoading) {
     return (
-      <LaboratoryLayout>
-        <div className="flex justify-center items-center h-[calc(100vh-150px)]">
-          <div className="flex flex-col items-center">
-            <FlaskConical className="h-12 w-12 animate-pulse text-blue-500 mb-2" />
-            <p className="text-lg text-gray-600">Carregando clientes...</p>
-          </div>
+      <div className="flex justify-center items-center h-[calc(100vh-150px)]">
+        <div className="flex flex-col items-center">
+          <FlaskConical className="h-12 w-12 animate-pulse text-blue-500 mb-2" />
+          <p className="text-lg text-gray-600">Carregando clientes...</p>
         </div>
-      </LaboratoryLayout>
+      </div>
     );
   }
 
   return (
-    <LaboratoryLayout>
-      <div className="space-y-4 p-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Gerenciamento de Clientes</h1>
-          <Button onClick={() => setShowNewClientDialog(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Novo Cliente
-          </Button>
-        </div>
+    <div className="space-y-4 p-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Gerenciamento de Clientes</h1>
+        <Button onClick={() => setShowNewClientDialog(true)}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Novo Cliente
+        </Button>
+      </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Clientes</CardTitle>
-            <CardDescription>
-              Gerencie os clientes do laboratório e suas solicitações
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="recent">Recentes</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Clientes</CardTitle>
+          <CardDescription>
+            Gerencie os clientes do laboratório e suas solicitações
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="recent">Recentes</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-              <div className="relative w-full md:w-auto flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar por nome ou email..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={setSelectedStatus}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      <SelectItem value="active">Ativo</SelectItem>
-                      <SelectItem value="inactive">Inativo</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Building className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedType}
-                    onValueChange={setSelectedType}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Tipos</SelectItem>
-                      <SelectItem value="company">Empresa</SelectItem>
-                      <SelectItem value="association">Associação</SelectItem>
-                      <SelectItem value="clinic">Clínica</SelectItem>
-                      <SelectItem value="research">Pesquisa</SelectItem>
-                      <SelectItem value="individual">Individual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+            <div className="relative w-full md:w-auto flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por nome ou email..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
 
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Building className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedType}
+                  onValueChange={setSelectedType}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="company">Empresa</SelectItem>
+                    <SelectItem value="association">Associação</SelectItem>
+                    <SelectItem value="clinic">Clínica</SelectItem>
+                    <SelectItem value="research">Pesquisa</SelectItem>
+                    <SelectItem value="individual">Individual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="hidden md:table-cell">Contato</TableHead>
+                  <TableHead className="hidden lg:table-cell">Último Pedido</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredClients.length === 0 ? (
                   <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="hidden md:table-cell">Contato</TableHead>
-                    <TableHead className="hidden lg:table-cell">Último Pedido</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      Nenhum cliente encontrado com os filtros atuais.
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredClients.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        Nenhum cliente encontrado com os filtros atuais.
+                ) : (
+                  filteredClients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell className="font-medium">
+                        <div>
+                          {client.name}
+                          <div className="text-sm text-gray-500">
+                            {client.totalOrders} {client.totalOrders === 1 ? 'pedido' : 'pedidos'}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{translateClientType(client.type)}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div>
+                          {client.contactPerson}
+                          <div className="text-sm text-gray-500">
+                            {client.email}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {client.lastOrder ? (
+                          <div className="flex items-center">
+                            <Clock className="h-3 w-3 mr-1 text-gray-400" />
+                            {new Date(client.lastOrder).toLocaleDateString('pt-BR')}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(client.status)}>
+                          {translateClientStatus(client.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => viewClientDetails(client)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredClients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell className="font-medium">
-                          <div>
-                            {client.name}
-                            <div className="text-sm text-gray-500">
-                              {client.totalOrders} {client.totalOrders === 1 ? 'pedido' : 'pedidos'}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{translateClientType(client.type)}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <div>
-                            {client.contactPerson}
-                            <div className="text-sm text-gray-500">
-                              {client.email}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          {client.lastOrder ? (
-                            <div className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1 text-gray-400" />
-                              {new Date(client.lastOrder).toLocaleDateString('pt-BR')}
-                            </div>
-                          ) : (
-                            <span className="text-gray-500">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(client.status)}>
-                            {translateClientStatus(client.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => viewClientDetails(client)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-gray-500">
-              Mostrando {filteredClients.length} de {clients.length} clientes
-            </div>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar Lista
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-gray-500">
+            Mostrando {filteredClients.length} de {clients.length} clientes
+          </div>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar Lista
+          </Button>
+        </CardFooter>
+      </Card>
 
       {/* Diálogo para adicionar novo cliente */}
       <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
@@ -464,219 +458,136 @@ export default function LaboratoryClientes() {
             
             <div className="flex items-center space-x-2">
               <Checkbox id="notifications" />
-              <Label htmlFor="notifications">Enviar notificações sobre resultados e atualizações</Label>
+              <Label htmlFor="notifications">Enviar notificações para este cliente</Label>
             </div>
             
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowNewClientDialog(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Adicionar Cliente</Button>
+              <Button type="submit">Adicionar</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo para detalhes do cliente */}
+      {/* Diálogo de detalhes do cliente */}
       {selectedClient && (
         <Dialog open={showClientDetailDialog} onOpenChange={setShowClientDetailDialog}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Detalhes do Cliente</DialogTitle>
+              <DialogTitle className="text-xl flex items-center">
+                <Users className="h-5 w-5 mr-2 text-blue-600" />
+                {selectedClient.name}
+                <Badge className={`ml-2 ${getStatusColor(selectedClient.status)}`}>
+                  {translateClientStatus(selectedClient.status)}
+                </Badge>
+              </DialogTitle>
               <DialogDescription>
-                Informações detalhadas sobre {selectedClient.name}
+                {translateClientType(selectedClient.type)} • Desde {new Date(selectedClient.registrationDate).toLocaleDateString('pt-BR')}
               </DialogDescription>
             </DialogHeader>
             
-            <Tabs defaultValue="info">
-              <TabsList>
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="orders">Pedidos</TabsTrigger>
-                <TabsTrigger value="samples">Amostras</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="info" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Informações de Contato */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Informações de Contato</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3 text-sm">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Nome</h3>
-                      <p className="text-lg">{selectedClient.name}</p>
+                      <div className="text-gray-500">Contato Principal</div>
+                      <div className="font-medium">{selectedClient.contactPerson}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Tipo</h3>
-                      <p className="text-lg">{translateClientType(selectedClient.type)}</p>
+                      <div className="text-gray-500">Email</div>
+                      <div className="font-medium">{selectedClient.email}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                      <Badge className={getStatusColor(selectedClient.status)}>
-                        {translateClientStatus(selectedClient.status)}
-                      </Badge>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Data de Registro</h3>
-                      <p className="text-lg">{new Date(selectedClient.registrationDate).toLocaleDateString('pt-BR')}</p>
+                      <div className="text-gray-500">Telefone</div>
+                      <div className="font-medium">{selectedClient.phone}</div>
                     </div>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Pessoa de Contato</h3>
-                      <p className="text-lg">{selectedClient.contactPerson}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                      <p className="text-lg">{selectedClient.email}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Telefone</h3>
-                      <p className="text-lg">{selectedClient.phone}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Total de Pedidos</h3>
-                      <p className="text-lg">{selectedClient.totalOrders}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium text-gray-500">Endereço</h3>
-                  <p className="text-lg">
-                    {selectedClient.address}, {selectedClient.city} - {selectedClient.state}, {selectedClient.postalCode}
+                </CardContent>
+              </Card>
+
+              {/* Endereço */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Endereço</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">
+                    {selectedClient.address}
+                    <br />
+                    {selectedClient.city}, {selectedClient.state}
+                    <br />
+                    {selectedClient.postalCode}
                     <br />
                     {selectedClient.country}
                   </p>
-                </div>
-                
-                {selectedClient.notes && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-500">Observações</h3>
-                    <p className="text-lg">{selectedClient.notes}</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="orders">
-                <div className="py-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Histórico de Pedidos</h3>
-                    <Button variant="outline" size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Novo Pedido
-                    </Button>
-                  </div>
-                  
-                  {selectedClient.totalOrders === 0 ? (
-                    <div className="text-center py-8 border rounded-md">
-                      <div className="flex flex-col items-center">
-                        <FlaskConical className="h-10 w-10 text-gray-400 mb-2" />
-                        <h3 className="text-lg font-medium">Nenhum Pedido</h3>
-                        <p className="text-gray-500 max-w-md mt-1">
-                          Este cliente ainda não realizou nenhum pedido.
-                        </p>
+                </CardContent>
+              </Card>
+
+              {/* Detalhes e Histórico */}
+              <Card className="md:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Detalhes e Histórico</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <div className="text-gray-500 text-sm mb-1">Total de Pedidos</div>
+                      <div className="text-2xl font-bold">{selectedClient.totalOrders}</div>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <div className="text-gray-500 text-sm mb-1">Último Pedido</div>
+                      <div className="text-xl font-medium">
+                        {selectedClient.lastOrder ? (
+                          new Date(selectedClient.lastOrder).toLocaleDateString('pt-BR')
+                        ) : (
+                          <span className="text-gray-400">Nenhum</span>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <div className="border rounded-md overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Código</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="font-medium">ORD-2025-042</TableCell>
-                            <TableCell>{new Date().toLocaleDateString('pt-BR')}</TableCell>
-                            <TableCell>Análise de Canabinoides</TableCell>
-                            <TableCell>
-                              <Badge className="bg-yellow-500">Em Progresso</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm">Ver</Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="samples">
-                <div className="py-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Amostras Enviadas</h3>
-                    <Button variant="outline" size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Amostra
-                    </Button>
-                  </div>
-                  
-                  {selectedClient.totalOrders === 0 ? (
-                    <div className="text-center py-8 border rounded-md">
-                      <div className="flex flex-col items-center">
-                        <FlaskConical className="h-10 w-10 text-gray-400 mb-2" />
-                        <h3 className="text-lg font-medium">Nenhuma Amostra</h3>
-                        <p className="text-gray-500 max-w-md mt-1">
-                          Este cliente ainda não enviou nenhuma amostra para análise.
-                        </p>
+                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                      <div className="text-gray-500 text-sm mb-1">Cliente Desde</div>
+                      <div className="text-xl font-medium">
+                        {new Date(selectedClient.registrationDate).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
-                  ) : (
-                    <div className="border rounded-md overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Código</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Data de Recebimento</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell className="font-medium">SAMPLE-001-25</TableCell>
-                            <TableCell>Planta</TableCell>
-                            <TableCell>{new Date().toLocaleDateString('pt-BR')}</TableCell>
-                            <TableCell>
-                              <Badge className="bg-green-500">Concluída</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm">Ver Resultados</Button>
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                  </div>
+                  
+                  {selectedClient.notes && (
+                    <div className="mt-4">
+                      <div className="text-gray-500 text-sm mb-1">Observações</div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        {selectedClient.notes}
+                      </div>
                     </div>
                   )}
-                </div>
-              </TabsContent>
-            </Tabs>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" className="w-full">
+                    Ver histórico completo de pedidos
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
             
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setShowClientDetailDialog(false)}>
                 Fechar
               </Button>
-              <Button>
-                <Users className="h-4 w-4 mr-2" />
-                Editar Cliente
+              <Button variant="default">
+                Criar Nova Amostra
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-    </LaboratoryLayout>
+    </div>
   );
 }
 
@@ -684,122 +595,121 @@ export default function LaboratoryClientes() {
 const mockClients: LaboratoryClient[] = [
   {
     id: 1,
-    name: 'Associação MedCanna',
+    name: 'Associação Brasileira de Apoio Cannabis Esperança',
     type: 'association',
-    email: 'contato@medcanna.org.br',
-    phone: '(11) 3456-7890',
-    contactPerson: 'Maria Silva',
+    email: 'contato@abrace.org.br',
+    phone: '(83) 3031-3030',
+    contactPerson: 'Ricardo Peixoto',
     status: 'active',
-    lastOrder: '2025-04-20',
-    totalOrders: 12,
-    address: 'Av. Paulista, 1000, Sala 501',
-    city: 'São Paulo',
-    state: 'SP',
+    lastOrder: '2025-04-15',
+    totalOrders: 18,
+    address: 'Rua João Pessoa, 123',
+    city: 'João Pessoa',
+    state: 'PB',
     country: 'Brasil',
-    postalCode: '01310-100',
-    registrationDate: '2024-01-15',
-    notes: 'Associação focada em pesquisa medicinal para epilepsia.'
+    postalCode: '58000-000',
+    registrationDate: '2023-05-15',
+    notes: 'Associação com foco em pesquisa e desenvolvimento de produtos terapêuticos.'
   },
   {
     id: 2,
-    name: 'CBD Brasil Cultivo',
-    type: 'company',
-    email: 'operacoes@cbdbrasil.com.br',
-    phone: '(31) 2345-6789',
-    contactPerson: 'João Oliveira',
+    name: 'Universidade Federal de São Paulo',
+    type: 'research',
+    email: 'lab.pesquisa@unifesp.edu.br',
+    phone: '(11) 3091-1234',
+    contactPerson: 'Dra. Carolina Silva',
     status: 'active',
-    lastOrder: '2025-04-15',
-    totalOrders: 25,
-    address: 'Rodovia BR-040, Km 688',
-    city: 'Belo Horizonte',
-    state: 'MG',
+    lastOrder: '2025-04-02',
+    totalOrders: 7,
+    address: 'Av. Prof. Lineu Prestes, 748',
+    city: 'São Paulo',
+    state: 'SP',
     country: 'Brasil',
-    postalCode: '30494-500',
+    postalCode: '05508-000',
     registrationDate: '2023-08-20'
   },
   {
     id: 3,
-    name: 'Farmácia Medigreen',
+    name: 'Clínica Integrada de Dor',
     type: 'clinic',
-    email: 'farmacia@medigreen.com.br',
-    phone: '(21) 4567-8901',
-    contactPerson: 'Ana Costa',
-    status: 'active',
-    lastOrder: '2025-04-10',
-    totalOrders: 8,
-    address: 'Rua Voluntários da Pátria, 320',
+    email: 'atendimento@clinicador.com.br',
+    phone: '(21) 2224-5678',
+    contactPerson: 'Dr. Roberto Mendes',
+    status: 'inactive',
+    lastOrder: '2024-12-10',
+    totalOrders: 4,
+    address: 'Rua Visconde de Pirajá, 547',
     city: 'Rio de Janeiro',
     state: 'RJ',
     country: 'Brasil',
-    postalCode: '22270-010',
-    registrationDate: '2024-02-28'
+    postalCode: '22410-003',
+    registrationDate: '2024-01-10'
   },
   {
     id: 4,
-    name: 'Instituto de Pesquisa Canábica',
-    type: 'research',
-    email: 'pesquisa@ipc.edu.br',
-    phone: '(41) 5678-9012',
-    contactPerson: 'Dr. Roberto Mendes',
+    name: 'PharmaCann Indústria Farmacêutica',
+    type: 'company',
+    email: 'qualidade@pharmacann.com.br',
+    phone: '(19) 3521-8900',
+    contactPerson: 'André Gomes',
     status: 'active',
-    lastOrder: '2025-03-15',
-    totalOrders: 6,
-    address: 'Av. das Universidades, 2000',
-    city: 'Curitiba',
-    state: 'PR',
+    lastOrder: '2025-03-25',
+    totalOrders: 12,
+    address: 'Rodovia Anhanguera Km 129',
+    city: 'Campinas',
+    state: 'SP',
     country: 'Brasil',
-    postalCode: '80540-900',
-    registrationDate: '2023-11-10',
-    notes: 'Instituto vinculado à universidade para pesquisa de aplicações medicinais.'
+    postalCode: '13100-000',
+    registrationDate: '2023-06-05'
   },
   {
     id: 5,
-    name: 'Vida Verde Produtos',
-    type: 'company',
-    email: 'comercial@vidaverde.com',
-    phone: '(85) 6789-0123',
-    contactPerson: 'Carolina Freitas',
-    status: 'inactive',
-    totalOrders: 0,
-    address: 'Av. Santos Dumont, 1500',
-    city: 'Fortaleza',
-    state: 'CE',
+    name: 'Grupo de Apoio a Pacientes Neurológicos',
+    type: 'association',
+    email: 'contato@gapneuro.org.br',
+    phone: '(31) 3335-4567',
+    contactPerson: 'Marcelo Ferreira',
+    status: 'active',
+    lastOrder: '2025-04-10',
+    totalOrders: 9,
+    address: 'Av. Afonso Pena, 3456',
+    city: 'Belo Horizonte',
+    state: 'MG',
     country: 'Brasil',
-    postalCode: '60175-050',
-    registrationDate: '2024-03-05'
+    postalCode: '30130-009',
+    registrationDate: '2023-09-15'
   },
   {
     id: 6,
-    name: 'Importadora CanaTrade',
-    type: 'company',
-    email: 'imports@canatrade.com.br',
-    phone: '(11) 7890-1234',
-    contactPerson: 'Fernando Santos',
-    status: 'active',
-    lastOrder: '2025-04-05',
-    totalOrders: 15,
-    address: 'Alameda Santos, 700, Conj. 92',
-    city: 'São Paulo',
-    state: 'SP',
+    name: 'Dr. Paulo Ribeiro',
+    type: 'individual',
+    email: 'dr.paulo.ribeiro@gmail.com',
+    phone: '(51) 99876-5432',
+    contactPerson: 'Dr. Paulo Ribeiro',
+    status: 'pending',
+    totalOrders: 1,
+    address: 'Rua dos Andradas, 1234',
+    city: 'Porto Alegre',
+    state: 'RS',
     country: 'Brasil',
-    postalCode: '01418-100',
-    registrationDate: '2023-07-12'
+    postalCode: '90020-008',
+    registrationDate: '2025-03-01'
   },
   {
     id: 7,
-    name: 'Dr. Marcelo Gomes',
-    type: 'individual',
-    email: 'dr.marcelo@gmail.com',
-    phone: '(48) 8901-2345',
-    contactPerson: 'Dr. Marcelo Gomes',
-    status: 'pending',
-    totalOrders: 0,
-    address: 'Rua das Acácias, 150, Apto 301',
-    city: 'Florianópolis',
-    state: 'SC',
+    name: 'Instituto de Pesquisas Médicas do Cerrado',
+    type: 'research',
+    email: 'pesquisa@ipmc.edu.br',
+    phone: '(62) 3521-1000',
+    contactPerson: 'Dra. Fernanda Lima',
+    status: 'active',
+    lastOrder: '2025-03-05',
+    totalOrders: 5,
+    address: 'Campus Universitário, s/n',
+    city: 'Goiânia',
+    state: 'GO',
     country: 'Brasil',
-    postalCode: '88035-200',
-    registrationDate: '2025-04-18',
-    notes: 'Médico interessado em prescrição de derivados canábicos.'
+    postalCode: '74690-900',
+    registrationDate: '2024-01-15'
   }
 ];
