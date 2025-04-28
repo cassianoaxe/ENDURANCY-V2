@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 
 // Tipo para as amostras
 interface Sample {
