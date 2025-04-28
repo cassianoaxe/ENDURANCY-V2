@@ -614,14 +614,32 @@ export default function RegulatoryDocuments() {
                         
                         <div className="pt-4 border-t border-gray-200">
                           <div className="flex gap-2">
-                            <Button variant="outline">
-                              <Download className="h-4 w-4 mr-2" />
-                              Baixar PDF
-                            </Button>
-                            <Button variant="outline" onClick={() => loadDocumentForEdit(viewingDocument.id)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </Button>
+                            {viewingDocument.code === 'RDC 16/2014' ? (
+                              <>
+                                <Button 
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => window.location.href = '/laboratory/regulatorio/rdc-16-2014'}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Ver Página Completa
+                                </Button>
+                                <Button variant="outline">
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Baixar PDF
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="outline">
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Baixar PDF
+                                </Button>
+                                <Button variant="outline" onClick={() => loadDocumentForEdit(viewingDocument.id)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </TabsContent>
@@ -747,7 +765,14 @@ export default function RegulatoryDocuments() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDocumentViewId(doc.id)}
+                            onClick={() => {
+                              // Verificar se é o documento RDC 16/2014 para ir para página específica
+                              if (doc.code === 'RDC 16/2014') {
+                                window.location.href = '/laboratory/regulatorio/rdc-16-2014';
+                              } else {
+                                setDocumentViewId(doc.id);
+                              }
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
