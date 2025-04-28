@@ -186,7 +186,7 @@ export default function PortalDeAmostras() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState('solicitar');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sampleRequests, setSampleRequests] = useState<any[]>(sampleRequestsHistory); // Iniciar com dados de exemplo
@@ -331,7 +331,7 @@ export default function PortalDeAmostras() {
     const analysisType = sample.analysisType || '';
     const status = sample.status || '';
     
-    const matchesStatus = statusFilter ? status === statusFilter : true;
+    const matchesStatus = statusFilter === 'todos' ? true : status === statusFilter;
     const matchesSearch = searchTerm
       ? id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -767,7 +767,7 @@ export default function PortalDeAmostras() {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos os status</SelectItem>
+                        <SelectItem value="todos">Todos os status</SelectItem>
                         <SelectItem value="solicitada">Solicitada</SelectItem>
                         <SelectItem value="em_transito">Em trânsito</SelectItem>
                         <SelectItem value="recebida">Recebida</SelectItem>
