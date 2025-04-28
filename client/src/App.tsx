@@ -584,6 +584,7 @@ function AppContent() {
     // Rotas protegidas do laboratório
     return (
       <LaboratoryLayout>
+        {/* Centraliza todas as rotas do laboratório em um único lugar para evitar duplicação */}
         {currentPath === '/laboratory/dashboard' && <LaboratoryDashboard />}
         {currentPath === '/laboratory/amostras' && <LaboratoryAmostras />}
         {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
@@ -2205,85 +2206,8 @@ function AppContent() {
       );
     }
     
-    // Rotas específicas do laboratório
-    if (currentPath === '/laboratory/dashboard') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryDashboard />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/samples') {
-      return (
-        <LaboratoryLayout>
-          <LaboratorySamples />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/reports') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryReports />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/team') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryTeam />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/settings') {
-      return (
-        <LaboratoryLayout>
-          <LaboratorySettings />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes da amostra
-    const sampleDetailMatch = currentPath.match(/^\/laboratory\/samples\/(\d+)$/);
-    if (sampleDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <SampleDetail />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes do teste
-    const testDetailMatch = currentPath.match(/^\/laboratory\/tests\/(\d+)$/);
-    if (testDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <TestDetail />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Rotas do módulo de Equipamentos
-    if (currentPath === '/laboratory/equipment') {
-      return (
-        <LaboratoryLayout>
-          <LabEquipments />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes do equipamento
-    const equipmentDetailMatch = currentPath.match(/^\/laboratory\/equipment\/(\d+)$/);
-    if (equipmentDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <EquipmentDetail />
-        </LaboratoryLayout>
-      );
-    }
+    // NOTA: Todas as rotas do laboratório agora são gerenciadas na seção principal 
+    // no início do arquivo para evitar problemas de duplicação de layouts.
     
     // Rotas do módulo HPLC
     console.log(`App.tsx: Rota atual: ${currentPath}`);
