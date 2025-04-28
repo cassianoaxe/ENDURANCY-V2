@@ -43,7 +43,6 @@ import {
   Wrench
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import LaboratoryLayout from '@/components/layout/laboratory/LaboratoryLayout';
 
 // Interfaces
 interface Equipment {
@@ -282,247 +281,243 @@ export default function EquipamentosPage() {
   // Renderização do estado de carregamento
   if (isLoading) {
     return (
-      <LaboratoryLayout>
-        <div className="flex justify-center items-center h-[calc(100vh-150px)]">
-          <div className="flex flex-col items-center">
-            <Microscope className="h-12 w-12 animate-pulse text-blue-500 mb-2" />
-            <p className="text-lg text-gray-600">Carregando equipamentos...</p>
-          </div>
+      <div className="flex justify-center items-center h-[calc(100vh-150px)]">
+        <div className="flex flex-col items-center">
+          <Microscope className="h-12 w-12 animate-pulse text-blue-500 mb-2" />
+          <p className="text-lg text-gray-600">Carregando equipamentos...</p>
         </div>
-      </LaboratoryLayout>
+      </div>
     );
   }
 
   return (
-    <LaboratoryLayout>
-      <div className="space-y-4 p-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Gerenciamento de Equipamentos</h1>
-          <Button onClick={() => setShowNewEquipmentDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Equipamento
-          </Button>
-        </div>
+    <div className="space-y-4 p-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Gerenciamento de Equipamentos</h1>
+        <Button onClick={() => setShowNewEquipmentDialog(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Equipamento
+        </Button>
+      </div>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Equipamentos do Laboratório</CardTitle>
+          <CardDescription>
+            Gerencie os equipamentos, calibrações e manutenções
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="maintenance">Próximas Manutenções</TabsTrigger>
+              <TabsTrigger value="calibration">Próximas Calibrações</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+            <div className="relative w-full md:w-auto flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por nome ou modelo..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedType}
+                  onValueChange={setSelectedType}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="hplc">HPLC</SelectItem>
+                    <SelectItem value="gc">Cromatógrafo de Gás</SelectItem>
+                    <SelectItem value="spectrometer">Espectrômetro</SelectItem>
+                    <SelectItem value="scale">Balança</SelectItem>
+                    <SelectItem value="microscope">Microscópio</SelectItem>
+                    <SelectItem value="centrifuge">Centrífuga</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="operational">Operacional</SelectItem>
+                    <SelectItem value="maintenance">Em Manutenção</SelectItem>
+                    <SelectItem value="calibration">Em Calibração</SelectItem>
+                    <SelectItem value="out_of_service">Fora de Serviço</SelectItem>
+                    <SelectItem value="repair">Em Reparo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="hidden md:table-cell">Modelo</TableHead>
+                  <TableHead className="hidden lg:table-cell">Próx. Manutenção</TableHead>
+                  <TableHead className="hidden lg:table-cell">Próx. Calibração</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEquipments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      Nenhum equipamento encontrado com os filtros atuais.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredEquipments.map((equipment) => {
+                    const maintenanceAlertStatus = getMaintenanceAlertStatus(equipment.nextMaintenance);
+                    const calibrationAlertStatus = getMaintenanceAlertStatus(equipment.nextCalibration);
+                    
+                    return (
+                      <TableRow key={equipment.id}>
+                        <TableCell className="font-medium">
+                          {equipment.name}
+                        </TableCell>
+                        <TableCell>{translateEquipmentType(equipment.type)}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div>
+                            {equipment.model}
+                            <div className="text-xs text-gray-500">
+                              SN: {equipment.serialNumber}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex items-center">
+                            <Badge 
+                              className={getAlertColor(maintenanceAlertStatus)}
+                              variant="outline"
+                            >
+                              {new Date(equipment.nextMaintenance).toLocaleDateString('pt-BR')}
+                            </Badge>
+                            {maintenanceAlertStatus === 'overdue' && (
+                              <AlertCircle className="h-4 w-4 ml-1 text-red-500" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex items-center">
+                            <Badge 
+                              className={getAlertColor(calibrationAlertStatus)}
+                              variant="outline"
+                            >
+                              {new Date(equipment.nextCalibration).toLocaleDateString('pt-BR')}
+                            </Badge>
+                            {calibrationAlertStatus === 'overdue' && (
+                              <AlertCircle className="h-4 w-4 ml-1 text-red-500" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(equipment.status)}>
+                            {translateEquipmentStatus(equipment.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => viewEquipmentDetails(equipment)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-gray-500">
+            Mostrando {filteredEquipments.length} de {equipments.length} equipamentos
+          </div>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar Lista
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Card de Resumo */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Equipamentos do Laboratório</CardTitle>
-            <CardDescription>
-              Gerencie os equipamentos, calibrações e manutenções
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Equipamentos Operacionais</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-6">
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="maintenance">Próximas Manutenções</TabsTrigger>
-                <TabsTrigger value="calibration">Próximas Calibrações</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-              <div className="relative w-full md:w-auto flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar por nome ou modelo..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedType}
-                    onValueChange={setSelectedType}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Tipos</SelectItem>
-                      <SelectItem value="hplc">HPLC</SelectItem>
-                      <SelectItem value="gc">Cromatógrafo de Gás</SelectItem>
-                      <SelectItem value="spectrometer">Espectrômetro</SelectItem>
-                      <SelectItem value="scale">Balança</SelectItem>
-                      <SelectItem value="microscope">Microscópio</SelectItem>
-                      <SelectItem value="centrifuge">Centrífuga</SelectItem>
-                      <SelectItem value="other">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={setSelectedStatus}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      <SelectItem value="operational">Operacional</SelectItem>
-                      <SelectItem value="maintenance">Em Manutenção</SelectItem>
-                      <SelectItem value="calibration">Em Calibração</SelectItem>
-                      <SelectItem value="out_of_service">Fora de Serviço</SelectItem>
-                      <SelectItem value="repair">Em Reparo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div className="text-3xl font-bold">
+              {equipments.filter(e => e.status === 'operational').length}
             </div>
-
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead className="hidden md:table-cell">Modelo</TableHead>
-                    <TableHead className="hidden lg:table-cell">Próx. Manutenção</TableHead>
-                    <TableHead className="hidden lg:table-cell">Próx. Calibração</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEquipments.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
-                        Nenhum equipamento encontrado com os filtros atuais.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredEquipments.map((equipment) => {
-                      const maintenanceAlertStatus = getMaintenanceAlertStatus(equipment.nextMaintenance);
-                      const calibrationAlertStatus = getMaintenanceAlertStatus(equipment.nextCalibration);
-                      
-                      return (
-                        <TableRow key={equipment.id}>
-                          <TableCell className="font-medium">
-                            {equipment.name}
-                          </TableCell>
-                          <TableCell>{translateEquipmentType(equipment.type)}</TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <div>
-                              {equipment.model}
-                              <div className="text-xs text-gray-500">
-                                SN: {equipment.serialNumber}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <div className="flex items-center">
-                              <Badge 
-                                className={getAlertColor(maintenanceAlertStatus)}
-                                variant="outline"
-                              >
-                                {new Date(equipment.nextMaintenance).toLocaleDateString('pt-BR')}
-                              </Badge>
-                              {maintenanceAlertStatus === 'overdue' && (
-                                <AlertCircle className="h-4 w-4 ml-1 text-red-500" />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <div className="flex items-center">
-                              <Badge 
-                                className={getAlertColor(calibrationAlertStatus)}
-                                variant="outline"
-                              >
-                                {new Date(equipment.nextCalibration).toLocaleDateString('pt-BR')}
-                              </Badge>
-                              {calibrationAlertStatus === 'overdue' && (
-                                <AlertCircle className="h-4 w-4 ml-1 text-red-500" />
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(equipment.status)}>
-                              {translateEquipmentStatus(equipment.status)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" onClick={() => viewEquipmentDetails(equipment)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
+            <div className="text-sm text-gray-500">
+              de {equipments.length} equipamentos
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-gray-500">
-              Mostrando {filteredEquipments.length} de {equipments.length} equipamentos
-            </div>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar Lista
-            </Button>
-          </CardFooter>
         </Card>
-
-        {/* Card de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Equipamentos Operacionais</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {equipments.filter(e => e.status === 'operational').length}
-              </div>
-              <div className="text-sm text-gray-500">
-                de {equipments.length} equipamentos
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Manutenções Pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {equipments.filter(e => {
-                  const nextMaintenanceDate = new Date(e.nextMaintenance);
-                  const today = new Date();
-                  return nextMaintenanceDate <= today;
-                }).length}
-              </div>
-              <div className="text-sm text-gray-500">
-                equipamentos precisam de atenção
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Próximas Calibrações</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {equipments.filter(e => {
-                  const nextCalibrationDate = new Date(e.nextCalibration);
-                  const thirtyDaysFromNow = new Date();
-                  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-                  return nextCalibrationDate <= thirtyDaysFromNow;
-                }).length}
-              </div>
-              <div className="text-sm text-gray-500">
-                nos próximos 30 dias
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Manutenções Pendentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {equipments.filter(e => {
+                const nextMaintenanceDate = new Date(e.nextMaintenance);
+                const today = new Date();
+                return nextMaintenanceDate <= today;
+              }).length}
+            </div>
+            <div className="text-sm text-gray-500">
+              equipamentos precisam de atenção
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Próximas Calibrações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {equipments.filter(e => {
+                const nextCalibrationDate = new Date(e.nextCalibration);
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                return nextCalibrationDate <= thirtyDaysFromNow;
+              }).length}
+            </div>
+            <div className="text-sm text-gray-500">
+              nos próximos 30 dias
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Diálogo para adicionar novo equipamento */}
@@ -561,7 +556,7 @@ export default function EquipamentosPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="equipmentStatus">Status</Label>
+                <Label htmlFor="equipmentStatus">Status Inicial</Label>
                 <Select defaultValue="operational">
                   <SelectTrigger id="equipmentStatus">
                     <SelectValue placeholder="Selecione o status" />
@@ -570,28 +565,26 @@ export default function EquipamentosPage() {
                     <SelectItem value="operational">Operacional</SelectItem>
                     <SelectItem value="maintenance">Em Manutenção</SelectItem>
                     <SelectItem value="calibration">Em Calibração</SelectItem>
-                    <SelectItem value="out_of_service">Fora de Serviço</SelectItem>
-                    <SelectItem value="repair">Em Reparo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="model">Modelo</Label>
-              <Input id="model" placeholder="Ex: Agilent 1260" required />
+              <Label htmlFor="equipmentModel">Modelo</Label>
+              <Input id="equipmentModel" placeholder="Ex: Agilent 1260 Infinity II" required />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="serialNumber">Número de Série</Label>
-              <Input id="serialNumber" placeholder="Ex: SN12345678" required />
+              <Label htmlFor="equipmentSerialNumber">Número de Série</Label>
+              <Input id="equipmentSerialNumber" placeholder="Ex: SN-12345678" required />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="manufacturer">Fabricante</Label>
-              <Input id="manufacturer" placeholder="Ex: Agilent Technologies" required />
+              <Label htmlFor="equipmentManufacturer">Fabricante</Label>
+              <Input id="equipmentManufacturer" placeholder="Ex: Agilent Technologies" required />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="acquisitionDate">Data de Aquisição</Label>
@@ -599,196 +592,164 @@ export default function EquipamentosPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="location">Localização</Label>
-                <Input id="location" placeholder="Ex: Sala 101" required />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="lastCalibration">Última Calibração</Label>
-                <Input id="lastCalibration" type="date" required />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="nextCalibration">Próxima Calibração</Label>
-                <Input id="nextCalibration" type="date" required />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="lastMaintenance">Última Manutenção</Label>
-                <Input id="lastMaintenance" type="date" required />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="nextMaintenance">Próxima Manutenção</Label>
-                <Input id="nextMaintenance" type="date" required />
+                <Label htmlFor="responsiblePerson">Responsável</Label>
+                <Input id="responsiblePerson" placeholder="Nome do responsável" required />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="responsible">Responsável</Label>
-              <Input id="responsible" placeholder="Nome do responsável pelo equipamento" required />
+              <Label htmlFor="equipmentLocation">Localização</Label>
+              <Input id="equipmentLocation" placeholder="Ex: Sala 101 - Análises" required />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="notes">Observações</Label>
-              <textarea 
-                id="notes" 
-                className="w-full min-h-[80px] rounded-md border border-input p-2"
-                placeholder="Observações adicionais sobre o equipamento"
-              ></textarea>
+              <Label htmlFor="equipmentNotes">Observações</Label>
+              <Input id="equipmentNotes" placeholder="Informações adicionais" />
             </div>
             
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowNewEquipmentDialog(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Adicionar Equipamento</Button>
+              <Button type="submit">Adicionar</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo para detalhes do equipamento */}
+      {/* Diálogo de detalhes do equipamento */}
       {selectedEquipment && (
         <Dialog open={showEquipmentDetailDialog} onOpenChange={setShowEquipmentDetailDialog}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Detalhes do Equipamento</DialogTitle>
+              <DialogTitle className="text-xl flex items-center">
+                <Microscope className="h-5 w-5 mr-2 text-blue-600" />
+                {selectedEquipment.name}
+                <Badge className={`ml-2 ${getStatusColor(selectedEquipment.status)}`}>
+                  {translateEquipmentStatus(selectedEquipment.status)}
+                </Badge>
+              </DialogTitle>
               <DialogDescription>
-                Informações detalhadas sobre {selectedEquipment.name}
+                {translateEquipmentType(selectedEquipment.type)} • {selectedEquipment.model}
               </DialogDescription>
             </DialogHeader>
             
-            <Tabs defaultValue="info">
-              <TabsList>
-                <TabsTrigger value="info">Informações</TabsTrigger>
-                <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
-                <TabsTrigger value="documents">Documentos</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="info" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Informações do Equipamento */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Informações Gerais</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Nome</h3>
-                      <p className="text-lg">{selectedEquipment.name}</p>
+                      <div className="text-gray-500">Modelo</div>
+                      <div className="font-medium">{selectedEquipment.model}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Tipo</h3>
-                      <p className="text-lg">{translateEquipmentType(selectedEquipment.type)}</p>
+                      <div className="text-gray-500">Número de Série</div>
+                      <div className="font-medium">{selectedEquipment.serialNumber}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Modelo</h3>
-                      <p className="text-lg">{selectedEquipment.model}</p>
+                      <div className="text-gray-500">Fabricante</div>
+                      <div className="font-medium">{selectedEquipment.manufacturer}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Número de Série</h3>
-                      <p className="text-lg">{selectedEquipment.serialNumber}</p>
+                      <div className="text-gray-500">Data de Aquisição</div>
+                      <div className="font-medium">{new Date(selectedEquipment.acquisitionDate).toLocaleDateString('pt-BR')}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Fabricante</h3>
-                      <p className="text-lg">{selectedEquipment.manufacturer}</p>
+                      <div className="text-gray-500">Localização</div>
+                      <div className="font-medium">{selectedEquipment.location}</div>
                     </div>
-                    
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Localização</h3>
-                      <p className="text-lg">{selectedEquipment.location}</p>
+                      <div className="text-gray-500">Responsável</div>
+                      <div className="font-medium">{selectedEquipment.responsible}</div>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
+                  {selectedEquipment.notes && (
+                    <div className="mt-3 text-sm">
+                      <div className="text-gray-500">Observações</div>
+                      <div className="font-medium">{selectedEquipment.notes}</div>
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Informações
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Próximas Manutenções e Calibrações */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Manutenção e Calibração</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                      <Badge className={getStatusColor(selectedEquipment.status)}>
-                        {translateEquipmentStatus(selectedEquipment.status)}
+                      <div className="text-sm text-gray-500">Última Manutenção</div>
+                      <div className="font-medium">
+                        {new Date(selectedEquipment.lastMaintenance).toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Próxima Manutenção</div>
+                      <Badge
+                        className={getAlertColor(getMaintenanceAlertStatus(selectedEquipment.nextMaintenance))}
+                        variant="outline"
+                      >
+                        {new Date(selectedEquipment.nextMaintenance).toLocaleDateString('pt-BR')}
                       </Badge>
                     </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Data de Aquisição</h3>
-                      <p className="text-lg">{new Date(selectedEquipment.acquisitionDate).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Última Calibração</h3>
-                      <p className="text-lg">{new Date(selectedEquipment.lastCalibration).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Próxima Calibração</h3>
-                      <div className="flex items-center">
-                        <p className="text-lg">{new Date(selectedEquipment.nextCalibration).toLocaleDateString('pt-BR')}</p>
-                        {getMaintenanceAlertStatus(selectedEquipment.nextCalibration) === 'overdue' && (
-                          <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Última Manutenção</h3>
-                      <p className="text-lg">{new Date(selectedEquipment.lastMaintenance).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Próxima Manutenção</h3>
-                      <div className="flex items-center">
-                        <p className="text-lg">{new Date(selectedEquipment.nextMaintenance).toLocaleDateString('pt-BR')}</p>
-                        {getMaintenanceAlertStatus(selectedEquipment.nextMaintenance) === 'overdue' && (
-                          <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium text-gray-500">Responsável</h3>
-                  <p className="text-lg">{selectedEquipment.responsible}</p>
-                </div>
-                
-                {selectedEquipment.notes && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-500">Observações</h3>
-                    <p className="text-lg">{selectedEquipment.notes}</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="maintenance">
-                <div className="py-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Histórico de Manutenções</h3>
-                    <Button 
-                      size="sm" 
-                      onClick={() => {
-                        setShowNewMaintenanceDialog(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Agendar Manutenção
-                    </Button>
                   </div>
                   
-                  {equipmentMaintenanceRecords.length === 0 ? (
-                    <div className="text-center py-8 border rounded-md">
-                      <div className="flex flex-col items-center">
-                        <Wrench className="h-10 w-10 text-gray-400 mb-2" />
-                        <h3 className="text-lg font-medium">Nenhum Registro</h3>
-                        <p className="text-gray-500 max-w-md mt-1">
-                          Não há registros de manutenção para este equipamento.
-                        </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-gray-500">Última Calibração</div>
+                      <div className="font-medium">
+                        {new Date(selectedEquipment.lastCalibration).toLocaleDateString('pt-BR')}
                       </div>
                     </div>
+                    <div>
+                      <div className="text-sm text-gray-500">Próxima Calibração</div>
+                      <Badge
+                        className={getAlertColor(getMaintenanceAlertStatus(selectedEquipment.nextCalibration))}
+                        variant="outline"
+                      >
+                        {new Date(selectedEquipment.nextCalibration).toLocaleDateString('pt-BR')}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full mt-2" 
+                    onClick={() => {
+                      setShowNewMaintenanceDialog(true);
+                      setShowEquipmentDetailDialog(false);
+                    }}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Agendar Manutenção/Calibração
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Histórico de Manutenções */}
+              <Card className="md:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Histórico de Manutenções e Calibrações</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {equipmentMaintenanceRecords.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      Nenhum registro de manutenção encontrado para este equipamento.
+                    </div>
                   ) : (
-                    <div className="border rounded-md overflow-hidden">
+                    <div className="rounded-md border">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -797,30 +758,33 @@ export default function EquipamentosPage() {
                             <TableHead>Descrição</TableHead>
                             <TableHead>Técnico</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {equipmentMaintenanceRecords.map((record) => (
                             <TableRow key={record.id}>
                               <TableCell>{new Date(record.date).toLocaleDateString('pt-BR')}</TableCell>
-                              <TableCell>{translateMaintenanceType(record.type)}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {translateMaintenanceType(record.type)}
+                                </Badge>
+                              </TableCell>
                               <TableCell>{record.description}</TableCell>
                               <TableCell>{record.technician}</TableCell>
                               <TableCell>
                                 <Badge
                                   className={
-                                    record.status === 'completed' ? 'bg-green-500' :
-                                    record.status === 'in_progress' ? 'bg-blue-500' :
-                                    record.status === 'scheduled' ? 'bg-yellow-500' :
-                                    'bg-gray-500'
+                                    record.status === 'completed'
+                                      ? 'bg-green-100 text-green-800'
+                                      : record.status === 'in_progress'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : record.status === 'scheduled'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-gray-100 text-gray-800'
                                   }
                                 >
                                   {translateMaintenanceStatus(record.status)}
                                 </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">Ver</Button>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -828,117 +792,60 @@ export default function EquipamentosPage() {
                       </Table>
                     </div>
                   )}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="documents">
-                <div className="py-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Documentos</h3>
-                    <Button variant="outline" size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Documento
-                    </Button>
-                  </div>
-                  
-                  <div className="text-center py-8 border rounded-md">
-                    <div className="flex flex-col items-center">
-                      <div className="h-10 w-10 text-gray-400 mb-2">📄</div>
-                      <h3 className="text-lg font-medium">Documentos do Equipamento</h3>
-                      <p className="text-gray-500 max-w-md mt-1">
-                        Aqui você pode gerenciar manuais, certificados e outros documentos relacionados ao equipamento.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+                </CardContent>
+              </Card>
+            </div>
             
-            <DialogFooter className="gap-2">
+            <DialogFooter>
               <Button variant="outline" onClick={() => setShowEquipmentDetailDialog(false)}>
                 Fechar
-              </Button>
-              <Button>
-                <Edit className="h-4 w-4 mr-2" />
-                Editar Equipamento
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
 
-      {/* Diálogo para adicionar nova manutenção */}
+      {/* Diálogo para agendar manutenção */}
       <Dialog open={showNewMaintenanceDialog} onOpenChange={setShowNewMaintenanceDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Agendar Manutenção</DialogTitle>
+            <DialogTitle>Agendar Manutenção ou Calibração</DialogTitle>
             <DialogDescription>
-              {selectedEquipment && `Agende uma nova manutenção para ${selectedEquipment.name}`}
+              {selectedEquipment ? `Equipamento: ${selectedEquipment.name}` : 'Selecione um equipamento e preencha os dados'}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleAddMaintenance} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="maintenanceType">Tipo de Serviço</Label>
+              <Select defaultValue="preventive">
+                <SelectTrigger id="maintenanceType">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preventive">Manutenção Preventiva</SelectItem>
+                  <SelectItem value="corrective">Manutenção Corretiva</SelectItem>
+                  <SelectItem value="calibration">Calibração</SelectItem>
+                  <SelectItem value="validation">Validação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="maintenanceType">Tipo de Manutenção</Label>
-                <Select defaultValue="preventive">
-                  <SelectTrigger id="maintenanceType">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="calibration">Calibração</SelectItem>
-                    <SelectItem value="preventive">Preventiva</SelectItem>
-                    <SelectItem value="corrective">Corretiva</SelectItem>
-                    <SelectItem value="validation">Validação</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="maintenanceDate">Data</Label>
+                <Label htmlFor="maintenanceDate">Data Agendada</Label>
                 <Input id="maintenanceDate" type="date" required />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maintenanceDescription">Descrição</Label>
-              <Input id="maintenanceDescription" placeholder="Descrição da manutenção" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="maintenanceTechnician">Técnico Responsável</Label>
-              <Input id="maintenanceTechnician" placeholder="Nome do técnico" required />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="maintenanceStatus">Status</Label>
-                <Select defaultValue="scheduled">
-                  <SelectTrigger id="maintenanceStatus">
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Agendada</SelectItem>
-                    <SelectItem value="in_progress">Em Andamento</SelectItem>
-                    <SelectItem value="completed">Concluída</SelectItem>
-                    <SelectItem value="canceled">Cancelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               
               <div className="space-y-2">
-                <Label htmlFor="maintenanceCost">Custo (R$)</Label>
-                <Input id="maintenanceCost" type="number" step="0.01" placeholder="0,00" />
+                <Label htmlFor="maintenanceTechnician">Técnico Responsável</Label>
+                <Input id="maintenanceTechnician" placeholder="Nome do técnico" required />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="maintenanceNotes">Observações</Label>
-              <textarea 
-                id="maintenanceNotes" 
-                className="w-full min-h-[80px] rounded-md border border-input p-2"
-                placeholder="Observações adicionais sobre a manutenção"
-              ></textarea>
+              <Label htmlFor="maintenanceDescription">Descrição do Serviço</Label>
+              <Input id="maintenanceDescription" placeholder="Descreva o serviço a ser realizado" required />
             </div>
             
             <DialogFooter>
@@ -950,7 +857,7 @@ export default function EquipamentosPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </LaboratoryLayout>
+    </div>
   );
 }
 
