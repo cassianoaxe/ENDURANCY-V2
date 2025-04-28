@@ -149,7 +149,6 @@ export default function LaboratoryDashboard() {
   );
 
   return (
-    <LaboratoryLayout>
       <div className="p-6 space-y-6">
         <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center">
           <div>
@@ -487,6 +486,5 @@ export default function LaboratoryDashboard() {
           </AlertDescription>
         </Alert>
       </div>
-    </LaboratoryLayout>
-  );
+    );
 }
