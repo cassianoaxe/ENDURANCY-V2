@@ -191,8 +191,7 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             isCollapsed={isCollapsed}
             defaultOpen={
               currentPath.includes('/laboratory/clientes') || 
-              currentPath.includes('/laboratory/equipamentos') ||
-              currentPath.includes('/laboratory/financeiro')
+              currentPath.includes('/laboratory/equipamentos')
             }
           >
             <SidebarLink
@@ -209,14 +208,15 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
               isActive={currentPath === '/laboratory/equipamentos'}
               isCollapsed={isCollapsed}
             />
-            <SidebarLink
-              href="/laboratory/financeiro"
-              icon={<CircleDollarSign size={20} />}
-              label="Financeiro"
-              isActive={currentPath === '/laboratory/financeiro'}
-              isCollapsed={isCollapsed}
-            />
           </SidebarSection>
+          
+          <SidebarLink
+            href="/laboratory/financeiro"
+            icon={<CircleDollarSign size={20} />}
+            label="Financeiro"
+            isActive={currentPath === '/laboratory/financeiro'}
+            isCollapsed={isCollapsed}
+          />
 
           <SidebarSection 
             title="HPLC" 
