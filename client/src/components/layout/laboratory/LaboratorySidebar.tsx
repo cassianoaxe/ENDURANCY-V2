@@ -324,7 +324,7 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             <SidebarLink
               href="/laboratory/regulatorio"
               icon={<ScrollText size={20} />}
-              label="Base de Documentos"
+              label="Resoluções Vigentes"
               isActive={currentPath === '/laboratory/regulatorio'}
               isCollapsed={isCollapsed}
             />
