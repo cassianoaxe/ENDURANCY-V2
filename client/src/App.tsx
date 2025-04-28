@@ -26,6 +26,7 @@ import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
 import LaboratoryPortalDeAmostras from "@/pages/laboratory/portaldeamostras";
 import LaboratoryRegulatorio from "@/pages/laboratory/regulatorio";
 import RDC16_2014 from "@/pages/laboratory/regulatorio/rdc-16-2014";
+import RDC658_2022 from "@/pages/laboratory/regulatorio/rdc-658-2022";
 import { 
   FinanceiroFaturas,
   FinanceiroPagamentos,
@@ -607,6 +608,7 @@ function AppContent() {
         {currentPath === '/laboratory/portaldeamostras' && <LaboratoryPortalDeAmostras />}
         {currentPath === '/laboratory/regulatorio' && <LaboratoryRegulatorio />}
         {currentPath === '/laboratory/regulatorio/rdc-16-2014' && <RDC16_2014 />}
+        {currentPath === '/laboratory/regulatorio/rdc-658-2022' && <RDC658_2022 />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}

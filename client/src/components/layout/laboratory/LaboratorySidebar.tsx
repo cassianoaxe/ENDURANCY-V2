@@ -330,7 +330,7 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
             />
             <SidebarLink
               href="/laboratory/regulatorio/rdc-658-2022"
-              icon={<BookOpen size={20} />}
+              icon={<FileCheck size={20} />}
               label="RDC 658/2022"
               isActive={currentPath === '/laboratory/regulatorio/rdc-658-2022'}
               isCollapsed={isCollapsed}
