@@ -607,8 +607,11 @@ function AppContent() {
         {currentPath === '/laboratory/financeiro/links' && <FinanceiroLinks />}
         {currentPath === '/laboratory/portaldeamostras' && <LaboratoryPortalDeAmostras />}
         {currentPath === '/laboratory/regulatorio' && <LaboratoryRegulatorio />}
-        {currentPath === '/laboratory/regulatorio/rdc-16-2014' && <RDC16_2014 />}
-        {currentPath === '/laboratory/regulatorio/rdc-658-2022' && <RDC658_2022 />}
+        {currentPath === '/laboratory/regulatorio/dashboard' && <div>Dashboard Regulatório</div>}
+        {currentPath === '/laboratory/regulatorio/certificacoes' && <div>Certificações</div>}
+        {currentPath === '/laboratory/regulatorio/documentacao' && <div>Documentação</div>}
+        {currentPath === '/laboratory/regulatorio/desenvolvimento' && <div>Desenvolvimento</div>}
+        {currentPath === '/laboratory/regulatorio/metodos' && <div>Métodos</div>}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}

@@ -84,7 +84,6 @@ export default function RDC16_2014() {
   };
 
   return (
-    <LaboratoryLayout>
       <div className="container mx-auto p-4 space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
@@ -225,6 +224,5 @@ export default function RDC16_2014() {
           </TabsContent>
         </Tabs>
       </div>
-    </LaboratoryLayout>
   );
 }
