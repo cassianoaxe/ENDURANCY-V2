@@ -212,140 +212,140 @@ export default function LaboratoryAmostras() {
         </div>
       </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Amostras</CardTitle>
-            <CardDescription>
-              Gerencie todas as amostras de laboratório
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-              <div className="relative w-full md:w-auto flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar por código ou cliente..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex items-center space-x-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedStatus}
-                    onValueChange={setSelectedStatus}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      <SelectItem value="registered">Registrada</SelectItem>
-                      <SelectItem value="collected">Coletada</SelectItem>
-                      <SelectItem value="received">Recebida</SelectItem>
-                      <SelectItem value="in_progress">Em Análise</SelectItem>
-                      <SelectItem value="pending_approval">Aguardando Aprovação</SelectItem>
-                      <SelectItem value="completed">Concluída</SelectItem>
-                      <SelectItem value="rejected">Rejeitada</SelectItem>
-                      <SelectItem value="archived">Arquivada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <SlidersHorizontal className="h-4 w-4 text-gray-400" />
-                  <Select
-                    value={selectedPriority}
-                    onValueChange={setSelectedPriority}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Prioridade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as Prioridades</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="low">Baixa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Amostras</CardTitle>
+          <CardDescription>
+            Gerencie todas as amostras de laboratório
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+            <div className="relative w-full md:w-auto flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por código ou cliente..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
 
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedStatus}
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="registered">Registrada</SelectItem>
+                    <SelectItem value="collected">Coletada</SelectItem>
+                    <SelectItem value="received">Recebida</SelectItem>
+                    <SelectItem value="in_progress">Em Análise</SelectItem>
+                    <SelectItem value="pending_approval">Aguardando Aprovação</SelectItem>
+                    <SelectItem value="completed">Concluída</SelectItem>
+                    <SelectItem value="rejected">Rejeitada</SelectItem>
+                    <SelectItem value="archived">Arquivada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <SlidersHorizontal className="h-4 w-4 text-gray-400" />
+                <Select
+                  value={selectedPriority}
+                  onValueChange={setSelectedPriority}
+                >
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Prioridade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Prioridades</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="low">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden md:table-cell">Tipo</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead className="hidden md:table-cell">Recebimento</TableHead>
+                  <TableHead className="hidden lg:table-cell">Prioridade</TableHead>
+                  <TableHead className="hidden lg:table-cell">Prazo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredSamples.length === 0 ? (
                   <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Tipo</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead className="hidden md:table-cell">Recebimento</TableHead>
-                    <TableHead className="hidden lg:table-cell">Prioridade</TableHead>
-                    <TableHead className="hidden lg:table-cell">Prazo</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableCell colSpan={8} className="h-24 text-center">
+                      Nenhuma amostra encontrada com os filtros atuais.
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSamples.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">
-                        Nenhuma amostra encontrada com os filtros atuais.
+                ) : (
+                  filteredSamples.map((sample) => (
+                    <TableRow key={sample.id}>
+                      <TableCell className="font-medium">{sample.code}</TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(sample.status)}`}>
+                          {translateStatus(sample.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {translateSampleType(sample.type)}
+                      </TableCell>
+                      <TableCell>{sample.clientName}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {new Date(sample.receivedDate).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell className={`hidden lg:table-cell ${getPriorityColor(sample.priority)}`}>
+                        {translatePriority(sample.priority)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {new Date(sample.dueDate).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredSamples.map((sample) => (
-                      <TableRow key={sample.id}>
-                        <TableCell className="font-medium">{sample.code}</TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusColor(sample.status)}`}>
-                            {translateStatus(sample.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {translateSampleType(sample.type)}
-                        </TableCell>
-                        <TableCell>{sample.clientName}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {new Date(sample.receivedDate).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className={`hidden lg:table-cell ${getPriorityColor(sample.priority)}`}>
-                          {translatePriority(sample.priority)}
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          {new Date(sample.dueDate).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-gray-500">
-              Mostrando {filteredSamples.length} de {samples.length} amostras
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-gray-500">
+            Mostrando {filteredSamples.length} de {samples.length} amostras
+          </div>
+          <div className="flex space-x-2">
+            <Button variant="outline" size="sm">
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
       
       {/* Diálogo para cadastro de nova amostra */}
       <Dialog open={showNewSampleDialog} onOpenChange={setShowNewSampleDialog}>
