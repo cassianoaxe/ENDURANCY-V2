@@ -22,6 +22,10 @@ import {
   CreditCard,
   BarChart4,
   Link as LinkIcon,
+  ScrollText,
+  Bookmark,
+  BookOpen,
+  FileCheck,
 } from 'lucide-react';
 
 interface SidebarLinkProps {
@@ -118,6 +122,8 @@ const SidebarSection = ({ title, children, isCollapsed, defaultOpen = false }: S
         return <CircleDollarSign className="h-5 w-5 mr-2 text-blue-600" />;
       case "HPLC":
         return <Beaker className="h-5 w-5 mr-2 text-blue-600" />;
+      case "Regulatório":
+        return <ScrollText className="h-5 w-5 mr-2 text-blue-600" />;
       default:
         return null;
     }
@@ -302,6 +308,14 @@ export default function LaboratorySidebar({ isCollapsed = false }: LaboratorySid
               isCollapsed={isCollapsed}
             />
           </SidebarSection>
+          
+          <SidebarLink
+            href="/laboratory/regulatorio"
+            icon={<ScrollText size={20} />}
+            label="Regulatório"
+            isActive={currentPath.includes('/laboratory/regulatorio')}
+            isCollapsed={isCollapsed}
+          />
         </div>
       </div>
 

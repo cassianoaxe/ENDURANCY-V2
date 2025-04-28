@@ -24,6 +24,7 @@ import LaboratoryResultados from "@/pages/laboratory/Resultados";
 import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
 import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
 import LaboratoryPortalDeAmostras from "@/pages/laboratory/portaldeamostras";
+import LaboratoryRegulatorio from "@/pages/laboratory/regulatorio";
 import { 
   FinanceiroFaturas,
   FinanceiroPagamentos,
@@ -603,6 +604,7 @@ function AppContent() {
         {currentPath === '/laboratory/financeiro/relatorios' && <FinanceiroRelatorios />}
         {currentPath === '/laboratory/financeiro/links' && <FinanceiroLinks />}
         {currentPath === '/laboratory/portaldeamostras' && <LaboratoryPortalDeAmostras />}
+        {currentPath === '/laboratory/regulatorio' && <LaboratoryRegulatorio />}
         {currentPath === '/laboratory/settings' && <LaboratorySettings />}
         {currentPath === '/laboratory/samples' && <LaboratorySamples />}
         {currentPath === '/laboratory/reports' && <LaboratoryReports />}
