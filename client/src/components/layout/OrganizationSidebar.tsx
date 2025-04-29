@@ -660,21 +660,12 @@ export default function OrganizationSidebar() {
     ...(isImportCompany ? importModules : [])
   ];
   
-  // Configurações da organização
+  // Configurações da organização - Agora apenas usando a página de perfil
   const configModule = {
-    title: "Configurações",
-    path: "/organization/settings",
-    active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings"),
-    icon: <Settings size={18} />,
-    isSubmenu: true,
-    subItems: [
-      {
-        title: "Geral",
-        path: "/organization/settings",
-        active: currentPath === "/organization/settings" && !currentPath.includes("/settings/"),
-        icon: <Settings size={16} />
-      }
-    ]
+    title: "Perfil da Organização",
+    path: "/organization/profile",
+    active: currentPath === "/organization/profile",
+    icon: <User size={18} />
   };
   
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
