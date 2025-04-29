@@ -436,8 +436,8 @@ export default function OrganizationProfile() {
       
       try {
         // Use apiRequest instead of fetch directly to ensure cookies are properly sent
-        const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
-        const data = await response.json();
+        // apiRequest já retorna o JSON parseado, não é necessário chamar .json()
+        const data = await apiRequest("GET", `/api/organizations/${organizationId}`);
         return data;
       } catch (error) {
         console.error("Erro ao buscar organização:", error);
@@ -481,13 +481,12 @@ export default function OrganizationProfile() {
     
     setIsSubmitting(true);
     try {
-      const response = await apiRequest(
+      // apiRequest já retorna o JSON parseado, não precisamos chamar .json()
+      const updatedOrg = await apiRequest(
         "PUT", 
         `/api/organizations/${organizationId}`, 
-        profileForm
+        { method: "PUT", data: profileForm }
       );
-      
-      const updatedOrg = await response.json();
       
       // Atualizar o cache
       queryClient.setQueryData(["/api/organizations", organizationId], updatedOrg);
