@@ -450,6 +450,7 @@ export default function OrganizationProfile() {
 
   const [profileForm, setProfileForm] = useState<Partial<Organization>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
     if (organization) {
@@ -643,11 +644,20 @@ export default function OrganizationProfile() {
 
               <TabsContent value="profile">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Dados da Organização</CardTitle>
-                    <CardDescription>
-                      Atualize as informações sobre sua organização
-                    </CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Dados da Organização</CardTitle>
+                      <CardDescription>
+                        {isEditing ? 'Atualize as informações sobre sua organização' : 'Informações sobre sua organização'}
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant={isEditing ? "outline" : "default"}
+                      onClick={() => setIsEditing(!isEditing)}
+                    >
+                      {isEditing ? "Cancelar" : "Editar"}
+                    </Button>
                   </CardHeader>
                   <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
@@ -659,6 +669,7 @@ export default function OrganizationProfile() {
                             name="name"
                             value={profileForm.name || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                             required
                           />
                         </div>
@@ -757,18 +768,20 @@ export default function OrganizationProfile() {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button 
-                        type="submit" 
-                        className="w-full md:w-auto"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Salvando...
-                          </>
-                        ) : 'Salvar Alterações'}
-                      </Button>
+                      {isEditing && (
+                        <Button 
+                          type="submit" 
+                          className="w-full md:w-auto"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Salvando...
+                            </>
+                          ) : 'Salvar Alterações'}
+                        </Button>
+                      )}
                     </CardFooter>
                   </form>
                 </Card>
