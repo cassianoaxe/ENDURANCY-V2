@@ -875,6 +875,15 @@ function AppContent() {
   
   // Handle organization-specific routes
   if (currentPath.startsWith('/organization/')) {
+    // Verificar se é uma rota de dashboard específica da organização (com ID)
+    const orgDashboardMatch = currentPath.match(/^\/organization\/(\d+)\/dashboard$/);
+    if (orgDashboardMatch) {
+      console.log("Renderizando dashboard de organização específica com ID:", orgDashboardMatch[1]);
+      return <OrganizationLayout>
+        <OrganizationDashboard />
+      </OrganizationLayout>;
+    }
+    
     // Permitir acesso público ao portal de transparência mesmo sem login
     const transparenciaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
     if (transparenciaMatch) {
