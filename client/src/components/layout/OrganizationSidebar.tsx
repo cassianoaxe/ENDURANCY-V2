@@ -349,6 +349,64 @@ export default function OrganizationSidebar() {
               currentPath === "/organization/gerenciar-pacientes",
       icon: <Users size={18} />
     },
+    {
+      title: "Módulo Social",
+      path: "/organization/social",
+      active: currentPath === "/organization/social" || 
+              currentPath.startsWith("/organization/social/"),
+      icon: <HeartHandshake size={18} className="text-red-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Social",
+          path: "/organization/social",
+          active: currentPath === "/organization/social",
+          icon: <LayoutDashboard size={16} className="text-red-500" />
+        },
+        {
+          title: "Beneficiários",
+          path: "/organization/social/beneficiarios",
+          active: currentPath === "/organization/social/beneficiarios",
+          icon: <Users2 size={16} className="text-red-500" />
+        },
+        {
+          title: "Cadastrar Beneficiário",
+          path: "/organization/social/beneficiarios/novo",
+          active: currentPath === "/organization/social/beneficiarios/novo",
+          icon: <UserPlus size={16} className="text-red-500" />
+        },
+        {
+          title: "Doações",
+          path: "/organization/social/doacoes",
+          active: currentPath === "/organization/social/doacoes",
+          icon: <HandCoins size={16} className="text-red-500" />
+        },
+        {
+          title: "Despesas",
+          path: "/organization/social/despesas",
+          active: currentPath === "/organization/social/despesas",
+          icon: <Receipt size={16} className="text-red-500" />
+        },
+        {
+          title: "Campanhas",
+          path: "/organization/social/campanhas",
+          active: currentPath === "/organization/social/campanhas",
+          icon: <Target size={16} className="text-red-500" />
+        },
+        {
+          title: "Voluntários",
+          path: "/organization/social/voluntarios",
+          active: currentPath === "/organization/social/voluntarios",
+          icon: <Users size={16} className="text-red-500" />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/social/configuracoes",
+          active: currentPath === "/organization/social/configuracoes",
+          icon: <Settings size={16} className="text-red-500" />
+        }
+      ]
+    },
     
     {
       title: "Inteligência Artificial",
