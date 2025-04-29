@@ -17,6 +17,15 @@ import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
 import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
 import ImportDetails from "@/pages/organization/import-company/ImportDetails";
+
+// Módulo Social
+import SocialDashboard from "@/pages/organization/social/index";
+import SocialBeneficiarios from "@/pages/organization/social/beneficiarios/index";
+import SocialDoacoes from "@/pages/organization/social/doacoes/index";
+import SocialDespesas from "@/pages/organization/social/despesas/index";
+import SocialCampanhas from "@/pages/organization/social/campanhas/index";
+import SocialVoluntarios from "@/pages/organization/social/voluntarios/index";
+import SocialConfiguracoes from "@/pages/organization/social/configuracoes/index";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import LaboratoryAmostras from "@/pages/laboratory/Amostras";
@@ -1222,6 +1231,49 @@ function AppContent() {
     if (currentPath === '/organization/patrimonio') {
       return <OrganizationLayout>
         <PatrimonioIndex />
+      </OrganizationLayout>;
+    }
+
+    // Rotas do módulo Social
+    if (currentPath === '/organization/social') {
+      return <OrganizationLayout>
+        <SocialDashboard />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/beneficiarios') {
+      return <OrganizationLayout>
+        <SocialBeneficiarios />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/doacoes') {
+      return <OrganizationLayout>
+        <SocialDoacoes />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/despesas') {
+      return <OrganizationLayout>
+        <SocialDespesas />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/campanhas') {
+      return <OrganizationLayout>
+        <SocialCampanhas />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/voluntarios') {
+      return <OrganizationLayout>
+        <SocialVoluntarios />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/configuracoes') {
+      return <OrganizationLayout>
+        <SocialConfiguracoes />
       </OrganizationLayout>;
     }
 
