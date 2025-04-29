@@ -281,7 +281,11 @@ export default function OrganizationSettings() {
                 <CardTitle>Informações da Organização</CardTitle>
                 <Button 
                   variant="outline" 
-                  onClick={() => window.location.href="/organization/profile"}
+                  onClick={() => {
+                    // Modificar o redirecionamento para usar Link ou navegação programática em vez de window.location
+                    const organizationId = user?.organizationId || 1;
+                    window.location.href=`/organization/${organizationId}/profile`;
+                  }}
                   size="sm"
                 >
                   Editar Informações
