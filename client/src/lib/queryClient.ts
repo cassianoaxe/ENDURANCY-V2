@@ -4,7 +4,10 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true, // Alterado para true para forçar recarregamento ao focar a janela
+      refetchOnMount: true, // Sempre recarregar ao montar o componente
+      staleTime: 10000, // 10 segundos para considerar os dados obsoletos
+      cacheTime: 30000, // 30 segundos para manter o cache
     },
   },
 });

@@ -130,11 +130,30 @@ export default function OrganizationSidebar() {
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery({
     queryKey: ['/api/organizations', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      try {
+        console.log("Sidebar: carregando organização", user.organizationId, "com timestamp:", Date.now());
+        // Adicionar um parâmetro de consulta aleatório para evitar cache do navegador
+        const timestamp = Date.now();
+        const response = await fetch(`/api/organizations/${user.organizationId}?_=${timestamp}`, {
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Falha ao carregar organização');
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao buscar organização:', error);
+        return null;
+      }
+    },
     enabled: !!user?.organizationId,
-    // Não armazenar em cache por muito tempo e revalidar frequentemente
-    staleTime: 5000, // 5 segundos
-    refetchInterval: 10000, // Recarregar a cada 10 segundos
+    // Configurar para sempre buscar dados frescos
+    staleTime: 0, // Sempre considerar dados obsoletos
+    cacheTime: 0, // Não manter em cache
+    refetchInterval: 5000, // Recarregar a cada 5 segundos
     refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
+    refetchOnMount: true, // Recarregar sempre que o componente montar
   });
   
   // Verifica se a organização é do tipo importadora
