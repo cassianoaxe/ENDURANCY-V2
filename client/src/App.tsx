@@ -948,7 +948,9 @@ function AppContent() {
       return <Production />;
     }
     
-    if (currentPath === '/organization/profile') {
+    // Padrão para perfil da organização: /organization/profile ou /organization/{orgId}/profile
+    if (currentPath === '/organization/profile' || 
+        currentPath.match(/^\/organization\/\d+\/profile$/)) {
       return <OrganizationProfile />;
     }
 
