@@ -499,8 +499,18 @@ function AppContent() {
     if (loginRedirect === 'true') {
       // Restaurar a opacidade da página se necessário
       document.body.style.opacity = '1';
+      
       // Limpar flag após uso
       sessionStorage.removeItem('loginRedirect');
+      
+      // Remover overlay de carregamento se existir
+      const existingOverlay = document.querySelector('div[data-login-overlay="true"]');
+      if (existingOverlay) {
+        existingOverlay.style.opacity = '0';
+        setTimeout(() => {
+          existingOverlay.remove();
+        }, 500);
+      }
     }
   }, []);
 
