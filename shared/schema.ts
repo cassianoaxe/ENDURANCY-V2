@@ -4,6 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import * as patrimonioSchema from './schema-patrimonio';
 import * as pesquisaSchema from './schema-pesquisa';
+import * as socialSchema from './schema-social';
 
 // Define a role enum para os diferentes tipos de usuário
 export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher']);
