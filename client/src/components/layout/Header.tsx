@@ -64,9 +64,18 @@ export default function Header() {
 
   const getBreadcrumbs = () => {
     const parts = currentPath.split('/').filter(Boolean);
-    return ['Início', ...parts].map((part) => 
-      part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ')
-    );
+    
+    // Filtrar partes do caminho para ocultar IDs numéricos
+    return ['Início', ...parts].map((part, index) => {
+      // Verificar se a parte é um número (ID) e vir depois de "organization" 
+      if (/^\d+$/.test(part) && parts[index-1] === 'organization') {
+        // Ocultar completamente o ID no breadcrumb
+        return null;
+      }
+      
+      // Formatar o texto (primeira letra maiúscula e substituir hifens por espaços)
+      return part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
+    }).filter(Boolean); // Remover elementos nulos
   };
 
   // Determinar o caminho HOME com base no tipo de usuário
