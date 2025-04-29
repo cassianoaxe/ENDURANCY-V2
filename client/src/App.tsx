@@ -958,8 +958,12 @@ function AppContent() {
       return <MeuPlano />;
     }
     
+    // Redirect settings to profile - consolidate functionality
     if (currentPath === '/organization/settings' || currentPath === '/organization/settings/integracoes') {
-      return <OrganizationSettings />;
+      // Redirect to profile page which now handles all organization settings
+      console.log("Redirecionando de configurações para perfil da organização");
+      setLocation('/organization/profile');
+      return null;
     }
     
     if (currentPath === '/organization/cadastros') {
