@@ -1333,7 +1333,7 @@ export default function OrganizationSidebar() {
                     className="h-8 w-8 rounded mr-2"
                   />
                 ) : (
-                  <Building className="h-6 w-6 text-primary mr-2" />
+                  <Leaf className="h-6 w-6 text-green-600 dark:text-green-400 mr-2" />
                 )}
                 <span className="text-sm font-semibold truncate" style={{ maxWidth: "150px" }}>
                   {organization?.name || (
@@ -1355,7 +1355,7 @@ export default function OrganizationSidebar() {
                 </span>
               </div>
             ) : (
-              <Building className="h-6 w-6 text-primary" />
+              <Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
             )}
           </div>
         )}
