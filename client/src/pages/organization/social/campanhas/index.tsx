@@ -133,7 +133,6 @@ export default function CampaignsList() {
   };
 
   return (
-    <OrganizationLayout>
       <div className="p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -368,6 +367,5 @@ export default function CampaignsList() {
           )}
         </div>
       </div>
-    </OrganizationLayout>
   );
 }
