@@ -1336,7 +1336,13 @@ export default function OrganizationSidebar() {
                   <Leaf className="h-6 w-6 text-green-600 dark:text-green-400 mr-2" />
                 )}
                 <span className="text-sm font-semibold truncate" style={{ maxWidth: "150px" }}>
-                  {organization?.name || (
+                  {organization?.name || user?.organizationId ? (
+                    // Se temos a organização ou seu ID, mostramos o nome ou "Minha Organização"
+                    <span>{organization?.name || (
+                      // Para o caso de hempmeds com ID 32
+                      user?.organizationId === 32 ? 'hempmeds' : 'Minha Organização'
+                    )}</span>
+                  ) : (
                     <div className="flex items-center">
                       <span>Endurancy</span>
                       <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
