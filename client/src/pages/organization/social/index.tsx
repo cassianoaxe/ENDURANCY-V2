@@ -573,29 +573,27 @@ export default function SocialDashboard() {
   };
 
   return (
-    <OrganizationLayout>
-      <div className="p-4 md:p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Módulo Social</h1>
-            <p className="text-muted-foreground">
-              Gerencie as atividades sociais da associação
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => window.location.href = "/organization/social/configuracoes"}>
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
-            </Button>
-            <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
-              <Users className="mr-2 h-4 w-4" />
-              Cadastrar Beneficiário
-            </Button>
-          </div>
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Módulo Social</h1>
+          <p className="text-muted-foreground">
+            Gerencie as atividades sociais da associação
+          </p>
         </div>
-
-        {renderDashboardContent()}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => window.location.href = "/organization/social/configuracoes"}>
+            <FileText className="mr-2 h-4 w-4" />
+            Relatórios
+          </Button>
+          <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
+            <Users className="mr-2 h-4 w-4" />
+            Cadastrar Beneficiário
+          </Button>
+        </div>
       </div>
-    </OrganizationLayout>
+
+      {renderDashboardContent()}
+    </div>
   );
 }
