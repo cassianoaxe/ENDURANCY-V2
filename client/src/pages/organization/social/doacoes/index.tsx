@@ -39,28 +39,37 @@ import {
 } from "@/components/ui/select";
 import { 
   Search, Filter, Plus, MoreVertical, 
-  Pencil, Trash2, Eye, HandCoins, Download
+  Pencil, Trash2, Eye, Heart, Calendar,
+  Download, Check, Banknote, CreditCard, Mail
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Donation {
   id: number;
   donorName: string;
-  type: 'financial' | 'material' | 'service';
+  donorEmail?: string;
+  donorPhone?: string;
   amount: number;
-  description: string;
   date: string;
-  paymentMethod: string;
+  method: 'pix' | 'credit_card' | 'bank_transfer' | 'cash' | 'other';
   status: 'completed' | 'pending' | 'cancelled';
-  receiptUrl?: string;
   campaignId?: number;
   campaignName?: string;
+  receiptUrl?: string;
+  isAnonymous: boolean;
+  isRecurring: boolean;
+  frequency?: 'monthly' | 'quarterly' | 'biannually' | 'annually';
+  notes?: string;
+  acknowledgmentSent: boolean;
 }
 
 export default function DonationsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterMethod, setFilterMethod] = useState<string>('all');
+  const [filterCampaign, setFilterCampaign] = useState<string>('all');
   
   // Fetch donations data
   const { data: donations, isLoading, error } = useQuery({
@@ -69,12 +78,23 @@ export default function DonationsList() {
     enabled: true,
   });
 
-  // Filter and sort donations based on search term and filter
+  // Fetch campaigns for filter
+  const { data: campaigns } = useQuery({
+    queryKey: ['/api/social/campaigns'],
+    retry: false,
+    enabled: true,
+  });
+
+  // Filter and sort donations based on search term and filters
   const filteredDonations = donations?.filter(donation => 
-    (donation.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    donation.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (donation.isAnonymous ? "Doação anônima".includes(searchTerm.toLowerCase()) : donation.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (donation.donorEmail && donation.donorEmail.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (donation.donorPhone && donation.donorPhone.includes(searchTerm)) ||
     (donation.campaignName && donation.campaignName.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-    (filterType === 'all' || donation.type === filterType)
+    (filterStatus === 'all' || donation.status === filterStatus) &&
+    (filterMethod === 'all' || donation.method === filterMethod) &&
+    (filterCampaign === 'all' || (filterCampaign === 'none' && !donation.campaignId) || 
+     (donation.campaignId?.toString() === filterCampaign))
   ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) || [];
 
   // Pagination logic
@@ -83,6 +103,11 @@ export default function DonationsList() {
   const paginatedDonations = filteredDonations.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
+  );
+
+  // Calculate total amount
+  const totalAmount = filteredDonations.reduce((sum, donation) => 
+    donation.status === 'completed' ? sum + donation.amount : sum, 0
   );
 
   const formatDate = (dateString: string) => {
@@ -97,10 +122,19 @@ export default function DonationsList() {
     });
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'completed':
-        return <Badge className="bg-green-500">Confirmada</Badge>
+        return <Badge className="bg-green-500">Concluída</Badge>
       case 'pending':
         return <Badge className="bg-yellow-500">Pendente</Badge>
       case 'cancelled':
@@ -110,17 +144,29 @@ export default function DonationsList() {
     }
   };
 
-  const getDonationType = (type: string) => {
-    switch(type) {
-      case 'financial':
-        return 'Financeira';
-      case 'material':
-        return 'Material';
-      case 'service':
-        return 'Serviço';
+  const getMethodIcon = (method: string) => {
+    switch(method) {
+      case 'pix':
+        return <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="mr-2">
+          <path d="M9.5,4.5L7.4,6.6L5.2,4.5L2,7.7L4.2,9.9L2,12.1L5.2,15.3L7.4,13.1L9.5,15.3l3.2-3.2l-2.1-2.1l2.1-2.1 L9.5,4.5z M14.5,4.5l-3.2,3.2l2.1,2.1l-2.1,2.1l3.2,3.2l2.1-2.1l2.1,2.1l3.2-3.2l-2.1-2.1l2.1-2.1l-3.2-3.2l-2.1,2.1L14.5,4.5z"/>
+        </svg>
+      case 'credit_card':
+        return <CreditCard className="mr-2 h-4 w-4" />
+      case 'bank_transfer':
+        return <Banknote className="mr-2 h-4 w-4" />
+      case 'cash':
+        return <Banknote className="mr-2 h-4 w-4" />
       default:
-        return 'Desconhecido';
+        return <Heart className="mr-2 h-4 w-4" />
     }
+  };
+
+  const methodLabels = {
+    'pix': 'PIX',
+    'credit_card': 'Cartão de Crédito',
+    'bank_transfer': 'Transferência',
+    'cash': 'Dinheiro',
+    'other': 'Outro'
   };
 
   return (
@@ -134,9 +180,53 @@ export default function DonationsList() {
             </p>
           </div>
           <Button onClick={() => window.location.href = "/organization/social/doacoes/nova"}>
-            <HandCoins className="mr-2 h-4 w-4" />
-            Nova Doação
+            <Heart className="mr-2 h-4 w-4" />
+            Registrar Doação
           </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total de Doações</CardTitle>
+              <CardDescription className="text-2xl font-bold">
+                {formatCurrency(totalAmount)}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                {filteredDonations.filter(d => d.status === 'completed').length} doações no período
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Doações Recorrentes</CardTitle>
+              <CardDescription className="text-2xl font-bold">
+                {filteredDonations.filter(d => d.isRecurring).length}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Doadores com contribuições periódicas
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Agradecimentos</CardTitle>
+              <CardDescription className="text-2xl font-bold">
+                {filteredDonations.filter(d => !d.acknowledgmentSent && d.status === 'completed').length}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Doações pendentes de agradecimento
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <Card className="mb-6">
@@ -152,29 +242,56 @@ export default function DonationsList() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Buscar por doador, descrição ou campanha..."
+                  placeholder="Buscar por doador, email ou campanha..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="w-full md:w-[200px]">
-                <Select value={filterType} onValueChange={setFilterType}>
+              <div className="w-full md:w-[180px]">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Tipo de Doação" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Tipos</SelectItem>
-                    <SelectItem value="financial">Financeira</SelectItem>
-                    <SelectItem value="material">Material</SelectItem>
-                    <SelectItem value="service">Serviço</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="completed">Concluídas</SelectItem>
+                    <SelectItem value="pending">Pendentes</SelectItem>
+                    <SelectItem value="cancelled">Canceladas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
-                Filtros Avançados
-              </Button>
+              <div className="w-full md:w-[180px]">
+                <Select value={filterMethod} onValueChange={setFilterMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Método" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Métodos</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                    <SelectItem value="bank_transfer">Transferência</SelectItem>
+                    <SelectItem value="cash">Dinheiro</SelectItem>
+                    <SelectItem value="other">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-[220px]">
+                <Select value={filterCampaign} onValueChange={setFilterCampaign}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Campanha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Campanhas</SelectItem>
+                    <SelectItem value="none">Sem Campanha</SelectItem>
+                    {(campaigns || []).map((campaign) => (
+                      <SelectItem key={campaign.id} value={campaign.id.toString()}>
+                        {campaign.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -185,13 +302,15 @@ export default function DonationsList() {
               <div>
                 <CardTitle>Lista de Doações</CardTitle>
                 <CardDescription>
-                  {filteredDonations.length} doações encontradas
+                  {filteredDonations.length} doações encontradas - {formatCurrency(totalAmount)}
                 </CardDescription>
               </div>
-              <Button variant="outline" className="mt-2 md:mt-0" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
+              <div className="flex items-center gap-2 mt-2 md:mt-0">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Download className="h-4 w-4" />
+                  Exportar
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -201,10 +320,12 @@ export default function DonationsList() {
               </div>
             ) : filteredDonations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10">
-                <HandCoins className="h-12 w-12 text-muted-foreground mb-4" />
+                <Heart className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-1">Nenhuma doação encontrada</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchTerm || filterType !== 'all' ? "Tente ajustar seus filtros" : "Você ainda não registrou nenhuma doação"}
+                  {searchTerm || filterStatus !== 'all' || filterMethod !== 'all' || filterCampaign !== 'all' ? 
+                    "Tente ajustar seus filtros" : 
+                    "Você ainda não registrou nenhuma doação"}
                 </p>
                 <Button onClick={() => window.location.href = "/organization/social/doacoes/nova"}>
                   <Plus className="mr-2 h-4 w-4" />
@@ -218,9 +339,9 @@ export default function DonationsList() {
                     <TableRow>
                       <TableHead>Data</TableHead>
                       <TableHead>Doador</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Valor / Descrição</TableHead>
-                      <TableHead className="hidden md:table-cell">Campanha</TableHead>
+                      <TableHead className="hidden md:table-cell">Valor</TableHead>
+                      <TableHead className="hidden md:table-cell">Método</TableHead>
+                      <TableHead className="hidden lg:table-cell">Campanha</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -228,18 +349,50 @@ export default function DonationsList() {
                   <TableBody>
                     {paginatedDonations.map((donation) => (
                       <TableRow key={donation.id}>
-                        <TableCell>{formatDate(donation.date)}</TableCell>
-                        <TableCell className="font-medium">{donation.donorName}</TableCell>
-                        <TableCell>{getDonationType(donation.type)}</TableCell>
                         <TableCell>
-                          {donation.type === 'financial' ? (
-                            <span className="font-medium">{formatCurrency(donation.amount)}</span>
-                          ) : (
-                            <span className="text-sm">{donation.description}</span>
-                          )}
+                          <div className="flex flex-col">
+                            <span>{formatDate(donation.date)}</span>
+                            {donation.isRecurring && (
+                              <Badge variant="outline" className="mt-1 w-fit">Recorrente</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              {!donation.isAnonymous && donation.donorName ? (
+                                <AvatarFallback>{getInitials(donation.donorName)}</AvatarFallback>
+                              ) : (
+                                <AvatarFallback>AN</AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">
+                                {donation.isAnonymous ? "Doação anônima" : donation.donorName}
+                              </div>
+                              <div className="text-xs text-muted-foreground hidden md:block">
+                                {donation.donorEmail || (donation.donorPhone || "")}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell font-medium">
+                          {formatCurrency(donation.amount)}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          {donation.campaignName || "—"}
+                          <div className="flex items-center">
+                            {getMethodIcon(donation.method)}
+                            <span>{methodLabels[donation.method as keyof typeof methodLabels]}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {donation.campaignName ? (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {donation.campaignName}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {getStatusBadge(donation.status)}
@@ -265,7 +418,13 @@ export default function DonationsList() {
                               {donation.receiptUrl && (
                                 <DropdownMenuItem onClick={() => window.open(donation.receiptUrl, '_blank')}>
                                   <Download className="mr-2 h-4 w-4" />
-                                  Baixar Recibo
+                                  Comprovante
+                                </DropdownMenuItem>
+                              )}
+                              {!donation.acknowledgmentSent && !donation.isAnonymous && donation.donorEmail && (
+                                <DropdownMenuItem>
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Enviar agradecimento
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />
