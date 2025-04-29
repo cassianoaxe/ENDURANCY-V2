@@ -525,11 +525,21 @@ export default function OrganizationProfile() {
       
       console.log("Organização atualizada:", updatedOrg);
       
-      // Atualizar o cache
+      // Atualizar o cache imediatamente
       queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
       
-      // Atualizar o organizationId no header (se necessário)
+      // Invalidar todas as consultas que podem conter dados da organização
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Forçar todos os componentes que usam dados da organização a recarregar
+      setTimeout(() => {
+        // Forçar uma atualização global após um pequeno atraso
+        queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+        
+        console.log("Forçando recarga de dados da organização após salvamento");
+      }, 500);
       
       // Notificar sucesso e atualizar o estado do formulário
       toast({
@@ -574,9 +584,21 @@ export default function OrganizationProfile() {
           
           const updatedOrg = await response.json();
           
-          // Atualizar o cache
+          // Atualizar o cache com o mesmo padrão usado no primeiro caso
           queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
+          
+          // Invalidar todas as consultas que podem conter dados da organização
+          queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
           queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+          
+          // Forçar todos os componentes que usam dados da organização a recarregar
+          setTimeout(() => {
+            // Forçar uma atualização global após um pequeno atraso
+            queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+            queryClient.refetchQueries({ queryKey: ["/api/user"] });
+            
+            console.log("Forçando recarga de dados da organização após retry");
+          }, 500);
           
           toast({
             title: "Sucesso!",
@@ -638,8 +660,18 @@ export default function OrganizationProfile() {
         return { ...oldData, logo: result.logoUrl };
       });
       
-      // Atualize também o cache do usuário se necessário
+      // Invalidar todas as consultas que podem conter dados da organização
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Forçar todos os componentes que usam dados da organização a recarregar
+      setTimeout(() => {
+        // Forçar uma atualização global após um pequeno atraso
+        queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+        
+        console.log("Forçando recarga de dados da organização após atualização de logo");
+      }, 500);
       
       toast({
         title: "Sucesso!",

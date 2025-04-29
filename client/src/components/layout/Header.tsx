@@ -37,6 +37,10 @@ export default function Header() {
       }
     },
     enabled: !!user?.organizationId && isOrgPath,
+    // Não armazenar em cache por muito tempo e revalidar frequentemente
+    staleTime: 5000, // 5 segundos
+    refetchInterval: 10000, // Recarregar a cada 10 segundos
+    refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
   });
 
   // Verificar se o tema é escuro ao carregar a página

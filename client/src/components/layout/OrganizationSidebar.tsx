@@ -131,6 +131,10 @@ export default function OrganizationSidebar() {
   const { data: organization, isLoading: isOrgLoading } = useQuery({
     queryKey: ['/api/organizations', user?.organizationId],
     enabled: !!user?.organizationId,
+    // Não armazenar em cache por muito tempo e revalidar frequentemente
+    staleTime: 5000, // 5 segundos
+    refetchInterval: 10000, // Recarregar a cada 10 segundos
+    refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
   });
   
   // Verifica se a organização é do tipo importadora
