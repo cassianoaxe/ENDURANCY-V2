@@ -670,6 +670,7 @@ export default function OrganizationProfile() {
                             value={profileForm.name || ""}
                             onChange={handleInputChange}
                             disabled={!isEditing}
+                            disabled={!isEditing}
                             required
                           />
                         </div>
@@ -680,6 +681,8 @@ export default function OrganizationProfile() {
                             name="legalName"
                             value={profileForm.legalName || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -689,6 +692,7 @@ export default function OrganizationProfile() {
                             name="cnpj"
                             value={profileForm.cnpj || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -699,6 +703,7 @@ export default function OrganizationProfile() {
                             type="email"
                             value={profileForm.email || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -708,6 +713,7 @@ export default function OrganizationProfile() {
                             name="phoneNumber"
                             value={profileForm.phoneNumber || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -717,6 +723,7 @@ export default function OrganizationProfile() {
                             name="website"
                             value={profileForm.website || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -726,6 +733,7 @@ export default function OrganizationProfile() {
                             name="address"
                             value={profileForm.address || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -735,6 +743,7 @@ export default function OrganizationProfile() {
                             name="city"
                             value={profileForm.city || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -744,6 +753,7 @@ export default function OrganizationProfile() {
                             name="state"
                             value={profileForm.state || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -753,6 +763,7 @@ export default function OrganizationProfile() {
                             name="zipCode"
                             value={profileForm.zipCode || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                       </div>
@@ -763,6 +774,7 @@ export default function OrganizationProfile() {
                           name="description"
                           value={profileForm.description || ""}
                           onChange={handleInputChange}
+                            disabled={!isEditing}
                           rows={4}
                         />
                       </div>
