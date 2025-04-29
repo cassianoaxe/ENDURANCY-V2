@@ -22,6 +22,7 @@ import { registerTrainerRoutes } from './routes/trainer-routes';
 import equipmentRoutes from './routes/equipment-routes';
 import aiChatRouter from './routes/ai-chat';
 import { registerPlanRoutes } from './routes/plans';
+import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
 import { 
@@ -5709,6 +5710,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de grupos de usuários e permissões
   // User group routes are registered directly via registerUserGroupRoutes(app);
+  
+  // Rotas do módulo Social (para associações)
+  app.use("/api", socialRoutes);
+  console.log("Rotas do módulo Social registradas com sucesso");
   
   const httpServer = createServer(app);
 

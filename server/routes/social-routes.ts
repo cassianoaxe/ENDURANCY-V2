@@ -10,7 +10,7 @@ import {
   socialPortalSettings,
   socialBeneficiaryHistory
 } from "../../shared/schema-social";
-import { isAuthenticated } from "../utils";
+import { authenticate } from "../routes";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -53,11 +53,12 @@ const router = Router();
 
 // Middleware para verificar se o usuário é de uma organização do tipo associação
 const isAssociation = async (req, res, next) => {
-  if (!req.isAuthenticated()) {
+  // O middleware authenticate já deve ter sido chamado antes deste
+  if (!req.session || !req.session.user) {
     return res.status(401).json({ message: "Não autenticado" });
   }
 
-  if (!req.user.organizationId) {
+  if (!req.session.user.organizationId) {
     return res.status(403).json({ message: "Usuário não está vinculado a uma organização" });
   }
 
@@ -65,7 +66,7 @@ const isAssociation = async (req, res, next) => {
     const [organization] = await db
       .select({ type: sql<string>`type` })
       .from(sql`organizations`)
-      .where(sql`id = ${req.user.organizationId}`);
+      .where(sql`id = ${req.session.user.organizationId}`);
 
     if (!organization || organization.type !== "Associação") {
       return res.status(403).json({ message: "Este módulo é exclusivo para associações" });
@@ -79,9 +80,9 @@ const isAssociation = async (req, res, next) => {
 };
 
 // Rotas para beneficiários
-router.get("/social/beneficiaries", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/beneficiaries", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const beneficiaries = await db
       .select()
@@ -96,7 +97,7 @@ router.get("/social/beneficiaries", isAuthenticated, isAssociation, async (req, 
   }
 });
 
-router.get("/social/beneficiaries/:id", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/beneficiaries/:id", authenticate, isAssociation, async (req, res) => {
   try {
     const { id } = req.params;
     const organizationId = req.user.organizationId;
