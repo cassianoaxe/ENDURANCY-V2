@@ -25,6 +25,17 @@ export default function Header() {
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
     queryKey: ['/api/organizations', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      try {
+        const response = await fetch(`/api/organizations/${user.organizationId}`);
+        if (!response.ok) throw new Error('Falha ao carregar organização');
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao buscar organização:', error);
+        return null;
+      }
+    },
     enabled: !!user?.organizationId && isOrgPath,
   });
 
@@ -82,22 +93,23 @@ export default function Header() {
   const getHomePath = () => {
     if (!user) return '/';
     
-    switch (user.role) {
-      case 'admin':
-        return '/admin/dashboard';
-      case 'org_admin':
-        return '/organization/dashboard';
-      case 'doctor':
-        return '/doctor/dashboard';
-      case 'patient':
-        return '/patient/dashboard';
-      case 'manager':
-        return '/manager/dashboard';
-      case 'employee':
-        return '/employee/dashboard';
-      default:
-        return '/';
-    }
+    // Mapear papel do usuário para o caminho correspondente
+    const rolePaths: Record<string, string> = {
+      'admin': '/admin/dashboard',
+      'org_admin': '/organization/dashboard',
+      'association_admin': '/organization/dashboard',
+      'company_admin': '/organization/dashboard',
+      'doctor': '/doctor/dashboard',
+      'dentist': '/doctor/dashboard',
+      'vet': '/doctor/dashboard',
+      'patient': '/patient/dashboard',
+      'pharmacist': '/pharmacist/dashboard',
+      'laboratory': '/laboratory/dashboard',
+      'researcher': '/researcher/dashboard'
+    };
+    
+    // Usar o caminho mapeado ou o caminho padrão
+    return rolePaths[user.role] || '/';
   };
 
   return (
@@ -123,35 +135,38 @@ export default function Header() {
             </Tooltip>
           </TooltipProvider>
 
-          {isOrgPath && !isOrgLoading && organization?.logo ? (
-            <Avatar className="h-5 w-5 rounded-md mr-1">
-              <AvatarImage src={organization.logo} alt={organization.name || "Organização"} />
-              <AvatarFallback className="rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f]">
-                <Leaf className="h-3 w-3 text-green-600 dark:text-green-400" />
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <Leaf className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
-          )}
-          
-          {/* Breadcrumbs navegáveis */}
-          {getBreadcrumbs().map((crumb, index, array) => (
-            <div key={index} className="flex items-center">
-              {index === 0 ? (
-                <button 
-                  onClick={() => navigateTo(getHomePath())}
-                  className="hover:text-green-600 dark:hover:text-green-400 hover:underline cursor-pointer"
-                >
-                  {crumb}
-                </button>
-              ) : (
-                <span>{crumb}</span>
-              )}
-              {index < array.length - 1 && (
-                <span className="mx-2">/</span>
-              )}
-            </div>
-          ))}
+          {/* Conteúdo central: logo + título */}
+          <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-1.5">
+            {isOrgPath && !isOrgLoading && organization?.logo ? (
+              <Avatar className="h-6 w-6 rounded-md mr-2">
+                <AvatarImage src={organization.logo} alt={organization.name || "Organização"} />
+                <AvatarFallback className="rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f]">
+                  <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="h-6 w-6 rounded-md bg-green-50 dark:bg-green-900/30 flex items-center justify-center mr-2">
+                <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+            )}
+            
+            {/* Título da página - simplificado para evitar problemas */}
+            <span className="text-base font-medium text-gray-800 dark:text-gray-200">
+              {(() => {
+                // Regra 1: Se estamos em uma rota de organização e temos os dados dela, mostrar o nome
+                if (isOrgPath && organization?.name) {
+                  return organization.name;
+                }
+                
+                // Regra 2: Em qualquer outro caso, mostrar o nome da página atual
+                const parts = currentPath.split('/').filter(Boolean);
+                const lastPart = parts[parts.length - 1] || 'Dashboard';
+                
+                // Formatar o texto (primeira letra maiúscula e substituir hifens por espaços)
+                return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ');
+              })()}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
