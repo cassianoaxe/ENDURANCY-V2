@@ -325,10 +325,11 @@ export default function Login() {
       if (!redirectUrl) {
         console.log("Alerta: Nenhuma URL de redirecionamento fornecida pela API");
         
-        // Determinar melhor URL baseado no papel
-        if (userType === 'association_admin') {
-          // Redirecionamento direto para o dashboard da organização com ID 1
-          redirectUrl = '/organization/1/dashboard';
+        // Determinar melhor URL baseado no papel e no ID da organização
+        if (userType === 'association_admin' || userType === 'org_admin') {
+          // Usar o ID da organização do usuário em vez de hardcoded
+          const orgId = user?.organizationId || 1;
+          redirectUrl = `/organization/${orgId}/dashboard`;
         } else if (userType === 'company_admin') {
           redirectUrl = '/organization/dashboard';
         } else if (userType === 'admin') {
