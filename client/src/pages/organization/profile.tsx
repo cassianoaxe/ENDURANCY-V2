@@ -670,7 +670,6 @@ export default function OrganizationProfile() {
                             value={profileForm.name || ""}
                             onChange={handleInputChange}
                             disabled={!isEditing}
-                            disabled={!isEditing}
                             required
                           />
                         </div>
@@ -681,7 +680,6 @@ export default function OrganizationProfile() {
                             name="legalName"
                             value={profileForm.legalName || ""}
                             onChange={handleInputChange}
-                            disabled={!isEditing}
                             disabled={!isEditing}
                           />
                         </div>
@@ -774,7 +772,7 @@ export default function OrganizationProfile() {
                           name="description"
                           value={profileForm.description || ""}
                           onChange={handleInputChange}
-                            disabled={!isEditing}
+                          disabled={!isEditing}
                           rows={4}
                         />
                       </div>
