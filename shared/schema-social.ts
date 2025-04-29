@@ -139,12 +139,7 @@ export const socialBeneficiaryHistory = pgTable("social_beneficiary_history", {
 });
 
 // Schemas para inserção de dados com validação Zod
-export const insertSocialBeneficiarySchema = createInsertSchema(socialBeneficiaries, {
-  cpf: (schema) => schema.cpf.regex(/^\d{11}$/, "CPF deve conter 11 dígitos"),
-  email: (schema) => schema.email.email("Email inválido"),
-  phone: (schema) => schema.phone.regex(/^\d{10,11}$/, "Telefone deve conter 10 ou 11 dígitos"),
-  zipCode: (schema) => schema.zipCode.regex(/^\d{8}$/, "CEP deve conter 8 dígitos"),
-});
+export const insertSocialBeneficiarySchema = createInsertSchema(socialBeneficiaries);
 
 export const insertSocialDonationSchema = createInsertSchema(socialDonations);
 export const insertSocialExpenseSchema = createInsertSchema(socialExpenses);
