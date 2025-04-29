@@ -135,12 +135,7 @@ export default function Header() {
             </Tooltip>
           </TooltipProvider>
 
-          {/* Apenas o ícone de folha */}
-          <div className="flex items-center">
-            <div className="h-8 w-8 rounded-md bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
-              <Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
+{/* Removido o ícone de folha do cabeçalho conforme solicitado */}
         </div>
 
         <div className="flex items-center gap-2">
