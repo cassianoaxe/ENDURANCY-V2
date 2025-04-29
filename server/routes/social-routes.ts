@@ -100,7 +100,7 @@ router.get("/social/beneficiaries", authenticate, isAssociation, async (req, res
 router.get("/social/beneficiaries/:id", authenticate, isAssociation, async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const [beneficiary] = await db
       .select()
@@ -138,7 +138,7 @@ router.get("/social/beneficiaries/:id", authenticate, isAssociation, async (req,
 // Upload de documentos para beneficiários
 router.post(
   "/social/beneficiaries/documents",
-  isAuthenticated,
+  authenticate,
   isAssociation,
   upload.fields([
     { name: "documentFront", maxCount: 1 },
@@ -151,7 +151,7 @@ router.post(
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       const beneficiaryId = req.body.beneficiaryId;
-      const organizationId = req.user.organizationId;
+      const organizationId = req.session.user.organizationId;
       
       const updateData = {};
       
@@ -200,9 +200,9 @@ router.post(
   }
 );
 
-router.post("/social/beneficiaries", isAuthenticated, isAssociation, async (req, res) => {
+router.post("/social/beneficiaries", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const beneficiaryData = { ...req.body, organizationId };
     
     // Criar beneficiário
@@ -217,7 +217,7 @@ router.post("/social/beneficiaries", isAuthenticated, isAssociation, async (req,
       organizationId,
       eventType: "registration",
       description: "Cadastro inicial no programa social",
-      createdBy: req.user.id
+      createdBy: req.session.user.id
     });
     
     res.status(201).json(newBeneficiary);
@@ -227,10 +227,10 @@ router.post("/social/beneficiaries", isAuthenticated, isAssociation, async (req,
   }
 });
 
-router.put("/social/beneficiaries/:id", isAuthenticated, isAssociation, async (req, res) => {
+router.put("/social/beneficiaries/:id", authenticate, isAssociation, async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const beneficiaryData = req.body;
     
     // Verificar se houve alteração no tipo de isenção
@@ -267,7 +267,7 @@ router.put("/social/beneficiaries/:id", isAuthenticated, isAssociation, async (r
         organizationId,
         eventType: "exemption_change",
         description: `Alteração de isenção de ${currentBeneficiary.exemptionValue}% para ${beneficiaryData.exemptionValue}%`,
-        createdBy: req.user.id
+        createdBy: req.session.user.id
       });
     }
     
@@ -279,9 +279,9 @@ router.put("/social/beneficiaries/:id", isAuthenticated, isAssociation, async (r
 });
 
 // Rotas para doações
-router.get("/social/donations", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/donations", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const donations = await db
       .select()
@@ -296,9 +296,9 @@ router.get("/social/donations", isAuthenticated, isAssociation, async (req, res)
   }
 });
 
-router.post("/social/donations", isAuthenticated, isAssociation, async (req, res) => {
+router.post("/social/donations", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const donationData = { ...req.body, organizationId };
     
     const [newDonation] = await db
@@ -314,9 +314,9 @@ router.post("/social/donations", isAuthenticated, isAssociation, async (req, res
 });
 
 // Rotas para despesas
-router.get("/social/expenses", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/expenses", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const expenses = await db
       .select()
@@ -331,9 +331,9 @@ router.get("/social/expenses", isAuthenticated, isAssociation, async (req, res) 
   }
 });
 
-router.post("/social/expenses", isAuthenticated, isAssociation, async (req, res) => {
+router.post("/social/expenses", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const expenseData = { ...req.body, organizationId };
     
     // Se a despesa estiver associada a um beneficiário, registrar no histórico
@@ -344,7 +344,7 @@ router.post("/social/expenses", isAuthenticated, isAssociation, async (req, res)
         eventType: "expense",
         description: `Despesa: ${expenseData.description}`,
         amount: expenseData.amount,
-        createdBy: req.user.id
+        createdBy: req.session.user.id
       });
     }
     
@@ -361,9 +361,9 @@ router.post("/social/expenses", isAuthenticated, isAssociation, async (req, res)
 });
 
 // Rotas para campanhas
-router.get("/social/campaigns", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/campaigns", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const campaigns = await db
       .select()
@@ -378,9 +378,9 @@ router.get("/social/campaigns", isAuthenticated, isAssociation, async (req, res)
   }
 });
 
-router.post("/social/campaigns", isAuthenticated, isAssociation, async (req, res) => {
+router.post("/social/campaigns", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const campaignData = { ...req.body, organizationId };
     
     const [newCampaign] = await db
@@ -396,9 +396,9 @@ router.post("/social/campaigns", isAuthenticated, isAssociation, async (req, res
 });
 
 // Rotas para voluntários
-router.get("/social/volunteers", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/volunteers", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     const volunteers = await db
       .select()
@@ -413,9 +413,9 @@ router.get("/social/volunteers", isAuthenticated, isAssociation, async (req, res
   }
 });
 
-router.post("/social/volunteers", isAuthenticated, isAssociation, async (req, res) => {
+router.post("/social/volunteers", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const volunteerData = { ...req.body, organizationId };
     
     const [newVolunteer] = await db
@@ -431,9 +431,9 @@ router.post("/social/volunteers", isAuthenticated, isAssociation, async (req, re
 });
 
 // Rotas para configurações do portal social
-router.get("/social/portal-settings", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/portal-settings", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     // Buscar configurações atuais ou criar padrão se não existirem
     let [settings] = await db
@@ -460,9 +460,9 @@ router.get("/social/portal-settings", isAuthenticated, isAssociation, async (req
   }
 });
 
-router.put("/social/portal-settings", isAuthenticated, isAssociation, async (req, res) => {
+router.put("/social/portal-settings", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const settingsData = req.body;
     
     // Verificar se já existem configurações
@@ -496,9 +496,9 @@ router.put("/social/portal-settings", isAuthenticated, isAssociation, async (req
 });
 
 // Rota para dados do dashboard
-router.get("/social/dashboard", isAuthenticated, isAssociation, async (req, res) => {
+router.get("/social/dashboard", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const year = parseInt(req.query.year as string) || new Date().getFullYear();
     
     // Total de beneficiários ativos
