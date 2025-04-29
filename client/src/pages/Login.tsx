@@ -317,8 +317,39 @@ export default function Login() {
         user = null;
       }
       
-      // Usar URL de redirecionamento da API, ou determinar com base no tipo de usuário
-      let redirectUrl = user?.redirectUrl || '/dashboard';
+      // Usar URL de redirecionamento da API, nunca usar fallback para /dashboard
+      // O dashboard geral causa o flash indesejado antes do redirecionamento final
+      let redirectUrl = user?.redirectUrl;
+      
+      // Se por algum motivo não tivermos URL de redirecionamento, determinar baseado no tipo de usuário
+      if (!redirectUrl) {
+        console.log("Alerta: Nenhuma URL de redirecionamento fornecida pela API");
+        
+        // Determinar melhor URL baseado no papel
+        if (userType === 'association_admin') {
+          // Redirecionamento direto para o dashboard da organização com ID 1
+          redirectUrl = '/organization/1/dashboard';
+        } else if (userType === 'company_admin') {
+          redirectUrl = '/organization/dashboard';
+        } else if (userType === 'admin') {
+          redirectUrl = '/dashboard';
+        } else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
+          redirectUrl = '/doctor/dashboard';
+        } else if (userType === 'pharmacist') {
+          redirectUrl = '/pharmacist/dashboard';
+        } else if (userType === 'patient') {
+          redirectUrl = '/patient/dashboard';
+        } else if (userType === 'laboratory') {
+          redirectUrl = '/laboratory/dashboard';
+        } else if (userType === 'researcher') {
+          redirectUrl = '/researcher/dashboard';
+        } else {
+          // Fallback seguro
+          redirectUrl = '/';
+        }
+        
+        console.log("URL de redirecionamento determinada pelo cliente:", redirectUrl);
+      }
       
       // Caso especial para portal de empresa importadora (mantido para compatibilidade)
       if (userType === 'company_admin' && 
@@ -342,11 +373,64 @@ export default function Login() {
       
       console.log(`Usuário autenticado como ${userType}, redirecionando para ${redirectUrl}`);
       
+      // Criando um overlay de carregamento para evitar flash de tela
+      const overlay = document.createElement('div');
+      overlay.setAttribute('data-login-overlay', 'true');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = '#ffffff';
+      overlay.style.zIndex = '9999';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.flexDirection = 'column';
+      overlay.style.transition = 'opacity 0.5s';
+      
+      // Adicionando um spinner
+      const spinner = document.createElement('div');
+      spinner.style.width = '40px';
+      spinner.style.height = '40px';
+      spinner.style.border = '4px solid #f3f3f3';
+      spinner.style.borderTop = '4px solid #4CAF50';
+      spinner.style.borderRadius = '50%';
+      spinner.style.animation = 'spin 1s linear infinite';
+      
+      // Adicionando keyframe para animação
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Adicionando texto
+      const text = document.createElement('p');
+      text.innerText = 'Redirecionando...';
+      text.style.marginTop = '16px';
+      text.style.color = '#333';
+      text.style.fontFamily = 'sans-serif';
+      
+      overlay.appendChild(spinner);
+      overlay.appendChild(text);
+      document.body.appendChild(overlay);
+      
       // Usando window.location.href e adicionando parâmetro para evitar cache
       const timestamp = new Date().getTime();
       const redirectUrlWithParam = `${redirectUrl}?t=${timestamp}`;
       console.log(`Redirecionando para: ${redirectUrlWithParam}`);
-      window.location.href = redirectUrlWithParam;
+      
+      // Guardar flag no sessionStorage para evitar flicker no redirecionamento
+      sessionStorage.setItem('loginRedirect', 'true');
+      
+      // Pequeno delay para garantir que o overlay seja mostrado
+      setTimeout(() => {
+        window.location.href = redirectUrlWithParam;
+      }, 100);
       
     } catch (error: any) {
       console.error('Login falhou:', error);
