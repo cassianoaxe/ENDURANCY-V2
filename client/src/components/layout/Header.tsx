@@ -28,7 +28,13 @@ export default function Header() {
     queryFn: async () => {
       if (!user?.organizationId) return null;
       try {
-        const response = await fetch(`/api/organizations/${user.organizationId}`);
+        console.log("Header: carregando organização", user.organizationId, "com timestamp:", Date.now());
+        // Adicionar um parâmetro de consulta aleatório para evitar cache do navegador
+        const timestamp = Date.now();
+        const response = await fetch(`/api/organizations/${user.organizationId}?_=${timestamp}`, {
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+          cache: 'no-store'
+        });
         if (!response.ok) throw new Error('Falha ao carregar organização');
         return await response.json();
       } catch (error) {
@@ -36,11 +42,13 @@ export default function Header() {
         return null;
       }
     },
-    enabled: !!user?.organizationId && isOrgPath,
-    // Não armazenar em cache por muito tempo e revalidar frequentemente
-    staleTime: 5000, // 5 segundos
-    refetchInterval: 10000, // Recarregar a cada 10 segundos
+    enabled: !!user?.organizationId,
+    // Configurar para sempre buscar dados frescos
+    staleTime: 0, // Sempre considerar dados obsoletos
+    cacheTime: 0, // Não manter em cache
+    refetchInterval: 5000, // Recarregar a cada 5 segundos
     refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
+    refetchOnMount: true, // Recarregar sempre que o componente montar
   });
 
   // Verificar se o tema é escuro ao carregar a página
