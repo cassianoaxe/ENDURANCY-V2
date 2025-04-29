@@ -30,28 +30,53 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
-  Users, Search, Filter, Plus, MoreVertical, 
-  Pencil, Trash2, Eye, UserPlus
+  Search, Filter, Plus, MoreVertical, 
+  Pencil, Trash2, Eye, Users, UserPlus,
+  Calendar, MapPin, Phone, Mail, FileText
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Beneficiary {
   id: number;
   name: string;
-  document: string;
-  email: string;
-  phone: string;
+  documentId: string;
+  status: 'active' | 'inactive';
+  birthDate: string;
   address: string;
+  neighborhood: string;
   city: string;
   state: string;
-  status: 'active' | 'inactive';
-  registrationDate: string;
-  lastUpdateDate: string;
+  phone: string;
+  email: string;
+  dependents: number;
+  entryDate: string;
+  notes: string;
+  income: number;
+  familySize: number;
+  needsCategory: string[];
+  supportHistory: {
+    date: string;
+    description: string;
+    amount?: number;
+    type: string;
+  }[];
+  avatar?: string;
 }
 
 export default function BeneficiariesList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterNeedCategory, setFilterNeedCategory] = useState<string>('all');
   
   // Fetch beneficiaries data
   const { data: beneficiaries, isLoading, error } = useQuery({
@@ -60,12 +85,26 @@ export default function BeneficiariesList() {
     enabled: true,
   });
 
-  // Filter beneficiaries based on search term
+  // All unique need categories across beneficiaries
+  const allNeedCategories = [...new Set(beneficiaries?.flatMap(b => b.needsCategory) || [])].sort();
+
+  // Filter and sort beneficiaries based on search term and filters
   const filteredBeneficiaries = beneficiaries?.filter(beneficiary => 
-    beneficiary.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    beneficiary.document.includes(searchTerm) ||
-    beneficiary.email.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+    (beneficiary.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    beneficiary.documentId.includes(searchTerm) ||
+    beneficiary.phone.includes(searchTerm) ||
+    beneficiary.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (filterStatus === 'all' || beneficiary.status === filterStatus) &&
+    (filterNeedCategory === 'all' || beneficiary.needsCategory.includes(filterNeedCategory))
+  ).sort((a, b) => {
+    // Sort by status first (active then inactive)
+    if (a.status !== b.status) {
+      return a.status === 'active' ? -1 : 1;
+    }
+    
+    // Then by name (alphabetically)
+    return a.name.localeCompare(b.name);
+  }) || [];
 
   // Pagination logic
   const itemsPerPage = 10;
@@ -80,6 +119,50 @@ export default function BeneficiariesList() {
     return date.toLocaleDateString('pt-BR');
   };
 
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    });
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case 'active':
+        return <Badge className="bg-green-500">Ativo</Badge>
+      case 'inactive':
+        return <Badge className="bg-red-500">Inativo</Badge>
+      default:
+        return <Badge>Desconhecido</Badge>
+    }
+  };
+
+  const needsCategoryMap = {
+    'food': 'Alimentação',
+    'health': 'Saúde',
+    'education': 'Educação',
+    'housing': 'Moradia',
+    'clothing': 'Vestuário',
+    'transportation': 'Transporte',
+    'financial': 'Financeira',
+    'legal': 'Jurídica',
+    'psychological': 'Psicológica',
+    'other': 'Outras'
+  };
+
+  const getCategoryLabel = (category: string) => {
+    return needsCategoryMap[category as keyof typeof needsCategoryMap] || category;
+  };
+
   return (
     <OrganizationLayout>
       <div className="p-4 md:p-6">
@@ -87,7 +170,7 @@ export default function BeneficiariesList() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Beneficiários</h1>
             <p className="text-muted-foreground">
-              Gerencie os beneficiários cadastrados da associação
+              Gerencie os beneficiários atendidos pela associação
             </p>
           </div>
           <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
@@ -109,11 +192,38 @@ export default function BeneficiariesList() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Buscar por nome, documento ou email..."
+                  placeholder="Buscar por nome, documento, telefone ou email..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
+              </div>
+              <div className="w-full md:w-[200px]">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativos</SelectItem>
+                    <SelectItem value="inactive">Inativos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-[250px]">
+                <Select value={filterNeedCategory} onValueChange={setFilterNeedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoria de Necessidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Categorias</SelectItem>
+                    {Object.entries(needsCategoryMap).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <Button variant="outline" className="gap-2">
                 <Filter className="h-4 w-4" />
@@ -125,10 +235,24 @@ export default function BeneficiariesList() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Lista de Beneficiários</CardTitle>
-            <CardDescription>
-              {filteredBeneficiaries.length} beneficiários encontrados
-            </CardDescription>
+            <div className="flex flex-col md:flex-row md:items-center justify-between">
+              <div>
+                <CardTitle>Lista de Beneficiários</CardTitle>
+                <CardDescription>
+                  {filteredBeneficiaries.length} beneficiários encontrados
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2 mt-2 md:mt-0">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <FileText className="h-4 w-4" />
+                  Exportar
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Filter className="h-4 w-4" />
+                  Colunas
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -140,7 +264,9 @@ export default function BeneficiariesList() {
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-1">Nenhum beneficiário encontrado</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchTerm ? "Tente ajustar sua busca" : "Você ainda não cadastrou nenhum beneficiário"}
+                  {searchTerm || filterStatus !== 'all' || filterNeedCategory !== 'all' ? 
+                    "Tente ajustar seus filtros" : 
+                    "Você ainda não cadastrou nenhum beneficiário"}
                 </p>
                 <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
                   <Plus className="mr-2 h-4 w-4" />
@@ -153,10 +279,10 @@ export default function BeneficiariesList() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Nome</TableHead>
-                      <TableHead>Documento</TableHead>
-                      <TableHead className="hidden md:table-cell">Contato</TableHead>
-                      <TableHead className="hidden md:table-cell">Cidade/UF</TableHead>
-                      <TableHead className="hidden md:table-cell">Data de Cadastro</TableHead>
+                      <TableHead className="hidden md:table-cell">Documento</TableHead>
+                      <TableHead className="hidden lg:table-cell">Contato</TableHead>
+                      <TableHead className="hidden lg:table-cell">Entrada</TableHead>
+                      <TableHead className="hidden md:table-cell">Necessidades</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -164,24 +290,61 @@ export default function BeneficiariesList() {
                   <TableBody>
                     {paginatedBeneficiaries.map((beneficiary) => (
                       <TableRow key={beneficiary.id}>
-                        <TableCell className="font-medium">{beneficiary.name}</TableCell>
-                        <TableCell>{beneficiary.document}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {beneficiary.email}<br />
-                          <span className="text-muted-foreground text-sm">{beneficiary.phone}</span>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{`${beneficiary.city}/${beneficiary.state}`}</TableCell>
-                        <TableCell className="hidden md:table-cell">{formatDate(beneficiary.registrationDate)}</TableCell>
                         <TableCell>
-                          <span 
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              beneficiary.status === 'active' 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                            }`}
-                          >
-                            {beneficiary.status === 'active' ? 'Ativo' : 'Inativo'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <Avatar>
+                              {beneficiary.avatar ? (
+                                <AvatarImage src={beneficiary.avatar} alt={beneficiary.name} />
+                              ) : null}
+                              <AvatarFallback>{getInitials(beneficiary.name)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{beneficiary.name}</div>
+                              <div className="text-sm text-muted-foreground md:hidden">
+                                {beneficiary.documentId}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {beneficiary.documentId}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center text-sm">
+                              <Phone className="mr-2 h-3 w-3" />
+                              {beneficiary.phone}
+                            </div>
+                            {beneficiary.email && (
+                              <div className="flex items-center text-sm">
+                                <Mail className="mr-2 h-3 w-3" />
+                                {beneficiary.email}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex items-center text-sm">
+                            <Calendar className="mr-2 h-3 w-3" />
+                            {formatDate(beneficiary.entryDate)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex flex-wrap gap-1">
+                            {beneficiary.needsCategory.slice(0, 2).map((category, i) => (
+                              <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                {getCategoryLabel(category)}
+                              </Badge>
+                            ))}
+                            {beneficiary.needsCategory.length > 2 && (
+                              <Badge variant="outline" className="bg-muted text-muted-foreground">
+                                +{beneficiary.needsCategory.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(beneficiary.status)}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -200,6 +363,10 @@ export default function BeneficiariesList() {
                               <DropdownMenuItem onClick={() => window.location.href = `/organization/social/beneficiarios/${beneficiary.id}/editar`}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.location.href = `/organization/social/beneficiarios/${beneficiary.id}/historico`}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                Histórico
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="text-red-600">
