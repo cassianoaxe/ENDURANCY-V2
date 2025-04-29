@@ -370,12 +370,6 @@ export default function OrganizationSidebar() {
           icon: <Users2 size={16} className="text-red-500" />
         },
         {
-          title: "Cadastrar Beneficiário",
-          path: "/organization/social/beneficiarios/novo",
-          active: currentPath === "/organization/social/beneficiarios/novo",
-          icon: <UserPlus size={16} className="text-red-500" />
-        },
-        {
           title: "Doações",
           path: "/organization/social/doacoes",
           active: currentPath === "/organization/social/doacoes",
