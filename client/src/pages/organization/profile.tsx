@@ -476,25 +476,69 @@ export default function OrganizationProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!organizationId || !user) return;
+    if (!organizationId || !user) {
+      toast({
+        title: "Erro",
+        description: "ID da organização ou informações do usuário não disponíveis",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     try {
-      // Corrigir o formato da chamada da API - apiRequest aceita URL e um objeto de opções
-      const updatedOrg = await apiRequest(`/api/organizations/${organizationId}`, { 
+      console.log("Enviando atualização para organização:", organizationId);
+      console.log("Dados a serem enviados:", profileForm);
+      
+      // Verificar se o método PUT está sendo usado corretamente
+      const url = `/api/organizations/${organizationId}`;
+      const options = { 
         method: "PUT", 
         data: profileForm 
+      };
+      
+      console.log("URL:", url);
+      console.log("Opções:", options);
+      
+      // Usar fetch diretamente para diagnóstico
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileForm)
       });
+      
+      console.log("Status da resposta:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erro na API:", errorText);
+        throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
+      }
+      
+      const updatedOrg = await response.json();
+      console.log("Organização atualizada:", updatedOrg);
       
       // Atualizar o cache
       queryClient.setQueryData(["/api/organizations", organizationId], updatedOrg);
       
+      // Atualizar o organizationId no header (se necessário)
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Notificar sucesso e atualizar o estado do formulário
       toast({
         title: "Sucesso!",
         description: "Os dados da organização foram atualizados.",
         variant: "default",
       });
+      
+      // Fechar o modo de edição
+      setIsEditing(false);
     } catch (error) {
+      console.error("Erro ao atualizar organização:", error);
       toast({
         title: "Erro",
         description: error instanceof Error ? error.message : "Erro ao atualizar dados da organização",

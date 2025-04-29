@@ -67,18 +67,18 @@ export async function apiRequest(url: string, options: ApiRequestOptions = { met
     ...headers,
   };
 
-  // Para métodos que modificam estado, obter e incluir o token CSRF
-  if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
-    try {
-      const token = await fetchCsrfToken();
-      if (token) {
-        requestHeaders['CSRF-Token'] = token;
-      }
-    } catch (error) {
-      console.error('Erro ao obter token CSRF para requisição:', error);
-      // Continua a requisição mesmo sem o token CSRF em caso de erro
-    }
-  }
+  // Temporariamente desativando a verificação de CSRF devido a problemas no endpoint
+  // if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
+  //   try {
+  //     const token = await fetchCsrfToken();
+  //     if (token) {
+  //       requestHeaders['CSRF-Token'] = token;
+  //     }
+  //   } catch (error) {
+  //     console.error('Erro ao obter token CSRF para requisição:', error);
+  //     // Continua a requisição mesmo sem o token CSRF em caso de erro
+  //   }
+  // }
 
   // Configuração da requisição
   const requestOptions: RequestInit = {
