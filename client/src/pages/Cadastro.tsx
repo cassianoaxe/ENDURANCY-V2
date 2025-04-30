@@ -279,7 +279,7 @@ export default function Cadastro() {
             <FileText size={16} />
             Formulários
           </Button>
-          <a href="/cadastro/carteirinha" className="no-underline">
+          <a href="/carteirinha" className="no-underline">
             <Button 
               variant="outline" 
               className="gap-2"

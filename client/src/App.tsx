@@ -19,6 +19,7 @@ import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
 import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
 import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
 import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
+import Carteirinha from "@/pages/Carteirinha";
 
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
@@ -3033,6 +3034,7 @@ function AppContent() {
       case '/modules': Component = Modules; break;
       case '/modulos': Component = Modulos; break;
       case '/sitemap': Component = Sitemap; break;
+      case '/carteirinha': Component = Carteirinha; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': 
