@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { insertOrganizationSchema, type InsertOrganization, type Plan } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, Image } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, AlertTriangle, Mail, Image } from "lucide-react";
 import { z } from "zod";
 import PlanSelection from "../components/features/PlanSelection";
 import { apiRequest } from "@/lib/queryClient";
@@ -143,8 +143,9 @@ export default function OrganizationRegistration() {
       
       // Exibir toast de sucesso na criação da organização e redirecionar
       toast({
-        title: "Organização registrada com sucesso!",
-        description: "Verifique seu email para receber o link de pagamento. Após a confirmação do pagamento, sua conta será ativada automaticamente.",
+        title: "Registro concluído com sucesso!",
+        description: "Verifique seu email para receber o link de pagamento. IMPORTANTE: Se não encontrar, verifique também sua pasta de SPAM ou Lixo Eletrônico!",
+        className: "border-green-200 bg-green-50",
       });
       
       // Redirecionar para a tela de confirmação dedicada ou admin panel
@@ -956,7 +957,7 @@ export default function OrganizationRegistration() {
                         </div>
                       </div>
                       
-                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-4">
                         <div className="flex items-start gap-2">
                           <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
                           <div>
@@ -964,6 +965,19 @@ export default function OrganizationRegistration() {
                             <p className="text-sm text-yellow-700 mt-1">
                               <strong>Verifique sua caixa de entrada e pasta de SPAM</strong> para receber o link de pagamento.
                               Sua conta será ativada automaticamente após a confirmação do pagamento.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                        <div className="flex items-start gap-2">
+                          <Mail className="h-5 w-5 text-amber-600 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-amber-800">Verificação de Email</h4>
+                            <p className="text-sm text-amber-700 mt-1">
+                              <strong className="block text-amber-800">⚠️ IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</strong>
+                              Muitos provedores de email classificam mensagens automáticas como SPAM. Se não encontrar nosso email, por favor verifique estas pastas.
                             </p>
                           </div>
                         </div>
