@@ -330,7 +330,8 @@ function AppContent() {
   const [, setLocation] = useLocation();
   const userRole = user?.role;
   
-  // Removido logs de depuração que causavam muitas solicitações
+  // Log para depuração de roteamento
+  console.log(`ROUTER DEBUG: Tentando corresponder caminho "${currentPath}" para renderização`);
 
   // Listen for path changes - otimizado para não depender de currentPath
   useEffect(() => {
@@ -3112,6 +3113,7 @@ function AppContent() {
         );
         
       case '/cadastro/carteirinha': 
+        console.log("ROUTER: Renderizando componente Carteirinha");
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
         const CadastroCarteirinhaTemp = React.lazy(() => import('./pages/cadastro/carteirinha/TEMP_INDEX'));
         return (
@@ -3123,7 +3125,6 @@ function AppContent() {
             </Suspense>
           </Layout>
         );
-        break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
