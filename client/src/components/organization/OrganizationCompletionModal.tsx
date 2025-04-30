@@ -118,7 +118,7 @@ export function OrganizationCompletionModal({
           <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
-          <Button onClick={onViewDashboard}>
+          <Button onClick={() => window.location.href = '/login'}>
             Ir para Login
           </Button>
         </DialogFooter>
