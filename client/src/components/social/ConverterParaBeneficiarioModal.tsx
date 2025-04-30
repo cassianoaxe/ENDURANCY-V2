@@ -1,53 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Loader2, User, CheckCircle2, Search } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Loader2, Search, UserPlus } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface ConverterParaBeneficiarioModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-// Schema para validação do formulário
+// Schema de validação para conversão
 const converterSchema = z.object({
-  email: z.string().email('Email inválido').or(z.string().length(0)),
-  cpf: z.string().min(11, 'CPF inválido').or(z.string().length(0)),
-  beneficioId: z.string().min(1, 'Selecione um benefício'),
+  usuarioId: z.number({
+    required_error: "Selecione um usuário para converter",
+  }),
+  beneficioId: z.number({
+    required_error: "Selecione um benefício a ser concedido",
+  }),
   recorrente: z.boolean().default(false),
-  dataValidade: z.string().optional(),
+  dataValidade: z.date().optional(),
   observacoes: z.string().optional(),
 });
 
@@ -59,386 +48,299 @@ export default function ConverterParaBeneficiarioModal({
 }: ConverterParaBeneficiarioModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<'email' | 'cpf'>('email');
-  const [pesquisaRealizada, setPesquisaRealizada] = useState(false);
+  const [pesquisando, setPesquisando] = useState(false);
+  const [valorPesquisa, setValorPesquisa] = useState('');
+  const [tipoPesquisa, setTipoPesquisa] = useState<'email' | 'cpf'>('email');
   const [usuarioEncontrado, setUsuarioEncontrado] = useState<any>(null);
+  const [pesquisaRealizada, setPesquisaRealizada] = useState(false);
 
-  // Form para pesquisa e conversão
-  const form = useForm<ConverterFormValues>({
-    resolver: zodResolver(converterSchema),
-    defaultValues: {
-      email: '',
-      cpf: '',
-      beneficioId: '',
-      recorrente: false,
-      observacoes: '',
-    },
-  });
-
-  // Buscar lista de benefícios disponíveis
+  // Consultar benefícios disponíveis
   const { data: beneficios, isLoading: carregandoBeneficios } = useQuery({
     queryKey: ['/api/social/beneficios'],
     enabled: open,
   });
 
+  // Form para conversão
+  const form = useForm<ConverterFormValues>({
+    resolver: zodResolver(converterSchema),
+    defaultValues: {
+      recorrente: false,
+    },
+  });
+
   // Mutation para pesquisar usuário
   const pesquisarUsuarioMutation = useMutation({
-    mutationFn: async (values: { tipo: 'email' | 'cpf', valor: string }) => {
-      return apiRequest('/api/social/usuarios/pesquisar', {
-        method: 'POST',
-        data: values,
+    mutationFn: async () => {
+      setPesquisando(true);
+      const res = await apiRequest('POST', '/api/social/beneficios/usuarios/pesquisar', {
+        tipo: tipoPesquisa,
+        valor: valorPesquisa
       });
+      return await res.json();
     },
     onSuccess: (data) => {
+      setPesquisaRealizada(true);
       if (data.usuario) {
         setUsuarioEncontrado(data.usuario);
-        toast({
-          title: 'Usuário encontrado',
-          description: `Usuário ${data.usuario.name} encontrado com sucesso.`,
-        });
+        form.setValue('usuarioId', data.usuario.id);
       } else {
         setUsuarioEncontrado(null);
-        toast({
-          title: 'Usuário não encontrado',
-          description: 'Nenhum usuário encontrado com os dados informados.',
-          variant: 'destructive',
-        });
+        form.setValue('usuarioId', undefined as any);
       }
-      setPesquisaRealizada(true);
     },
-    onError: (error: any) => {
-      setUsuarioEncontrado(null);
-      setPesquisaRealizada(true);
+    onError: (error: Error) => {
       toast({
-        title: 'Erro ao pesquisar',
-        description: error.message || 'Ocorreu um erro ao pesquisar o usuário.',
-        variant: 'destructive',
+        title: "Erro ao pesquisar usuário",
+        description: error.message,
+        variant: "destructive",
       });
+      setUsuarioEncontrado(null);
     },
+    onSettled: () => {
+      setPesquisando(false);
+    }
   });
 
   // Mutation para converter usuário em beneficiário
-  const converterUsuarioMutation = useMutation({
-    mutationFn: async (values: any) => {
-      return apiRequest('/api/social/beneficiarios/converter', {
-        method: 'POST',
-        data: values,
-      });
+  const converterMutation = useMutation({
+    mutationFn: async (data: ConverterFormValues) => {
+      const res = await apiRequest('POST', '/api/social/beneficios/beneficiarios/converter', data);
+      return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/social/beneficiarios'] });
       toast({
-        title: 'Conversão realizada',
-        description: 'Usuário convertido em beneficiário com sucesso.',
+        title: "Usuário convertido com sucesso",
+        description: "O usuário agora é um beneficiário e receberá os benefícios configurados.",
+        variant: "default",
       });
-      handleCloseModal();
+      queryClient.invalidateQueries({ queryKey: ['/api/social/beneficiaries'] });
+      handleClose();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: 'Erro na conversão',
-        description: error.message || 'Ocorreu um erro ao converter o usuário.',
-        variant: 'destructive',
+        title: "Erro ao converter usuário",
+        description: error.message,
+        variant: "destructive",
       });
-    },
+    }
   });
 
-  // Efeito para limpar o formulário quando o modal é aberto
-  useEffect(() => {
-    if (open) {
-      form.reset({
-        email: '',
-        cpf: '',
-        beneficioId: '',
-        recorrente: false,
-        observacoes: '',
-      });
-      setPesquisaRealizada(false);
-      setUsuarioEncontrado(null);
-    }
-  }, [open, form]);
-
-  // Fechar o modal e limpar o estado
-  const handleCloseModal = () => {
+  // Reset form quando o modal é fechado
+  const handleClose = () => {
     form.reset();
-    setPesquisaRealizada(false);
+    setValorPesquisa('');
     setUsuarioEncontrado(null);
+    setPesquisaRealizada(false);
     onOpenChange(false);
   };
 
-  // Pesquisar usuário por email ou CPF
-  const handlePesquisar = () => {
-    const valor = tab === 'email' ? form.getValues('email') : form.getValues('cpf');
-    
-    if (!valor || valor.length === 0) {
-      toast({
-        title: 'Campo obrigatório',
-        description: `O campo ${tab === 'email' ? 'email' : 'CPF'} é obrigatório para a pesquisa.`,
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    pesquisarUsuarioMutation.mutate({ tipo: tab, valor });
-  };
-
-  // Converter usuário em beneficiário
+  // Lidar com envio do formulário
   const onSubmit = (values: ConverterFormValues) => {
-    if (!usuarioEncontrado) {
-      toast({
-        title: 'Usuário não encontrado',
-        description: 'É necessário encontrar um usuário válido antes de convertê-lo.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const dadosConversao = {
-      usuarioId: usuarioEncontrado.id,
-      beneficioId: values.beneficioId,
-      recorrente: values.recorrente,
-      dataValidade: values.dataValidade || null,
-      observacoes: values.observacoes || '',
-    };
-
-    converterUsuarioMutation.mutate(dadosConversao);
+    converterMutation.mutate(values);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleCloseModal}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-xl">Converter Usuário em Beneficiário</DialogTitle>
+          <DialogTitle>Converter Usuário em Beneficiário</DialogTitle>
           <DialogDescription>
-            Converta um usuário registrado no sistema em um beneficiário com acesso a benefícios específicos.
+            Pesquise um usuário pelo e-mail ou CPF e associe-o a um benefício para convertê-lo em beneficiário.
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 overflow-auto py-4">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">1. Localizar Usuário</h3>
-              
-              <Tabs value={tab} onValueChange={(value) => setTab(value as 'email' | 'cpf')} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="email">Buscar por Email</TabsTrigger>
-                  <TabsTrigger value="cpf">Buscar por CPF</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="email" className="mt-4">
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        placeholder="exemplo@email.com"
-                        {...form.register('email')}
-                      />
-                    </div>
-                    <Button 
-                      type="button" 
-                      onClick={handlePesquisar}
-                      disabled={pesquisarUsuarioMutation.isPending}
-                    >
-                      {pesquisarUsuarioMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Search className="h-4 w-4 mr-2" />
-                      )}
-                      Pesquisar
-                    </Button>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="cpf" className="mt-4">
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <Label htmlFor="cpf">CPF</Label>
-                      <Input
-                        id="cpf"
-                        placeholder="123.456.789-00"
-                        {...form.register('cpf')}
-                      />
-                    </div>
-                    <Button 
-                      type="button" 
-                      onClick={handlePesquisar}
-                      disabled={pesquisarUsuarioMutation.isPending}
-                    >
-                      {pesquisarUsuarioMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Search className="h-4 w-4 mr-2" />
-                      )}
-                      Pesquisar
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="grid gap-4 py-4">
+            {/* Pesquisa de usuário */}
+            <div className="space-y-2">
+              <Label>Pesquisar usuário por:</Label>
+              <div className="flex gap-2 mb-2">
+                <Button 
+                  type="button" 
+                  variant={tipoPesquisa === 'email' ? 'default' : 'outline'} 
+                  onClick={() => setTipoPesquisa('email')}
+                  className="flex-1"
+                >
+                  E-mail
+                </Button>
+                <Button 
+                  type="button" 
+                  variant={tipoPesquisa === 'cpf' ? 'default' : 'outline'} 
+                  onClick={() => setTipoPesquisa('cpf')}
+                  className="flex-1"
+                >
+                  CPF
+                </Button>
+              </div>
 
-              {pesquisaRealizada && (
-                <div className={`p-4 border rounded-md ${usuarioEncontrado ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                  {usuarioEncontrado ? (
-                    <div className="flex items-start gap-3">
-                      <div className="bg-green-100 rounded-full p-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Usuário encontrado</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Nome: <span className="font-medium">{usuarioEncontrado.name}</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Email: {usuarioEncontrado.email}
-                        </p>
-                        {usuarioEncontrado.cpf && (
-                          <p className="text-sm text-muted-foreground">
-                            CPF: {usuarioEncontrado.cpf}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <div className="bg-red-100 rounded-full p-2">
-                        <Search className="h-5 w-5 text-red-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Usuário não encontrado</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Nenhum usuário encontrado com os dados informados.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={tipoPesquisa === 'email' ? "Digite o e-mail..." : "Digite o CPF..."}
+                    value={valorPesquisa}
+                    onChange={(e) => setValorPesquisa(e.target.value)}
+                    className="pl-8"
+                  />
                 </div>
-              )}
+                <Button 
+                  type="button" 
+                  onClick={() => pesquisarUsuarioMutation.mutate()}
+                  disabled={!valorPesquisa || pesquisando}
+                >
+                  {pesquisando ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                  Pesquisar
+                </Button>
+              </div>
             </div>
 
-            {usuarioEncontrado && (
-              <div className="space-y-4 pt-2">
-                <h3 className="text-lg font-medium">2. Definir Benefício</h3>
-                
-                <FormField
-                  control={form.control}
-                  name="beneficioId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Benefício</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um benefício" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {carregandoBeneficios ? (
-                            <div className="flex items-center justify-center py-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            </div>
-                          ) : (
-                            Array.isArray(beneficios) && beneficios.map((beneficio: any) => (
-                              <SelectItem 
-                                key={beneficio.id} 
-                                value={beneficio.id.toString()}
-                              >
-                                {beneficio.nome}
-                              </SelectItem>
-                            ))
+            {/* Resultado da pesquisa */}
+            {pesquisaRealizada && (
+              <div className="py-2">
+                {usuarioEncontrado ? (
+                  <Alert className={usuarioEncontrado.isBeneficiario ? "border-yellow-500 bg-yellow-50" : "border-green-500 bg-green-50"}>
+                    <div className="flex items-center gap-3">
+                      {usuarioEncontrado.isBeneficiario ? (
+                        <AlertCircle className="h-5 w-5 text-yellow-600" />
+                      ) : (
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      )}
+                      <div>
+                        <AlertTitle className="text-sm font-medium">
+                          {usuarioEncontrado.isBeneficiario ? "Usuário já é beneficiário" : "Usuário encontrado"}
+                        </AlertTitle>
+                        <AlertDescription className="text-sm">
+                          <strong>Nome:</strong> {usuarioEncontrado.name}<br />
+                          <strong>E-mail:</strong> {usuarioEncontrado.email}<br />
+                          {usuarioEncontrado.cpf && <><strong>CPF:</strong> {usuarioEncontrado.cpf}<br /></>}
+                          {usuarioEncontrado.isBeneficiario && (
+                            <Badge className="mt-1 bg-yellow-500">Este usuário já é um beneficiário registrado</Badge>
                           )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="recorrente"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Benefício Recorrente</FormLabel>
-                        <FormDescription>
-                          O beneficiário receberá este benefício regularmente
-                        </FormDescription>
+                        </AlertDescription>
                       </div>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dataValidade"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data de Validade (opcional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          placeholder="Data até quando o benefício é válido"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Deixe em branco para benefícios sem data de expiração
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="observacoes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observações (opcional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Informações adicionais sobre o benefício"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </div>
+                  </Alert>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Usuário não encontrado</AlertTitle>
+                    <AlertDescription>
+                      Nenhum usuário encontrado com este {tipoPesquisa === 'email' ? 'e-mail' : 'CPF'}.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             )}
 
-            <DialogFooter className="pt-4 flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-              <Button
-                variant="outline"
-                onClick={handleCloseModal}
-                type="button"
-              >
-                Cancelar
-              </Button>
-              
-              {usuarioEncontrado && (
-                <Button
-                  type="submit"
-                  disabled={converterUsuarioMutation.isPending}
-                >
-                  {converterUsuarioMutation.isPending && (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            {/* Seleção de benefício */}
+            {usuarioEncontrado && !usuarioEncontrado.isBeneficiario && (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="beneficioId">Benefício a ser concedido</Label>
+                  <Select
+                    onValueChange={(value) => form.setValue('beneficioId', parseInt(value))}
+                    value={form.watch('beneficioId')?.toString()}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um benefício" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carregandoBeneficios ? (
+                        <div className="flex items-center justify-center p-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : beneficios && beneficios.length > 0 ? (
+                        beneficios.map((beneficio: any) => (
+                          <SelectItem key={beneficio.id} value={beneficio.id.toString()}>
+                            {beneficio.nome}
+                            {beneficio.valor > 0 && ` - ${beneficio.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          Nenhum benefício disponível
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.beneficioId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {form.formState.errors.beneficioId.message}
+                    </p>
                   )}
-                  Converter em Beneficiário
-                </Button>
-              )}
-            </DialogFooter>
-          </form>
-        </Form>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="recorrente"
+                    checked={form.watch('recorrente')}
+                    onCheckedChange={(checked) => form.setValue('recorrente', checked)}
+                  />
+                  <Label htmlFor="recorrente" className="cursor-pointer">
+                    Benefício recorrente
+                  </Label>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="dataValidade">Data de validade</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !form.watch('dataValidade') && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {form.watch('dataValidade') ? (
+                          format(form.watch('dataValidade'), "PPP", { locale: ptBR })
+                        ) : (
+                          <span>Selecione a data de validade</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={form.watch('dataValidade')}
+                        onSelect={(date) => form.setValue('dataValidade', date)}
+                        initialFocus
+                        locale={ptBR}
+                        disabled={(date) => date < new Date()}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <Textarea
+                    id="observacoes"
+                    placeholder="Observações sobre a concessão do benefício..."
+                    {...form.register('observacoes')}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancelar
+            </Button>
+            {usuarioEncontrado && !usuarioEncontrado.isBeneficiario && (
+              <Button 
+                type="submit" 
+                disabled={converterMutation.isPending || !form.watch('beneficioId')}
+              >
+                {converterMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Converter em Beneficiário
+              </Button>
+            )}
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

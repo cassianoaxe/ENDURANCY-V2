@@ -1,373 +1,321 @@
 import { Router } from 'express';
-import { z } from 'zod';
 import { db } from '../db';
-import { asc, desc, eq, and } from 'drizzle-orm';
-import { socialBeneficios, socialBeneficios_Beneficiarios, insertSocialBeneficioSchema, insertSocialBeneficio_BeneficiarioSchema } from '@shared/schema-social';
-import { users } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import {
+  socialBeneficios,
+  socialBeneficios_Beneficiarios,
+  insertSocialBeneficioSchema,
+  socialBeneficiaries,
+  users,
+} from '@shared/schema-social';
+import { z } from 'zod';
 
 export const socialBeneficiosRouter = Router();
 
-// Rota para listar todos os benefícios disponíveis
+// Listar todos os benefícios disponíveis para uma organização
 socialBeneficiosRouter.get('/', async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Não autenticado' });
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
     const organizationId = req.user.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({ message: 'ID da organização não encontrado' });
-    }
 
-    const beneficios = await db
-      .select()
+    const beneficios = await db.select()
       .from(socialBeneficios)
-      .where(eq(socialBeneficios.organizationId, organizationId))
-      .orderBy(asc(socialBeneficios.nome));
+      .where(eq(socialBeneficios.organizationId, organizationId));
 
     return res.status(200).json(beneficios);
   } catch (error) {
     console.error('Erro ao listar benefícios:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    return res.status(500).json({ error: 'Erro ao listar benefícios' });
   }
 });
 
-// Rota para obter detalhes de um benefício específico
+// Obter detalhes de um benefício específico
 socialBeneficiosRouter.get('/:id', async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Não autenticado' });
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
-    const { id } = req.params;
     const organizationId = req.user.organizationId;
-    
-    if (!id || !organizationId) {
-      return res.status(400).json({ message: 'Parâmetros inválidos' });
-    }
+    const beneficioId = parseInt(req.params.id);
 
-    const [beneficio] = await db
-      .select()
+    const [beneficio] = await db.select()
       .from(socialBeneficios)
       .where(
         and(
-          eq(socialBeneficios.id, parseInt(id)),
+          eq(socialBeneficios.id, beneficioId),
           eq(socialBeneficios.organizationId, organizationId)
         )
       );
 
     if (!beneficio) {
-      return res.status(404).json({ message: 'Benefício não encontrado' });
+      return res.status(404).json({ error: 'Benefício não encontrado' });
     }
 
     return res.status(200).json(beneficio);
   } catch (error) {
-    console.error('Erro ao buscar detalhes do benefício:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    console.error('Erro ao obter detalhes do benefício:', error);
+    return res.status(500).json({ error: 'Erro ao obter detalhes do benefício' });
   }
 });
 
-// Rota para criar um novo benefício
+// Criar novo benefício
 socialBeneficiosRouter.post('/', async (req, res) => {
   try {
-    if (!req.isAuthenticated() || req.user.role !== 'org_admin') {
-      return res.status(403).json({ message: 'Permissão negada' });
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
     const organizationId = req.user.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({ message: 'ID da organização não encontrado' });
-    }
-
-    // Validar os dados de entrada
-    const validationResult = insertSocialBeneficioSchema.safeParse({
+    
+    // Validar dados do benefício
+    const beneficioData = insertSocialBeneficioSchema.parse({
       ...req.body,
-      organizationId
+      organizationId,
     });
 
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Dados inválidos',
-        errors: validationResult.error.format() 
-      });
-    }
-
-    // Criar o benefício
-    const [novoBeneficio] = await db
-      .insert(socialBeneficios)
-      .values(validationResult.data)
+    // Inserir benefício no banco de dados
+    const [novoBeneficio] = await db.insert(socialBeneficios)
+      .values(beneficioData)
       .returning();
 
     return res.status(201).json(novoBeneficio);
   } catch (error) {
     console.error('Erro ao criar benefício:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+    }
+    
+    return res.status(500).json({ error: 'Erro ao criar benefício' });
   }
 });
 
-// Rota para atualizar um benefício existente
+// Atualizar benefício existente
 socialBeneficiosRouter.put('/:id', async (req, res) => {
   try {
-    if (!req.isAuthenticated() || req.user.role !== 'org_admin') {
-      return res.status(403).json({ message: 'Permissão negada' });
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
-    const { id } = req.params;
     const organizationId = req.user.organizationId;
+    const beneficioId = parseInt(req.params.id);
     
-    if (!id || !organizationId) {
-      return res.status(400).json({ message: 'Parâmetros inválidos' });
-    }
-
-    // Validar os dados de entrada
-    const validationResult = insertSocialBeneficioSchema.partial().safeParse({
-      ...req.body,
-      organizationId
-    });
-
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Dados inválidos',
-        errors: validationResult.error.format() 
-      });
-    }
-
-    // Verificar se o benefício existe
-    const [beneficioExistente] = await db
-      .select()
+    // Verificar se o benefício existe e pertence à organização
+    const [beneficioExistente] = await db.select()
       .from(socialBeneficios)
       .where(
         and(
-          eq(socialBeneficios.id, parseInt(id)),
+          eq(socialBeneficios.id, beneficioId),
           eq(socialBeneficios.organizationId, organizationId)
         )
       );
 
     if (!beneficioExistente) {
-      return res.status(404).json({ message: 'Benefício não encontrado' });
+      return res.status(404).json({ error: 'Benefício não encontrado' });
     }
+    
+    // Validar dados da atualização
+    const beneficioData = insertSocialBeneficioSchema.parse({
+      ...req.body,
+      organizationId,
+    });
 
-    // Atualizar o benefício
-    const [beneficioAtualizado] = await db
-      .update(socialBeneficios)
+    // Atualizar benefício
+    const [beneficioAtualizado] = await db.update(socialBeneficios)
       .set({
-        ...validationResult.data,
-        updatedAt: new Date()
+        ...beneficioData,
+        updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(socialBeneficios.id, parseInt(id)),
-          eq(socialBeneficios.organizationId, organizationId)
-        )
-      )
+      .where(eq(socialBeneficios.id, beneficioId))
       .returning();
 
     return res.status(200).json(beneficioAtualizado);
   } catch (error) {
     console.error('Erro ao atualizar benefício:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Dados inválidos', details: error.errors });
+    }
+    
+    return res.status(500).json({ error: 'Erro ao atualizar benefício' });
   }
 });
 
-// Rota para pesquisar usuários por email ou cpf
+// Desativar benefício
+socialBeneficiosRouter.delete('/:id', async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Não autenticado' });
+    }
+
+    const organizationId = req.user.organizationId;
+    const beneficioId = parseInt(req.params.id);
+    
+    // Verificar se o benefício existe e pertence à organização
+    const [beneficioExistente] = await db.select()
+      .from(socialBeneficios)
+      .where(
+        and(
+          eq(socialBeneficios.id, beneficioId),
+          eq(socialBeneficios.organizationId, organizationId)
+        )
+      );
+
+    if (!beneficioExistente) {
+      return res.status(404).json({ error: 'Benefício não encontrado' });
+    }
+    
+    // Desativar benefício (não excluir completamente)
+    await db.update(socialBeneficios)
+      .set({
+        ativo: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(socialBeneficios.id, beneficioId));
+
+    return res.status(200).json({ message: 'Benefício desativado com sucesso' });
+  } catch (error) {
+    console.error('Erro ao desativar benefício:', error);
+    return res.status(500).json({ error: 'Erro ao desativar benefício' });
+  }
+});
+
+// Pesquisar usuário por email ou CPF para conversão em beneficiário
 socialBeneficiosRouter.post('/usuarios/pesquisar', async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Não autenticado' });
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
     const { tipo, valor } = req.body;
     
-    if (!tipo || !valor || (tipo !== 'email' && tipo !== 'cpf')) {
-      return res.status(400).json({ message: 'Parâmetros de pesquisa inválidos' });
+    if (!tipo || !valor) {
+      return res.status(400).json({ error: 'Parâmetros de pesquisa inválidos' });
     }
-
-    let usuarioEncontrado;
     
+    // Pesquisar usuário por email ou CPF
+    let usuario;
     if (tipo === 'email') {
-      const [usuario] = await db
-        .select()
+      [usuario] = await db.select()
         .from(users)
         .where(eq(users.email, valor));
-      
-      usuarioEncontrado = usuario;
-    } else {
-      const [usuario] = await db
-        .select()
+    } else if (tipo === 'cpf') {
+      [usuario] = await db.select()
         .from(users)
         .where(eq(users.cpf, valor));
-      
-      usuarioEncontrado = usuario;
+    } else {
+      return res.status(400).json({ error: 'Tipo de pesquisa inválido' });
     }
-
-    if (!usuarioEncontrado) {
-      return res.status(200).json({ 
-        message: 'Usuário não encontrado',
-        usuario: null
-      });
+    
+    if (!usuario) {
+      return res.status(200).json({ message: 'Usuário não encontrado', usuario: null });
     }
-
+    
     // Verificar se o usuário já é um beneficiário
-    const [beneficiarioExistente] = await db
-      .select()
-      .from(socialBeneficios_Beneficiarios)
-      .where(eq(socialBeneficios_Beneficiarios.beneficiarioId, usuarioEncontrado.id));
-
+    const [beneficiarioExistente] = await db.select()
+      .from(socialBeneficiaries)
+      .where(eq(socialBeneficiaries.cpf, usuario.cpf || ""));
+    
     return res.status(200).json({
       usuario: {
-        id: usuarioEncontrado.id,
-        name: usuarioEncontrado.name,
-        email: usuarioEncontrado.email,
-        cpf: usuarioEncontrado.cpf,
+        ...usuario,
         isBeneficiario: !!beneficiarioExistente
       }
     });
   } catch (error) {
     console.error('Erro ao pesquisar usuário:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    return res.status(500).json({ error: 'Erro ao pesquisar usuário' });
   }
 });
 
-// Rota para converter um usuário em beneficiário
+// Converter usuário em beneficiário e associar a um benefício
 socialBeneficiosRouter.post('/beneficiarios/converter', async (req, res) => {
   try {
-    if (!req.isAuthenticated() || req.user.role !== 'org_admin') {
-      return res.status(403).json({ message: 'Permissão negada' });
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Não autenticado' });
     }
 
     const organizationId = req.user.organizationId;
-    if (!organizationId) {
-      return res.status(400).json({ message: 'ID da organização não encontrado' });
-    }
-
     const { usuarioId, beneficioId, recorrente, dataValidade, observacoes } = req.body;
     
+    // Validar parâmetros
     if (!usuarioId || !beneficioId) {
-      return res.status(400).json({ message: 'Dados incompletos' });
+      return res.status(400).json({ error: 'Parâmetros inválidos' });
     }
-
-    // Verificar se o usuário existe
-    const [usuario] = await db
-      .select()
+    
+    // Buscar usuário
+    const [usuario] = await db.select()
       .from(users)
       .where(eq(users.id, usuarioId));
-
+    
     if (!usuario) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      return res.status(404).json({ error: 'Usuário não encontrado' });
     }
-
-    // Verificar se o benefício existe
-    const [beneficio] = await db
-      .select()
+    
+    // Buscar benefício
+    const [beneficio] = await db.select()
       .from(socialBeneficios)
       .where(
         and(
-          eq(socialBeneficios.id, parseInt(beneficioId)),
+          eq(socialBeneficios.id, beneficioId),
           eq(socialBeneficios.organizationId, organizationId)
         )
       );
-
+    
     if (!beneficio) {
-      return res.status(404).json({ message: 'Benefício não encontrado' });
+      return res.status(404).json({ error: 'Benefício não encontrado' });
     }
-
-    // Verificar se o usuário já recebe este benefício
-    const [beneficioExistente] = await db
-      .select()
-      .from(socialBeneficios_Beneficiarios)
-      .where(
-        and(
-          eq(socialBeneficios_Beneficiarios.beneficiarioId, usuarioId),
-          eq(socialBeneficios_Beneficiarios.beneficioId, parseInt(beneficioId))
-        )
-      );
-
-    if (beneficioExistente) {
-      return res.status(400).json({ message: 'Usuário já recebe este benefício' });
+    
+    // Verificar se o usuário já é um beneficiário
+    let beneficiario;
+    [beneficiario] = await db.select()
+      .from(socialBeneficiaries)
+      .where(eq(socialBeneficiaries.cpf, usuario.cpf || ""));
+    
+    // Se não for, criar um novo beneficiário
+    if (!beneficiario) {
+      [beneficiario] = await db.insert(socialBeneficiaries)
+        .values({
+          organizationId,
+          name: usuario.name,
+          cpf: usuario.cpf || "",
+          birthDate: new Date(), // Precisamos obter do usuário
+          email: usuario.email,
+          phone: usuario.phoneNumber || "",
+          address: "",
+          neighborhood: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          status: "active",
+        })
+        .returning();
     }
-
-    // Criar o relacionamento entre beneficiário e benefício
-    const dadosConcessao = {
-      beneficiarioId: usuarioId,
-      beneficioId: parseInt(beneficioId),
-      organizationId,
-      recorrente: !!recorrente,
-      dataValidade: dataValidade ? new Date(dataValidade) : null,
-      observacoes: observacoes || '',
-      status: 'ativo',
-    };
-
-    const [novaConcessao] = await db
-      .insert(socialBeneficios_Beneficiarios)
-      .values(dadosConcessao)
+    
+    // Associar beneficiário ao benefício
+    const [beneficioBeneficiario] = await db.insert(socialBeneficios_Beneficiarios)
+      .values({
+        beneficiarioId: beneficiario.id,
+        beneficioId,
+        organizationId,
+        recorrente: recorrente || false,
+        dataValidade: dataValidade ? new Date(dataValidade) : null,
+        observacoes: observacoes || "",
+        status: "ativo",
+      })
       .returning();
-
+    
     return res.status(201).json({
       message: 'Usuário convertido em beneficiário com sucesso',
-      concessao: novaConcessao
+      beneficiario,
+      beneficioBeneficiario,
     });
   } catch (error) {
     console.error('Erro ao converter usuário em beneficiário:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
-  }
-});
-
-// Rota para listar benefícios de um beneficiário específico
-socialBeneficiosRouter.get('/beneficiario/:id', async (req, res) => {
-  try {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: 'Não autenticado' });
-    }
-
-    const { id } = req.params;
-    const organizationId = req.user.organizationId;
-    
-    if (!id || !organizationId) {
-      return res.status(400).json({ message: 'Parâmetros inválidos' });
-    }
-
-    const beneficiosConcedidos = await db
-      .select({
-        concessao: socialBeneficios_Beneficiarios,
-        beneficio: socialBeneficios
-      })
-      .from(socialBeneficios_Beneficiarios)
-      .leftJoin(
-        socialBeneficios,
-        eq(socialBeneficios_Beneficiarios.beneficioId, socialBeneficios.id)
-      )
-      .where(
-        and(
-          eq(socialBeneficios_Beneficiarios.beneficiarioId, parseInt(id)),
-          eq(socialBeneficios_Beneficiarios.organizationId, organizationId)
-        )
-      )
-      .orderBy(desc(socialBeneficios_Beneficiarios.dataConcessao));
-
-    return res.status(200).json(beneficiosConcedidos);
-  } catch (error) {
-    console.error('Erro ao listar benefícios do beneficiário:', error);
-    return res.status(500).json({ 
-      message: 'Erro ao processar a solicitação',
-      error: error.message
-    });
+    return res.status(500).json({ error: 'Erro ao converter usuário em beneficiário' });
   }
 });
