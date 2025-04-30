@@ -105,17 +105,10 @@ export default function NovaCampanha() {
       };
 
       // Envia os dados para a API
-      const response = await apiRequest({
+      const result = await apiRequest("/api/social/campaigns", {
         method: "POST",
-        url: "/api/social/campaigns",
         data: formattedData
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao criar campanha");
-      }
-
-      const result = await response.json();
 
       toast({
         title: "Campanha criada",
