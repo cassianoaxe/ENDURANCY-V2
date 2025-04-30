@@ -246,24 +246,12 @@ export default function Cadastro() {
     return plan ? plan.name : 'Desconhecido';
   };
 
-  // Estado para controlar qual página está sendo exibida
-  const [currentPage, setCurrentPage] = useState<'main' | 'dashboard' | 'formularios' | 'configuracoes' | 'carteirinha'>('main');
-
-  if (currentPage === 'dashboard') {
-    return <CadastroDashboardTemp />;
-  }
-
-  if (currentPage === 'formularios') {
-    return <CadastroFormulariosTemp />;
-  }
-
-  if (currentPage === 'configuracoes') {
-    return <CadastroConfiguracoesTemp />;
-  }
-  
-  if (currentPage === 'carteirinha') {
-    return <CadastroCarteirinhaTemp />;
-  }
+  // Agora usamos navegação direta pelas URLs em vez de estado local
+  // Isso garante compatibilidade com o sistema de rotas da aplicação
+  const goTo = (path: string) => {
+    console.log(`Navegando para: ${path}`);
+    window.location.href = path;
+  };
 
   return (
     <div className="p-6">
