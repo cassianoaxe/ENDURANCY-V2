@@ -13,6 +13,9 @@ import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 
+// Importações principais do módulo de Cadastro
+import Cadastro from "@/pages/Cadastro";
+
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
 import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
@@ -93,12 +96,7 @@ import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
 import VendasAdmin from "@/pages/Vendas";
-import Cadastro from "@/pages/Cadastro";
-// Importando versões temporárias simplificadas para teste de roteamento
-import CadastroDashboard from "@/pages/cadastro/dashboard/TEMP_INDEX";
-import CadastroFormularios from "@/pages/cadastro/formularios/TEMP_INDEX";
-import CadastroFormularioEditor from "@/pages/cadastro/formularios/CadastroFormularioEditor";
-import CadastroConfiguracoes from "@/pages/cadastro/configuracoes/TEMP_INDEX";
+// Importações do módulo de Cadastro já foram feitas acima
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
@@ -3049,20 +3047,27 @@ function AppContent() {
         
       case '/cadastro/dashboard': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroDashboardTemp = React.lazy(() => import('./pages/cadastro/dashboard/TEMP_INDEX'));
         return (
           <Layout>
-            <CadastroDashboard />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroDashboardTemp />
+            </Suspense>
           </Layout>
         );
         
       case '/cadastro/formularios': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroFormulariosTemp = React.lazy(() => import('./pages/cadastro/formularios/TEMP_INDEX'));
         return (
           <Layout>
-            <div className="debug-info" style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", border: "1px solid #ccc" }}>
-              Debug Info: Tentando renderizar CadastroFormularios (Role: {userRole})
-            </div>
-            <CadastroFormularios />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroFormulariosTemp />
+            </Suspense>
           </Layout>
         );
         
@@ -3084,12 +3089,14 @@ function AppContent() {
         
       case '/cadastro/configuracoes': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroConfiguracoesTemp = React.lazy(() => import('./pages/cadastro/configuracoes/TEMP_INDEX'));
         return (
           <Layout>
-            <div className="debug-info" style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", border: "1px solid #ccc" }}>
-              Debug Info: Tentando renderizar CadastroConfiguracoes (Role: {userRole})
-            </div>
-            <CadastroConfiguracoes />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroConfiguracoesTemp />
+            </Suspense>
           </Layout>
         );
         break;
