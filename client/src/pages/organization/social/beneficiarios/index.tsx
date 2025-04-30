@@ -472,6 +472,12 @@ export default function BeneficiariesList() {
         open={isImportModalOpen}
         onOpenChange={setIsImportModalOpen}
       />
+      
+      {/* Modal para converter usuário em beneficiário */}
+      <ConverterParaBeneficiarioModal
+        open={isConverterModalOpen}
+        onOpenChange={setIsConverterModalOpen}
+      />
     </div>
   );
 }
