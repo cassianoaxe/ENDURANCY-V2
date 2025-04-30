@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, 
   DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
-  MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings, CreditCard
+  MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings, CreditCard,
+  BarChart2
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -263,22 +264,24 @@ export default function Cadastro() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => goTo('/cadastro/dashboard')}
-          >
-            <FileText size={16} />
-            Dashboard
-          </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => goTo('/cadastro/formularios')}
-          >
-            <FileText size={16} />
-            Formulários
-          </Button>
+          <a href="/cadastro-dashboard" className="no-underline">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <BarChart2 size={16} />
+              Dashboard
+            </Button>
+          </a>
+          <a href="/formularios" className="no-underline">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <FileText size={16} />
+              Formulários
+            </Button>
+          </a>
           <a href="/carteirinha" className="no-underline">
             <Button 
               variant="outline" 
@@ -288,14 +291,15 @@ export default function Cadastro() {
               Carteirinha
             </Button>
           </a>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => goTo('/cadastro/configuracoes')}
-          >
-            <Settings size={16} />
-            Configurações
-          </Button>
+          <a href="/configuracoes-cadastro" className="no-underline">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <Settings size={16} />
+              Configurações
+            </Button>
+          </a>
         </div>
       </div>
       

@@ -15,11 +15,16 @@ import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 
 // Importações principais do módulo de Cadastro
 import Cadastro from "@/pages/Cadastro";
+// Versões temporárias do módulo cadastro (caminhos aninhados)
 import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
 import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
 import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
 import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
+// Novas páginas independentes (caminhos diretos)
 import Carteirinha from "@/pages/Carteirinha";
+import Formularios from "@/pages/Formularios";
+import ConfiguracoesCadastro from "@/pages/ConfiguracoesCadastro";
+import CadastroDashboard from "@/pages/CadastroDashboard";
 
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
@@ -3034,7 +3039,11 @@ function AppContent() {
       case '/modules': Component = Modules; break;
       case '/modulos': Component = Modulos; break;
       case '/sitemap': Component = Sitemap; break;
+      // Rotas diretas para o módulo Cadastro (contornando problemas de roteamento aninhado)
       case '/carteirinha': Component = Carteirinha; break;
+      case '/formularios': Component = Formularios; break;
+      case '/configuracoes-cadastro': Component = ConfiguracoesCadastro; break;
+      case '/cadastro-dashboard': Component = CadastroDashboard; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': 
