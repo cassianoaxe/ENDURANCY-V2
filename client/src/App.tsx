@@ -15,6 +15,10 @@ import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 
 // Importações principais do módulo de Cadastro
 import Cadastro from "@/pages/Cadastro";
+import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
+import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
+import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
+import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
 
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
@@ -3048,27 +3052,17 @@ function AppContent() {
         
       case '/cadastro/dashboard': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroDashboardTemp = React.lazy(() => import('./pages/cadastro/dashboard/TEMP_INDEX'));
         return (
           <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroDashboardTemp />
-            </Suspense>
+            <CadastroDashboardTemp />
           </Layout>
         );
         
       case '/cadastro/formularios': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroFormulariosTemp = React.lazy(() => import('./pages/cadastro/formularios/TEMP_INDEX'));
         return (
           <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroFormulariosTemp />
-            </Suspense>
+            <CadastroFormulariosTemp />
           </Layout>
         );
         
@@ -3101,28 +3095,18 @@ function AppContent() {
         
       case '/cadastro/configuracoes': 
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroConfiguracoesTemp = React.lazy(() => import('./pages/cadastro/configuracoes/TEMP_INDEX'));
         return (
           <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroConfiguracoesTemp />
-            </Suspense>
+            <CadastroConfiguracoesTemp />
           </Layout>
         );
         
       case '/cadastro/carteirinha': 
         console.log("ROUTER: Renderizando componente Carteirinha");
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroCarteirinhaTemp = React.lazy(() => import('./pages/cadastro/carteirinha/TEMP_INDEX'));
         return (
           <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroCarteirinhaTemp />
-            </Suspense>
+            <CadastroCarteirinhaTemp />
           </Layout>
         );
       case '/email-templates': Component = EmailTemplates; break;
