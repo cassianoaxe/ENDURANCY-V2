@@ -156,7 +156,7 @@ export default function NewBeneficiary() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="name"
@@ -178,6 +178,19 @@ export default function NewBeneficiary() {
                         <FormLabel>CPF*</FormLabel>
                         <FormControl>
                           <Input placeholder="000.000.000-00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="rg"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>RG</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Número do RG" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -266,6 +279,7 @@ export default function NewBeneficiary() {
                           <SelectContent>
                             <SelectItem value="active">Ativo</SelectItem>
                             <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="pending">Pendente</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -284,14 +298,43 @@ export default function NewBeneficiary() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1 md:col-span-2">
+                        <FormLabel>Endereço*</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Rua/Logradouro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="addressNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Número" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="addressComplement"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Endereço</FormLabel>
+                      <FormLabel>Complemento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Rua, número e complemento" {...field} />
+                        <Input placeholder="Apto, bloco, casa, etc." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -421,6 +464,51 @@ export default function NewBeneficiary() {
                         <FormLabel>Renda Mensal (R$)</FormLabel>
                         <FormControl>
                           <Input type="number" placeholder="0,00" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="exemptionType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Isenção*</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="exemption_25">25% de isenção</SelectItem>
+                            <SelectItem value="exemption_50">50% de isenção</SelectItem>
+                            <SelectItem value="exemption_75">75% de isenção</SelectItem>
+                            <SelectItem value="exemption_100">100% de isenção</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="exemptionValue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor da Isenção (%)*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="100" 
+                            placeholder="Porcentagem de isenção" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
