@@ -124,6 +124,38 @@ export const socialPortalSettings = pgTable("social_portal_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Tabela de benefícios disponíveis
+export const socialBeneficios = pgTable("social_beneficios", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  nome: text("nome").notNull(),
+  descricao: text("descricao").notNull(),
+  tipo: text("tipo").notNull(), // "medicamento", "consulta", "exame", "outro"
+  valorEstimado: decimal("valor_estimado", { precision: 10, scale: 2 }),
+  coberturaPorcentagem: integer("cobertura_porcentagem").default(100),
+  limiteQuantidadeMes: integer("limite_quantidade_mes"),
+  requerAprovacao: boolean("requer_aprovacao").default(true),
+  ativo: boolean("ativo").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de benefícios concedidos aos beneficiários
+export const socialBeneficios_Beneficiarios = pgTable("social_beneficios_beneficiarios", {
+  id: serial("id").primaryKey(),
+  beneficiarioId: integer("beneficiario_id").notNull(),
+  beneficioId: integer("beneficio_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  recorrente: boolean("recorrente").default(false),
+  quantidadeConcedida: integer("quantidade_concedida").default(1),
+  dataConcessao: timestamp("data_concessao").defaultNow(),
+  dataValidade: timestamp("data_validade"),
+  observacoes: text("observacoes"),
+  status: text("status").notNull().default("ativo"), // "ativo", "suspenso", "encerrado"
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Tabela de histórico de atendimentos
 export const socialBeneficiaryHistory = pgTable("social_beneficiary_history", {
   id: serial("id").primaryKey(),
@@ -147,6 +179,8 @@ export const insertSocialCampaignSchema = createInsertSchema(socialCampaigns);
 export const insertSocialVolunteerSchema = createInsertSchema(socialVolunteers);
 export const insertSocialPortalSettingsSchema = createInsertSchema(socialPortalSettings);
 export const insertSocialBeneficiaryHistorySchema = createInsertSchema(socialBeneficiaryHistory);
+export const insertSocialBeneficioSchema = createInsertSchema(socialBeneficios);
+export const insertSocialBeneficio_BeneficiarioSchema = createInsertSchema(socialBeneficios_Beneficiarios);
 
 // Tipos para inserção
 export type InsertSocialBeneficiary = z.infer<typeof insertSocialBeneficiarySchema>;
@@ -156,6 +190,8 @@ export type InsertSocialCampaign = z.infer<typeof insertSocialCampaignSchema>;
 export type InsertSocialVolunteer = z.infer<typeof insertSocialVolunteerSchema>;
 export type InsertSocialPortalSettings = z.infer<typeof insertSocialPortalSettingsSchema>;
 export type InsertSocialBeneficiaryHistory = z.infer<typeof insertSocialBeneficiaryHistorySchema>;
+export type InsertSocialBeneficio = z.infer<typeof insertSocialBeneficioSchema>;
+export type InsertSocialBeneficioBeneficiario = z.infer<typeof insertSocialBeneficio_BeneficiarioSchema>;
 
 // Tipos para seleção
 export type SocialBeneficiary = typeof socialBeneficiaries.$inferSelect;
@@ -165,10 +201,28 @@ export type SocialCampaign = typeof socialCampaigns.$inferSelect;
 export type SocialVolunteer = typeof socialVolunteers.$inferSelect;
 export type SocialPortalSettings = typeof socialPortalSettings.$inferSelect;
 export type SocialBeneficiaryHistory = typeof socialBeneficiaryHistory.$inferSelect;
+export type SocialBeneficio = typeof socialBeneficios.$inferSelect;
+export type SocialBeneficioBeneficiario = typeof socialBeneficios_Beneficiarios.$inferSelect;
 
 // Relações
 export const socialBeneficiariesRelations = relations(socialBeneficiaries, ({ many }) => ({
   history: many(socialBeneficiaryHistory),
+  beneficiosRecebidos: many(socialBeneficios_Beneficiarios),
+}));
+
+export const socialBeneficiosRelations = relations(socialBeneficios, ({ many }) => ({
+  beneficiarios: many(socialBeneficios_Beneficiarios),
+}));
+
+export const socialBeneficios_BeneficiariosRelations = relations(socialBeneficios_Beneficiarios, ({ one }) => ({
+  beneficiario: one(socialBeneficiaries, {
+    fields: [socialBeneficios_Beneficiarios.beneficiarioId],
+    references: [socialBeneficiaries.id],
+  }),
+  beneficio: one(socialBeneficios, {
+    fields: [socialBeneficios_Beneficiarios.beneficioId],
+    references: [socialBeneficios.id],
+  }),
 }));
 
 export const socialBeneficiaryHistoryRelations = relations(socialBeneficiaryHistory, ({ one }) => ({
