@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function NewBeneficiary() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [_, setLocation] = useLocation();
   
   // Initialize form with default values
   const form = useForm<FormData>({
@@ -109,13 +111,14 @@ export default function NewBeneficiary() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/social/beneficiaries'] });
       setTimeout(() => {
-        window.location.href = '/organization/social/beneficiarios';
+        setLocation('/organization/social/beneficiarios');
       }, 1500);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || 'Ocorreu um erro ao cadastrar o beneficiário';
       toast({
-        title: 'Erro',
-        description: error.message,
+        title: 'Erro no cadastro',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
@@ -133,7 +136,7 @@ export default function NewBeneficiary() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => window.location.href = '/organization/social/beneficiarios'}
+              onClick={() => setLocation('/organization/social/beneficiarios')}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -642,7 +645,7 @@ export default function NewBeneficiary() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.location.href = '/organization/social/beneficiarios'}
+                  onClick={() => setLocation('/organization/social/beneficiarios')}
                 >
                   Cancelar
                 </Button>
