@@ -430,13 +430,13 @@ export default function OrganizationRegistration() {
   // Funções de manipulação do modal
   const handleCloseModal = () => {
     setShowCompletionModal(false);
-    // Opcional: redirecionar para outra página após fechar o modal
-    navigate('/login');
+    // Redirecionar diretamente para a página de login
+    window.location.href = '/login';
   };
 
   const handleViewDashboard = () => {
     setShowCompletionModal(false);
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   // Função para renderizar o conteúdo baseado no passo atual
