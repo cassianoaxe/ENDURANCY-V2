@@ -21,6 +21,7 @@ import ImportDetails from "@/pages/organization/import-company/ImportDetails";
 // Módulo Social
 import SocialDashboard from "@/pages/organization/social/index";
 import SocialBeneficiarios from "@/pages/organization/social/beneficiarios/index";
+import NovoBeneficiario from "@/pages/organization/social/beneficiarios/novo";
 import SocialDoacoes from "@/pages/organization/social/doacoes/index";
 import SocialDespesas from "@/pages/organization/social/despesas/index";
 import SocialCampanhas from "@/pages/organization/social/campanhas/index";
@@ -1244,6 +1245,12 @@ function AppContent() {
     if (currentPath === '/organization/social/beneficiarios') {
       return <OrganizationLayout>
         <SocialBeneficiarios />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/social/beneficiarios/novo') {
+      return <OrganizationLayout>
+        <NovoBeneficiario />
       </OrganizationLayout>;
     }
 
