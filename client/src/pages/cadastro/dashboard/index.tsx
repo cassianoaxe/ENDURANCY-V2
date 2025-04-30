@@ -73,7 +73,7 @@ export default function CadastroDashboard() {
           <CardContent>
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
-                <span className="text-2xl font-bold">{Array.isArray(organizations) ? organizations.length : 0}</span>
+                <span className="text-2xl font-bold">{organizations?.length || 0}</span>
                 <span className="text-xs text-green-500 flex items-center">
                   <ChevronUp className="h-3 w-3 mr-1" /> 
                   +12% no mês
@@ -94,7 +94,7 @@ export default function CadastroDashboard() {
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
                 <span className="text-2xl font-bold">
-                  {Array.isArray(organizations) ? organizations.filter(o => o.status === 'active').length : 0}
+                  {organizations?.filter(o => o.status === 'active').length || 0}
                 </span>
                 <span className="text-xs text-green-500 flex items-center">
                   <ChevronUp className="h-3 w-3 mr-1" /> 
@@ -116,7 +116,7 @@ export default function CadastroDashboard() {
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
                 <span className="text-2xl font-bold">
-                  {Array.isArray(organizations) ? organizations.filter(o => o.status === 'pending').length : 0}
+                  {organizations?.filter(o => o.status === 'pending').length || 0}
                 </span>
                 <span className="text-xs text-yellow-500 flex items-center">
                   <ChevronUp className="h-3 w-3 mr-1" /> 
