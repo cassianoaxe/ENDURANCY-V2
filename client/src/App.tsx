@@ -3073,17 +3073,28 @@ function AppContent() {
         
       case '/cadastro/formularios/editor':
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroFormularioEditorComp = React.lazy(() => import('./pages/cadastro/formularios/CadastroFormularioEditor'));
         return (
           <Layout>
-            <CadastroFormularioEditor />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroFormularioEditorComp />
+            </Suspense>
           </Layout>
         );
         
       case currentPath.match(/^\/cadastro\/formularios\/editor\/\d+$/)?.input:
         console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroFormularioEditorWithId = React.lazy(() => import('./pages/cadastro/formularios/CadastroFormularioEditor'));
+        const formId = parseInt(currentPath.split('/').pop() || '0');
         return (
           <Layout>
-            <CadastroFormularioEditor id={parseInt(currentPath.split('/').pop() || '0')} />
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroFormularioEditorWithId id={formId} />
+            </Suspense>
           </Layout>
         );
         
@@ -3096,6 +3107,19 @@ function AppContent() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>}>
               <CadastroConfiguracoesTemp />
+            </Suspense>
+          </Layout>
+        );
+        
+      case '/cadastro/carteirinha': 
+        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        const CadastroCarteirinhaTemp = React.lazy(() => import('./pages/cadastro/carteirinha/TEMP_INDEX'));
+        return (
+          <Layout>
+            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>}>
+              <CadastroCarteirinhaTemp />
             </Suspense>
           </Layout>
         );

@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, 
   DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
-  MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings
+  MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings, CreditCard
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -20,6 +20,7 @@ import { Link } from "wouter";
 import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
 import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
 import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
+import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
 import { Organization, Plan } from '@shared/schema';
 import {
   DropdownMenu,
@@ -241,7 +242,7 @@ export default function Cadastro() {
   };
 
   // Estado para controlar qual página está sendo exibida
-  const [currentPage, setCurrentPage] = useState<'main' | 'dashboard' | 'formularios' | 'configuracoes'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'dashboard' | 'formularios' | 'configuracoes' | 'carteirinha'>('main');
 
   if (currentPage === 'dashboard') {
     return <CadastroDashboardTemp />;
@@ -253,6 +254,10 @@ export default function Cadastro() {
 
   if (currentPage === 'configuracoes') {
     return <CadastroConfiguracoesTemp />;
+  }
+  
+  if (currentPage === 'carteirinha') {
+    return <CadastroCarteirinhaTemp />;
   }
 
   return (
@@ -280,6 +285,14 @@ export default function Cadastro() {
           >
             <FileText size={16} />
             Formulários
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => setCurrentPage('carteirinha')}
+          >
+            <CreditCard size={16} />
+            Carteirinha
           </Button>
           <Button 
             variant="outline" 
