@@ -13,8 +13,10 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  userRole: string | null;
   login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => Promise<void>;
   logout: () => void;
+  checkAuthentication?: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -371,6 +373,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated: !!user,
     isLoading,
+    userRole: user?.role || null,
     login,
     logout,
     checkAuthentication
