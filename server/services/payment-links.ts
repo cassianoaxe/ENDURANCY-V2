@@ -67,6 +67,14 @@ export async function createAndSendPaymentLink(params: {
         
         <h2 style="color: #2e7d32; text-align: center;">Confirmação de Pagamento</h2>
         
+        <!-- Alerta SPAM bem visível no topo -->
+        <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+          <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+            <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+            <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+          </p>
+        </div>
+        
         <p>Olá, <strong>${params.adminName}</strong>!</p>
         
         <p>Recebemos seu cadastro para a organização <strong>${params.organizationName}</strong> no plano <strong>${plan.name}</strong>.</p>
