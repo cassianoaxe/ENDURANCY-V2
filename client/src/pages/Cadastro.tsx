@@ -200,6 +200,7 @@ export default function Cadastro() {
                             (org.adminName && org.adminName.toLowerCase().includes(searchTerm.toLowerCase())) ||
                             (org.email && org.email.toLowerCase().includes(searchTerm.toLowerCase()));
         
+        // Mostrar todas as organizações na aba "Todas", independente do status
         if (currentTab === "todas") return matchesSearch;
         if (currentTab === "ativas") return matchesSearch && org.status === "active";
         if (currentTab === "pendentes") return matchesSearch && org.status === "pending";

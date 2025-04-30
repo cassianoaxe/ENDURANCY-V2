@@ -65,7 +65,16 @@ const menuItems: MenuItem[] = [
       { icon: BarChart, label: "Vendas e Assinaturas", path: "/module-subscription-sales" }
     ]
   },
-  { icon: Building2, label: "Cadastro", path: "/cadastro" },
+  { 
+    icon: Building2, 
+    label: "Cadastro", 
+    submenu: [
+      { icon: BarChart2, label: "Dashboard", path: "/cadastro/dashboard" },
+      { icon: Building2, label: "Organizações", path: "/cadastro" },
+      { icon: FileText, label: "Formulários", path: "/cadastro/formularios" },
+      { icon: Settings, label: "Configurações", path: "/cadastro/configuracoes" }
+    ]
+  },
   { 
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
