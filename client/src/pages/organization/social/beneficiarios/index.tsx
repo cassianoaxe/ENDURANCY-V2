@@ -40,11 +40,13 @@ import {
 import { 
   Search, Filter, Plus, MoreVertical, 
   Pencil, Trash2, Eye, Users, UserPlus,
-  Calendar, MapPin, Phone, Mail, FileText
+  Calendar, MapPin, Phone, Mail, FileText,
+  Download, Upload, FileSpreadsheet
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BeneficiarioModal from '@/components/social/BeneficiarioModal';
+import ImportBeneficiariosModal from '@/components/social/ImportBeneficiariosModal';
 
 interface Beneficiary {
   id: number;
@@ -79,6 +81,7 @@ export default function BeneficiariesList() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterNeedCategory, setFilterNeedCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [_, setLocation] = useLocation();
   
   // Fetch beneficiaries data
@@ -175,10 +178,16 @@ export default function BeneficiariesList() {
             Gerencie os beneficiários atendidos pela associação
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Novo Beneficiário
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Importar Lista
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Novo Beneficiário
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6">
@@ -450,6 +459,12 @@ export default function BeneficiariesList() {
       <BeneficiarioModal 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
+      />
+      
+      {/* Modal para importação em lote de beneficiários */}
+      <ImportBeneficiariosModal
+        open={isImportModalOpen}
+        onOpenChange={setIsImportModalOpen}
       />
     </div>
   );
