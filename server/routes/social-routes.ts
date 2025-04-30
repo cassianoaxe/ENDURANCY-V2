@@ -14,6 +14,7 @@ import { authenticate } from "../routes";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { socialBeneficiariesBatchRouter } from "./social-beneficiaries-batch";
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -760,5 +761,8 @@ router.post("/public/social/:organizationId/volunteer-request", async (req, res)
     res.status(500).json({ message: "Erro ao cadastrar voluntário" });
   }
 });
+
+// Utilizar o router de importação em lote
+router.use('/social/beneficiaries', socialBeneficiariesBatchRouter);
 
 export default router;
