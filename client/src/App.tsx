@@ -3045,15 +3045,32 @@ function AppContent() {
       case '/cadastro/formularios/editor':
       case currentPath.match(/^\/cadastro\/formularios\/editor\/\d+$/)?.input:
       case '/cadastro/configuracoes': 
+        // Debug log para determinar qual rota está sendo acessada e com qual userRole
+        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
+        
         // Centraliza todas as rotas do módulo "Cadastro" em um único lugar para evitar renderização duplicada
         return (
           <Layout>
             {currentPath === '/cadastro' && <Cadastro />}
             {currentPath === '/cadastro/dashboard' && <CadastroDashboard />}
-            {currentPath === '/cadastro/formularios' && <CadastroFormularios />}
+            {currentPath === '/cadastro/formularios' && (
+              <>
+                <div className="debug-info" style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", border: "1px solid #ccc" }}>
+                  Debug Info: Tentando renderizar CadastroFormularios (Role: {userRole})
+                </div>
+                <CadastroFormularios />
+              </>
+            )}
             {currentPath === '/cadastro/formularios/editor' && <CadastroFormularioEditor />}
             {currentPath.startsWith('/cadastro/formularios/editor/') && <CadastroFormularioEditor id={parseInt(currentPath.split('/').pop() || '0')} />}
-            {currentPath === '/cadastro/configuracoes' && <CadastroConfiguracoes />}
+            {currentPath === '/cadastro/configuracoes' && (
+              <>
+                <div className="debug-info" style={{ background: "#f0f0f0", padding: "10px", margin: "10px 0", border: "1px solid #ccc" }}>
+                  Debug Info: Tentando renderizar CadastroConfiguracoes (Role: {userRole})
+                </div>
+                <CadastroConfiguracoes />
+              </>
+            )}
           </Layout>
         );
         break;
