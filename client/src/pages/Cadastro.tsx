@@ -15,6 +15,11 @@ import {
   MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings
 } from "lucide-react";
 import { Link } from "wouter";
+
+// Importando páginas diretamente para teste
+import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
+import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
+import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
 import { Organization, Plan } from '@shared/schema';
 import {
   DropdownMenu,
@@ -235,6 +240,21 @@ export default function Cadastro() {
     return plan ? plan.name : 'Desconhecido';
   };
 
+  // Estado para controlar qual página está sendo exibida
+  const [currentPage, setCurrentPage] = useState<'main' | 'dashboard' | 'formularios' | 'configuracoes'>('main');
+
+  if (currentPage === 'dashboard') {
+    return <CadastroDashboardTemp />;
+  }
+
+  if (currentPage === 'formularios') {
+    return <CadastroFormulariosTemp />;
+  }
+
+  if (currentPage === 'configuracoes') {
+    return <CadastroConfiguracoesTemp />;
+  }
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -248,9 +268,7 @@ export default function Cadastro() {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => {
-              window.location.href = "/cadastro/dashboard";
-            }}
+            onClick={() => setCurrentPage('dashboard')}
           >
             <FileText size={16} />
             Dashboard
@@ -258,9 +276,7 @@ export default function Cadastro() {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => {
-              window.location.href = "/cadastro/formularios";
-            }}
+            onClick={() => setCurrentPage('formularios')}
           >
             <FileText size={16} />
             Formulários
@@ -268,9 +284,7 @@ export default function Cadastro() {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => {
-              window.location.href = "/cadastro/configuracoes";
-            }}
+            onClick={() => setCurrentPage('configuracoes')}
           >
             <Settings size={16} />
             Configurações
