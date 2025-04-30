@@ -937,20 +937,33 @@ export default function OrganizationRegistration() {
                         )}
                       </Button>
                       
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
                         <div className="flex items-start gap-2">
                           <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                           <div>
                             <h4 className="font-medium text-blue-800">Próximos passos</h4>
                             <p className="text-sm text-blue-700 mt-1">
-                              Após a finalização do cadastro, sua solicitação será revisada pela nossa equipe. Você receberá
-                              um e-mail com as instruções de acesso e, se aplicável, um link para pagamento do plano selecionado.
+                              Após a finalização do cadastro, sua solicitação será processada e você receberá
+                              <strong> um email com o link de pagamento</strong> para o plano selecionado.
                             </p>
                             <div className="mt-3 text-xs text-blue-600">
                               <a href="/privacidade" className="underline hover:text-blue-800">Política de Privacidade</a>
                               {" • "}
                               <a href="/termos" className="underline hover:text-blue-800">Termos de Uso</a>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-yellow-800">Importante</h4>
+                            <p className="text-sm text-yellow-700 mt-1">
+                              <strong>Verifique sua caixa de entrada e pasta de SPAM</strong> para receber o link de pagamento.
+                              Sua conta será ativada automaticamente após a confirmação do pagamento.
+                            </p>
                           </div>
                         </div>
                       </div>
