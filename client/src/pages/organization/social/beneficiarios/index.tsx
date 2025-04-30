@@ -46,6 +46,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BeneficiarioModal from '@/components/social/BeneficiarioModal';
+import BeneficiarioModalMelhorado from '@/components/social/BeneficiarioModalMelhorado';
 import ImportBeneficiariosModal from '@/components/social/ImportBeneficiariosModal';
 import ConverterParaBeneficiarioModal from '@/components/social/ConverterParaBeneficiarioModal';
 
@@ -462,7 +463,7 @@ export default function BeneficiariesList() {
       </Card>
       
       {/* Modal para cadastro de beneficiários */}
-      <BeneficiarioModal 
+      <BeneficiarioModalMelhorado 
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
       />
