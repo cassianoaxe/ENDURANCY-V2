@@ -245,30 +245,33 @@ export default function Cadastro() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => navigate('/cadastro/dashboard')}
-          >
-            <FileText size={16} />
-            Dashboard
-          </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => navigate('/cadastro/formularios')}
-          >
-            <FileText size={16} />
-            Formulários
-          </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => navigate('/cadastro/configuracoes')}
-          >
-            <Settings size={16} />
-            Configurações
-          </Button>
+          <Link href="/cadastro/dashboard">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <FileText size={16} />
+              Dashboard
+            </Button>
+          </Link>
+          <Link href="/cadastro/formularios">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <FileText size={16} />
+              Formulários
+            </Button>
+          </Link>
+          <Link href="/cadastro/configuracoes">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <Settings size={16} />
+              Configurações
+            </Button>
+          </Link>
         </div>
       </div>
       

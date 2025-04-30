@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// Importante: Este componente deve ser exportado como default para o roteamento funcionar
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
