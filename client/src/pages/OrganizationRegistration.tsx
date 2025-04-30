@@ -144,7 +144,7 @@ export default function OrganizationRegistration() {
       // Exibir toast de sucesso na criação da organização e redirecionar
       toast({
         title: "Organização registrada com sucesso!",
-        description: data.message || "Verifique seu email para instruções de pagamento e ativação.",
+        description: "Verifique seu email para receber o link de pagamento. Após a confirmação do pagamento, sua conta será ativada automaticamente.",
       });
       
       // Redirecionar para a tela de confirmação ou login
@@ -272,10 +272,7 @@ export default function OrganizationRegistration() {
       createOrganization.mutate({ ...formData, document: selectedFile } as any);
     }
     
-    toast({
-      title: "Registro concluído",
-      description: "Seu registro foi enviado com sucesso! Verifique seu e-mail para instruções de pagamento e ativação.",
-    });
+    // Não mostrar toast aqui, pois já há um toast na função onSuccess da mutação
   };
 
   const onSubmit = async (data: InsertOrganization) => {
