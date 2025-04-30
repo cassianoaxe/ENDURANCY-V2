@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { OrganizationLayout } from "@/components/layout/OrganizationLayout";
+import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,24 +32,29 @@ import { apiRequest } from '@/lib/queryClient';
 // Esquema de validação para o formulário
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Nome é obrigatório e deve ter pelo menos 3 caracteres' }),
-  document: z.string().min(11, { message: 'Documento inválido' }),
-  email: z.string().email({ message: 'E-mail inválido' }).optional().or(z.literal('')),
-  phone: z.string().min(10, { message: 'Telefone inválido' }).optional().or(z.literal('')),
-  address: z.string().optional().or(z.literal('')),
-  neighborhood: z.string().optional().or(z.literal('')),
+  cpf: z.string().min(11, { message: 'CPF inválido' }),
+  rg: z.string().optional().or(z.literal('')),
+  email: z.string().email({ message: 'E-mail inválido' }).min(1, { message: 'E-mail é obrigatório' }),
+  phone: z.string().min(10, { message: 'Telefone inválido' }).min(1, { message: 'Telefone é obrigatório' }),
+  address: z.string().min(1, { message: 'Endereço é obrigatório' }),
+  addressNumber: z.string().optional().or(z.literal('')),
+  addressComplement: z.string().optional().or(z.literal('')),
+  neighborhood: z.string().min(1, { message: 'Bairro é obrigatório' }),
   city: z.string().min(2, { message: 'Cidade é obrigatória' }),
   state: z.string().min(2, { message: 'Estado é obrigatório' }),
-  zipCode: z.string().optional().or(z.literal('')),
-  birthdate: z.string().optional().or(z.literal('')),
+  zipCode: z.string().min(1, { message: 'CEP é obrigatório' }),
+  birthDate: z.string().min(1, { message: 'Data de nascimento é obrigatória' }),
   gender: z.string().optional().or(z.literal('')),
   occupation: z.string().optional().or(z.literal('')),
   monthlyIncome: z.string().optional().or(z.literal('')),
-  familySize: z.string().optional().or(z.literal('')),
+  familyMembers: z.string().optional().or(z.literal('')),
+  exemptionType: z.enum(['exemption_25', 'exemption_50', 'exemption_75', 'exemption_100']).default('exemption_25'),
+  exemptionValue: z.string().default('25'),
   educationLevel: z.string().optional().or(z.literal('')),
   housingType: z.string().optional().or(z.literal('')),
   hasHealthInsurance: z.string().optional().or(z.literal('')),
-  observations: z.string().optional().or(z.literal('')),
-  status: z.enum(['active', 'inactive']),
+  notes: z.string().optional().or(z.literal('')),
+  status: z.enum(['active', 'inactive', 'pending']).default('active'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -63,23 +68,28 @@ export default function NewBeneficiary() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      document: '',
+      cpf: '',
+      rg: '',
       email: '',
       phone: '',
       address: '',
+      addressNumber: '',
+      addressComplement: '',
       neighborhood: '',
       city: '',
       state: '',
       zipCode: '',
-      birthdate: '',
+      birthDate: '',
       gender: '',
       occupation: '',
       monthlyIncome: '',
-      familySize: '',
+      familyMembers: '',
+      exemptionType: 'exemption_25',
+      exemptionValue: '25',
       educationLevel: '',
       housingType: '',
       hasHealthInsurance: '',
-      observations: '',
+      notes: '',
       status: 'active',
     }
   });
@@ -87,12 +97,10 @@ export default function NewBeneficiary() {
   // Create mutation for form submission
   const createBeneficiary = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest('POST', '/api/social/beneficiaries', data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao cadastrar beneficiário');
-      }
-      return response.json();
+      return await apiRequest('/api/social/beneficiaries', {
+        method: 'POST',
+        data
+      });
     },
     onSuccess: () => {
       toast({
@@ -164,7 +172,7 @@ export default function NewBeneficiary() {
                   />
                   <FormField
                     control={form.control}
-                    name="document"
+                    name="cpf"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>CPF*</FormLabel>
@@ -209,10 +217,10 @@ export default function NewBeneficiary() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="birthdate"
+                    name="birthDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Data de Nascimento</FormLabel>
+                        <FormLabel>Data de Nascimento*</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -423,7 +431,7 @@ export default function NewBeneficiary() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
-                    name="familySize"
+                    name="familyMembers"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tamanho da Família</FormLabel>
@@ -526,7 +534,7 @@ export default function NewBeneficiary() {
               <CardContent>
                 <FormField
                   control={form.control}
-                  name="observations"
+                  name="notes"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Observações</FormLabel>
