@@ -1350,7 +1350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...restOrgData,
         plan: planName || 'Básico', // Garantir valor não nulo para o campo plan
         planId: planId, 
-        status: 'pending', // Status pendente até o pagamento ser confirmado
+        status: 'active', // Definido como ativo por padrão para aparecer imediatamente na listagem
         planHistory: JSON.stringify([{
           planId: planId,
           planName: planName || 'Básico',
@@ -1566,8 +1566,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         ...organization,
         orgCode,
-        status: 'pending',
-        message: "Organização criada com sucesso. Verifique seu email para finalizar o pagamento e ativar sua conta."
+        status: 'active',
+        message: "Organização criada com sucesso. Verifique seu email para finalizar o pagamento."
       });
     } catch (error) {
       console.error("Error creating organization:", error);
