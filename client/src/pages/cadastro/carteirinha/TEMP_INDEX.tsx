@@ -1,10 +1,18 @@
 import React from 'react';
-import { Link } from 'wouter';
+import { useLocation } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, QrCode, CreditCard, Image, BadgeCheck } from "lucide-react";
 
 export default function CadastroCarteirinha() {
+  const [, setLocation] = useLocation();
+
+  // Navegação compatível com a estrutura de roteamento
+  const navigateBack = () => {
+    window.history.pushState({}, '', '/cadastro');
+    window.dispatchEvent(new Event('popstate'));
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -17,7 +25,7 @@ export default function CadastroCarteirinha() {
       <Button 
         variant="outline" 
         className="mb-6 gap-2" 
-        onClick={() => window.location.href = '/cadastro'}
+        onClick={navigateBack}
       >
         <ArrowLeft size={16} />
         Voltar para Cadastro

@@ -54,8 +54,13 @@ export default function Cadastro() {
   
   // Função de navegação que funciona com o sistema do App.tsx
   const navigate = (path: string) => {
+    console.log(`Tentando navegar para: ${path}`);
     window.history.pushState({}, '', path);
     window.dispatchEvent(new Event('popstate'));
+    // Dupla confirmação de que o evento foi disparado
+    setTimeout(() => {
+      window.dispatchEvent(new Event('navigation'));
+    }, 50);
   };
 
   // Buscar organizações
