@@ -697,6 +697,11 @@ function AppContent() {
       return <OrganizationRegistration />;
     }
     
+    // Organization registration confirmation page (público)
+    if (currentPath === '/registro-confirmado') {
+      return <ConfirmacaoRegistro />;
+    }
+    
     // Cadastro de médicos (com ID da organização)
     const doctorRegMatch = currentPath.match(/^\/cadastrodemedicos\/([^\/]+)$/);
     if (doctorRegMatch) {

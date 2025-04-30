@@ -43,7 +43,7 @@ export default function ConfirmacaoRegistro() {
             <AlertTitle className="text-blue-800 font-medium">Verifique seu email</AlertTitle>
             <AlertDescription className="text-blue-700 text-sm">
               Enviamos as instruções de pagamento para <span className="font-medium">{email || 'seu email'}</span>. 
-              Por favor, verifique sua caixa de entrada e também a pasta de spam.
+              <strong className="block mt-1 text-blue-800">⚠️ IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</strong>
             </AlertDescription>
           </Alert>
           
