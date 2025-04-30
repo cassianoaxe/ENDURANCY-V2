@@ -1,178 +1,280 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Search,
   Plus,
-  FormInput,
-  Check,
-  MoreVertical,
-  Copy,
-  Edit,
-  Trash2,
-  Download,
-  BarChart,
-  Share2,
   FileText,
-  ClipboardList,
-  ListChecks,
-  FileQuestion,
-  CheckSquare
+  MoreHorizontal,
+  Edit,
+  Copy,
+  Trash2,
+  ArrowUpDown,
+  CheckCircle2,
+  XCircle,
+  CalendarDays,
+  Eye,
+  PenLine,
+  Filter,
 } from "lucide-react";
-import {
-  DropdownMenu,
+import { 
+  DropdownMenu, 
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select } from "@/components/ui/select";
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
-// Tipos para o modelo de dados
-interface FormTemplate {
+// Interface para o formulário
+interface FormItem {
   id: number;
   name: string;
   description: string;
-  category: 'cadastro' | 'pesquisa' | 'avaliacao' | 'outro';
-  fields: number;
-  responses: number;
-  createdAt: Date;
-  lastUpdated: Date;
+  category: string;
   status: 'active' | 'draft' | 'archived';
+  type: 'cadastro' | 'pesquisa' | 'avaliacao' | 'outro';
+  createdAt: Date;
+  updatedAt: Date;
+  fields: number;
+  submissions: number;
 }
 
 export default function CadastroFormularios() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentTab, setCurrentTab] = useState("todos");
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentTab, setCurrentTab] = useState('todos');
+  const [sortBy, setSortBy] = useState<'name' | 'updatedAt' | 'submissions'>('updatedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
 
-  // Função de navegação que funciona com o sistema do App.tsx
-  const navigate = (path: string) => {
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new Event('popstate'));
-  };
-
-  // Dados dos formulários para demonstração
-  const formTemplates: FormTemplate[] = [
+  // Dados de exemplo para os formulários
+  const [forms, setForms] = useState<FormItem[]>([
     {
       id: 1,
-      name: "Cadastro de Paciente",
-      description: "Formulário para cadastro de novos pacientes",
-      category: 'cadastro',
-      fields: 15,
-      responses: 356,
-      createdAt: new Date(2025, 3, 15),
-      lastUpdated: new Date(2025, 4, 2),
-      status: 'active'
+      name: "Cadastro de Associações",
+      description: "Formulário padrão para cadastro de associações",
+      category: "associacao",
+      status: 'active',
+      type: 'cadastro',
+      createdAt: new Date(2025, 1, 15),
+      updatedAt: new Date(2025, 3, 10),
+      fields: 12,
+      submissions: 45
     },
     {
       id: 2,
-      name: "Pesquisa de Satisfação",
-      description: "Formulário para avaliar a satisfação dos associados",
-      category: 'pesquisa',
-      fields: 8,
-      responses: 142,
-      createdAt: new Date(2025, 2, 20),
-      lastUpdated: new Date(2025, 3, 25),
-      status: 'active'
+      name: "Cadastro de Empresas",
+      description: "Formulário padrão para cadastro de empresas",
+      category: "empresa",
+      status: 'active',
+      type: 'cadastro',
+      createdAt: new Date(2025, 1, 20),
+      updatedAt: new Date(2025, 3, 5),
+      fields: 15,
+      submissions: 62
     },
     {
       id: 3,
-      name: "Avaliação de Qualidade",
-      description: "Formulário para avaliar a qualidade dos produtos",
-      category: 'avaliacao',
-      fields: 12,
-      responses: 95,
-      createdAt: new Date(2025, 4, 1),
-      lastUpdated: new Date(2025, 4, 10),
-      status: 'active'
+      name: "Pesquisa de Satisfação",
+      description: "Avaliação de satisfação com a plataforma",
+      category: "pesquisa",
+      status: 'active',
+      type: 'pesquisa',
+      createdAt: new Date(2025, 2, 5),
+      updatedAt: new Date(2025, 2, 5),
+      fields: 8,
+      submissions: 103
     },
     {
       id: 4,
-      name: "Solicitação de Adesão",
-      description: "Formulário para novos associados",
-      category: 'cadastro',
-      fields: 18,
-      responses: 230,
-      createdAt: new Date(2025, 1, 10),
-      lastUpdated: new Date(2025, 3, 15),
-      status: 'active'
+      name: "Documentação para Clínica",
+      description: "Formulário de envio de documentos para clínicas",
+      category: "clinica",
+      status: 'draft',
+      type: 'cadastro',
+      createdAt: new Date(2025, 3, 15),
+      updatedAt: new Date(2025, 3, 28),
+      fields: 10,
+      submissions: 0
     },
     {
       id: 5,
-      name: "Termo de Consentimento",
-      description: "Formulário para consentimento de tratamento",
-      category: 'outro',
-      fields: 5,
-      responses: 412,
-      createdAt: new Date(2025, 2, 5),
-      lastUpdated: new Date(2025, 4, 1),
-      status: 'active'
+      name: "Avaliação Médica",
+      description: "Formulário para avaliações médicas",
+      category: "avaliacao",
+      status: 'active',
+      type: 'avaliacao',
+      createdAt: new Date(2025, 2, 20),
+      updatedAt: new Date(2025, 3, 1),
+      fields: 18,
+      submissions: 27
     },
     {
       id: 6,
-      name: "Pesquisa de Necessidades",
-      description: "Formulário para identificar necessidades dos pacientes",
-      category: 'pesquisa',
-      fields: 10,
-      responses: 78,
-      createdAt: new Date(2025, 3, 20),
-      lastUpdated: new Date(2025, 4, 15),
-      status: 'draft'
-    },
-    {
-      id: 7,
-      name: "Avaliação Médica",
-      description: "Formulário para avaliação médica inicial",
-      category: 'avaliacao',
-      fields: 25,
-      responses: 145,
-      createdAt: new Date(2025, 2, 15),
-      lastUpdated: new Date(2025, 4, 5),
-      status: 'archived'
+      name: "Cadastro de Laboratórios",
+      description: "Formulário para cadastro e documentação de laboratórios",
+      category: "laboratorio",
+      status: 'archived',
+      type: 'cadastro',
+      createdAt: new Date(2025, 1, 5),
+      updatedAt: new Date(2025, 1, 10),
+      fields: 14,
+      submissions: 8
     }
-  ];
+  ]);
 
-  // Filtrar formulários por termo de busca e categoria
-  const filteredForms = formTemplates.filter(form => {
-    const matchesSearch = searchTerm === "" || 
-                        form.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        form.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filtragem e ordenação dos formulários
+  const filteredForms = forms.filter(form => {
+    // Filtragem por tab (status)
+    if (currentTab === 'ativos' && form.status !== 'active') return false;
+    if (currentTab === 'rascunhos' && form.status !== 'draft') return false;
+    if (currentTab === 'arquivados' && form.status !== 'archived') return false;
     
-    if (currentTab === "todos") return matchesSearch;
-    if (currentTab === "cadastro") return matchesSearch && form.category === "cadastro";
-    if (currentTab === "pesquisa") return matchesSearch && form.category === "pesquisa";
-    if (currentTab === "avaliacao") return matchesSearch && form.category === "avaliacao";
-    if (currentTab === "outros") return matchesSearch && form.category === "outro";
-    return false;
+    // Filtragem por termo de busca
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        form.name.toLowerCase().includes(searchLower) || 
+        form.description.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Filtragem por categoria
+    if (categoryFilter && form.category !== categoryFilter) {
+      return false;
+    }
+    
+    return true;
+  }).sort((a, b) => {
+    // Ordenação
+    if (sortBy === 'name') {
+      return sortOrder === 'asc' 
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    } else if (sortBy === 'updatedAt') {
+      return sortOrder === 'asc'
+        ? a.updatedAt.getTime() - b.updatedAt.getTime()
+        : b.updatedAt.getTime() - a.updatedAt.getTime();
+    } else if (sortBy === 'submissions') {
+      return sortOrder === 'asc'
+        ? a.submissions - b.submissions
+        : b.submissions - a.submissions;
+    }
+    return 0;
   });
 
-  // Ordenar formulários por data de atualização (mais recentes primeiro)
-  const sortedForms = [...filteredForms].sort((a, b) => {
-    return b.lastUpdated.getTime() - a.lastUpdated.getTime();
-  });
-
-  // Formatador de data
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(date);
+  // Função para alternar a ordem de classificação
+  const toggleSort = (field: 'name' | 'updatedAt' | 'submissions') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
   };
 
-  // Função para obter ícone baseado na categoria
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'cadastro':
-        return <ClipboardList className="h-4 w-4" />;
-      case 'pesquisa':
-        return <FileQuestion className="h-4 w-4" />;
-      case 'avaliacao':
-        return <CheckSquare className="h-4 w-4" />;
+  // Navegação para editor de formulário
+  const navigateToEditor = (id?: number) => {
+    if (id) {
+      window.history.pushState({}, '', `/cadastro/formularios/editor/${id}`);
+    } else {
+      window.history.pushState({}, '', '/cadastro/formularios/editor');
+    }
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  // Duplicar um formulário
+  const duplicateForm = (form: FormItem) => {
+    const newForm: FormItem = {
+      ...form,
+      id: Math.max(0, ...forms.map(f => f.id)) + 1,
+      name: `${form.name} (Cópia)`,
+      status: 'draft',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      submissions: 0
+    };
+    
+    setForms([...forms, newForm]);
+    
+    toast({
+      title: "Formulário duplicado",
+      description: `Uma cópia de "${form.name}" foi criada.`,
+    });
+  };
+
+  // Arquivar um formulário
+  const archiveForm = (id: number) => {
+    setForms(forms.map(form => 
+      form.id === id 
+        ? { ...form, status: 'archived', updatedAt: new Date() } 
+        : form
+    ));
+    
+    toast({
+      title: "Formulário arquivado",
+      description: "O formulário foi movido para arquivados.",
+    });
+  };
+
+  // Excluir um formulário
+  const deleteForm = (id: number) => {
+    setForms(forms.filter(form => form.id !== id));
+    
+    toast({
+      title: "Formulário excluído",
+      description: "O formulário foi excluído permanentemente.",
+      variant: "destructive",
+    });
+  };
+
+  // Função para obter a classe CSS baseada no status
+  const getStatusClass = (status: 'active' | 'draft' | 'archived') => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-50 text-green-600 border-green-200';
+      case 'draft':
+        return 'bg-amber-50 text-amber-600 border-amber-200';
+      case 'archived':
+        return 'bg-gray-50 text-gray-600 border-gray-200';
       default:
-        return <FileText className="h-4 w-4" />;
+        return '';
+    }
+  };
+
+  // Função para obter o ícone baseado no status
+  const getStatusIcon = (status: 'active' | 'draft' | 'archived') => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle2 className="h-3.5 w-3.5 mr-1" />;
+      case 'draft':
+        return <PenLine className="h-3.5 w-3.5 mr-1" />;
+      case 'archived':
+        return <XCircle className="h-3.5 w-3.5 mr-1" />;
+      default:
+        return null;
+    }
+  };
+
+  // Função para obter o texto baseado no status
+  const getStatusText = (status: 'active' | 'draft' | 'archived') => {
+    switch (status) {
+      case 'active':
+        return 'Ativo';
+      case 'draft':
+        return 'Rascunho';
+      case 'archived':
+        return 'Arquivado';
+      default:
+        return '';
     }
   };
 
@@ -181,244 +283,209 @@ export default function CadastroFormularios() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold mb-2">Formulários</h1>
-          <p className="text-gray-600">Crie e gerencie formulários para diferentes finalidades</p>
+          <p className="text-gray-600">Gerencie formulários personalizados para cadastro e pesquisa</p>
         </div>
-        <Button className="gap-1.5" onClick={() => navigate('/cadastro/formularios/novo')}>
-          <Plus size={16} /> Novo Formulário
+        <Button onClick={() => navigateToEditor()} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Novo Formulário
         </Button>
       </div>
 
-      {/* Cards de Status */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Total de Formulários</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">{formTemplates.length}</span>
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <FormInput className="h-4 w-4 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Respostas Totais</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">
-                {formTemplates.reduce((acc, form) => acc + form.responses, 0)}
-              </span>
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                <Check className="h-4 w-4 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Formulários Ativos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">
-                {formTemplates.filter(form => form.status === 'active').length}
-              </span>
-              <div className="h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                <ListChecks className="h-4 w-4 text-indigo-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Média de Respostas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">
-                {Math.round(formTemplates.reduce((acc, form) => acc + form.responses, 0) / formTemplates.length)}
-              </span>
-              <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center">
-                <BarChart className="h-4 w-4 text-amber-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-1/3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input 
-            type="text" 
-            placeholder="Buscar formulário..." 
+      <div className="flex justify-between items-center mb-6 gap-4">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Buscar formulários..."
+            className="pl-9 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
           />
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Download size={16} /> Exportar
-          </Button>
+        
+        <div className="flex items-center gap-2">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[180px] h-9 gap-1">
+              <Filter className="h-3.5 w-3.5" />
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos os tipos</SelectItem>
+              <SelectItem value="associacao">Associação</SelectItem>
+              <SelectItem value="empresa">Empresa</SelectItem>
+              <SelectItem value="clinica">Clínica</SelectItem>
+              <SelectItem value="laboratorio">Laboratório</SelectItem>
+              <SelectItem value="pesquisa">Pesquisa</SelectItem>
+              <SelectItem value="avaliacao">Avaliação</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <Tabs defaultValue="todos" onValueChange={setCurrentTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="todos">Todos</TabsTrigger>
-          <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
-          <TabsTrigger value="pesquisa">Pesquisa</TabsTrigger>
-          <TabsTrigger value="avaliacao">Avaliação</TabsTrigger>
-          <TabsTrigger value="outros">Outros</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="todos" className="p-0">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {sortedForms.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Campos</TableHead>
-                      <TableHead>Respostas</TableHead>
-                      <TableHead>Última Atualização</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedForms.map((form) => (
-                      <TableRow key={form.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {getCategoryIcon(form.category)}
-                            <div>
-                              <div>{form.name}</div>
-                              <div className="text-xs text-gray-500">{form.description}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="font-normal capitalize">
-                            {form.category === 'outro' ? 'Outro' : form.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{form.fields}</TableCell>
-                        <TableCell>{form.responses}</TableCell>
-                        <TableCell>{formatDate(form.lastUpdated)}</TableCell>
-                        <TableCell>
-                          {form.status === 'active' && (
-                            <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                              Ativo
-                            </Badge>
-                          )}
-                          {form.status === 'draft' && (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
-                              Rascunho
-                            </Badge>
-                          )}
-                          {form.status === 'archived' && (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-200">
-                              Arquivado
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              title="Editar formulário"
-                              onClick={() => navigate(`/cadastro/formularios/${form.id}/editar`)}
-                            >
-                              <Edit size={16} className="text-gray-500" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              title="Ver estatísticas"
-                              onClick={() => navigate(`/cadastro/formularios/${form.id}/estatisticas`)}
-                            >
-                              <BarChart size={16} className="text-gray-500" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical size={16} className="text-gray-500" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem className="cursor-pointer">
-                                  <Copy size={14} className="mr-2" /> Duplicar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer">
-                                  <Share2 size={14} className="mr-2" /> Compartilhar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  className="cursor-pointer text-red-600 hover:text-red-700 focus:text-red-700"
-                                >
-                                  <Trash2 size={14} className="mr-2" /> Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+      <Card>
+        <CardHeader className="px-6 py-4 border-b">
+          <Tabs defaultValue="todos" value={currentTab} onValueChange={setCurrentTab}>
+            <TabsList>
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              <TabsTrigger value="ativos">Ativos</TabsTrigger>
+              <TabsTrigger value="rascunhos">Rascunhos</TabsTrigger>
+              <TabsTrigger value="arquivados">Arquivados</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="max-w-[400px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort('name')}
+                    className="flex items-center gap-1 font-medium -ml-4"
+                  >
+                    Formulário
+                    <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort('updatedAt')}
+                    className="flex items-center gap-1 font-medium -ml-4"
+                  >
+                    Atualizado
+                    <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </TableHead>
+                <TableHead>Campos</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort('submissions')}
+                    className="flex items-center gap-1 font-medium -ml-4"
+                  >
+                    Envios
+                    <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Button>
+                </TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredForms.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                    Nenhum formulário encontrado.
+                  </TableCell>
+                </TableRow>
               ) : (
-                <div className="text-center p-8 text-gray-500">
-                  <p>Nenhum formulário encontrado com os filtros atuais.</p>
-                </div>
+                filteredForms.map((form) => (
+                  <TableRow key={form.id}>
+                    <TableCell className="max-w-[400px]">
+                      <div>
+                        <div className="font-medium overflow-hidden text-ellipsis">{form.name}</div>
+                        <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis">
+                          {form.description}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {form.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={getStatusClass(form.status)}
+                      >
+                        {getStatusIcon(form.status)}
+                        {getStatusText(form.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-muted-foreground whitespace-nowrap text-sm">
+                          {format(form.updatedAt, "d 'de' MMM, yyyy", { locale: pt })}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="font-normal">
+                        {form.fields}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="font-normal">
+                        {form.submissions}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigateToEditor(form.id)}
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Visualizar"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => duplicateForm(form)}>
+                              <Copy className="h-4 w-4 mr-2" /> Duplicar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => archiveForm(form.id)}>
+                              <FileText className="h-4 w-4 mr-2" /> Arquivar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => deleteForm(form.id)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* As abas restantes seguem o mesmo padrão, mas filtradas por categoria */}
-        <TabsContent value="cadastro" className="p-0">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {/* Mesmo código da aba "todos" adaptado para este filtro específico */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="pesquisa" className="p-0">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {/* Mesmo código da aba "todos" adaptado para este filtro específico */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="avaliacao" className="p-0">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {/* Mesmo código da aba "todos" adaptado para este filtro específico */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="outros" className="p-0">
-          <Card className="shadow-sm">
-            <CardContent className="p-0">
-              {/* Mesmo código da aba "todos" adaptado para este filtro específico */}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </TableBody>
+          </Table>
+        </CardContent>
+        <CardFooter className="border-t p-4 flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            Exibindo {filteredForms.length} de {forms.length} formulários
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-1"
+              onClick={() => setSearchTerm('')}
+              disabled={!searchTerm && !categoryFilter}
+            >
+              <Filter className="h-3.5 w-3.5" /> Limpar filtros
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
