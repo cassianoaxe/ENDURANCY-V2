@@ -47,6 +47,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BeneficiarioModal from '@/components/social/BeneficiarioModal';
 import ImportBeneficiariosModal from '@/components/social/ImportBeneficiariosModal';
+import ConverterParaBeneficiarioModal from '@/components/social/ConverterParaBeneficiarioModal';
 
 interface Beneficiary {
   id: number;
@@ -82,6 +83,7 @@ export default function BeneficiariesList() {
   const [filterNeedCategory, setFilterNeedCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isConverterModalOpen, setIsConverterModalOpen] = useState(false);
   const [_, setLocation] = useLocation();
   
   // Fetch beneficiaries data
@@ -378,6 +380,10 @@ export default function BeneficiariesList() {
                             <DropdownMenuItem onClick={() => setLocation(`/organization/social/beneficiarios/${beneficiary.id}/historico`)}>
                               <FileText className="mr-2 h-4 w-4" />
                               Histórico
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setIsConverterModalOpen(true)}>
+                              <UserPlus className="mr-2 h-4 w-4" />
+                              Converter em Beneficiário
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-red-600">
