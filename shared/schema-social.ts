@@ -9,6 +9,9 @@ export const beneficiaryStatusEnum = pgEnum('beneficiary_status', ['active', 'in
 // Enum para os tipos de isenção
 export const exemptionTypeEnum = pgEnum('exemption_type', ['exemption_25', 'exemption_50', 'exemption_75', 'exemption_100']);
 
+// Enum para o tipo de associado
+export const membershipTypeEnum = pgEnum('membership_type', ['regular', 'premium', 'lifetime', 'temporary']);
+
 // Tabela de Beneficiários
 export const socialBeneficiaries = pgTable("social_beneficiaries", {
   id: serial("id").primaryKey(),
@@ -27,6 +30,12 @@ export const socialBeneficiaries = pgTable("social_beneficiaries", {
   state: text("state").notNull(),
   zipCode: text("zip_code").notNull(),
   status: beneficiaryStatusEnum("status").notNull().default("pending"),
+  // Campos para associados
+  membershipType: membershipTypeEnum("membership_type"),
+  membershipStartDate: date("membership_start_date"),
+  membershipEndDate: date("membership_end_date"),
+  membershipCode: text("membership_code"), // Código único para o associado (usado no QR)
+  membershipRules: json("membership_rules"), // Regras, direitos e deveres específicos
   documentFront: text("document_front"), // URL da foto do documento (frente)
   documentBack: text("document_back"), // URL da foto do documento (verso)
   proofOfIncome: text("proof_of_income"), // URL do comprovante de renda
