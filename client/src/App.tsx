@@ -96,6 +96,7 @@ import VendasAdmin from "@/pages/Vendas";
 import Cadastro from "@/pages/Cadastro";
 import CadastroDashboard from "@/pages/cadastro/dashboard";
 import CadastroFormularios from "@/pages/cadastro/formularios";
+import CadastroFormularioEditor from "@/pages/cadastro/formularios/CadastroFormularioEditor";
 import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
@@ -3039,6 +3040,8 @@ function AppContent() {
       case '/cadastro': 
       case '/cadastro/dashboard': 
       case '/cadastro/formularios': 
+      case '/cadastro/formularios/editor':
+      case currentPath.match(/^\/cadastro\/formularios\/editor\/\d+$/)?.input:
       case '/cadastro/configuracoes': 
         // Centraliza todas as rotas do módulo "Cadastro" em um único lugar para evitar renderização duplicada
         return (
@@ -3046,6 +3049,8 @@ function AppContent() {
             {currentPath === '/cadastro' && <Cadastro />}
             {currentPath === '/cadastro/dashboard' && <CadastroDashboard />}
             {currentPath === '/cadastro/formularios' && <CadastroFormularios />}
+            {currentPath === '/cadastro/formularios/editor' && <CadastroFormularioEditor />}
+            {currentPath.startsWith('/cadastro/formularios/editor/') && <CadastroFormularioEditor id={parseInt(currentPath.split('/').pop() || '0')} />}
             {currentPath === '/cadastro/configuracoes' && <CadastroConfiguracoes />}
           </Layout>
         );
