@@ -2992,7 +2992,9 @@ function AppContent() {
   // Verifica se o caminho atual é uma rota administrativa
   if (adminRoutes.includes(currentPath) || currentPath.startsWith('/financial/')) {
     
-    if (userRole !== 'admin') {
+    // Permitir acesso às rotas do módulo Cadastro para usuários org_admin também
+    const isCadastroRoute = currentPath.startsWith('/cadastro');
+    if (userRole !== 'admin' && !(userRole === 'org_admin' && isCadastroRoute)) {
       return (
         <Layout>
           <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
