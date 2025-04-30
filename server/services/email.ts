@@ -178,39 +178,116 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
       
     case "organization_activated":
       return `
-        <h1>Organização Ativada!</h1>
-        <p>Olá ${data.adminName || 'Administrador'},</p>
-        <p>Sua organização "${data.organizationName}" foi ativada com sucesso!</p>
-        <p>Você já pode acessar o sistema com suas credenciais:</p>
-        <p><strong>Usuário:</strong> ${data.username}</p>
-        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
-        <p>Atenciosamente,<br>Equipe Endurancy</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+          </div>
+          
+          <h1 style="color: #2e7d32; text-align: center;">Organização Ativada!</h1>
+          
+          <!-- Alerta SPAM visível para emails importantes -->
+          <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+            <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+              <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+              <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+            </p>
+          </div>
+          
+          <p>Olá ${data.adminName || 'Administrador'},</p>
+          <p>Sua organização "<strong>${data.organizationName}</strong>" foi ativada com sucesso!</p>
+          <p>Você já pode acessar o sistema com suas credenciais:</p>
+          <p><strong>Usuário:</strong> ${data.username}</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.accessLink}" style="background-color: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Acessar o Sistema</a>
+          </div>
+          
+          <p>Atenciosamente,<br>Equipe Endurancy</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px; text-align: center;">
+            <p>Este é um email automático, por favor não responda.</p>
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
       `;
       
     case "organization_activated_free":
       return `
-        <h1>Organização Ativada com Plano Gratuito</h1>
-        <p>Olá ${data.adminName || 'Administrador'},</p>
-        <p>Sua organização "${data.organizationName}" foi ativada com o <strong>Plano Gratuito</strong>!</p>
-        <p>Devido a problemas no processamento do pagamento, sua organização foi configurada com o plano gratuito, que fornece recursos básicos para você iniciar suas atividades.</p>
-        <p>Você já pode acessar o sistema com suas credenciais:</p>
-        <p><strong>Usuário:</strong> ${data.username}</p>
-        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
-        <p>Para fazer upgrade para um plano com mais recursos, acesse a seção <a href="${data.upgradePlanLink}">Meu Plano</a> no painel da sua organização.</p>
-        <p>Atenciosamente,<br>Equipe Endurancy</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+          </div>
+          
+          <h1 style="color: #2e7d32; text-align: center;">Organização Ativada com Plano Gratuito</h1>
+          
+          <!-- Alerta SPAM visível para emails importantes -->
+          <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+            <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+              <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+              <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+            </p>
+          </div>
+          
+          <p>Olá ${data.adminName || 'Administrador'},</p>
+          <p>Sua organização "<strong>${data.organizationName}</strong>" foi ativada com o <strong>Plano Gratuito</strong>!</p>
+          <p>Devido a problemas no processamento do pagamento, sua organização foi configurada com o plano gratuito, que fornece recursos básicos para você iniciar suas atividades.</p>
+          <p>Você já pode acessar o sistema com suas credenciais:</p>
+          <p><strong>Usuário:</strong> ${data.username}</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.accessLink}" style="background-color: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Acessar o Sistema</a>
+          </div>
+          
+          <p>Para fazer upgrade para um plano com mais recursos, acesse a seção <a href="${data.upgradePlanLink}" style="color: #2e7d32; text-decoration: underline;">Meu Plano</a> no painel da sua organização.</p>
+          
+          <p>Atenciosamente,<br>Equipe Endurancy</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px; text-align: center;">
+            <p>Este é um email automático, por favor não responda.</p>
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
       `;
     
     case "new_admin_credentials":
       return `
-        <h1>Suas Credenciais de Acesso ao Endurancy</h1>
-        <p>Olá ${data.adminName || 'Administrador'},</p>
-        <p>Suas credenciais de acesso para a organização "${data.organizationName}" foram criadas:</p>
-        <p><strong>Usuário:</strong> ${data.username}</p>
-        <p><strong>Senha:</strong> ${data.password}</p>
-        <p><strong>Link de acesso:</strong> <a href="${data.accessLink}">Acessar o sistema</a></p>
-        <p>Recomendamos que você altere sua senha após o primeiro acesso através da opção "Perfil" no menu do usuário.</p>
-        <p>Se preferir, você pode redefinir sua senha clicando <a href="${data.passwordResetLink}">aqui</a>.</p>
-        <p>Atenciosamente,<br>Equipe Endurancy</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
+          </div>
+          
+          <h1 style="color: #2e7d32; text-align: center;">Suas Credenciais de Acesso</h1>
+          
+          <!-- Alerta SPAM visível para emails importantes -->
+          <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+            <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+              <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+              <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+            </p>
+          </div>
+          
+          <p>Olá ${data.adminName || 'Administrador'},</p>
+          <p>Suas credenciais de acesso para a organização "<strong>${data.organizationName}</strong>" foram criadas:</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p><strong>Usuário:</strong> ${data.username}</p>
+            <p><strong>Senha:</strong> ${data.password}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.accessLink}" style="background-color: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Acessar o Sistema</a>
+          </div>
+          
+          <p>Recomendamos que você altere sua senha após o primeiro acesso através da opção "Perfil" no menu do usuário.</p>
+          <p>Se preferir, você pode redefinir sua senha <a href="${data.passwordResetLink}" style="color: #2e7d32; text-decoration: underline;">clicando aqui</a>.</p>
+          
+          <p>Atenciosamente,<br>Equipe Endurancy</p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #777; font-size: 12px; text-align: center;">
+            <p>Este é um email automático, por favor não responda.</p>
+            <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+          </div>
+        </div>
       `;
       
     case "payment_link":
@@ -220,6 +297,15 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
             <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
           </div>
           <h2 style="color: #333; text-align: center;">Pagamento Pendente</h2>
+          
+          <!-- Alerta SPAM bem visível no topo -->
+          <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+            <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+              <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+              <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+            </p>
+          </div>
+          
           <p style="color: #555; line-height: 1.6;">Olá ${data.adminName || 'Administrador'},</p>
           <p style="color: #555; line-height: 1.6;">Agradecemos por se registrar na plataforma Endurancy!</p>
           <p style="color: #555; line-height: 1.6;">Para ativar sua conta e começar a usar todos os recursos do plano <strong>${data.planName}</strong>, é necessário finalizar o pagamento.</p>
