@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,7 @@ export default function BeneficiariesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterNeedCategory, setFilterNeedCategory] = useState<string>('all');
+  const [_, setLocation] = useLocation();
   
   // Fetch beneficiaries data
   const { data: beneficiaries, isLoading, error } = useQuery({
@@ -164,6 +166,7 @@ export default function BeneficiariesList() {
   };
 
   return (
+    <OrganizationLayout>
       <div className="p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -172,7 +175,7 @@ export default function BeneficiariesList() {
               Gerencie os beneficiários atendidos pela associação
             </p>
           </div>
-          <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
+          <Button onClick={() => setLocation("/organization/social/beneficiarios/novo")}>
             <UserPlus className="mr-2 h-4 w-4" />
             Novo Beneficiário
           </Button>
@@ -267,7 +270,7 @@ export default function BeneficiariesList() {
                     "Tente ajustar seus filtros" : 
                     "Você ainda não cadastrou nenhum beneficiário"}
                 </p>
-                <Button onClick={() => window.location.href = "/organization/social/beneficiarios/novo"}>
+                <Button onClick={() => setLocation("/organization/social/beneficiarios/novo")}>
                   <Plus className="mr-2 h-4 w-4" />
                   Cadastrar Beneficiário
                 </Button>
@@ -355,15 +358,15 @@ export default function BeneficiariesList() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => window.location.href = `/organization/social/beneficiarios/${beneficiary.id}`}>
+                              <DropdownMenuItem onClick={() => setLocation(`/organization/social/beneficiarios/${beneficiary.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => window.location.href = `/organization/social/beneficiarios/${beneficiary.id}/editar`}>
+                              <DropdownMenuItem onClick={() => setLocation(`/organization/social/beneficiarios/${beneficiary.id}/editar`)}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => window.location.href = `/organization/social/beneficiarios/${beneficiary.id}/historico`}>
+                              <DropdownMenuItem onClick={() => setLocation(`/organization/social/beneficiarios/${beneficiary.id}/historico`)}>
                                 <FileText className="mr-2 h-4 w-4" />
                                 Histórico
                               </DropdownMenuItem>
@@ -449,5 +452,6 @@ export default function BeneficiariesList() {
           )}
         </Card>
       </div>
+    </OrganizationLayout>
   );
 }
