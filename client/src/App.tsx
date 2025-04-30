@@ -504,13 +504,16 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/carteirinha', '/formularios', '/configuracoes-cadastro', '/cadastro-dashboard', '/cadastro'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
+    
+    // Adicionar log de depuração
+    console.log(`ROUTER DEBUG: Caminho atual: ${currentPath}, É caminho público? ${isPublicPath}, Autenticado? ${isAuthenticated}`);
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
     // não for uma página pública e não estiver já na página de login
     if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
-      // Removido console.log para reduzir o processamento
+      console.log(`ROUTER DEBUG: Redirecionando de ${currentPath} para /login`);
       setLocation('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
