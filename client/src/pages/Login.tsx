@@ -641,7 +641,12 @@ export default function Login() {
                 <div className="mt-2">
                   <div className="mt-1 px-4 py-3 bg-green-50 text-green-800 rounded-md border border-green-100">
                     <p className="text-sm font-medium">Organização registrada com sucesso!</p>
-                    <p className="text-xs mt-1">Verifique seu email para acessar as informações de login.</p>
+                    <p className="text-xs mt-1">Verifique seu email para o link de pagamento. Sua conta será ativada após a confirmação.</p>
+                  </div>
+                  <div className="mt-2 px-4 py-3 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-100">
+                    <p className="text-xs font-medium flex items-center">
+                      <span className="mr-1">⚠️</span> Importante: verifique também sua pasta de SPAM.
+                    </p>
                   </div>
                 </div>
               ) : (

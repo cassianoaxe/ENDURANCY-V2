@@ -116,6 +116,7 @@ import PaymentTest from "@/pages/PaymentTest";
 // Importar novas páginas de pagamento por email
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
+import ConfirmacaoRegistro from "@/pages/ConfirmacaoRegistro";
 
 // Importar páginas do módulo Financeiro
 import DashboardFinanceiro from "@/pages/organization/financeiro/index";
