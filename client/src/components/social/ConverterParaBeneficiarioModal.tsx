@@ -46,7 +46,7 @@ interface ConverterParaBeneficiarioModalProps {
 
 // Schema para validação do formulário
 const converterSchema = z.object({
-  tipoBusca: z.enum(['email', 'cpf']),
+  tipoBusca: z.enum(['email']), // Removido 'cpf' porque o schema de users não tem esse campo
   valorBusca: z.string().min(1, 'Campo obrigatório'),
   beneficioId: z.string().optional(),
   recorrente: z.boolean().default(false),
@@ -245,10 +245,6 @@ export default function ConverterParaBeneficiarioModal({
                           <RadioGroupItem value="email" id="email" />
                           <Label htmlFor="email">Email</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="cpf" id="cpf" />
-                          <Label htmlFor="cpf">CPF</Label>
-                        </div>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
@@ -265,7 +261,7 @@ export default function ConverterParaBeneficiarioModal({
                       <FormLabel>Valor da busca</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder={form.watch('tipoBusca') === 'email' ? "email@exemplo.com" : "000.000.000-00"} 
+                          placeholder="email@exemplo.com"
                           {...field} 
                         />
                       </FormControl>
