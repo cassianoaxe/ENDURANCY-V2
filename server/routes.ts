@@ -1350,14 +1350,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...restOrgData,
         plan: planName || 'Básico', // Garantir valor não nulo para o campo plan
         planId: planId, 
-        status: 'active', // Ativar automaticamente a organização
+        status: 'pending', // Status pendente até o pagamento ser confirmado
         planHistory: JSON.stringify([{
           planId: planId,
           planName: planName || 'Básico',
           date: new Date(),
           action: "inicial",
           userId: null,
-          status: "aprovado"
+          status: "pendente"
         }]),
         createdAt: new Date()
       };
@@ -1463,22 +1463,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const accessLink = new URL('/login', baseUrl).toString();
         const passwordLink = new URL(`/reset-password?code=${orgCode}`, baseUrl).toString();
         
-        // Enviar e-mail com os dados de acesso
+        // Gerar um token para o link de pagamento
+        const paymentToken = uuidv4();
+        
+        // Construir a URL de pagamento
+        const paymentLink = new URL(`/payment?token=${paymentToken}&org=${organization.id}&plan=${planId}`, baseUrl).toString();
+        
+        // Buscar mais detalhes do plano selecionado
+        const [planDetails] = await db.select().from(plans).where(eq(plans.id, planId));
+        
+        // Enviar e-mail com link de pagamento
         await sendTemplateEmail(
           organizationData.email,
-          "Organização Criada com Sucesso - Endurancy",
-          "organization_activated",
+          "Finalizar Pagamento - Endurancy",
+          "payment_link",
           {
             organizationName: organizationData.name,
             adminName: organizationData.adminName || "Administrador",
-            username: adminUser.username,
-            accessLink: accessLink,
-            passwordLink: passwordLink,
-            orgCode: orgCode,
-            patientPortalUrl: patientPortalUrl
+            planName: planDetails ? planDetails.name : 'Padrão',
+            paymentLink: paymentLink,
+            username: adminUser.username
           }
         );
-        console.log(`E-mail de ativação enviado para ${organizationData.email}`);
+        
+        // Também enviar e-mail para administração sobre nova organização registrada
+        await sendMail({
+          to: process.env.ADMIN_EMAIL || 'admin@endurancy.app',
+          subject: `Nova organização registrada: ${organizationData.name}`,
+          html: `
+            <h1>Nova organização registrada</h1>
+            <p><strong>Nome:</strong> ${organizationData.name}</p>
+            <p><strong>Administrador:</strong> ${organizationData.adminName}</p>
+            <p><strong>Email:</strong> ${organizationData.email}</p>
+            <p><strong>Plano selecionado:</strong> ${planDetails ? planDetails.name : 'Padrão'}</p>
+            <p><strong>ID da organização:</strong> ${organization.id}</p>
+            <p>Link de aprovação manual: <a href="${baseUrl}/admin/organizations/${organization.id}">Ver Detalhes</a></p>
+          `
+        });
+        
+        console.log(`E-mail com link de pagamento enviado para ${organizationData.email}`);
       } catch (userError) {
         console.error("Erro ao criar usuário admin:", userError);
         // Não interromper o fluxo se a criação do usuário ou envio de e-mail falhar
@@ -1524,8 +1547,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         ...organization,
         orgCode,
-        status: 'active',
-        message: "Organização criada e ativada com sucesso."
+        status: 'pending',
+        message: "Organização criada com sucesso. Verifique seu email para finalizar o pagamento e ativar sua conta."
       });
     } catch (error) {
       console.error("Error creating organization:", error);
