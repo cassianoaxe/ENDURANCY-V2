@@ -1463,28 +1463,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const accessLink = new URL('/login', baseUrl).toString();
         const passwordLink = new URL(`/reset-password?code=${orgCode}`, baseUrl).toString();
         
-        // Gerar um token para o link de pagamento
-        const paymentToken = uuidv4();
+        // Importar o serviço estruturado de links de pagamento
+        const { createAndSendPaymentLink } = await import('./services/payment-links');
         
-        // Construir a URL de pagamento
-        const paymentLink = new URL(`/payment?token=${paymentToken}&org=${organization.id}&plan=${planId}`, baseUrl).toString();
+        // Criar e enviar link de pagamento utilizando o serviço estruturado
+        const paymentLinkSent = await createAndSendPaymentLink({
+          organizationId: organization.id,
+          planId: planId,
+          email: organizationData.email,
+          adminName: organizationData.adminName || 'Administrador',
+          organizationName: organizationData.name
+        });
         
-        // Buscar mais detalhes do plano selecionado
-        const [planDetails] = await db.select().from(plans).where(eq(plans.id, planId));
+        console.log(`Link de pagamento enviado: ${paymentLinkSent ? 'Sucesso' : 'Falha'}`);
         
-        // Enviar e-mail com link de pagamento
-        await sendTemplateEmail(
-          organizationData.email,
-          "Finalizar Pagamento - Endurancy",
-          "payment_link",
-          {
-            organizationName: organizationData.name,
-            adminName: organizationData.adminName || "Administrador",
-            planName: planDetails ? planDetails.name : 'Padrão',
-            paymentLink: paymentLink,
-            username: adminUser.username
-          }
-        );
+        // Se falhar o envio com o serviço estruturado, tenta método alternativo
+        if (!paymentLinkSent) {
+          console.log("Tentando método alternativo de envio de link de pagamento...");
+          
+          // Buscar mais detalhes do plano selecionado
+          const [planDetails] = await db.select().from(plans).where(eq(plans.id, planId));
+          
+          // Gerar um token para o link de pagamento (método alternativo)
+          const paymentToken = uuidv4();
+          
+          // Construir a URL de pagamento
+          const paymentLink = new URL(`/payment?token=${paymentToken}&org=${organization.id}&plan=${planId}`, baseUrl).toString();
+          
+          // Enviar e-mail com link de pagamento pelo método alternativo
+          await sendTemplateEmail(
+            organizationData.email,
+            "Finalizar Pagamento - Endurancy",
+            "payment_link",
+            {
+              organizationName: organizationData.name,
+              adminName: organizationData.adminName || "Administrador",
+              planName: planDetails ? planDetails.name : 'Padrão',
+              paymentLink: paymentLink,
+              username: adminUser.username
+            }
+          );
+        }
         
         // Também enviar e-mail para administração sobre nova organização registrada
         await sendMail({
