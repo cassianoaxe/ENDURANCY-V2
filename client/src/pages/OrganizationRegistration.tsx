@@ -147,12 +147,13 @@ export default function OrganizationRegistration() {
         description: "Verifique seu email para receber o link de pagamento. Após a confirmação do pagamento, sua conta será ativada automaticamente.",
       });
       
-      // Redirecionar para a tela de confirmação ou login
+      // Redirecionar para a tela de confirmação dedicada ou admin panel
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (currentUser && currentUser.role === 'admin') {
         navigate('/requests');
       } else {
-        navigate('/login?status=registered');
+        // Redirecionar para a página de confirmação com params para dados personalizados
+        navigate(`/registro-confirmado?email=${encodeURIComponent(values.email)}&orgName=${encodeURIComponent(values.name)}&planName=${encodeURIComponent(selectedPlan?.name || 'selecionado')}`);
       }
     },
     onError: (error) => {
