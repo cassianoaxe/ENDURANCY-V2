@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import BeneficiarioModal from '@/components/social/BeneficiarioModal';
 
 interface Beneficiary {
   id: number;
@@ -77,6 +78,7 @@ export default function BeneficiariesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterNeedCategory, setFilterNeedCategory] = useState<string>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [_, setLocation] = useLocation();
   
   // Fetch beneficiaries data
@@ -173,7 +175,7 @@ export default function BeneficiariesList() {
             Gerencie os beneficiários atendidos pela associação
           </p>
         </div>
-        <Button onClick={() => setLocation("/organization/social/beneficiarios/novo")}>
+        <Button onClick={() => setIsModalOpen(true)}>
           <UserPlus className="mr-2 h-4 w-4" />
           Novo Beneficiário
         </Button>
@@ -268,7 +270,7 @@ export default function BeneficiariesList() {
                   "Tente ajustar seus filtros" : 
                   "Você ainda não cadastrou nenhum beneficiário"}
               </p>
-              <Button onClick={() => setLocation("/organization/social/beneficiarios/novo")}>
+              <Button onClick={() => setIsModalOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Cadastrar Beneficiário
               </Button>
@@ -443,6 +445,12 @@ export default function BeneficiariesList() {
           </CardFooter>
         )}
       </Card>
+      
+      {/* Modal para cadastro de beneficiários */}
+      <BeneficiarioModal 
+        open={isModalOpen} 
+        onOpenChange={setIsModalOpen} 
+      />
     </div>
   );
 }
