@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, 
 import { z } from "zod";
 import PlanSelection from "../components/features/PlanSelection";
 import { apiRequest } from "@/lib/queryClient";
+import OrganizationCompletionModal from "@/components/organization/OrganizationCompletionModal";
 
 export default function OrganizationRegistration() {
   const [step, setStep] = useState(1);
@@ -29,6 +30,8 @@ export default function OrganizationRegistration() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [newOrganization, setNewOrganization] = useState<any>(null);
   
   // Estado para armazenar o nome do arquivo do estatuto/contrato
   const [documentFileName, setDocumentFileName] = useState<string | null>(null);
@@ -141,20 +144,39 @@ export default function OrganizationRegistration() {
       // Salvar o ID da organização recém-criada
       setOrganizationId(data.id);
       
-      // Exibir toast de sucesso na criação da organização e redirecionar
+      // Exibir toast de sucesso na criação da organização
       toast({
         title: "Registro concluído com sucesso!",
-        description: "Verifique seu email para receber o link de pagamento. IMPORTANTE: Se não encontrar, verifique também sua pasta de SPAM ou Lixo Eletrônico!",
+        description: "Verifique seu email para receber o link de pagamento.",
         className: "border-green-200 bg-green-50",
       });
       
-      // Redirecionar para a tela de confirmação dedicada ou admin panel
+      // Determinar como proceder com base no tipo de usuário
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (currentUser && currentUser.role === 'admin') {
+        // Se for admin, redirecionar para a área de solicitações
         navigate('/requests');
       } else {
-        // Redirecionar para a página de confirmação com params para dados personalizados
-        navigate(`/registro-confirmado?email=${encodeURIComponent(values.email)}&orgName=${encodeURIComponent(values.name)}&planName=${encodeURIComponent(selectedPlan?.name || 'selecionado')}`);
+        // Preparar os dados da organização para o modal de conclusão
+        const values = form.getValues();
+        const planData = plans?.find(p => p.id === parseInt(String(values.planId)));
+        
+        // Construir o objeto de organização para o modal
+        const orgData = {
+          id: data.id,
+          name: values.name,
+          type: values.type,
+          cnpj: values.cnpj,
+          email: values.email,
+          phone: values.phone,
+          adminName: values.adminName,
+          createdAt: new Date(),
+          planName: planData?.name || "Plano Selecionado"
+        };
+        
+        // Armazenar os dados da nova organização e exibir o modal
+        setNewOrganization(orgData);
+        setShowCompletionModal(true);
       }
     },
     onError: (error) => {
@@ -297,9 +319,30 @@ export default function OrganizationRegistration() {
     }
   };
 
+  // Funções de manipulação do modal
+  const handleCloseModal = () => {
+    setShowCompletionModal(false);
+    // Opcional: redirecionar para outra página após fechar o modal
+    navigate('/login');
+  };
+
+  const handleViewDashboard = () => {
+    setShowCompletionModal(false);
+    navigate('/login');
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* A página consiste apenas no formulário de registro */}
+      {/* Modal de conclusão com QR code */}
+      {showCompletionModal && newOrganization && (
+        <OrganizationCompletionModal
+          organization={newOrganization}
+          onClose={handleCloseModal}
+          onViewDashboard={handleViewDashboard}
+        />
+      )}
+      
+      {/* A página consiste no formulário de registro */}
       {(
         <>
           <div className="flex items-center gap-4 mb-6">
