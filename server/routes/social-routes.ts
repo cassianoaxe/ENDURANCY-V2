@@ -15,6 +15,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { socialBeneficiariesBatchRouter } from "./social-beneficiaries-batch";
+import { socialBeneficiosRouter } from "./social-beneficios";
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -764,5 +765,8 @@ router.post("/public/social/:organizationId/volunteer-request", async (req, res)
 
 // Utilizar o router de importação em lote
 router.use('/social/beneficiaries', socialBeneficiariesBatchRouter);
+
+// Utilizar o router de benefícios
+router.use('/social/beneficios', socialBeneficiosRouter);
 
 export default router;
