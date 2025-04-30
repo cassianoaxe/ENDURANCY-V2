@@ -3036,10 +3036,20 @@ function AppContent() {
         break;
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/vendas': Component = VendasAdmin; break;
-      case '/cadastro': Component = Cadastro; break;
-      case '/cadastro/dashboard': Component = CadastroDashboard; break;
-      case '/cadastro/formularios': Component = CadastroFormularios; break;
-      case '/cadastro/configuracoes': Component = CadastroConfiguracoes; break;
+      case '/cadastro': 
+      case '/cadastro/dashboard': 
+      case '/cadastro/formularios': 
+      case '/cadastro/configuracoes': 
+        // Centraliza todas as rotas do módulo "Cadastro" em um único lugar para evitar renderização duplicada
+        return (
+          <Layout>
+            {currentPath === '/cadastro' && <Cadastro />}
+            {currentPath === '/cadastro/dashboard' && <CadastroDashboard />}
+            {currentPath === '/cadastro/formularios' && <CadastroFormularios />}
+            {currentPath === '/cadastro/configuracoes' && <CadastroConfiguracoes />}
+          </Layout>
+        );
+        break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
