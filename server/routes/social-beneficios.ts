@@ -6,8 +6,8 @@ import {
   socialBeneficios_Beneficiarios,
   insertSocialBeneficioSchema,
   socialBeneficiaries,
-  users,
 } from '@shared/schema-social';
+import { users } from '@shared/schema';
 import { z } from 'zod';
 
 export const socialBeneficiosRouter = Router();
@@ -197,28 +197,24 @@ socialBeneficiosRouter.post('/usuarios/pesquisar', async (req, res) => {
       return res.status(400).json({ error: 'Parâmetros de pesquisa inválidos' });
     }
     
-    // Pesquisar usuário por email ou CPF
+    // Pesquisar usuário por email (único método disponível porque o schema users não tem o campo cpf)
     let usuario;
     if (tipo === 'email') {
       [usuario] = await db.select()
         .from(users)
         .where(eq(users.email, valor));
-    } else if (tipo === 'cpf') {
-      [usuario] = await db.select()
-        .from(users)
-        .where(eq(users.cpf, valor));
     } else {
-      return res.status(400).json({ error: 'Tipo de pesquisa inválido' });
+      return res.status(400).json({ error: 'Tipo de pesquisa inválido. Apenas busca por email está disponível.' });
     }
     
     if (!usuario) {
       return res.status(200).json({ message: 'Usuário não encontrado', usuario: null });
     }
     
-    // Verificar se o usuário já é um beneficiário
+    // Verificar se o usuário já é um beneficiário através do email (já que o usuário não tem cpf no schema)
     const [beneficiarioExistente] = await db.select()
       .from(socialBeneficiaries)
-      .where(eq(socialBeneficiaries.cpf, usuario.cpf || ""));
+      .where(eq(socialBeneficiaries.email, usuario.email));
     
     return res.status(200).json({
       usuario: {
@@ -270,11 +266,11 @@ socialBeneficiosRouter.post('/beneficiarios/converter', async (req, res) => {
       return res.status(404).json({ error: 'Benefício não encontrado' });
     }
     
-    // Verificar se o usuário já é um beneficiário
+    // Verificar se o usuário já é um beneficiário pelo email
     let beneficiario;
     [beneficiario] = await db.select()
       .from(socialBeneficiaries)
-      .where(eq(socialBeneficiaries.cpf, usuario.cpf || ""));
+      .where(eq(socialBeneficiaries.email, usuario.email));
     
     // Se não for, criar um novo beneficiário
     if (!beneficiario) {
@@ -282,8 +278,8 @@ socialBeneficiosRouter.post('/beneficiarios/converter', async (req, res) => {
         .values({
           organizationId,
           name: usuario.name,
-          cpf: usuario.cpf || "",
-          birthDate: new Date(), // Precisamos obter do usuário
+          cpf: "", // Como o usuário não tem CPF, deixamos vazio
+          birthDate: new Date(), // Data placeholder, será atualizada depois
           email: usuario.email,
           phone: usuario.phoneNumber || "",
           address: "",
