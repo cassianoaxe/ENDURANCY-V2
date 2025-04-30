@@ -245,33 +245,36 @@ export default function Cadastro() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/cadastro/dashboard">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <FileText size={16} />
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/cadastro/formularios">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <FileText size={16} />
-              Formulários
-            </Button>
-          </Link>
-          <Link href="/cadastro/configuracoes">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <Settings size={16} />
-              Configurações
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => {
+              window.location.href = "/cadastro/dashboard";
+            }}
+          >
+            <FileText size={16} />
+            Dashboard
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => {
+              window.location.href = "/cadastro/formularios";
+            }}
+          >
+            <FileText size={16} />
+            Formulários
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => {
+              window.location.href = "/cadastro/configuracoes";
+            }}
+          >
+            <Settings size={16} />
+            Configurações
+          </Button>
         </div>
       </div>
       
