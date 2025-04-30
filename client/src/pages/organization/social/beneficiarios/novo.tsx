@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -49,6 +50,7 @@ const formSchema = z.object({
   occupation: z.string().optional().or(z.literal('')),
   monthlyIncome: z.string().optional().or(z.literal('')),
   familyMembers: z.string().optional().or(z.literal('')),
+  needsCategory: z.array(z.string()).default([]),
   exemptionType: z.enum(['exemption_25', 'exemption_50', 'exemption_75', 'exemption_100']).default('exemption_25'),
   exemptionValue: z.string().default('25'),
   educationLevel: z.string().optional().or(z.literal('')),
@@ -59,6 +61,20 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+// Categorias de necessidades disponíveis
+const needsCategoryOptions = [
+  { id: 'medical', label: 'Médica' },
+  { id: 'medication', label: 'Medicamentos' },
+  { id: 'psychological', label: 'Psicológica' },
+  { id: 'financial', label: 'Financeira' },
+  { id: 'legal', label: 'Jurídica' },
+  { id: 'educational', label: 'Educacional' },
+  { id: 'housing', label: 'Moradia' },
+  { id: 'food', label: 'Alimentação' },
+  { id: 'clothing', label: 'Vestuário' },
+  { id: 'transportation', label: 'Transporte' },
+];
 
 export default function NewBeneficiary() {
   const { toast } = useToast();
@@ -86,6 +102,7 @@ export default function NewBeneficiary() {
       occupation: '',
       monthlyIncome: '',
       familyMembers: '',
+      needsCategory: [],
       exemptionType: 'exemption_25',
       exemptionValue: '25',
       educationLevel: '',
@@ -612,6 +629,45 @@ export default function NewBeneficiary() {
                     </FormItem>
                   )}
                 />
+                
+                <div className="mt-6">
+                  <FormField
+                    control={form.control}
+                    name="needsCategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categorias de Necessidades</FormLabel>
+                        <FormDescription>
+                          Selecione as categorias de necessidades do beneficiário
+                        </FormDescription>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                          {needsCategoryOptions.map((option) => (
+                            <FormItem
+                              key={option.id}
+                              className="flex flex-row items-start space-x-3 space-y-0 p-2 border rounded-md"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(option.id)}
+                                  onCheckedChange={(checked) => {
+                                    const updatedValue = checked
+                                      ? [...field.value, option.id]
+                                      : field.value?.filter((value) => value !== option.id);
+                                    field.onChange(updatedValue);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal cursor-pointer">
+                                {option.label}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
 
