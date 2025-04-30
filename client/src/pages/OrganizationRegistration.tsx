@@ -10,10 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { insertOrganizationSchema, type InsertOrganization, type Plan } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, CreditCard, Image } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, FileText, Upload, Save, AlertCircle, Image } from "lucide-react";
 import { z } from "zod";
 import PlanSelection from "../components/features/PlanSelection";
-import PaymentFormWrapper from "../components/features/PaymentFormWrapper";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function OrganizationRegistration() {
@@ -29,8 +28,6 @@ export default function OrganizationRegistration() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
   
   // Estado para armazenar o nome do arquivo do estatuto/contrato
@@ -72,9 +69,28 @@ export default function OrganizationRegistration() {
     }
   };
 
-  // Fetch available plans
+  // Fetch available plans (planos públicos sem autenticação)
   const { data: plans } = useQuery<Plan[]>({
-    queryKey: ['/api/plans'],
+    queryKey: ['/api/public/plans'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/public/plans');
+        if (!response.ok) {
+          throw new Error('Falha ao buscar planos');
+        }
+        const plansData = await response.json();
+        console.log("Planos obtidos da API pública:", plansData);
+        return plansData;
+      } catch (error) {
+        console.error("Erro ao buscar planos públicos:", error);
+        toast({
+          title: "Erro ao obter planos disponíveis",
+          description: "Não foi possível carregar os planos. Por favor, tente novamente mais tarde.",
+          variant: "destructive"
+        });
+        return [];
+      }
+    },
     refetchOnWindowFocus: false,
   });
 
@@ -149,133 +165,8 @@ export default function OrganizationRegistration() {
     },
   });
 
-  // Criar intent de pagamento
-  const createPaymentIntent = useMutation({
-    mutationFn: async ({ planId, organizationId }: { planId: number, organizationId: number }) => {
-      console.log("Criando payment intent para planId:", planId, "organizationId:", organizationId);
-      
-      try {
-        const response = await apiRequest('/api/payments/create-intent', {
-          method: 'POST',
-          body: JSON.stringify({ planId, organizationId }),
-        });
-        
-        console.log("Resposta completa da API:", response);
-        return response;
-      } catch (error: any) {
-        console.error("Erro na chamada para criar intent:", error);
-        throw new Error(error.message || "Falha na comunicação com o servidor de pagamentos");
-      }
-    },
-    onSuccess: (data: any) => {
-      if (!data || !data.success || !data.clientSecret) {
-        console.error("Resposta da API inválida para Payment Intent:", data);
-        toast({
-          title: "Erro na configuração de pagamento",
-          description: data?.message || "Não foi possível obter as informações necessárias para o pagamento.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log("Client Secret recebido (primeiros 10 caracteres):", data.clientSecret.substring(0, 10));
-      
-      // Garantir que o Client Secret seja uma string válida
-      const clientSecret = String(data.clientSecret);
-      
-      // Cliente secrets do Stripe podem começar com pi_ (payment intent), seti_ (setup intent)
-      // ou incluir _secret_ no meio
-      const isValidStripeSecret = 
-        clientSecret.startsWith('pi_') || 
-        clientSecret.startsWith('seti_') || 
-        clientSecret.includes('_secret_');
-      
-      if (!isValidStripeSecret) {
-        console.error("Client Secret em formato inválido:", clientSecret);
-        toast({
-          title: "Erro na configuração de pagamento",
-          description: "Token de pagamento em formato inválido. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      console.log("Client Secret é válido, inicializando formulário de pagamento");
-      setPaymentIntentId(clientSecret);
-      setShowPaymentForm(true);
-      toast({
-        title: "Pronto para pagamento",
-        description: "Por favor, insira os dados do cartão para finalizar o cadastro.",
-      });
-    },
-    onError: (error: any) => {
-      console.error("Erro ao criar intent de pagamento:", error);
-      toast({
-        title: "Erro ao processar pagamento",
-        description: error.message || "Não foi possível inicializar a configuração de pagamento. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Confirmar pagamento
-  const confirmPayment = useMutation({
-    mutationFn: async ({ paymentIntentId, organizationId }: { paymentIntentId: string, organizationId: number }) => {
-      const response = await apiRequest('/api/payments/confirm', {
-        method: 'POST',
-        body: JSON.stringify({ paymentIntentId, organizationId }),
-      });
-      return response;
-    },
-    onSuccess: (data: any) => {
-      if (data.success) {
-        // Atualizar estado da organização
-        queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-        
-        toast({
-          title: "Pagamento confirmado!",
-          description: "Sua organização está ativa e pronta para uso.",
-        });
-        
-        // Redirecionar para a página de login com mensagem de acesso
-        navigate('/login?status=success');
-      } else {
-        toast({
-          title: "Falha no pagamento",
-          description: data.message || "O pagamento não foi confirmado. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-      }
-    },
-    onError: (error) => {
-      console.error("Erro ao confirmar pagamento:", error);
-      toast({
-        title: "Erro ao confirmar pagamento",
-        description: "Ocorreu um erro ao tentar confirmar seu pagamento. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Callback para quando o pagamento for concluído com sucesso pelo componente Stripe
-  const handlePaymentSuccess = (paymentIntent: string) => {
-    if (!organizationId) {
-      console.error("ID da organização não encontrado. Não é possível confirmar o pagamento.");
-      toast({
-        title: "Erro no processamento",
-        description: "ID da organização não encontrado. Tente novamente.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    console.log(`Confirmando pagamento para organização ${organizationId} com paymentIntent ${paymentIntent}`);
-    
-    confirmPayment.mutate({ 
-      paymentIntentId: paymentIntent,
-      organizationId: Number(organizationId) 
-    });
-  };
+  // Nenhuma integração direta com pagamento
+  // A cobrança será enviada por email com link de pagamento após aprovação do cadastro
 
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
@@ -409,26 +300,8 @@ export default function OrganizationRegistration() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Mostrar formulário de pagamento se showPaymentForm for true e tiver um clientSecret */}
-      {showPaymentForm && paymentIntentId ? (
-        <div className="my-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => setShowPaymentForm(false)}
-            className="mb-4"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <PaymentFormWrapper
-            clientSecret={paymentIntentId}
-            onSuccess={handlePaymentSuccess}
-            onCancel={() => setShowPaymentForm(false)}
-            planName={formDataSummary.planName}
-            planPrice={formDataSummary.planPrice}
-          />
-        </div>
-      ) : (
+      {/* A página consiste apenas no formulário de registro */}
+      {(
         <>
           <div className="flex items-center gap-4 mb-6">
             <Button variant="ghost" onClick={() => window.location.href = '/organizations'}>
@@ -1073,9 +946,14 @@ export default function OrganizationRegistration() {
                           <div>
                             <h4 className="font-medium text-blue-800">Próximos passos</h4>
                             <p className="text-sm text-blue-700 mt-1">
-                              Após a finalização do cadastro, sua organização será ativada automaticamente e você receberá
-                              um e-mail com as instruções de acesso. O acesso ao sistema estará disponível imediatamente.
+                              Após a finalização do cadastro, sua solicitação será revisada pela nossa equipe. Você receberá
+                              um e-mail com as instruções de acesso e, se aplicável, um link para pagamento do plano selecionado.
                             </p>
+                            <div className="mt-3 text-xs text-blue-600">
+                              <a href="/privacidade" className="underline hover:text-blue-800">Política de Privacidade</a>
+                              {" • "}
+                              <a href="/termos" className="underline hover:text-blue-800">Termos de Uso</a>
+                            </div>
                           </div>
                         </div>
                       </div>

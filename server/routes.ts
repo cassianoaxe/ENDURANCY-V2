@@ -1673,6 +1673,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota pública para planos (usado no cadastro de organização)
+  app.get("/api/public/plans", async (req, res) => {
+    try {
+      console.log("Acessando rota pública de planos para registro");
+      // Buscar todos os planos
+      const plansList = await db.select().from(plans);
+      
+      // Filtrar para garantir que o plano freemium (tier: free) esteja incluído
+      const filteredPlans = plansList.filter(plan => 
+        ['free', 'seed', 'grow', 'pro'].includes(plan.tier)
+      );
+      
+      // Para cada plano, buscar os módulos associados
+      const plansWithModules = await Promise.all(filteredPlans.map(async (plan) => {
+        // Buscar todas as associações plano-módulo para este plano
+        const planModulesList = await db.select()
+          .from(planModules)
+          .where(eq(planModules.plan_id, plan.id));
+        
+        // Buscar detalhes dos módulos
+        const moduleDetails = [];
+        if (planModulesList.length > 0) {
+          for (const pm of planModulesList) {
+            const moduleInfo = await db.select()
+              .from(modules)
+              .where(eq(modules.id, pm.module_id));
+            
+            if (moduleInfo.length > 0) {
+              moduleDetails.push(moduleInfo[0]);
+            }
+          }
+        }
+        
+        // Retornar o plano com a lista de módulos
+        return {
+          ...plan,
+          modules: moduleDetails
+        };
+      }));
+      
+      // Log para depuração
+      console.log(`Retornando ${plansWithModules.length} planos para cadastro, incluindo tiers:`, 
+        plansWithModules.map(p => p.tier).join(', '));
+      
+      res.json(plansWithModules);
+    } catch (error) {
+      console.error("Error fetching public plans:", error);
+      res.status(500).json({ message: "Failed to fetch plans" });
+    }
+  });
+  
   // Rota para estatísticas dos planos
   app.get("/api/plans/stats", authenticate, async (req, res) => {
     try {
