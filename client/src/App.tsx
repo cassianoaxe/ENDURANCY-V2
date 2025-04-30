@@ -94,10 +94,11 @@ import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
 import VendasAdmin from "@/pages/Vendas";
 import Cadastro from "@/pages/Cadastro";
-import CadastroDashboard from "@/pages/cadastro/dashboard";
-import CadastroFormularios from "@/pages/cadastro/formularios";
+// Importando versões temporárias simplificadas para teste de roteamento
+import CadastroDashboard from "@/pages/cadastro/dashboard/TEMP_INDEX";
+import CadastroFormularios from "@/pages/cadastro/formularios/TEMP_INDEX";
 import CadastroFormularioEditor from "@/pages/cadastro/formularios/CadastroFormularioEditor";
-import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
+import CadastroConfiguracoes from "@/pages/cadastro/configuracoes/TEMP_INDEX";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
