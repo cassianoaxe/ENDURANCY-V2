@@ -14,12 +14,14 @@ export default function CadastroConfiguracoes() {
         </div>
       </div>
 
-      <Link href="/cadastro">
-        <Button variant="outline" className="mb-6 gap-2">
-          <ArrowLeft size={16} />
-          Voltar para Cadastro
-        </Button>
-      </Link>
+      <Button 
+        variant="outline" 
+        className="mb-6 gap-2" 
+        onClick={() => window.location.href = '/cadastro'}
+      >
+        <ArrowLeft size={16} />
+        Voltar para Cadastro
+      </Button>
 
       <Card>
         <CardHeader>
