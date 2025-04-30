@@ -12,16 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowRight, Eye, CheckCircle, Clock, X, Search, Plus, FileText, 
   DollarSign, Building2, Download, Edit, User, Power, Lock, Shield, 
-  MoreVertical, Trash2, AlertTriangle, LucideIcon, Settings, CreditCard,
-  BarChart2
+  MoreVertical, Trash2, AlertTriangle, LucideIcon
 } from "lucide-react";
 import { Link } from "wouter";
-
-// Importando páginas diretamente para teste
-import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
-import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
-import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
-import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
 import { Organization, Plan } from '@shared/schema';
 import {
   DropdownMenu,
@@ -55,13 +48,8 @@ export default function Cadastro() {
   
   // Função de navegação que funciona com o sistema do App.tsx
   const navigate = (path: string) => {
-    console.log(`Tentando navegar para: ${path}`);
     window.history.pushState({}, '', path);
     window.dispatchEvent(new Event('popstate'));
-    // Dupla confirmação de que o evento foi disparado
-    setTimeout(() => {
-      window.dispatchEvent(new Event('navigation'));
-    }, 50);
   };
 
   // Buscar organizações
@@ -247,62 +235,12 @@ export default function Cadastro() {
     return plan ? plan.name : 'Desconhecido';
   };
 
-  // Agora usamos navegação direta pelas URLs em vez de estado local
-  // Isso garante compatibilidade com o sistema de rotas da aplicação
-  const goTo = (path: string) => {
-    console.log(`Navegando para: ${path}`);
-    window.location.href = path;
-  };
-
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Cadastro de Organizações</h1>
-          <p className="text-gray-600">
-            Gerencie organizações, vendas e contratos da plataforma em um só lugar.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <a href="/cadastro-dashboard" className="no-underline">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <BarChart2 size={16} />
-              Dashboard
-            </Button>
-          </a>
-          <a href="/formularios" className="no-underline">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <FileText size={16} />
-              Formulários
-            </Button>
-          </a>
-          <a href="/carteirinha" className="no-underline">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <CreditCard size={16} />
-              Carteirinha
-            </Button>
-          </a>
-          <a href="/configuracoes-cadastro" className="no-underline">
-            <Button 
-              variant="outline" 
-              className="gap-2"
-            >
-              <Settings size={16} />
-              Configurações
-            </Button>
-          </a>
-        </div>
-      </div>
-      
+      <h1 className="text-2xl font-bold mb-6">Cadastro de Organizações</h1>
+      <p className="text-gray-600 mb-8">
+        Gerencie organizações, vendas e contratos da plataforma em um só lugar.
+      </p>
 
       <div className="flex gap-4 mb-8">
         <Card className="w-1/4 shadow-sm">

@@ -13,19 +13,6 @@ import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
 
-// Importações principais do módulo de Cadastro
-import Cadastro from "@/pages/Cadastro";
-// Versões temporárias do módulo cadastro (caminhos aninhados)
-import CadastroDashboardTemp from "@/pages/cadastro/dashboard/TEMP_INDEX";
-import CadastroFormulariosTemp from "@/pages/cadastro/formularios/TEMP_INDEX";
-import CadastroConfiguracoesTemp from "@/pages/cadastro/configuracoes/TEMP_INDEX";
-import CadastroCarteirinhaTemp from "@/pages/cadastro/carteirinha/TEMP_INDEX";
-// Novas páginas independentes (caminhos diretos)
-import Carteirinha from "@/pages/Carteirinha";
-import Formularios from "@/pages/Formularios";
-import ConfiguracoesCadastro from "@/pages/ConfiguracoesCadastro";
-import CadastroDashboard from "@/pages/CadastroDashboard";
-
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
 import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
@@ -106,7 +93,10 @@ import ModulesTable from "@/pages/ModulesTable";
 import OrganizationModules from "@/pages/OrganizationModules";
 import OrganizationDetail from "@/pages/Organization";
 import VendasAdmin from "@/pages/Vendas";
-// Importações do módulo de Cadastro já foram feitas acima
+import Cadastro from "@/pages/Cadastro";
+import CadastroDashboard from "@/pages/cadastro/dashboard";
+import CadastroFormularios from "@/pages/cadastro/formularios";
+import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import Financial from "@/pages/Financial";
 import Administrators from "@/pages/Administrators";
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
@@ -340,8 +330,7 @@ function AppContent() {
   const [, setLocation] = useLocation();
   const userRole = user?.role;
   
-  // Log para depuração de roteamento
-  console.log(`ROUTER DEBUG: Tentando corresponder caminho "${currentPath}" para renderização`);
+  // Removido logs de depuração que causavam muitas solicitações
 
   // Listen for path changes - otimizado para não depender de currentPath
   useEffect(() => {
@@ -504,16 +493,13 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/carteirinha', '/formularios', '/configuracoes-cadastro', '/cadastro-dashboard', '/cadastro'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
-    
-    // Adicionar log de depuração
-    console.log(`ROUTER DEBUG: Caminho atual: ${currentPath}, É caminho público? ${isPublicPath}, Autenticado? ${isAuthenticated}`);
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
     // não for uma página pública e não estiver já na página de login
     if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
-      console.log(`ROUTER DEBUG: Redirecionando de ${currentPath} para /login`);
+      // Removido console.log para reduzir o processamento
       setLocation('/login');
     }
   }, [isLoading, isAuthenticated, currentPath]);
@@ -3005,9 +2991,7 @@ function AppContent() {
   // Verifica se o caminho atual é uma rota administrativa
   if (adminRoutes.includes(currentPath) || currentPath.startsWith('/financial/')) {
     
-    // Permitir acesso às rotas do módulo Cadastro para usuários org_admin também
-    const isCadastroRoute = currentPath.startsWith('/cadastro');
-    if (userRole !== 'admin' && !(userRole === 'org_admin' && isCadastroRoute)) {
+    if (userRole !== 'admin') {
       return (
         <Layout>
           <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
@@ -3042,11 +3026,6 @@ function AppContent() {
       case '/modules': Component = Modules; break;
       case '/modulos': Component = Modulos; break;
       case '/sitemap': Component = Sitemap; break;
-      // Rotas diretas para o módulo Cadastro (contornando problemas de roteamento aninhado)
-      case '/carteirinha': Component = Carteirinha; break;
-      case '/formularios': Component = Formularios; break;
-      case '/configuracoes-cadastro': Component = ConfiguracoesCadastro; break;
-      case '/cadastro-dashboard': Component = CadastroDashboard; break;
       case '/modules-table': Component = ModulesTable; break;
       case '/organization-modules': Component = OrganizationModules; break;
       case '/organizations': 
@@ -3057,72 +3036,10 @@ function AppContent() {
         break;
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/vendas': Component = VendasAdmin; break;
-      case '/cadastro': 
-        return (
-          <Layout>
-            <Cadastro />
-          </Layout>
-        );
-        
-      case '/cadastro/dashboard': 
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        return (
-          <Layout>
-            <CadastroDashboardTemp />
-          </Layout>
-        );
-        
-      case '/cadastro/formularios': 
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        return (
-          <Layout>
-            <CadastroFormulariosTemp />
-          </Layout>
-        );
-        
-      case '/cadastro/formularios/editor':
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroFormularioEditorComp = React.lazy(() => import('./pages/cadastro/formularios/CadastroFormularioEditor'));
-        return (
-          <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroFormularioEditorComp />
-            </Suspense>
-          </Layout>
-        );
-        
-      case currentPath.match(/^\/cadastro\/formularios\/editor\/\d+$/)?.input:
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        const CadastroFormularioEditorWithId = React.lazy(() => import('./pages/cadastro/formularios/CadastroFormularioEditor'));
-        const formId = parseInt(currentPath.split('/').pop() || '0');
-        return (
-          <Layout>
-            <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>}>
-              <CadastroFormularioEditorWithId id={formId} />
-            </Suspense>
-          </Layout>
-        );
-        
-      case '/cadastro/configuracoes': 
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        return (
-          <Layout>
-            <CadastroConfiguracoesTemp />
-          </Layout>
-        );
-        
-      case '/cadastro/carteirinha': 
-        console.log("ROUTER: Renderizando componente Carteirinha");
-        console.log(`DEBUG: Acessando rota ${currentPath} com userRole ${userRole}`);
-        return (
-          <Layout>
-            <CadastroCarteirinhaTemp />
-          </Layout>
-        );
+      case '/cadastro': Component = Cadastro; break;
+      case '/cadastro/dashboard': Component = CadastroDashboard; break;
+      case '/cadastro/formularios': Component = CadastroFormularios; break;
+      case '/cadastro/configuracoes': Component = CadastroConfiguracoes; break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
