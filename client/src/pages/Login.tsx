@@ -10,13 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Loader2, User, Eye, ArrowRight, Building, Leaf, 
-  Beaker, Stethoscope, Pill, UserCircle, PanelTopInactive 
+  Beaker, Stethoscope, Pill, UserCircle, PanelTopInactive,
+  Mail, AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
 import { useLocation } from 'wouter';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O email é obrigatório'),
@@ -639,15 +641,22 @@ export default function Login() {
                 </div>
               ) : registrationSuccess ? (
                 <div className="mt-2">
-                  <div className="mt-1 px-4 py-3 bg-green-50 text-green-800 rounded-md border border-green-100">
-                    <p className="text-sm font-medium">Organização registrada com sucesso!</p>
-                    <p className="text-xs mt-1">Verifique seu email para o link de pagamento. Sua conta será ativada após a confirmação.</p>
-                  </div>
-                  <div className="mt-2 px-4 py-3 bg-yellow-50 text-yellow-800 rounded-md border border-yellow-100">
-                    <p className="text-xs font-medium flex items-center">
-                      <span className="mr-1">⚠️</span> Importante: verifique também sua pasta de SPAM.
-                    </p>
-                  </div>
+                  <Alert variant="default" className="bg-blue-50 border-blue-100">
+                    <Mail className="h-4 w-4 text-blue-600" />
+                    <AlertTitle className="text-blue-800 font-medium">Verifique seu email</AlertTitle>
+                    <AlertDescription className="text-blue-700 text-sm">
+                      Enviamos as instruções de pagamento para seu email.
+                      <strong className="block mt-1 text-blue-800">⚠️ IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</strong>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <Alert variant="warning" className="mt-2 bg-yellow-50 border-yellow-100">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800 font-medium">Próximos passos</AlertTitle>
+                    <AlertDescription className="text-yellow-700 text-sm">
+                      Sua organização foi registrada com sucesso! Após o pagamento, sua conta será ativada automaticamente.
+                    </AlertDescription>
+                  </Alert>
                 </div>
               ) : (
                 <p className="text-gray-500 text-sm">Selecione o tipo de acesso e entre na plataforma</p>
