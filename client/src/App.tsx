@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Cadastro from "@/pages/Cadastro";
 import CadastroDashboard from "@/pages/cadastro/dashboard";
 import CadastroFormularios from "@/pages/cadastro/formularios";
+import CadastroFormulariosNovo from "@/pages/cadastro/formularios/novo";
 import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
 import TourGuide from "@/components/features/TourGuide";
@@ -72,6 +73,10 @@ function AppContent() {
   else if (currentPath === '/cadastro/formularios') {
     console.log("Renderizando componente CadastroFormularios");
     Component = CadastroFormularios;
+  }
+  else if (currentPath === '/cadastro/formularios/novo') {
+    console.log("Renderizando componente CadastroFormulariosNovo");
+    Component = CadastroFormulariosNovo;
   }
   else if (currentPath === '/cadastro/configuracoes') {
     Component = CadastroConfiguracoes;
