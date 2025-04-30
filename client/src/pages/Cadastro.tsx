@@ -266,7 +266,7 @@ export default function Cadastro() {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => setCurrentPage('dashboard')}
+            onClick={() => goTo('/cadastro/dashboard')}
           >
             <FileText size={16} />
             Dashboard
@@ -274,23 +274,24 @@ export default function Cadastro() {
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => setCurrentPage('formularios')}
+            onClick={() => goTo('/cadastro/formularios')}
           >
             <FileText size={16} />
             Formulários
           </Button>
+          <a href="/cadastro/carteirinha" className="no-underline">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+            >
+              <CreditCard size={16} />
+              Carteirinha
+            </Button>
+          </a>
           <Button 
             variant="outline" 
             className="gap-2"
-            onClick={() => setCurrentPage('carteirinha')}
-          >
-            <CreditCard size={16} />
-            Carteirinha
-          </Button>
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={() => setCurrentPage('configuracoes')}
+            onClick={() => goTo('/cadastro/configuracoes')}
           >
             <Settings size={16} />
             Configurações
