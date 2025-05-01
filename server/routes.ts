@@ -112,44 +112,26 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
                            req.path === '/api/notifications' || 
                            req.path === '/api/organizations';
     
-    // Verificar se a requisição espera uma resposta JSON
-    const wantsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    // Determinar se a rota é da API com base no path
+    const isApiRoute = req.path.startsWith('/api/');
     
-    // Check if the Cookie header is present
-    if (!req.headers.cookie) {
-      if (!isFrequentRoute) {
-        console.warn("Request without cookie:", req.path);
-      }
-      
-      if (wantsJson) {
-        // Se for uma requisição de API, retornar um erro JSON
-        return res.status(401).json({ 
-          message: "Não autenticado", 
-          error: "Unauthorized", 
-          authenticated: false 
-        });
-      } else {
-        // Para requisições de página, retornar o comportamento padrão
-        return res.status(401).json({ message: "No authorization cookie found" });
-      }
-    }
-    
-    // Verificações básicas de sessão
+    // Sempre verificar se o usuário está autenticado
     if (!req.session || !req.session.user) {
+      // Registrar a tentativa de acesso para depuração (exceto rotas frequentes)
       if (!isFrequentRoute) {
-        console.log("Usuário não autenticado para rota:", req.path);
+        console.log(`GET ${req.path}: Requisição sem cookie de sessão`);
       }
       
-      if (wantsJson) {
-        // Se for uma requisição de API, retornar um erro JSON adequado
+      // Para qualquer rota de API, sempre retornar um erro JSON formatado
+      if (isApiRoute) {
         return res.status(401).json({ 
           message: "Não autenticado", 
           error: "Unauthorized", 
           authenticated: false 
         });
       } else {
-        // Para requisições de página, retornar o comportamento padrão
-        return res.status(401).json({ message: "Não autenticado" });
+        // Para requisições de página, retornar para a página de login
+        return res.redirect('/auth');
       }
     }
     
@@ -170,6 +152,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     next();
   } catch (error) {
     console.error("Error in authentication middleware:", error);
+    // Sempre responder com JSON para erros em rotas da API
     res.status(500).json({ message: "Authentication error" });
   }
 };
