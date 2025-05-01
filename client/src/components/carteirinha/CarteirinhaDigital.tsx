@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Share2, Download, Shield, Calendar } from 'lucide-react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from '@/hooks/use-toast';
@@ -240,11 +240,10 @@ export default function CarteirinhaDigital({ memberId }: CarteirinhaDigitalProps
               </div>
               
               <div className="flex-shrink-0">
-                <QRCode 
+                <QRCodeSVG 
                   value={carteirinhaUrl}
                   size={80}
                   level="H"
-                  renderAs="svg"
                   includeMargin={true}
                   bgColor="#ffffff"
                   fgColor="#000000"
