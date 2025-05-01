@@ -81,53 +81,73 @@ export function MembershipCardDashboard() {
       if (!user) throw new Error('Usuário não autenticado');
       
       try {
-        // Função para fazer a solicitação com diferentes estratégias
-        const fetchWithStrategy = async (url, fallbackUrl = null) => {
-          console.log('Tentando carregar carteirinhas de:', url);
-          try {
-            const response = await fetch(url, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              credentials: 'include'
-            });
+        // Implementação de estratégia de fallback para múltiplas URLs
+        const fetchWithStrategy = async (urls) => {
+          // Iteração sobre um array de URLs para tentativa sequencial
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            console.log(`Tentativa ${i+1}/${urls.length}: ${url}`);
             
-            if (!response.ok) {
-              throw new Error(`Resposta não ok: ${response.status}`);
-            }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-              throw new Error('Resposta em formato HTML');
-            }
-            
-            return response;
-          } catch (error) {
-            console.error(`Erro ao buscar de ${url}:`, error);
-            if (fallbackUrl) {
-              console.log('Tentando URL alternativa:', fallbackUrl);
-              const fallbackResponse = await fetch(fallbackUrl, {
+            try {
+              const response = await fetch(url, {
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest'
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache'
                 },
                 credentials: 'include'
               });
-              return fallbackResponse;
+              
+              // Verificamos o tipo de conteúdo antes mesmo de verificar se a resposta é ok
+              const contentType = response.headers.get('content-type');
+              if (contentType && contentType.includes('text/html')) {
+                console.warn(`URL ${url} retornou HTML. Tentando próxima URL...`);
+                continue; // Tenta a próxima URL
+              }
+              
+              if (!response.ok) {
+                // Se o erro for 401, 403 ou 500, tentamos a próxima URL
+                if (response.status === 401 || response.status === 403 || response.status === 500) {
+                  console.warn(`URL ${url} retornou ${response.status}. Tentando próxima URL...`);
+                  continue; // Tenta a próxima URL
+                }
+                
+                // Para outros códigos de erro, lançamos exceção
+                throw new Error(`Resposta não ok: ${response.status}`);
+              }
+              
+              // Se chegou aqui, a resposta é ok e não é HTML
+              console.log(`URL ${url} retornou com sucesso!`);
+              return response;
+            } catch (error) {
+              console.error(`Erro ao buscar de ${url}:`, error);
+              
+              // Se não for a última URL, continua para a próxima
+              if (i < urls.length - 1) {
+                continue;
+              }
+              
+              // Se for a última URL e falhou, lança o erro
+              throw error;
             }
-            throw error;
           }
+          
+          // Se chegou aqui, todas as URLs falharam
+          throw new Error('Todas as tentativas de fetch falharam');
         };
         
         // Adicionar timestamp para evitar cache
         const timestamp = new Date().getTime();
-        const primaryUrl = `/api-json/carteirinha/membership-cards?_t=${timestamp}`;
-        const fallbackUrl = `/api/carteirinha/membership-cards?_t=${timestamp}`;
         
-        const response = await fetchWithStrategy(primaryUrl, fallbackUrl);
+        // Array de URLs para tentar em sequência - agora a API normal é a primária
+        const urls = [
+          `/api/carteirinha/membership-cards?_t=${timestamp}`, // Agora primária
+          `/api-json/carteirinha/membership-cards?_t=${timestamp}` // Agora secundária
+        ];
+        
+        const response = await fetchWithStrategy(urls);
         
         if (!response.ok) {
           const responseText = await response.text();
@@ -186,53 +206,73 @@ export function MembershipCardDashboard() {
       if (!user) return null;
       
       try {
-        // Reutilizar a mesma função de busca com estratégia de fallback
-        const fetchWithStrategy = async (url, fallbackUrl = null) => {
-          console.log('Tentando carregar configurações de:', url);
-          try {
-            const response = await fetch(url, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              credentials: 'include'
-            });
+        // Implementação de estratégia de fallback para múltiplas URLs
+        const fetchWithStrategy = async (urls) => {
+          // Iteração sobre um array de URLs para tentativa sequencial
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i];
+            console.log(`Tentativa ${i+1}/${urls.length} para configurações: ${url}`);
             
-            if (!response.ok) {
-              throw new Error(`Resposta não ok: ${response.status}`);
-            }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-              throw new Error('Resposta em formato HTML');
-            }
-            
-            return response;
-          } catch (error) {
-            console.error(`Erro ao buscar configurações de ${url}:`, error);
-            if (fallbackUrl) {
-              console.log('Tentando URL alternativa para configurações:', fallbackUrl);
-              const fallbackResponse = await fetch(fallbackUrl, {
+            try {
+              const response = await fetch(url, {
                 headers: {
                   'Content-Type': 'application/json',
                   'Accept': 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest'
+                  'X-Requested-With': 'XMLHttpRequest',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate',
+                  'Pragma': 'no-cache'
                 },
                 credentials: 'include'
               });
-              return fallbackResponse;
+              
+              // Verificamos o tipo de conteúdo antes mesmo de verificar se a resposta é ok
+              const contentType = response.headers.get('content-type');
+              if (contentType && contentType.includes('text/html')) {
+                console.warn(`URL ${url} para configurações retornou HTML. Tentando próxima URL...`);
+                continue; // Tenta a próxima URL
+              }
+              
+              if (!response.ok) {
+                // Se o erro for 401, 403 ou 500, tentamos a próxima URL
+                if (response.status === 401 || response.status === 403 || response.status === 500) {
+                  console.warn(`URL ${url} para configurações retornou ${response.status}. Tentando próxima URL...`);
+                  continue; // Tenta a próxima URL
+                }
+                
+                // Para outros códigos de erro, lançamos exceção
+                throw new Error(`Resposta não ok: ${response.status}`);
+              }
+              
+              // Se chegou aqui, a resposta é ok e não é HTML
+              console.log(`URL ${url} para configurações retornou com sucesso!`);
+              return response;
+            } catch (error) {
+              console.error(`Erro ao buscar configurações de ${url}:`, error);
+              
+              // Se não for a última URL, continua para a próxima
+              if (i < urls.length - 1) {
+                continue;
+              }
+              
+              // Se for a última URL e falhou, lança o erro
+              throw error;
             }
-            throw error;
           }
+          
+          // Se chegou aqui, todas as URLs falharam
+          throw new Error('Todas as tentativas de fetch para configurações falharam');
         };
-      
-        console.log('Requisitando configurações de carteirinha');
-        const timestamp = new Date().getTime();
-        const primaryUrl = `/api-json/carteirinha/membership-cards/settings/current?_t=${timestamp}`;
-        const fallbackUrl = `/api/carteirinha/membership-cards/settings/current?_t=${timestamp}`;
         
-        const response = await fetchWithStrategy(primaryUrl, fallbackUrl);
+        // Adicionar timestamp para evitar cache
+        const timestamp = new Date().getTime();
+        
+        // Array de URLs para tentar em sequência - agora a API normal é a primária
+        const urls = [
+          `/api/carteirinha/membership-cards/settings/current?_t=${timestamp}`, // Agora primária
+          `/api-json/carteirinha/membership-cards/settings/current?_t=${timestamp}` // Agora secundária
+        ];
+        
+        const response = await fetchWithStrategy(urls);
         
         if (!response.ok) {
           const responseText = await response.text();
