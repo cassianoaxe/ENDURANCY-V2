@@ -37,6 +37,8 @@ import {
   ReceiptText,
   GitBranch,
   Bot,
+  BadgeCheck,
+  QrCode,
   LucideIcon
 } from "lucide-react";
 
@@ -95,6 +97,7 @@ const menuItems: MenuItem[] = [
       { icon: Clock, label: "Fluxo de Caixa", path: "/financial/cashflow" }
     ]
   },
+  { icon: BadgeCheck, label: "Carteirinha", path: "/carteirinha" },
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Upload, label: "Importação de Dados", path: "/data-import" },
