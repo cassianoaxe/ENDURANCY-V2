@@ -76,26 +76,46 @@ export function MembershipCardDashboard() {
   
   // Carregar carteirinhas
   const { data: cards, isLoading, error } = useQuery({
-    queryKey: ['/api/carteirinha/membership-cards'],
+    queryKey: ['/api/carteirinha/membership-cards', user?.id],
     queryFn: async () => {
+      if (!user) throw new Error('Usuário não autenticado');
+      
       try {
-        const response = await fetch('/api/carteirinha/membership-cards');
-        if (!response.ok) throw new Error('Falha ao carregar carteirinhas');
+        const response = await fetch('/api/carteirinha/membership-cards', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          console.error('Resposta não ok:', await response.text());
+          throw new Error('Falha ao carregar carteirinhas');
+        }
         
         return await response.json();
       } catch (error) {
         console.error('Erro ao buscar carteirinhas:', error);
         throw new Error('Falha ao carregar carteirinhas');
       }
-    }
+    },
+    enabled: !!user
   });
   
   // Carregar configurações de carteirinha
   const { data: settings } = useQuery({
-    queryKey: ['/api/carteirinha/membership-cards/settings/current'],
+    queryKey: ['/api/carteirinha/membership-cards/settings/current', user?.id],
     queryFn: async () => {
+      if (!user) return null;
+      
       try {
-        const response = await fetch('/api/carteirinha/membership-cards/settings/current');
+        const response = await fetch('/api/carteirinha/membership-cards/settings/current', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
         if (!response.ok) throw new Error('Falha ao carregar configurações');
         
         return await response.json();
@@ -103,7 +123,8 @@ export function MembershipCardDashboard() {
         console.error('Erro ao buscar configurações:', error);
         return null;
       }
-    }
+    },
+    enabled: !!user
   });
   
   // Função para filtrar carteirinhas com base na pesquisa
