@@ -16,6 +16,8 @@ import path from "path";
 import fs from "fs";
 import { socialBeneficiariesBatchRouter } from "./social-beneficiaries-batch";
 import { socialBeneficiosRouter } from "./social-beneficios";
+import socialMembershipCardsRouter from "./social-membership-cards";
+import socialPartnersRouter from "./social-partners";
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -768,5 +770,11 @@ router.use('/social/beneficiaries', socialBeneficiariesBatchRouter);
 
 // Utilizar o router de benefícios
 router.use('/social/beneficios', socialBeneficiosRouter);
+
+// Utilizar o router de carteirinhas
+router.use('/social/membership-cards', socialMembershipCardsRouter);
+
+// Utilizar o router de parceiros e clube de benefícios
+router.use('/social/partners', socialPartnersRouter);
 
 export default router;

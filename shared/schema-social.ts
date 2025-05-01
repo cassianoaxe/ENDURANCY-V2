@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// ==================== ENUMS ====================
 // Enum para o status dos beneficiários
 export const beneficiaryStatusEnum = pgEnum('beneficiary_status', ['active', 'inactive', 'pending', 'rejected']);
 
@@ -12,6 +13,19 @@ export const exemptionTypeEnum = pgEnum('exemption_type', ['exemption_25', 'exem
 // Enum para o tipo de associado
 export const membershipTypeEnum = pgEnum('membership_type', ['regular', 'premium', 'lifetime', 'temporary']);
 
+// Enum para o status da carteirinha
+export const membershipCardStatusEnum = pgEnum('membership_card_status', ['pending', 'approved', 'printed', 'delivered', 'expired', 'cancelled']);
+
+// Enum para o tipo de carteirinha
+export const membershipCardTypeEnum = pgEnum('membership_card_type', ['digital', 'physical', 'both']);
+
+// Enum para a categoria do parceiro
+export const partnerCategoryEnum = pgEnum('partner_category', ['health', 'pharmacy', 'food', 'education', 'services', 'retail', 'other']);
+
+// Enum para o status do parceiro
+export const partnerStatusEnum = pgEnum('partner_status', ['active', 'inactive', 'pending']);
+
+// ==================== TABELAS ====================
 // Tabela de Beneficiários
 export const socialBeneficiaries = pgTable("social_beneficiaries", {
   id: serial("id").primaryKey(),
@@ -179,6 +193,152 @@ export const socialBeneficiaryHistory = pgTable("social_beneficiary_history", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Tabela para o módulo de carteirinha de associado
+export const socialMembershipCards = pgTable("social_membership_cards", {
+  id: serial("id").primaryKey(),
+  beneficiaryId: integer("beneficiary_id").notNull(), // Associação com o beneficiário
+  organizationId: integer("organization_id").notNull(),
+  cardType: membershipCardTypeEnum("card_type").notNull().default("digital"),
+  status: membershipCardStatusEnum("status").notNull().default("pending"),
+  cardNumber: text("card_number").notNull(), // Número único da carteirinha
+  qrCodeUrl: text("qr_code_url"), // URL do QR code gerado
+  issueDate: timestamp("issue_date").defaultNow(),
+  expiryDate: timestamp("expiry_date").notNull(), // 1 ano da geração
+  pin: text("pin"), // PIN criptografado para acesso seguro
+  pinSetupCompleted: boolean("pin_setup_completed").default(false),
+  lastPinChangeDate: timestamp("last_pin_change_date"),
+  photoUrl: text("photo_url"), // URL da foto do associado
+  cardImageUrl: text("card_image_url"), // URL da imagem da carteirinha gerada
+  printedAt: timestamp("printed_at"), // Quando foi impressa
+  deliveredAt: timestamp("delivered_at"), // Quando foi entregue
+  physicalCardRequested: boolean("physical_card_requested").default(false),
+  physicalCardPaymentStatus: text("physical_card_payment_status").default("pending"), // "pending", "paid", "failed"
+  physicalCardPaymentId: text("physical_card_payment_id"), // ID da transação de pagamento
+  physicalCardPaymentAmount: decimal("physical_card_payment_amount", { precision: 10, scale: 2 }).default("25.00"),
+  physicalCardTrackingNumber: text("physical_card_tracking_number"), // Número de rastreamento para entrega
+  physicalCardShippingAddress: text("physical_card_shipping_address"), // Endereço de entrega
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para configurações do módulo de carteirinha
+export const socialMembershipCardSettings = pgTable("social_membership_card_settings", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().unique(), // Uma configuração por organização
+  cardTitleText: text("card_title_text").default("Carteirinha de Associado"),
+  cardSubtitleText: text("card_subtitle_text").default("Associação de Pacientes"),
+  cardBackgroundColor: text("card_background_color").default("#FFFFFF"),
+  cardTextColor: text("card_text_color").default("#000000"),
+  cardHighlightColor: text("card_highlight_color").default("#00AA00"),
+  includeQrCode: boolean("include_qr_code").default(true),
+  includePhoto: boolean("include_photo").default(true),
+  includeLogo: boolean("include_logo").default(true),
+  includeValidityDate: boolean("include_validity_date").default(true),
+  validityPeriodMonths: integer("validity_period_months").default(12), // Período de validade em meses
+  physicalCardPrice: decimal("physical_card_price", { precision: 10, scale: 2 }).default("25.00"),
+  physicalCardEnabled: boolean("physical_card_enabled").default(true),
+  pinEnabled: boolean("pin_enabled").default(true),
+  pinDigits: integer("pin_digits").default(6),
+  pinRequireLetters: boolean("pin_require_letters").default(false),
+  pinRequireSpecialChars: boolean("pin_require_special_chars").default(false),
+  termsText: text("terms_text").default("Esta carteirinha é pessoal e intransferível. Em caso de perda ou roubo, comunique imediatamente."),
+  cardTemplate: text("card_template").default("default"), // "default", "premium", "simple"
+  customCss: text("custom_css"), // CSS personalizado para o template
+  customFields: json("custom_fields"), // Campos personalizados a serem exibidos
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela de histórico de acesso à carteirinha
+export const socialMembershipCardAccessLogs = pgTable("social_membership_card_access_logs", {
+  id: serial("id").primaryKey(),
+  cardId: integer("card_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  accessDate: timestamp("access_date").defaultNow(),
+  accessIp: text("access_ip"),
+  accessUserAgent: text("access_user_agent"),
+  accessMethod: text("access_method").notNull(), // "qr_scan", "direct_link", "portal"
+  pinVerified: boolean("pin_verified").default(false),
+  prescriptionViewed: boolean("prescription_viewed").default(false),
+  medicalReportViewed: boolean("medical_report_viewed").default(false),
+  locationLat: text("location_lat"),
+  locationLng: text("location_lng"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Tabela para parceiros do clube de benefícios/descontos
+export const socialPartners = pgTable("social_partners", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  name: text("name").notNull(),
+  cnpj: text("cnpj").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  contactPerson: text("contact_person"),
+  category: partnerCategoryEnum("category").notNull().default("other"),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
+  website: text("website"),
+  status: partnerStatusEnum("status").notNull().default("pending"),
+  description: text("description").notNull(),
+  logoUrl: text("logo_url"),
+  bannerUrl: text("banner_url"),
+  contractUrl: text("contract_url"), // URL do contrato assinado
+  contractStartDate: timestamp("contract_start_date"),
+  contractEndDate: timestamp("contract_end_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para os benefícios oferecidos pelos parceiros
+export const socialPartnerBenefits = pgTable("social_partner_benefits", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  discountType: text("discount_type").notNull(), // "percentage", "fixed_value", "free_item"
+  discountValue: decimal("discount_value", { precision: 10, scale: 2 }).notNull(),
+  minimumPurchase: decimal("minimum_purchase", { precision: 10, scale: 2 }),
+  validFrom: timestamp("valid_from").defaultNow(),
+  validUntil: timestamp("valid_until"),
+  membershipTypeRequired: membershipTypeEnum("membership_type_required"),
+  termsAndConditions: text("terms_and_conditions"),
+  redemptionInstructions: text("redemption_instructions"),
+  couponCode: text("coupon_code"),
+  imageUrl: text("image_url"),
+  maxUsesTotal: integer("max_uses_total"),
+  maxUsesPerMember: integer("max_uses_per_member").default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tabela para acompanhar o uso de benefícios por associados
+export const socialBenefitUsage = pgTable("social_benefit_usage", {
+  id: serial("id").primaryKey(),
+  benefitId: integer("benefit_id").notNull(),
+  beneficiaryId: integer("beneficiary_id").notNull(),
+  organizationId: integer("organization_id").notNull(),
+  cardId: integer("card_id"),
+  usageDate: timestamp("usage_date").defaultNow(),
+  usageValue: decimal("usage_value", { precision: 10, scale: 2 }),
+  verificationCode: text("verification_code"),
+  usageMethod: text("usage_method").notNull(), // "qr_code", "coupon", "in_store"
+  status: text("status").notNull().default("completed"), // "completed", "cancelled", "pending_verification"
+  partnerFeedback: text("partner_feedback"),
+  beneficiaryFeedback: text("beneficiary_feedback"),
+  beneficiaryRating: integer("beneficiary_rating"), // 1-5 stars
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ==================== SCHEMAS ====================
 // Schemas para inserção de dados com validação Zod
 export const insertSocialBeneficiarySchema = createInsertSchema(socialBeneficiaries);
 
@@ -191,6 +351,17 @@ export const insertSocialBeneficiaryHistorySchema = createInsertSchema(socialBen
 export const insertSocialBeneficioSchema = createInsertSchema(socialBeneficios);
 export const insertSocialBeneficio_BeneficiarioSchema = createInsertSchema(socialBeneficios_Beneficiarios);
 
+// Schemas para módulo de carteirinha
+export const insertSocialMembershipCardSchema = createInsertSchema(socialMembershipCards);
+export const insertSocialMembershipCardSettingsSchema = createInsertSchema(socialMembershipCardSettings);
+export const insertSocialMembershipCardAccessLogSchema = createInsertSchema(socialMembershipCardAccessLogs);
+
+// Schemas para módulo de parceiros e benefícios
+export const insertSocialPartnerSchema = createInsertSchema(socialPartners);
+export const insertSocialPartnerBenefitSchema = createInsertSchema(socialPartnerBenefits);
+export const insertSocialBenefitUsageSchema = createInsertSchema(socialBenefitUsage);
+
+// ==================== TIPOS ====================
 // Tipos para inserção
 export type InsertSocialBeneficiary = z.infer<typeof insertSocialBeneficiarySchema>;
 export type InsertSocialDonation = z.infer<typeof insertSocialDonationSchema>;
@@ -201,6 +372,16 @@ export type InsertSocialPortalSettings = z.infer<typeof insertSocialPortalSettin
 export type InsertSocialBeneficiaryHistory = z.infer<typeof insertSocialBeneficiaryHistorySchema>;
 export type InsertSocialBeneficio = z.infer<typeof insertSocialBeneficioSchema>;
 export type InsertSocialBeneficioBeneficiario = z.infer<typeof insertSocialBeneficio_BeneficiarioSchema>;
+
+// Tipos para inserção do módulo de carteirinha
+export type InsertSocialMembershipCard = z.infer<typeof insertSocialMembershipCardSchema>;
+export type InsertSocialMembershipCardSettings = z.infer<typeof insertSocialMembershipCardSettingsSchema>;
+export type InsertSocialMembershipCardAccessLog = z.infer<typeof insertSocialMembershipCardAccessLogSchema>;
+
+// Tipos para inserção do módulo de parceiros e benefícios
+export type InsertSocialPartner = z.infer<typeof insertSocialPartnerSchema>;
+export type InsertSocialPartnerBenefit = z.infer<typeof insertSocialPartnerBenefitSchema>;
+export type InsertSocialBenefitUsage = z.infer<typeof insertSocialBenefitUsageSchema>;
 
 // Tipos para seleção
 export type SocialBeneficiary = typeof socialBeneficiaries.$inferSelect;
@@ -213,10 +394,22 @@ export type SocialBeneficiaryHistory = typeof socialBeneficiaryHistory.$inferSel
 export type SocialBeneficio = typeof socialBeneficios.$inferSelect;
 export type SocialBeneficioBeneficiario = typeof socialBeneficios_Beneficiarios.$inferSelect;
 
-// Relações
+// Tipos para seleção do módulo de carteirinha
+export type SocialMembershipCard = typeof socialMembershipCards.$inferSelect;
+export type SocialMembershipCardSettings = typeof socialMembershipCardSettings.$inferSelect;
+export type SocialMembershipCardAccessLog = typeof socialMembershipCardAccessLogs.$inferSelect;
+
+// Tipos para seleção do módulo de parceiros e benefícios
+export type SocialPartner = typeof socialPartners.$inferSelect;
+export type SocialPartnerBenefit = typeof socialPartnerBenefits.$inferSelect;
+export type SocialBenefitUsage = typeof socialBenefitUsage.$inferSelect;
+
+// ==================== RELAÇÕES ====================
+// Relações para beneficiários
 export const socialBeneficiariesRelations = relations(socialBeneficiaries, ({ many }) => ({
   history: many(socialBeneficiaryHistory),
   beneficiosRecebidos: many(socialBeneficios_Beneficiarios),
+  membershipCards: many(socialMembershipCards),
 }));
 
 export const socialBeneficiosRelations = relations(socialBeneficios, ({ many }) => ({
@@ -238,5 +431,50 @@ export const socialBeneficiaryHistoryRelations = relations(socialBeneficiaryHist
   beneficiary: one(socialBeneficiaries, {
     fields: [socialBeneficiaryHistory.beneficiaryId],
     references: [socialBeneficiaries.id],
+  }),
+}));
+
+// Relações para o módulo de carteirinha
+export const socialMembershipCardsRelations = relations(socialMembershipCards, ({ one, many }) => ({
+  beneficiary: one(socialBeneficiaries, {
+    fields: [socialMembershipCards.beneficiaryId],
+    references: [socialBeneficiaries.id],
+  }),
+  accessLogs: many(socialMembershipCardAccessLogs),
+  benefitUsages: many(socialBenefitUsage),
+}));
+
+export const socialMembershipCardAccessLogsRelations = relations(socialMembershipCardAccessLogs, ({ one }) => ({
+  card: one(socialMembershipCards, {
+    fields: [socialMembershipCardAccessLogs.cardId],
+    references: [socialMembershipCards.id],
+  }),
+}));
+
+// Relações para parceiros e benefícios
+export const socialPartnersRelations = relations(socialPartners, ({ many }) => ({
+  benefits: many(socialPartnerBenefits),
+}));
+
+export const socialPartnerBenefitsRelations = relations(socialPartnerBenefits, ({ one, many }) => ({
+  partner: one(socialPartners, {
+    fields: [socialPartnerBenefits.partnerId],
+    references: [socialPartners.id],
+  }),
+  usages: many(socialBenefitUsage),
+}));
+
+export const socialBenefitUsageRelations = relations(socialBenefitUsage, ({ one }) => ({
+  benefit: one(socialPartnerBenefits, {
+    fields: [socialBenefitUsage.benefitId],
+    references: [socialPartnerBenefits.id],
+  }),
+  beneficiary: one(socialBeneficiaries, {
+    fields: [socialBenefitUsage.beneficiaryId],
+    references: [socialBeneficiaries.id],
+  }),
+  card: one(socialMembershipCards, {
+    fields: [socialBenefitUsage.cardId],
+    references: [socialMembershipCards.id],
   }),
 }));
