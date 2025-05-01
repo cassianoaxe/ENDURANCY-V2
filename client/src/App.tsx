@@ -14,6 +14,7 @@ import CadastroFormulariosNovo from "@/pages/cadastro/formularios/novo";
 import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
 import Login from "@/pages/Login";
+import AdminDashboard from "@/pages/dashboards/AdminDashboard";
 import TourGuide from "@/components/features/TourGuide";
 
 // Importar outros componentes conforme necessário
@@ -90,6 +91,9 @@ function AppContent() {
   }
   else if (currentPath === '/organization-registration') {
     Component = OrganizationRegistration;
+  }
+  else if (currentPath === '/admin/dashboard') {
+    Component = AdminDashboard;
   }
 
   // Se for página de login ou registro, não usar o Layout padrão
