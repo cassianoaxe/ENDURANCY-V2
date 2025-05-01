@@ -103,15 +103,21 @@ export function MembershipCardDashboard() {
           throw new Error('Sessão expirada ou resposta inválida');
         }
         
-        const data = await response.json();
-        console.log('Dados de carteirinhas recebidos:', Array.isArray(data), data?.length || 0);
+        const result = await response.json();
+        console.log('Dados de carteirinhas recebidos:', result);
         
-        if (!Array.isArray(data)) {
-          console.error('Resposta não é um array:', data);
+        // A API está retornando um objeto { data: [...], pagination: {...} }
+        if (result && result.data && Array.isArray(result.data)) {
+          console.log('Carteirinhas encontradas:', result.data.length);
+          return result.data;
+        } else if (Array.isArray(result)) {
+          // Fallback para o caso da API retornar diretamente um array
+          console.log('Carteirinhas encontradas (array direto):', result.length);
+          return result;
+        } else {
+          console.error('Resposta não contém dados válidos:', result);
           return []; // Retorna array vazio para não quebrar o restante do componente
         }
-        
-        return data;
       } catch (error) {
         console.error('Erro ao buscar carteirinhas:', error);
         throw error;
@@ -159,9 +165,15 @@ export function MembershipCardDashboard() {
           return null;
         }
         
-        const data = await response.json();
-        console.log('Configurações recebidas:', data);
-        return data;
+        const result = await response.json();
+        console.log('Configurações recebidas:', result);
+        
+        // A API pode retornar um objeto com data ou diretamente os dados
+        if (result && result.data) {
+          return result.data;
+        } else {
+          return result;
+        }
       } catch (error) {
         console.error('Erro ao buscar configurações:', error);
         return null;
