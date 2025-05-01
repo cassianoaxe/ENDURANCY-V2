@@ -263,9 +263,9 @@ import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
 import SupplierPortalDashboard from "@/pages/organization/suppliers";
 import SupplierRegistration from "@/pages/organization/suppliers/register";
 import OrgSupplierProducts from "@/pages/organization/suppliers/products";
-import SupplierTenders from "@/pages/organization/suppliers/tenders";
+import OrgSupplierTenders from "@/pages/organization/suppliers/tenders";
 import OrgSupplierOrders from "@/pages/organization/suppliers/orders";
-import SupplierCart from "@/pages/organization/suppliers/cart";
+import OrgSupplierCart from "@/pages/organization/suppliers/cart";
 
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
@@ -521,7 +521,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/supplier/dashboard'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/supplier/dashboard', '/supplier/orders', '/supplier/products', '/supplier/finance', '/supplier/analytics', '/supplier/settings'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -624,6 +624,11 @@ function AppContent() {
       <SupplierLayout>
         {/* Centraliza todas as rotas do fornecedor em um único lugar para evitar duplicação */}
         {currentPath === '/supplier/dashboard' && <SupplierDashboard />}
+        {currentPath === '/supplier/orders' && <SupplierOrders />}
+        {currentPath === '/supplier/products' && <SupplierProducts />}
+        {currentPath === '/supplier/finance' && <SupplierFinance />}
+        {currentPath === '/supplier/analytics' && <SupplierAnalytics />}
+        {currentPath === '/supplier/settings' && <SupplierSettings />}
       </SupplierLayout>
     );
   }
@@ -1544,25 +1549,25 @@ function AppContent() {
     
     if (currentPath === '/organization/suppliers/products') {
       return <OrganizationLayout>
-        <SupplierProducts />
+        <OrgSupplierProducts />
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/suppliers/tenders') {
       return <OrganizationLayout>
-        <SupplierTenders />
+        <OrgSupplierTenders />
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/suppliers/orders') {
       return <OrganizationLayout>
-        <SupplierOrders />
+        <OrgSupplierOrders />
       </OrganizationLayout>;
     }
     
     if (currentPath === '/organization/suppliers/cart') {
       return <OrganizationLayout>
-        <SupplierCart />
+        <OrgSupplierCart />
       </OrganizationLayout>;
     }
 

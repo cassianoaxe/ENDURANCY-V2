@@ -18,6 +18,7 @@ import {
   ShoppingBag,
   Star,
   Map,
+  DollarSign,
   Zap,
   BarChart,
   Package

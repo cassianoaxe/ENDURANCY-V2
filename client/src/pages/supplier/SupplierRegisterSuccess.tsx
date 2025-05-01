@@ -41,8 +41,10 @@ export default function SupplierRegisterSuccess() {
 
   // Função para baixar o QR Code
   const downloadQRCode = () => {
-    const svg = document.getElementById('qr-code') as SVGElement;
-    if (!svg) return;
+    const element = document.getElementById('qr-code');
+    if (!element) return;
+    
+    const svg = element as unknown as SVGElement;
     
     // Criar uma cópia do SVG como string
     const svgData = new XMLSerializer().serializeToString(svg);
