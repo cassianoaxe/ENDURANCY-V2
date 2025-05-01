@@ -32,7 +32,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+// O SupplierLayout é aplicado no App.tsx
 
 // Tipo de transação
 interface Transaction {
@@ -371,7 +371,7 @@ export default function SupplierFinance() {
   };
 
   return (
-    <SupplierLayout activeTab="finance">
+    <>
       <div className="pb-10">
         <h1 className="text-3xl font-bold tracking-tight mb-1">Financeiro</h1>
         <p className="text-muted-foreground mb-8">Gerencie seus pagamentos, transações e saldo disponível.</p>
@@ -708,6 +708,6 @@ export default function SupplierFinance() {
           </DialogContent>
         </Dialog>
       )}
-    </SupplierLayout>
+    </>
   );
 }

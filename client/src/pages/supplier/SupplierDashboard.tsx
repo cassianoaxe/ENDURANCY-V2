@@ -27,9 +27,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
-
 export default function SupplierDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -117,11 +114,10 @@ export default function SupplierDashboard() {
   ];
 
   return (
-    <SupplierLayout activeTab="overview">
-      <div className="pb-10">
-        {/* Top Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
+    <div className="pb-10">
+      {/* Top Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 Vendas Mensais
@@ -481,6 +477,5 @@ export default function SupplierDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </SupplierLayout>
   );
 }
