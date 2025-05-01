@@ -114,6 +114,10 @@ export function MembershipCardDashboard() {
           // Fallback para o caso da API retornar diretamente um array
           console.log('Carteirinhas encontradas (array direto):', result.length);
           return result;
+        } else if (result && typeof result === 'object') {
+          // Se for um objeto mas sem propriedade data, considerar como um array vazio
+          console.log('Recebido objeto sem propriedade data:', result);
+          return [];
         } else {
           console.error('Resposta não contém dados válidos:', result);
           return []; // Retorna array vazio para não quebrar o restante do componente
@@ -171,8 +175,12 @@ export function MembershipCardDashboard() {
         // A API pode retornar um objeto com data ou diretamente os dados
         if (result && result.data) {
           return result.data;
-        } else {
+        } else if (result && typeof result === 'object') {
+          // Se for um objeto mas sem propriedade data, considerar como o próprio objeto
           return result;
+        } else {
+          console.error('Formato de configurações inválido:', result);
+          return null;
         }
       } catch (error) {
         console.error('Erro ao buscar configurações:', error);
