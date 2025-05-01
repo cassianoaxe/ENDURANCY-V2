@@ -65,16 +65,7 @@ const menuItems: MenuItem[] = [
       { icon: BarChart, label: "Vendas e Assinaturas", path: "/module-subscription-sales" }
     ]
   },
-  { 
-    icon: Building2, 
-    label: "Cadastro", 
-    submenu: [
-      { icon: BarChart2, label: "Dashboard", path: "/cadastro/dashboard" },
-      { icon: Building2, label: "Organizações", path: "/cadastro" },
-      { icon: FileText, label: "Formulários", path: "/cadastro/formularios" },
-      { icon: Settings, label: "Configurações", path: "/cadastro/configuracoes" }
-    ]
-  },
+  { icon: Building2, label: "Cadastro", path: "/cadastro" },
   { 
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
@@ -182,17 +173,10 @@ export default function Sidebar() {
   // Custom navigation handler that updates the URL without page reload
   const handleNavigation = (event: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     event.preventDefault();
-    console.log("Navegando para:", path); // Adicionando log para depuração
     window.history.pushState({}, '', path);
     setCurrentPath(path);
-    
-    // Dispatch events to notify the application about path change
-    // Primeiro o evento popstate para disparar a navegação no app
+    // Dispatch a custom event to notify AppContent about path change
     window.dispatchEvent(new Event('popstate'));
-    
-    // Também vamos disparar outro evento personalizado para garantir
-    console.log("Disparando evento de navegação personalizado");
-    window.dispatchEvent(new Event('navigation'));
   };
 
   // Check if a menu item should be displayed as active
