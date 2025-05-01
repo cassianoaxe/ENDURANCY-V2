@@ -1,7 +1,7 @@
 import React from 'react';
 import { MembershipCardSettings } from '@/components/social/MembershipCardSettings';
 import { DashboardShell } from '@/components/shell';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MembershipCardSettingsPage() {
   const { user } = useAuth();
