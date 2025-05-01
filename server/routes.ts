@@ -623,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             redirectUrl = '/researcher/dashboard';
             break;
           case 'org_admin':
-            redirectUrl = `/organization/${orgsFound[0].id}/dashboard`;
+            redirectUrl = `/organizations/${orgsFound[0].id}/dashboard`;
             break;
           case 'admin':
             redirectUrl = '/admin/dashboard';
