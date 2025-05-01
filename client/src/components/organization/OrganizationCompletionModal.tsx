@@ -9,10 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from 'qrcode.react';
 import { formatDate } from "@/lib/utils";
-import { CheckCircle, Info, Lock } from "lucide-react";
+import { CheckCircle, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Copy } from "lucide-react";
-import { useState } from "react";
 
 interface Organization {
   id: number;
@@ -24,7 +22,6 @@ interface Organization {
   adminName: string;
   createdAt: Date;
   planName: string;
-  username?: string;
 }
 
 interface OrganizationCompletionModalProps {
@@ -38,13 +35,6 @@ export function OrganizationCompletionModal({
   onClose,
   onViewDashboard,
 }: OrganizationCompletionModalProps) {
-  const [showLoginInfo, setShowLoginInfo] = useState(false);
-  const username = organization.username || `${organization.email.split('@')[0].toLowerCase()}${organization.id}`;
-  
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-  
   // Criando os dados para o QR code
   const qrData = JSON.stringify({
     id: organization.id,
@@ -116,48 +106,13 @@ export function OrganizationCompletionModal({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <Alert className="bg-blue-50 border-blue-200">
-            <Info className="h-5 w-5 text-blue-600" />
-            <AlertTitle>Verifique seu email</AlertTitle>
-            <AlertDescription>
-              Enviamos um link de pagamento para <strong>{organization.email}</strong>. Verifique sua caixa de entrada e também sua pasta de spam.
-            </AlertDescription>
-          </Alert>
-          
-          <div className="border rounded-lg p-4 bg-green-50">
-            <div className="flex items-center mb-3">
-              <Lock className="h-5 w-5 text-green-600 mr-2" />
-              <h3 className="text-lg font-semibold">Informações de Acesso</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-600">Seu usuário de administrador foi criado. Você pode acessar o sistema com as seguintes credenciais:</p>
-              </div>
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">Nome de usuário</p>
-                  <p className="font-medium">{username}</p>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0" 
-                  onClick={() => copyToClipboard(username)}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Senha inicial</p>
-                <p className="font-medium">A mesma informada durante o cadastro</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Recomendamos alterar sua senha no primeiro acesso por motivos de segurança.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Alert className="bg-blue-50 border-blue-200">
+          <Info className="h-5 w-5 text-blue-600" />
+          <AlertTitle>Verifique seu email</AlertTitle>
+          <AlertDescription>
+            Enviamos um link de pagamento para <strong>{organization.email}</strong>. Verifique sua caixa de entrada e também sua pasta de spam.
+          </AlertDescription>
+        </Alert>
 
         <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0">
           <Button variant="outline" onClick={onClose}>

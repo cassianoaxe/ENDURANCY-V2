@@ -1379,14 +1379,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
 
       // Store document information
-      if (documentFile) {
-        await db.insert(organizationDocuments)
-          .values({
-            organizationId: organization.id,
-            documentType: organizationData.type === 'Empresa' ? 'contrato_social' : 'estatuto',
-            documentUrl: documentFile.path,
-          });
-      }
+      await db.insert(organizationDocuments)
+        .values({
+          organizationId: organization.id,
+          documentType: organizationData.type === 'Empresa' ? 'contrato_social' : 'estatuto',
+          documentUrl: documentFile.path,
+        });
         
       // Se tiver logo, salvar o caminho
       if (logoFile) {
@@ -1569,7 +1567,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...organization,
         orgCode,
         status: 'active',
-        username: organizationData.email.split('@')[0].toLowerCase() + organization.id,
         message: "Organização criada com sucesso. Verifique seu email para finalizar o pagamento."
       });
     } catch (error) {

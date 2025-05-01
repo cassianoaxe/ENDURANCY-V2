@@ -329,30 +329,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Primeiro, definir o usuário como null para atualizar a UI imediatamente
     setUser(null);
     
-    // Fazer a chamada síncrona para logout no servidor antes do redirecionamento
-    try {
-      // Criamos uma requisição síncrona para garantir que o logout aconteça
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/auth/logout', false); // false torna síncrona
-      xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      xhr.setRequestHeader('Pragma', 'no-cache');
-      xhr.setRequestHeader('Expires', '0');
-      xhr.withCredentials = true; // Equivalente a credentials: 'include'
-      xhr.send();
-      
-      console.log("Logout realizado com sucesso");
-      // O redirecionamento será feito pelo componente que chama esta função
-    } catch (error) {
+    // Redirecionar para a página de login de forma simples e direta
+    window.location.href = '/login';
+    
+    // Fazer a chamada para logout no servidor após o redirecionamento já ter iniciado
+    // pois não precisamos esperar a resposta para fazer o redirecionamento
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      credentials: 'include', // Importante para acessar e limpar cookies
+      cache: 'no-cache'
+    }).catch(error => {
       console.error('Logout error:', error);
-      // Ainda assim, não impedimos o redirecionamento em caso de erro
-    }
-    
-    // Limpar localStorage para maior segurança
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('direct_import_company');
-    
-    // Retornar true para indicar sucesso
-    return true;
+    });
   };
 
   // Método para verificar se o usuário está autenticado (útil para testes e debugging)
