@@ -37,8 +37,10 @@ import {
   ReceiptText,
   GitBranch,
   Bot,
-  LucideIcon
+  LucideIcon,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Interface para itens de menu e submenu
 interface MenuItem {
@@ -104,6 +106,7 @@ const menuItems: MenuItem[] = [
 ];
 
 export default function Sidebar() {
+  const { logout } = useAuth();
   // Get current path for active state
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
@@ -326,6 +329,17 @@ export default function Sidebar() {
       
       <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'}`}>
         {menuItems.map((item) => renderMenuItem(item))}
+        
+        {/* Botão de logout */}
+        <button 
+          onClick={logout}
+          className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 mt-4 rounded-lg transition-colors text-sm text-red-600 hover:bg-red-50`}
+        >
+          <div className="flex items-center gap-3">
+            <LogOut size={18} />
+            {!collapsed && <span>Sair</span>}
+          </div>
+        </button>
       </nav>
     </div>
   );
