@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,152 +29,216 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Upload, CreditCard, QrCode, Lock, Sparkles, Printer, CheckCircle2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { queryClient } from '@/lib/queryClient';
+import { 
+  CreditCard, 
+  CrownIcon, 
+  EyeIcon, 
+  FileImage, 
+  HelpCircle, 
+  Image, 
+  ImageUp, 
+  Palette, 
+  Printer, 
+  QrCode, 
+  Save, 
+  Settings2, 
+} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
-// Define o esquema de validação do formulário
+// Esquema de validação para o formulário
 const formSchema = z.object({
-  organizationId: z.number(),
-  cardDesign: z.enum(['standard', 'premium', 'custom']),
+  template: z.enum(['standard', 'premium', 'custom']).default('standard'),
   primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-    message: 'Formato de cor inválido. Use formato hexadecimal (ex: #FF5733)',
-  }),
+    message: 'Cor primária deve ser um código hexadecimal válido',
+  }).default('#1E40AF'),
   secondaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
-    message: 'Formato de cor inválido. Use formato hexadecimal (ex: #3383FF)',
-  }),
-  showLogo: z.boolean(),
-  showQRCode: z.boolean(),
-  showPhoto: z.boolean(),
-  validityPeriod: z.number().min(1).max(10),
-  physicalCardPrice: z.string().refine(
-    (val) => !isNaN(parseFloat(val)) && parseFloat(val) >= 0,
-    {
-      message: 'O valor deve ser um número positivo',
-    }
-  ),
-  physicalCardEnabled: z.boolean(),
-  pinDigits: z.number().min(4).max(8),
-  requirePin: z.boolean(),
-  cardNumberPrefix: z.string().max(5),
-  termsAndConditions: z.string().optional(),
-  customMessage: z.string().max(200).optional(),
+    message: 'Cor secundária deve ser um código hexadecimal válido',
+  }).default('#60A5FA'),
+  organizationLogoUrl: z.string().url({
+    message: 'URL da logo deve ser um endereço válido',
+  }).optional().or(z.literal('')),
+  validityPeriod: z.number().int().min(1, {
+    message: 'Período de validade deve ser pelo menos 1 mês',
+  }).max(60, {
+    message: 'Período de validade não pode exceder 60 meses',
+  }).default(12),
+  physicalCardsEnabled: z.boolean().default(true),
+  physicalCardPrice: z.number().min(0, {
+    message: 'Preço deve ser maior ou igual a zero',
+  }).default(25.00),
+  useCustomQrDesign: z.boolean().default(false),
+  showQrBorder: z.boolean().default(true),
+  showLogoInQr: z.boolean().default(true),
+  showBeneficiaryPhoto: z.boolean().default(true),
+  enableBarcodeAltDisplay: z.boolean().default(false),
+  requirePhotoForCards: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface MembershipCardSettingsProps {
-  organizationId?: number;
-  onSuccess?: () => void;
-}
-
-export function MembershipCardSettings({ organizationId, onSuccess }: MembershipCardSettingsProps) {
+export function MembershipCardSettings() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = React.useState('general');
-
+  const { user } = useAuth();
+  const [previewTemplate, setPreviewTemplate] = useState('standard');
+  const [previewColors, setPreviewColors] = useState({
+    primary: '#1E40AF',
+    secondary: '#60A5FA',
+  });
+  
   // Buscar configurações atuais
-  const { data: currentSettings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery({
     queryKey: ['/api/carteirinha/membership-cards/settings/current'],
     queryFn: async () => {
       try {
-        // Mockup de configurações enquanto não temos a API real
-        const mockSettings = {
-          id: 1,
-          organizationId: organizationId || 1,
-          cardDesign: 'standard',
-          primaryColor: '#4f46e5',
-          secondaryColor: '#818cf8',
-          showLogo: true,
-          showQRCode: true,
-          showPhoto: true,
-          validityPeriod: 12,
-          physicalCardPrice: '25.00',
-          physicalCardEnabled: true,
-          pinDigits: 6,
-          requirePin: true,
-          cardNumberPrefix: 'MEM',
-          termsAndConditions: 'Termos e condições para uso das carteirinhas de associado...',
-          customMessage: 'Seja bem-vindo ao nosso Clube de Benefícios!',
-          createdAt: '2023-10-01T12:00:00Z',
-          updatedAt: '2023-10-15T14:30:00Z'
-        };
+        const response = await fetch('/api/carteirinha/membership-cards/settings/current');
+        if (!response.ok) throw new Error('Falha ao carregar configurações');
         
-        // Simulando uma chamada de API
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        return mockSettings;
+        return await response.json();
       } catch (error) {
         console.error('Erro ao buscar configurações:', error);
-        throw new Error('Falha ao carregar configurações da carteirinha');
+        return {
+          template: 'standard',
+          primaryColor: '#1E40AF',
+          secondaryColor: '#60A5FA',
+          organizationLogoUrl: '',
+          validityPeriod: 12,
+          physicalCardsEnabled: true,
+          physicalCardPrice: 25.00,
+          useCustomQrDesign: false,
+          showQrBorder: true,
+          showLogoInQr: true,
+          showBeneficiaryPhoto: true,
+          enableBarcodeAltDisplay: false,
+          requirePhotoForCards: false,
+        };
+      }
+    }
+  });
+  
+  // Buscar estatísticas de carteirinhas
+  const { data: stats } = useQuery({
+    queryKey: ['/api/carteirinha/membership-cards/stats'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/carteirinha/membership-cards/stats');
+        if (!response.ok) throw new Error('Falha ao carregar estatísticas');
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+        return {
+          totalCards: 0,
+          activeCards: 0,
+          expiredCards: 0,
+          physicalCards: 0,
+          pendingApproval: 0,
+        };
       }
     }
   });
 
-  // Configurar o formulário
+  // Formulário
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      organizationId: organizationId || 1,
-      cardDesign: 'standard',
-      primaryColor: '#4f46e5',
-      secondaryColor: '#818cf8',
-      showLogo: true,
-      showQRCode: true,
-      showPhoto: true,
+      template: 'standard',
+      primaryColor: '#1E40AF',
+      secondaryColor: '#60A5FA',
+      organizationLogoUrl: '',
       validityPeriod: 12,
-      physicalCardPrice: '25.00',
-      physicalCardEnabled: true,
-      pinDigits: 6,
-      requirePin: true,
-      cardNumberPrefix: 'MEM',
-      termsAndConditions: '',
-      customMessage: '',
+      physicalCardsEnabled: true,
+      physicalCardPrice: 25.00,
+      useCustomQrDesign: false,
+      showQrBorder: true,
+      showLogoInQr: true,
+      showBeneficiaryPhoto: true,
+      enableBarcodeAltDisplay: false,
+      requirePhotoForCards: false,
     }
   });
-
-  // Preencher o formulário quando as configurações estiverem carregadas
+  
+  // Preencher o formulário quando as configurações forem carregadas
   React.useEffect(() => {
-    if (currentSettings) {
+    if (settings) {
       form.reset({
-        organizationId: currentSettings.organizationId,
-        cardDesign: currentSettings.cardDesign,
-        primaryColor: currentSettings.primaryColor,
-        secondaryColor: currentSettings.secondaryColor,
-        showLogo: currentSettings.showLogo,
-        showQRCode: currentSettings.showQRCode,
-        showPhoto: currentSettings.showPhoto,
-        validityPeriod: currentSettings.validityPeriod,
-        physicalCardPrice: currentSettings.physicalCardPrice,
-        physicalCardEnabled: currentSettings.physicalCardEnabled,
-        pinDigits: currentSettings.pinDigits,
-        requirePin: currentSettings.requirePin,
-        cardNumberPrefix: currentSettings.cardNumberPrefix,
-        termsAndConditions: currentSettings.termsAndConditions,
-        customMessage: currentSettings.customMessage,
+        template: settings.template || 'standard',
+        primaryColor: settings.primaryColor || '#1E40AF',
+        secondaryColor: settings.secondaryColor || '#60A5FA',
+        organizationLogoUrl: settings.organizationLogoUrl || '',
+        validityPeriod: settings.validityPeriod || 12,
+        physicalCardsEnabled: settings.physicalCardsEnabled !== undefined ? settings.physicalCardsEnabled : true,
+        physicalCardPrice: settings.physicalCardPrice || 25.00,
+        useCustomQrDesign: settings.useCustomQrDesign || false,
+        showQrBorder: settings.showQrBorder !== undefined ? settings.showQrBorder : true,
+        showLogoInQr: settings.showLogoInQr !== undefined ? settings.showLogoInQr : true,
+        showBeneficiaryPhoto: settings.showBeneficiaryPhoto !== undefined ? settings.showBeneficiaryPhoto : true,
+        enableBarcodeAltDisplay: settings.enableBarcodeAltDisplay || false,
+        requirePhotoForCards: settings.requirePhotoForCards || false,
+      });
+      
+      setPreviewTemplate(settings.template || 'standard');
+      setPreviewColors({
+        primary: settings.primaryColor || '#1E40AF',
+        secondary: settings.secondaryColor || '#60A5FA',
       });
     }
-  }, [currentSettings, form]);
+  }, [settings, form]);
+  
+  // Atualizar a prévia quando as cores mudarem no formulário
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'primaryColor' || name === 'secondaryColor') {
+        setPreviewColors({
+          primary: value.primaryColor || '#1E40AF',
+          secondary: value.secondaryColor || '#60A5FA',
+        });
+      }
+      if (name === 'template') {
+        setPreviewTemplate(value.template as string || 'standard');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
-  // Mutation para salvar configurações
+  // Mutation para salvar as configurações
   const mutation = useMutation({
-    mutationFn: async (data: FormValues) => {
-      // Simular envio para API
-      const response = await fetch('/api/carteirinha/membership-cards/settings/update', {
+    mutationFn: async (values: FormValues) => {
+      const response = await fetch('/api/carteirinha/membership-cards/settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(values),
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao salvar configurações');
+        throw new Error(errorData.message || 'Falha ao salvar configurações');
       }
       
       return await response.json();
@@ -182,15 +246,11 @@ export function MembershipCardSettings({ organizationId, onSuccess }: Membership
     onSuccess: () => {
       toast({
         title: 'Configurações salvas',
-        description: 'As configurações das carteirinhas foram atualizadas com sucesso.',
+        description: 'As configurações foram atualizadas com sucesso',
       });
       
-      // Invalidar queries para recarregar os dados
+      // Invalidar queries para atualizar os dados
       queryClient.invalidateQueries({ queryKey: ['/api/carteirinha/membership-cards/settings/current'] });
-      
-      if (onSuccess) {
-        onSuccess();
-      }
     },
     onError: (error: Error) => {
       toast({
@@ -203,10 +263,226 @@ export function MembershipCardSettings({ organizationId, onSuccess }: Membership
 
   // Função para lidar com o envio do formulário
   const onSubmit = (values: FormValues) => {
-    console.log('Valores do formulário:', values);
     mutation.mutate(values);
   };
+  
+  // Função para renderizar a prévia do modelo de carteirinha
+  const renderCardPreview = () => {
+    const currentColors = previewColors;
+    const logoUrl = form.watch('organizationLogoUrl');
+    const showPhoto = form.watch('showBeneficiaryPhoto');
+    
+    const templates = {
+      standard: (
+        <div 
+          className="relative w-full h-56 rounded-lg overflow-hidden shadow-lg"
+          style={{ background: `linear-gradient(to right, ${currentColors.primary}, ${currentColors.secondary})` }}
+        >
+          <div className="absolute top-0 left-0 w-full h-full p-4 flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo da Organização"
+                  className="h-8 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=Logo';
+                  }}
+                />
+              ) : (
+                <div className="text-white font-bold">ASSOCIAÇÃO</div>
+              )}
+              <div className="bg-white/90 p-1 rounded text-blue-800 text-xs font-bold">
+                ASC123456789
+              </div>
+            </div>
+            
+            <div className="flex">
+              {showPhoto && (
+                <div className="mr-3">
+                  <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center">
+                    <CreditCard className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              )}
+              <div className="text-white">
+                <h3 className="font-bold text-base">Nome do Associado</h3>
+                <p className="text-xs opacity-90">CPF: 000.000.000-00</p>
+                <div className="text-xs mt-1 opacity-80">
+                  Validade: 31/12/2025
+                </div>
+                <div className="mt-2">
+                  <span className="bg-white/10 text-xs px-2 py-0.5 rounded-full text-white border border-white/30">
+                    Associado
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-center items-center">
+              <div className="bg-white p-2 rounded-md">
+                <QrCode className="h-7 w-7 text-blue-800" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      premium: (
+        <div 
+          className="relative w-full h-56 rounded-lg overflow-hidden shadow-lg"
+          style={{ background: currentColors.primary }}
+        >
+          <div 
+            className="absolute top-0 right-0 w-1/2 h-full"
+            style={{ 
+              background: currentColors.secondary,
+              clipPath: 'polygon(30% 0, 100% 0, 100% 100%, 0% 100%)'
+            }}
+          ></div>
+          <div className="absolute top-0 left-0 w-full h-full p-4 flex flex-col justify-between z-10">
+            <div className="flex justify-between items-start">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Logo da Organização"
+                  className="h-10 object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=Logo';
+                  }}
+                />
+              ) : (
+                <div className="text-white font-bold flex items-center">
+                  <CrownIcon className="mr-1 h-5 w-5" />
+                  <span>PREMIUM</span>
+                </div>
+              )}
+              <div className="bg-black/20 backdrop-blur-sm p-1.5 rounded-lg text-white text-xs font-bold">
+                ASC123456789
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              {showPhoto && (
+                <div className="mr-4">
+                  <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40">
+                    <CreditCard className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              )}
+              <div className="text-white">
+                <h3 className="font-bold text-lg">Nome do Associado</h3>
+                <p className="text-sm opacity-90">CPF: 000.000.000-00</p>
+                <div className="text-sm mt-1 opacity-80">
+                  Validade: 31/12/2025
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end items-center">
+              <div className="backdrop-blur-md bg-white/10 p-3 rounded-lg">
+                <QrCode className="h-8 w-8 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      custom: (
+        <div 
+          className="relative w-full h-56 rounded-lg overflow-hidden shadow-lg border-8"
+          style={{ 
+            borderColor: currentColors.secondary,
+            background: 'white',
+          }}
+        >
+          <div 
+            className="absolute top-0 left-0 w-full h-12"
+            style={{ background: currentColors.primary }}
+          ></div>
+          <div 
+            className="absolute bottom-0 left-0 w-full h-12"
+            style={{ background: currentColors.primary }}
+          ></div>
+          <div className="absolute top-0 left-0 w-full h-full p-4 flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              {logoUrl ? (
+                <div className="bg-white p-1 rounded-md shadow-md">
+                  <img
+                    src={logoUrl}
+                    alt="Logo da Organização"
+                    className="h-8 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/100x40?text=Logo';
+                    }}
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="font-bold p-1 px-2 rounded"
+                  style={{ color: currentColors.primary }}
+                >
+                  CARTEIRINHA
+                </div>
+              )}
+              <div 
+                className="p-1 px-2 rounded text-xs font-bold"
+                style={{ 
+                  background: currentColors.secondary,
+                  color: 'white'
+                }}
+              >
+                ASC123456789
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center mt-2">
+              {showPhoto && (
+                <div className="mr-3">
+                  <div 
+                    className="w-20 h-20 rounded-md flex items-center justify-center shadow-md"
+                    style={{ 
+                      border: `2px solid ${currentColors.secondary}`,
+                      background: '#f8f9fa'
+                    }}
+                  >
+                    <CreditCard 
+                      className="h-10 w-10" 
+                      style={{ color: currentColors.primary }}
+                    />
+                  </div>
+                </div>
+              )}
+              <div style={{ color: '#333' }}>
+                <h3 className="font-bold text-base">Nome do Associado</h3>
+                <p className="text-xs">CPF: 000.000.000-00</p>
+                <div className="text-xs mt-1">
+                  Validade: 31/12/2025
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-center items-center mb-2">
+              <div 
+                className="p-2 rounded-md shadow-md"
+                style={{ 
+                  border: `2px solid ${currentColors.secondary}`,
+                  background: 'white'
+                }}
+              >
+                <QrCode 
+                  className="h-8 w-8" 
+                  style={{ color: currentColors.primary }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    };
+    
+    return templates[previewTemplate] || templates.standard;
+  };
 
+  // Mostrar loading enquanto carrega dados
   if (isLoading) {
     return (
       <div className="flex justify-center p-8">
@@ -216,583 +492,655 @@ export function MembershipCardSettings({ organizationId, onSuccess }: Membership
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold">Configurações de Carteirinha</h2>
-        <p className="text-muted-foreground">
-          Personalize as configurações das carteirinhas de associado
-        </p>
-      </div>
-
-      <Separator />
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-3 md:grid-cols-5 lg:w-[600px]">
-              <TabsTrigger value="general">Geral</TabsTrigger>
-              <TabsTrigger value="appearance">Aparência</TabsTrigger>
-              <TabsTrigger value="security">Segurança</TabsTrigger>
-              <TabsTrigger value="physical">Cartão Físico</TabsTrigger>
-              <TabsTrigger value="terms">Termos</TabsTrigger>
-            </TabsList>
-            
-            {/* Configurações Gerais */}
-            <TabsContent value="general" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações Gerais</CardTitle>
-                  <CardDescription>
-                    Configure opções básicas para as carteirinhas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="validityPeriod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Período de Validade (meses)</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center space-x-4">
-                            <Slider
-                              min={1}
-                              max={60}
-                              step={1}
-                              value={[field.value]}
-                              onValueChange={(value) => field.onChange(value[0])}
-                              className="flex-1"
-                            />
-                            <div className="w-16">
-                              <Input
-                                type="number"
-                                value={field.value}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                min={1}
-                                max={60}
-                              />
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Quantos meses a carteirinha ficará válida após a emissão
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="cardNumberPrefix"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prefixo do Número da Carteirinha</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="MEM"
-                            {...field}
-                            maxLength={5}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Um prefixo curto para identificar suas carteirinhas (ex: MEM, ABC)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="customMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mensagem Personalizada</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Seja bem-vindo ao nosso Clube de Benefícios!"
-                            className="resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Uma mensagem de boas-vindas a ser exibida para associados (máx. 200 caracteres)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Configurações de Aparência */}
-            <TabsContent value="appearance" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aparência da Carteirinha</CardTitle>
-                  <CardDescription>
-                    Personalize a aparência visual das carteirinhas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="cardDesign"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Design da Carteirinha</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um design" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="standard">Padrão</SelectItem>
-                            <SelectItem value="premium">Premium</SelectItem>
-                            <SelectItem value="custom">Personalizado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Escolha um dos designs pré-definidos ou personalize
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="primaryColor"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cor Primária</FormLabel>
-                          <FormControl>
-                            <div className="flex space-x-2">
-                              <Input {...field} />
-                              <div
-                                className="h-10 w-10 rounded border"
-                                style={{ backgroundColor: field.value }}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Cor principal da carteirinha (formato hex)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="secondaryColor"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cor Secundária</FormLabel>
-                          <FormControl>
-                            <div className="flex space-x-2">
-                              <Input {...field} />
-                              <div
-                                className="h-10 w-10 rounded border"
-                                style={{ backgroundColor: field.value }}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Cor secundária e de destaque (formato hex)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="showLogo"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel>Exibir Logo</FormLabel>
-                            <FormDescription>
-                              Mostrar logo da organização
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="showQRCode"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel>Exibir QR Code</FormLabel>
-                            <FormDescription>
-                              Incluir QR Code na carteirinha
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="showPhoto"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                          <div className="space-y-0.5">
-                            <FormLabel>Exibir Foto</FormLabel>
-                            <FormDescription>
-                              Incluir foto do associado
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Tabs defaultValue="appearence" className="w-full">
+              <TabsList className="w-full">
+                <TabsTrigger value="appearence" className="flex items-center">
+                  <Palette className="mr-2 h-4 w-4" />
+                  <span>Aparência</span>
+                </TabsTrigger>
+                <TabsTrigger value="rules" className="flex items-center">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  <span>Regras</span>
+                </TabsTrigger>
+                <TabsTrigger value="physical" className="flex items-center">
+                  <Printer className="mr-2 h-4 w-4" />
+                  <span>Carteirinhas Físicas</span>
+                </TabsTrigger>
+              </TabsList>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Pré-visualização</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-lg overflow-hidden border w-full max-w-md mx-auto shadow-md">
-                    <div 
-                      className="p-4 text-white"
-                      style={{ 
-                        backgroundColor: form.getValues('primaryColor'),
-                        background: `linear-gradient(135deg, ${form.getValues('primaryColor')}, ${form.getValues('secondaryColor')})` 
-                      }}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-bold">Carteira de Associado</h3>
-                          <p className="text-xs opacity-90">Válida até: 01/01/2026</p>
-                        </div>
-                        {form.getValues('showLogo') && (
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1">
-                            <Sparkles className="h-6 w-6 text-primary" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-white flex">
-                      {form.getValues('showPhoto') && (
-                        <div className="mr-4">
-                          <div className="w-20 h-20 bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-                            <Upload className="h-6 w-6 text-gray-400" />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex-1">
-                        <h4 className="font-bold">Nome do Associado</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Nº Associado: {form.getValues('cardNumberPrefix')}12345
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          CPF: 123.456.789-00
-                        </p>
-                        
-                        {form.getValues('showQRCode') && (
-                          <div className="mt-2 flex items-center space-x-2 text-sm text-muted-foreground">
-                            <QrCode className="h-4 w-4" />
-                            <span>QR Code disponível na carteirinha</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Configurações de Segurança */}
-            <TabsContent value="security" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Segurança</CardTitle>
-                  <CardDescription>
-                    Configure opções de segurança para as carteirinhas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="requirePin"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel>Exigir PIN</FormLabel>
-                          <FormDescription>
-                            Solicitar código PIN ao verificar a carteirinha
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+              <TabsContent value="appearence" className="space-y-4 pt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Aparência da Carteirinha</CardTitle>
+                    <CardDescription>
+                      Personalize a aparência das carteirinhas digitais
+                    </CardDescription>
+                  </CardHeader>
                   
-                  {form.watch('requirePin') && (
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <FormField
+                          control={form.control}
+                          name="template"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Modelo da Carteirinha</FormLabel>
+                              <FormControl>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  value={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um modelo" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="standard">Padrão</SelectItem>
+                                    <SelectItem value="premium">Premium</SelectItem>
+                                    <SelectItem value="custom">Personalizado</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormDescription>
+                                Escolha o layout base da carteirinha
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-4 mt-4">
+                          <FormField
+                            control={form.control}
+                            name="primaryColor"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Cor Primária</FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <div 
+                                      className="w-10 h-10 rounded border cursor-pointer"
+                                      style={{ backgroundColor: field.value }}
+                                      onClick={() => {
+                                        const input = document.getElementById('primaryColorInput');
+                                        if (input) input.click();
+                                      }}
+                                    />
+                                    <Input
+                                      id="primaryColorInput"
+                                      type="color"
+                                      {...field}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormDescription>
+                                  Cor principal da carteirinha
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={form.control}
+                            name="secondaryColor"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Cor Secundária</FormLabel>
+                                <FormControl>
+                                  <div className="flex gap-2">
+                                    <div 
+                                      className="w-10 h-10 rounded border cursor-pointer"
+                                      style={{ backgroundColor: field.value }}
+                                      onClick={() => {
+                                        const input = document.getElementById('secondaryColorInput');
+                                        if (input) input.click();
+                                      }}
+                                    />
+                                    <Input
+                                      id="secondaryColorInput"
+                                      type="color"
+                                      {...field}
+                                      className="w-full"
+                                    />
+                                  </div>
+                                </FormControl>
+                                <FormDescription>
+                                  Cor complementar da carteirinha
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <FormField
+                          control={form.control}
+                          name="organizationLogoUrl"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>URL da Logo da Organização</FormLabel>
+                              <FormControl>
+                                <div className="flex flex-col gap-2">
+                                  <Input
+                                    placeholder="https://exemplo.com/logo.png"
+                                    {...field}
+                                    value={field.value || ''}
+                                  />
+                                  {field.value && (
+                                    <div className="p-2 border rounded flex justify-center">
+                                      <img
+                                        src={field.value}
+                                        alt="Prévia da logo"
+                                        className="max-h-12 object-contain"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).src = 'https://placehold.co/200x80?text=Logo+Inválida';
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormDescription>
+                                URL da imagem do logo da organização (opcional)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="mt-4">
+                          <FormField
+                            control={form.control}
+                            name="showBeneficiaryPhoto"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                                <div className="space-y-0.5">
+                                  <FormLabel>Mostrar Foto do Associado</FormLabel>
+                                  <FormDescription>
+                                    Exibir a foto do associado na carteirinha
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Label className="text-sm font-medium">Prévia da Carteirinha</Label>
+                        {renderCardPreview()}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Esta é uma prévia ilustrativa. A aparência final pode variar dependendo dos dados do associado.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Separator className="my-6" />
+                    
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Configurações do QR Code</h3>
+                      
+                      <div className="space-y-3 mt-4">
+                        <FormField
+                          control={form.control}
+                          name="useCustomQrDesign"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel>Personalizar QR Code</FormLabel>
+                                <FormDescription>
+                                  Ativar personalização avançada do QR Code
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {form.watch('useCustomQrDesign') && (
+                          <>
+                            <FormField
+                              control={form.control}
+                              name="showQrBorder"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>Mostrar Borda no QR Code</FormLabel>
+                                    <FormDescription>
+                                      Exibir uma borda ao redor do QR Code
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="showLogoInQr"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>Mostrar Logo no QR Code</FormLabel>
+                                    <FormDescription>
+                                      Exibir a logo da organização no centro do QR Code
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="enableBarcodeAltDisplay"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>Exibir Código de Barras Alternativo</FormLabel>
+                                    <FormDescription>
+                                      Incluir um código de barras linear além do QR Code
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="rules" className="space-y-4 pt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Regras e Políticas</CardTitle>
+                    <CardDescription>
+                      Configure as regras para emissão e validade das carteirinhas
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-6">
                     <FormField
                       control={form.control}
-                      name="pinDigits"
+                      name="validityPeriod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Número de Dígitos do PIN</FormLabel>
+                          <FormLabel>Período de Validade (meses)</FormLabel>
                           <FormControl>
-                            <div className="flex items-center space-x-4">
-                              <Slider
-                                min={4}
-                                max={8}
-                                step={1}
-                                value={[field.value]}
-                                onValueChange={(value) => field.onChange(value[0])}
-                                className="flex-1"
-                              />
-                              <div className="w-16">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-4">
+                                <Slider
+                                  value={[field.value]}
+                                  min={1}
+                                  max={60}
+                                  step={1}
+                                  onValueChange={(value) => field.onChange(value[0])}
+                                  className="flex-1"
+                                />
                                 <Input
                                   type="number"
+                                  className="w-20"
                                   value={field.value}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                  min={4}
-                                  max={8}
+                                  onChange={(e) => {
+                                    const value = parseInt(e.target.value);
+                                    if (!isNaN(value) && value >= 1 && value <= 60) {
+                                      field.onChange(value);
+                                    }
+                                  }}
+                                  min={1}
+                                  max={60}
                                 />
+                              </div>
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>1 mês</span>
+                                <span>1 ano</span>
+                                <span>2 anos</span>
+                                <span>5 anos</span>
                               </div>
                             </div>
                           </FormControl>
                           <FormDescription>
-                            Quantos dígitos terá o PIN de segurança (4-8)
+                            Período de validade padrão das carteirinhas (em meses)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  )}
-                  
-                  <div className="mt-4 p-4 border rounded-md bg-gray-50">
-                    <div className="flex items-start mb-2">
-                      <Lock className="h-5 w-5 mr-2 text-blue-600" />
-                      <h4 className="text-sm font-semibold">Verificação de Carteirinhas</h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Ao escanear o QR Code, o verificador será direcionado para uma página segura que exibirá:
-                    </p>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li className="flex items-center">
-                        <CheckCircle2 className="h-3 w-3 mr-2 text-green-500" />
-                        Status de validade da carteirinha
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle2 className="h-3 w-3 mr-2 text-green-500" />
-                        Informações básicas do associado
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle2 className="h-3 w-3 mr-2 text-green-500" />
-                        {form.watch('requirePin') 
-                          ? `Solicitar PIN de ${form.watch('pinDigits')} dígitos` 
-                          : 'Verificação sem PIN (recomendamos ativar o PIN)'}
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle2 className="h-3 w-3 mr-2 text-green-500" />
-                        Log de verificações para auditoria
-                      </li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Configurações de Cartão Físico */}
-            <TabsContent value="physical" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Carteirinhas Físicas</CardTitle>
-                  <CardDescription>
-                    Configure opções para carteirinhas físicas impressas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="physicalCardEnabled"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel>Ativar Carteirinhas Físicas</FormLabel>
-                          <FormDescription>
-                            Permitir que associados solicitem carteirinhas físicas
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  {form.watch('physicalCardEnabled') && (
+                    
+                    <Separator />
+                    
                     <FormField
                       control={form.control}
-                      name="physicalCardPrice"
+                      name="requirePhotoForCards"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Preço da Carteirinha Física (R$)</FormLabel>
+                        <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel>Exigir Foto para Emissão</FormLabel>
+                            <FormDescription>
+                              Tornar obrigatório o upload de foto para emitir carteirinhas
+                            </FormDescription>
+                          </div>
                           <FormControl>
-                            <Input
-                              type="text"
-                              placeholder="25.00"
-                              {...field}
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormDescription>
-                            Valor cobrado para emissão e envio da carteirinha física
-                          </FormDescription>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
-                  )}
-                  
-                  <div className="mt-4 p-4 border rounded-md bg-gray-50">
-                    <div className="flex items-start mb-2">
-                      <Printer className="h-5 w-5 mr-2 text-blue-600" />
-                      <h4 className="text-sm font-semibold">Processo de Emissão Física</h4>
+                    
+                    <div className="rounded-md border p-4 bg-blue-50 border-blue-200">
+                      <div className="flex gap-2 items-start">
+                        <HelpCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-blue-700">Informações sobre regras</h4>
+                          <p className="text-sm text-blue-600 mt-0.5">
+                            Estas regras serão aplicadas a todas as novas carteirinhas emitidas.
+                            Carteirinhas já existentes não serão afetadas pelas mudanças.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Quando um associado solicita uma carteirinha física:
-                    </p>
-                    <ol className="text-sm space-y-2 text-muted-foreground list-decimal pl-5">
-                      <li>Associado solicita e efetua o pagamento da taxa</li>
-                      <li>Administrador recebe notificação de nova solicitação</li>
-                      <li>Carteirinha é aprovada e enviada para impressão</li>
-                      <li>Após impressão, administrador marca como "Impressa"</li>
-                      <li>Após entrega, administrador marca como "Entregue"</li>
-                    </ol>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Configurações de Termos */}
-            <TabsContent value="terms" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Termos e Condições</CardTitle>
-                  <CardDescription>
-                    Configure os termos e condições para uso das carteirinhas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name="termsAndConditions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Termos e Condições</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Adicione os termos e condições para uso das carteirinhas..."
-                            className="min-h-[200px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Estes termos serão exibidos durante a emissão de carteirinhas
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="physical" className="space-y-4 pt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Carteirinhas Físicas</CardTitle>
+                    <CardDescription>
+                      Configure as opções para carteirinhas físicas impressas
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="physicalCardsEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel>Habilitar Carteirinhas Físicas</FormLabel>
+                            <FormDescription>
+                              Permitir que associados solicitem carteirinhas físicas impressas
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {form.watch('physicalCardsEnabled') && (
+                      <FormField
+                        control={form.control}
+                        name="physicalCardPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preço da Carteirinha Física (R$)</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2">R$</span>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  className="pl-10"
+                                  {...field}
+                                  onChange={(e) => {
+                                    const value = parseFloat(e.target.value);
+                                    field.onChange(isNaN(value) ? 0 : value);
+                                  }}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Valor cobrado por carteirinha física solicitada
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (currentSettings) {
-                  form.reset({
-                    organizationId: currentSettings.organizationId,
-                    cardDesign: currentSettings.cardDesign,
-                    primaryColor: currentSettings.primaryColor,
-                    secondaryColor: currentSettings.secondaryColor,
-                    showLogo: currentSettings.showLogo,
-                    showQRCode: currentSettings.showQRCode,
-                    showPhoto: currentSettings.showPhoto,
-                    validityPeriod: currentSettings.validityPeriod,
-                    physicalCardPrice: currentSettings.physicalCardPrice,
-                    physicalCardEnabled: currentSettings.physicalCardEnabled,
-                    pinDigits: currentSettings.pinDigits,
-                    requirePin: currentSettings.requirePin,
-                    cardNumberPrefix: currentSettings.cardNumberPrefix,
-                    termsAndConditions: currentSettings.termsAndConditions,
-                    customMessage: currentSettings.customMessage,
-                  });
-                }
-              }}
-            >
-              Restaurar Padrões
-            </Button>
+                    
+                    <div className="rounded-md border p-4 bg-amber-50 border-amber-200">
+                      <div className="flex gap-2 items-start">
+                        <HelpCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                        <div>
+                          <h4 className="font-medium text-amber-700">Processo de carteirinhas físicas</h4>
+                          <p className="text-sm text-amber-600 mt-0.5">
+                            Ao solicitar carteirinhas físicas, os associados pagarão o valor definido.
+                            Você precisará aprovar cada solicitação antes que sejam enviadas para impressão.
+                          </p>
+                          <Accordion type="single" collapsible className="mt-2">
+                            <AccordionItem value="workflow">
+                              <AccordionTrigger className="text-sm text-amber-700 py-1">
+                                Ver fluxo de aprovação
+                              </AccordionTrigger>
+                              <AccordionContent className="text-xs text-amber-600">
+                                <ol className="list-decimal list-inside space-y-1 pl-1">
+                                  <li>Associado solicita carteirinha física</li>
+                                  <li>Associado paga a taxa definida</li>
+                                  <li>Administrador aprova a solicitação</li>
+                                  <li>Carteirinha é enviada para impressão</li>
+                                  <li>Carteirinha é entregue ao associado</li>
+                                </ol>
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {stats && (
+                      <div className="rounded-md border p-4 mt-4">
+                        <h4 className="font-medium text-sm mb-2">Estatísticas de Carteirinhas Físicas</h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="text-muted-foreground">Total Solicitadas:</span>
+                            <span className="ml-1 font-medium">{stats.physicalCards || 0}</span>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <span className="text-muted-foreground">Aguardando Aprovação:</span>
+                            <span className="ml-1 font-medium">{stats.pendingApproval || 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
             
-            <Button 
-              type="submit"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? (
-                <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                  Salvando...
-                </>
-              ) : (
-                'Salvar Configurações'
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset({
+                    template: settings?.template || 'standard',
+                    primaryColor: settings?.primaryColor || '#1E40AF',
+                    secondaryColor: settings?.secondaryColor || '#60A5FA',
+                    organizationLogoUrl: settings?.organizationLogoUrl || '',
+                    validityPeriod: settings?.validityPeriod || 12,
+                    physicalCardsEnabled: settings?.physicalCardsEnabled !== undefined ? settings.physicalCardsEnabled : true,
+                    physicalCardPrice: settings?.physicalCardPrice || 25.00,
+                    useCustomQrDesign: settings?.useCustomQrDesign || false,
+                    showQrBorder: settings?.showQrBorder !== undefined ? settings.showQrBorder : true,
+                    showLogoInQr: settings?.showLogoInQr !== undefined ? settings.showLogoInQr : true,
+                    showBeneficiaryPhoto: settings?.showBeneficiaryPhoto !== undefined ? settings.showBeneficiaryPhoto : true,
+                    enableBarcodeAltDisplay: settings?.enableBarcodeAltDisplay || false,
+                    requirePhotoForCards: settings?.requirePhotoForCards || false,
+                  });
+                  
+                  setPreviewTemplate(settings?.template || 'standard');
+                  setPreviewColors({
+                    primary: settings?.primaryColor || '#1E40AF',
+                    secondary: settings?.secondaryColor || '#60A5FA',
+                  });
+                }}
+              >
+                Reverter Alterações
+              </Button>
+              <Button 
+                type="submit"
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Configurações
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
+      
+      <div className="lg:col-span-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Estatísticas</CardTitle>
+            <CardDescription>
+              Resumo das carteirinhas emitidas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats ? (
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <div className="flex justify-between items-center p-2 bg-gray-100 rounded">
+                    <span className="text-sm font-medium">Total de Carteirinhas:</span>
+                    <span className="font-bold">{stats.totalCards || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 rounded">
+                    <span className="text-sm">Carteirinhas Ativas:</span>
+                    <span className="font-medium text-green-600">{stats.activeCards || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 rounded">
+                    <span className="text-sm">Carteirinhas Expiradas:</span>
+                    <span className="font-medium text-red-600">{stats.expiredCards || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 rounded">
+                    <span className="text-sm">Carteirinhas Físicas:</span>
+                    <span className="font-medium">{stats.physicalCards || 0}</span>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Dicas Rápidas</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex gap-2">
+                      <EyeIcon className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span>Personalize a aparência usando cores e logo da sua organização</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <CreditCard className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span>Configure o período de validade conforme o ciclo de filiação</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <Printer className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span>Ative carteirinhas físicas para oferecer um diferencial aos associados</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="py-4 text-center text-muted-foreground">
+                Carregando estatísticas...
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Ajuda</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 text-sm">
+              <Accordion type="single" collapsible>
+                <AccordionItem value="templates">
+                  <AccordionTrigger>Quais são os modelos disponíveis?</AccordionTrigger>
+                  <AccordionContent>
+                    <p>Existem três modelos de carteirinha:</p>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li><strong>Padrão:</strong> Design simples com gradiente de cores</li>
+                      <li><strong>Premium:</strong> Design elegante com efeitos visuais</li>
+                      <li><strong>Personalizado:</strong> Design com bordas e cores customizadas</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="validity">
+                  <AccordionTrigger>Como funciona o período de validade?</AccordionTrigger>
+                  <AccordionContent>
+                    O período de validade define por quanto tempo as carteirinhas serão válidas após a emissão. Ao definir, por exemplo, 12 meses, todas as novas carteirinhas terão validade de um ano a partir da data de emissão. Carteirinhas existentes não serão afetadas por mudanças nessa configuração.
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="physical">
+                  <AccordionTrigger>Como funcionam as carteirinhas físicas?</AccordionTrigger>
+                  <AccordionContent>
+                    Quando ativadas, os associados poderão solicitar versões físicas impressas de suas carteirinhas mediante pagamento da taxa configurada. O administrador precisará aprovar cada solicitação antes que sejam enviadas para impressão. O processo completo inclui solicitação, pagamento, aprovação, impressão e entrega.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
