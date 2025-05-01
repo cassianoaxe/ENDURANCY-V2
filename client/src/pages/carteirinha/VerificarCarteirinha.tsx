@@ -41,7 +41,8 @@ export default function VerificarCarteirinha() {
 
       try {
         setLoading(true);
-        const response = await apiRequest(`/api/members/verify/${membershipId}`, {
+        // Usar a nova rota da API para o módulo de carteirinha
+        const response = await apiRequest(`/api/carteirinha/verify/${membershipId}`, {
           method: 'GET'
         });
         
