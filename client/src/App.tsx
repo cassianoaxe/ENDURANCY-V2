@@ -15,6 +15,8 @@ import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
 import Login from "@/pages/Login";
 import AdminDashboard from "@/pages/dashboards/AdminDashboard";
+import CarteirinhaPage from "@/pages/CarteirinhaPage";
+import VerificarCarteirinha from "@/pages/carteirinha/VerificarCarteirinha";
 import TourGuide from "@/components/features/TourGuide";
 
 // Importar outros componentes conforme necessário
@@ -94,6 +96,12 @@ function AppContent() {
   }
   else if (currentPath === '/admin/dashboard') {
     Component = AdminDashboard;
+  }
+  else if (currentPath === '/carteirinha') {
+    Component = CarteirinhaPage;
+  }
+  else if (currentPath.startsWith('/carteirinha/verificar/')) {
+    Component = VerificarCarteirinha;
   }
 
   // Se for página de login ou registro, não usar o Layout padrão
