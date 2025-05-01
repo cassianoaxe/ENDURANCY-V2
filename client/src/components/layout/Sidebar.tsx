@@ -332,7 +332,13 @@ export default function Sidebar() {
         
         {/* Botão de logout */}
         <button 
-          onClick={logout}
+          onClick={() => {
+            logout();
+            // Redirecionar diretamente para a página inicial com reload completo
+            setTimeout(() => {
+              window.location.href = '/login?refresh=true';
+            }, 100);
+          }}
           className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 mt-4 rounded-lg transition-colors text-sm text-red-600 hover:bg-red-50`}
         >
           <div className="flex items-center gap-3">
