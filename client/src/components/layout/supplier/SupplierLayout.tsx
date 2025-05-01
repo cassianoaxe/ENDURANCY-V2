@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface SupplierLayoutProps {
   children: React.ReactNode;
@@ -40,6 +41,24 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Buscar dados do usuário autenticado
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await apiRequest("/api/auth/me");
+        setUserData(data);
+      } catch (error) {
+        console.error("Erro ao buscar dados do usuário:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const navigation = [
     { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
@@ -50,13 +69,13 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
     { name: "Configurações", href: "/supplier/settings", icon: Settings, current: activeTab === "settings" },
   ];
 
-  // Dados fictícios do usuário
-  const user = {
-    name: "Fornecedor ABC",
-    initials: "FA",
-    avatar: "",
-    unreadNotifications: 3,
-    unreadMessages: 2,
+  // Configurar informações do usuário
+  const userInfo = {
+    name: userData?.name || "Fornecedor",
+    initials: userData?.name ? userData.name.substring(0, 2).toUpperCase() : "FO",
+    avatar: userData?.profilePhoto || "",
+    unreadNotifications: 3, // Valores temporários para notificações
+    unreadMessages: 2,      // Valores temporários para mensagens
   };
 
   // Função para lidar com o clique em itens do menu que ainda não estão implementados
@@ -68,12 +87,22 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
   };
 
   // Função para lidar com o logout
-  const handleLogout = () => {
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
-    });
-    setLocation("/supplier/login");
+  const handleLogout = async () => {
+    try {
+      await apiRequest("/api/auth/logout", { method: 'POST' as const });
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso.",
+      });
+      setLocation("/supplier/login");
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao realizar logout",
+        description: "Ocorreu um erro ao tentar sair do sistema.",
+      });
+    }
   };
 
   return (
@@ -135,9 +164,9 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
                 onClick={() => handleUnimplementedClick("Notificações")}
               >
                 <Bell className="h-5 w-5" />
-                {user.unreadNotifications > 0 && (
+                {userInfo.unreadNotifications > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 p-0 text-center text-[10px] font-bold text-white">
-                    {user.unreadNotifications}
+                    {userInfo.unreadNotifications}
                   </Badge>
                 )}
               </Button>
@@ -148,9 +177,9 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
                 onClick={() => handleUnimplementedClick("Mensagens")}
               >
                 <MessageSquare className="h-5 w-5" />
-                {user.unreadMessages > 0 && (
+                {userInfo.unreadMessages > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 p-0 text-center text-[10px] font-bold text-white">
-                    {user.unreadMessages}
+                    {userInfo.unreadMessages}
                   </Badge>
                 )}
               </Button>
@@ -160,9 +189,9 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 w-9 rounded-full text-white ring-1 ring-white/20 hover:bg-red-700/20 hover:text-white">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
                     <AvatarFallback className="bg-red-100 text-red-800 font-semibold text-sm">
-                      {user.initials}
+                      {userInfo.initials}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -177,15 +206,15 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
                 <DropdownMenuItem onClick={() => handleUnimplementedClick("Mensagens")}>
                   <MessageSquare className="mr-2 h-4 w-4" />
                   <span>Mensagens</span>
-                  {user.unreadMessages > 0 && (
-                    <Badge className="ml-auto bg-amber-500">{user.unreadMessages}</Badge>
+                  {userInfo.unreadMessages > 0 && (
+                    <Badge className="ml-auto bg-amber-500">{userInfo.unreadMessages}</Badge>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleUnimplementedClick("Notificações")}>
                   <Bell className="mr-2 h-4 w-4" />
                   <span>Notificações</span>
-                  {user.unreadNotifications > 0 && (
-                    <Badge className="ml-auto bg-amber-500">{user.unreadNotifications}</Badge>
+                  {userInfo.unreadNotifications > 0 && (
+                    <Badge className="ml-auto bg-amber-500">{userInfo.unreadNotifications}</Badge>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleUnimplementedClick("Configurações")}>
