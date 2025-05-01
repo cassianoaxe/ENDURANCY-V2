@@ -81,17 +81,53 @@ export function MembershipCardDashboard() {
       if (!user) throw new Error('Usuário não autenticado');
       
       try {
-        console.log('Requisitando carteirinhas, usuário autenticado:', !!user);
-        // Adicionar timestamp para evitar cache e usar endpoint alternativo
+        // Função para fazer a solicitação com diferentes estratégias
+        const fetchWithStrategy = async (url, fallbackUrl = null) => {
+          console.log('Tentando carregar carteirinhas de:', url);
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Resposta não ok: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+              throw new Error('Resposta em formato HTML');
+            }
+            
+            return response;
+          } catch (error) {
+            console.error(`Erro ao buscar de ${url}:`, error);
+            if (fallbackUrl) {
+              console.log('Tentando URL alternativa:', fallbackUrl);
+              const fallbackResponse = await fetch(fallbackUrl, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+              });
+              return fallbackResponse;
+            }
+            throw error;
+          }
+        };
+        
+        // Adicionar timestamp para evitar cache
         const timestamp = new Date().getTime();
-        const response = await fetch(`/api-json/carteirinha/membership-cards?_t=${timestamp}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'include'
-        });
+        const primaryUrl = `/api-json/carteirinha/membership-cards?_t=${timestamp}`;
+        const fallbackUrl = `/api/carteirinha/membership-cards?_t=${timestamp}`;
+        
+        const response = await fetchWithStrategy(primaryUrl, fallbackUrl);
         
         if (!response.ok) {
           const responseText = await response.text();
@@ -150,16 +186,53 @@ export function MembershipCardDashboard() {
       if (!user) return null;
       
       try {
+        // Reutilizar a mesma função de busca com estratégia de fallback
+        const fetchWithStrategy = async (url, fallbackUrl = null) => {
+          console.log('Tentando carregar configurações de:', url);
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              credentials: 'include'
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Resposta não ok: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+              throw new Error('Resposta em formato HTML');
+            }
+            
+            return response;
+          } catch (error) {
+            console.error(`Erro ao buscar configurações de ${url}:`, error);
+            if (fallbackUrl) {
+              console.log('Tentando URL alternativa para configurações:', fallbackUrl);
+              const fallbackResponse = await fetch(fallbackUrl, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'include'
+              });
+              return fallbackResponse;
+            }
+            throw error;
+          }
+        };
+      
         console.log('Requisitando configurações de carteirinha');
         const timestamp = new Date().getTime();
-        const response = await fetch(`/api-json/carteirinha/membership-cards/settings/current?_t=${timestamp}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'include'
-        });
+        const primaryUrl = `/api-json/carteirinha/membership-cards/settings/current?_t=${timestamp}`;
+        const fallbackUrl = `/api/carteirinha/membership-cards/settings/current?_t=${timestamp}`;
+        
+        const response = await fetchWithStrategy(primaryUrl, fallbackUrl);
         
         if (!response.ok) {
           const responseText = await response.text();

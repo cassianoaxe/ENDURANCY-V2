@@ -159,6 +159,9 @@ socialMembershipCardsRouter.get("/test", async (req, res) => {
 // Rota para listar carteirinhas
 socialMembershipCardsRouter.get("/", authenticate, isAssociation, async (req, res) => {
   try {
+    // Forçar o tipo de resposta como JSON
+    res.setHeader('Content-Type', 'application/json');
+    
     const organizationId = req.session.user.organizationId;
     const { status, cardType, query, page = 1, limit = 20 } = req.query;
     
@@ -254,6 +257,9 @@ socialMembershipCardsRouter.get("/", authenticate, isAssociation, async (req, re
 // Rota para obter detalhes de uma carteirinha específica
 socialMembershipCardsRouter.get("/:id", authenticate, async (req, res) => {
   try {
+    // Forçar o tipo de resposta como JSON
+    res.setHeader('Content-Type', 'application/json');
+    
     const { id } = req.params;
     const organizationId = req.session.user.organizationId;
     
