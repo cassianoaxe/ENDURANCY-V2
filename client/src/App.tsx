@@ -12,6 +12,7 @@ import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
+import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
 
 // Módulo de importação
 import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
@@ -462,6 +463,7 @@ function AppContent() {
         if (user.role === 'laboratory' && !path.startsWith('/laboratory/')) return true;
         if (user.role === 'researcher' && !path.startsWith('/researcher/')) return true;
         if (user.role === 'patient' && !path.startsWith('/patient/')) return true;
+        if (user.role === 'supplier' && !path.startsWith('/supplier/')) return true;
         
         return false;
       };
@@ -491,6 +493,8 @@ function AppContent() {
           redirectUrl = '/doctor/dashboard';
         } else if (user.role === 'patient') {
           redirectUrl = '/patient/dashboard';
+        } else if (user.role === 'supplier') {
+          redirectUrl = '/supplier/dashboard';
         }
         
         console.log(`Redirecionando para ${redirectUrl}`);
@@ -592,6 +596,31 @@ function AppContent() {
   // Rota para a página de geração de links de pagamento
   if (currentPath === '/pagamento/confirmar') {
     return <PaymentConfirmar />;
+  }
+
+  // Rotas para o portal do fornecedor (requerem autenticação)
+  if (currentPath.startsWith('/supplier/') && currentPath !== '/supplier/login' && 
+      currentPath !== '/supplier/register' && currentPath !== '/supplier/register-success') {
+    if (!isAuthenticated) {
+      // Redirecionar para a página de login do fornecedor
+      window.location.href = "/supplier/login";
+      return null;
+    }
+    
+    // Verificar se o usuário tem o papel adequado
+    if (userRole !== 'supplier') {
+      // Redirecionar para a página de login se não for um fornecedor
+      window.location.href = "/supplier/login";
+      return null;
+    }
+    
+    // Rotas protegidas do fornecedor
+    return (
+      <SupplierLayout>
+        {/* Centraliza todas as rotas do fornecedor em um único lugar para evitar duplicação */}
+        {currentPath === '/supplier/dashboard' && <SupplierDashboard />}
+      </SupplierLayout>
+    );
   }
 
   // Landing page sempre na raiz independente da autenticação
