@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+// O SupplierLayout é aplicado no App.tsx
 
 export default function SupplierAnalytics() {
   const [, setLocation] = useLocation();
@@ -117,7 +117,7 @@ export default function SupplierAnalytics() {
   };
 
   return (
-    <SupplierLayout activeTab="analytics">
+    <>
       <div className="pb-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <div>
@@ -790,6 +790,6 @@ export default function SupplierAnalytics() {
           </TabsContent>
         </Tabs>
       </div>
-    </SupplierLayout>
+    </>
   );
 }

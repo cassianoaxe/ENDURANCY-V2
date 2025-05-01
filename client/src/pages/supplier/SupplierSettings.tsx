@@ -40,7 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 // Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+// O SupplierLayout é aplicado no App.tsx
 
 export default function SupplierSettings() {
   const [, setLocation] = useLocation();
@@ -127,7 +127,7 @@ export default function SupplierSettings() {
   };
 
   return (
-    <SupplierLayout activeTab="settings">
+    <>
       <div className="pb-10">
         <h1 className="text-3xl font-bold tracking-tight mb-1">Configurações</h1>
         <p className="text-muted-foreground mb-8">Gerencie suas preferências e informações de conta.</p>
@@ -990,6 +990,6 @@ export default function SupplierSettings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SupplierLayout>
+    </>
   );
 }
