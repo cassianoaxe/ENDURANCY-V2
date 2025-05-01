@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
-import { OrganizationShell } from "@/components/shell";
 import { PartnerBenefitForm } from "@/components/carteirinha/PartnerBenefitForm";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -38,32 +37,30 @@ export default function PartnerBenefitNewPage() {
   };
 
   return (
-    <OrganizationShell title="">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Link href={`/organization/carteirinha/partners/${partnerId}`}>
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h2 className="text-3xl font-bold">Novo Benefício</h2>
-              {partner && (
-                <p className="text-muted-foreground">Para {partner.name}</p>
-              )}
-            </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Link href={`/organization/carteirinha/partners/${partnerId}`}>
+            <Button variant="outline" size="icon" className="h-8 w-8">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h2 className="text-3xl font-bold">Novo Benefício</h2>
+            {partner && (
+              <p className="text-muted-foreground">Para {partner.name}</p>
+            )}
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center p-8">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : (
-          <PartnerBenefitForm partnerId={partnerId} onSuccess={handleSuccess} />
-        )}
       </div>
-    </OrganizationShell>
+
+      {isLoading ? (
+        <div className="flex justify-center p-8">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      ) : (
+        <PartnerBenefitForm partnerId={partnerId} onSuccess={handleSuccess} />
+      )}
+    </div>
   );
 }
