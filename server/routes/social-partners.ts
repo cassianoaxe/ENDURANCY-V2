@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { db } from "../db";
 import { eq, and, desc, sql, ilike, or, like } from "drizzle-orm";
 import {
@@ -13,6 +13,12 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+
+// PATCH DE COMPATIBILIDADE PARA NODE_ENV = DEVELOPMENT
+// Esta correção altera especificamente o modo como express responde
+// para garantir JSON em desenvolvimento onde o Vite serve algumas 
+// rotas como HTML por padrão
+const DEV_MODE = process.env.NODE_ENV === 'development';
 
 // Configuração para upload de arquivos (logos, banners, contratos)
 const storage = multer.diskStorage({
@@ -95,6 +101,26 @@ function ensureJsonResponse(req, res, next) {
 
 // Criar o router
 export const socialPartnersRouter = Router();
+
+// API alternativa específica para retornar apenas JSON quando não autenticado
+socialPartnersRouter.get("/api-json", (req, res) => {
+  // Este endpoint sempre retorna JSON e nunca HTML
+  res.setHeader('Content-Type', 'application/json');
+  
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      message: "Não autenticado",
+      error: "Unauthorized",
+      authenticated: false
+    });
+  }
+  
+  // Se autenticado, redirecionar para a API normal
+  res.status(200).json({
+    message: "Endpoint JSON funcionando corretamente",
+    authenticated: true
+  });
+});
 
 // Rota para listar parceiros - Adiciona middleware ensureJsonResponse antes de authenticate
 socialPartnersRouter.get("/", ensureJsonResponse, authenticate, isAssociation, async (req, res) => {

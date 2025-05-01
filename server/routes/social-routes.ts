@@ -765,6 +765,24 @@ router.post("/public/social/:organizationId/volunteer-request", async (req, res)
   }
 });
 
+// Middleware para garantir que todas as rotas de carteirinha retornem formato JSON em caso de não autorização
+const ensureCarteirinhaJsonResponse = (req: any, res: any, next: any) => {
+  // Força o Content-Type como application/json para todas as respostas
+  res.set('Content-Type', 'application/json');
+  
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      message: "Não autenticado",
+      error: "Unauthorized",
+      authenticated: false
+    });
+  }
+  next();
+};
+
+// Aplicar middleware a todas as rotas do módulo carteirinha
+router.use('/carteirinha', ensureCarteirinhaJsonResponse);
+
 // Utilizar o router de importação em lote
 router.use('/carteirinha/beneficiaries', socialBeneficiariesBatchRouter);
 
