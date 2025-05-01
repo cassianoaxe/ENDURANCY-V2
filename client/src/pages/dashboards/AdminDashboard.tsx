@@ -309,8 +309,8 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm font-medium">Organizações Totais</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">58</div>
-                <p className="text-xs text-green-500">+12% em relação ao mês anterior</p>
+                <div className="text-3xl font-bold">{organizations?.length || 0}</div>
+                <p className="text-xs text-green-500">{!isLoading && organizations?.length > 0 ? '+12% em relação ao mês anterior' : 'Carregando dados...'}</p>
               </CardContent>
             </Card>
             <Card>
@@ -680,51 +680,61 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Hospital Santa Maria</td>
-                        <td className="px-6 py-4">Empresa</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">15/05/2023</td>
-                        <td className="px-6 py-4">Pro</td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Clínica São Lucas</td>
-                        <td className="px-6 py-4">Empresa</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">20/06/2023</td>
-                        <td className="px-6 py-4">Freemium</td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Associação Médica Brasileira</td>
-                        <td className="px-6 py-4">Associação</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
-                        </td>
-                        <td className="px-6 py-4">10/07/2023</td>
-                        <td className="px-6 py-4">Pro</td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Centro Médico Nacional</td>
-                        <td className="px-6 py-4">Empresa</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
-                        </td>
-                        <td className="px-6 py-4">05/08/2023</td>
-                        <td className="px-6 py-4">Grow</td>
-                      </tr>
-                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <td className="px-6 py-4 font-medium">Saúde Total</td>
-                        <td className="px-6 py-4">Empresa</td>
-                        <td className="px-6 py-4">
-                          <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Suspenso</span>
-                        </td>
-                        <td className="px-6 py-4">18/04/2023</td>
-                        <td className="px-6 py-4">Seed</td>
-                      </tr>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-4 text-center">
+                            <div className="flex justify-center">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        organizations && Array.isArray(organizations) && organizations.length > 0 ? (
+                          organizations.map((org: any, index: number) => {
+                            // Encontrar o nome do plano
+                            const planName = plans && Array.isArray(plans) 
+                              ? plans.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
+                              : 'Desconhecido';
+                            
+                            // Determinar a classe CSS do status
+                            let statusClass = 'bg-gray-100 text-gray-800';
+                            if (org.status === 'active') statusClass = 'bg-green-100 text-green-800';
+                            else if (org.status === 'pending') statusClass = 'bg-yellow-100 text-yellow-800';
+                            else if (org.status === 'blocked' || org.status === 'suspended') statusClass = 'bg-red-100 text-red-800';
+                            else if (org.status === 'review') statusClass = 'bg-blue-100 text-blue-800';
+                            
+                            // Formatar data de criação
+                            const createdDate = org.createdAt 
+                              ? new Date(org.createdAt).toLocaleDateString('pt-BR')
+                              : 'Data desconhecida';
+                              
+                            return (
+                              <tr key={index} className="bg-white border-b hover:bg-gray-50">
+                                <td className="px-6 py-4 font-medium">{org.name}</td>
+                                <td className="px-6 py-4">{org.type || 'Não especificado'}</td>
+                                <td className="px-6 py-4">
+                                  <span className={`${statusClass} text-xs font-medium me-2 px-2.5 py-0.5 rounded-full`}>
+                                    {org.status === 'active' ? 'Ativo' : 
+                                     org.status === 'pending' ? 'Pendente' : 
+                                     org.status === 'blocked' ? 'Bloqueado' : 
+                                     org.status === 'suspended' ? 'Suspenso' : 
+                                     org.status === 'review' ? 'Em Análise' : 
+                                     'Desconhecido'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">{createdDate}</td>
+                                <td className="px-6 py-4">{planName}</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-4 text-center">
+                              Nenhuma organização encontrada
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
