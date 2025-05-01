@@ -298,6 +298,7 @@ export default function AdminDashboard() {
   const auth = useAuth();
   const { user } = auth;
   console.log("Estado de autenticação no AdminDashboard:", auth);
+  
   const [activeTab, setActiveTab] = useState('overview');
   
   // Buscar dados dinâmicos para o dashboard
@@ -310,8 +311,19 @@ export default function AdminDashboard() {
     activeStatusData,
     usersData,
     organizationsGrowthData,
+    plansData, // Adicionar esta linha para ter acesso aos planos originais
     isLoading
   } = useOrganizationData();
+  
+  // Adicionar logs para depuração de planos
+  useEffect(() => {
+    if (plansData) {
+      console.log("plansData (dados originais):", plansData);
+    }
+    if (plansDistributionData) {
+      console.log("plansDistributionData (para gráficos):", plansDistributionData);
+    }
+  }, [plansData, plansDistributionData]);
 
   return (
     <div className="container mx-auto px-4 py-6">
