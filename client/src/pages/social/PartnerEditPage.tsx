@@ -1,7 +1,7 @@
 import React from 'react';
 import { PartnerForm } from '@/components/social/PartnerForm';
 import { DashboardShell } from '@/components/shell';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 
