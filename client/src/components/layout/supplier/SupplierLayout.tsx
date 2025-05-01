@@ -1,28 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation } from "wouter";
-import { 
-  Loader2, 
-  Truck, 
-  BarChart3, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  FileText, 
-  Settings,
-  Bell,
-  LogOut
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { 
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+  Truck,
+  Package2,
+  ClipboardList,
+  Wallet,
+  Bell,
+  MessageSquare,
+  LogOut,
+  ChevronDown,
+  BarChart3,
+  Settings,
+  HelpCircle,
+  Menu,
+  User,
+  Home
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface SupplierLayoutProps {
   children: React.ReactNode;
@@ -30,95 +37,169 @@ interface SupplierLayoutProps {
 }
 
 export default function SupplierLayout({ children, activeTab = "overview" }: SupplierLayoutProps) {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Mock de dados do usuário logado
+  const navigation = [
+    { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
+    { name: "Pedidos", href: "/supplier/orders", icon: ClipboardList, current: activeTab === "orders" },
+    { name: "Produtos", href: "/supplier/products", icon: Package2, current: activeTab === "products" },
+    { name: "Financeiro", href: "/supplier/finance", icon: Wallet, current: activeTab === "finance" },
+    { name: "Analytics", href: "/supplier/analytics", icon: BarChart3, current: activeTab === "analytics" },
+    { name: "Configurações", href: "/supplier/settings", icon: Settings, current: activeTab === "settings" },
+  ];
+
+  // Dados fictícios do usuário
   const user = {
-    id: 1,
-    name: "Empresa Exemplo LTDA",
-    email: "contato@empresa.com.br",
-    avatar: null,
-    role: "supplier",
+    name: "Fornecedor ABC",
+    initials: "FA",
+    avatar: "",
+    unreadNotifications: 3,
+    unreadMessages: 2,
   };
 
-  // Mock de notificações
-  const notificationsCount = 2;
+  // Função para lidar com o clique em itens do menu que ainda não estão implementados
+  const handleUnimplementedClick = (name: string) => {
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: `A funcionalidade "${name}" ainda está sendo implementada.`,
+    });
+  };
 
-  // Função para fazer logout
+  // Função para lidar com o logout
   const handleLogout = () => {
     toast({
       title: "Logout realizado",
-      description: "Você saiu do Portal do Fornecedor com sucesso",
+      description: "Você foi desconectado com sucesso.",
     });
     setLocation("/supplier/login");
   };
 
-  // Definir o tab ativo com base na URL
-  const getActiveTab = () => {
-    if (location.includes("/supplier/products")) return "products";
-    if (location.includes("/supplier/orders")) return "orders";
-    if (location.includes("/supplier/clients")) return "clients";
-    if (location.includes("/supplier/tenders")) return "tenders";
-    if (location.includes("/supplier/settings")) return "settings";
-    return activeTab;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex flex-col">
-      {/* Cabeçalho */}
-      <header className="bg-gradient-to-r from-red-800 to-red-600 text-white p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Truck className="h-8 w-8" />
-            <h1 className="text-2xl font-bold">Portal do Fornecedor</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            {/* Notificações */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative p-2 text-white hover:bg-red-700">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-4 w-4 bg-yellow-400 text-xs text-black rounded-full flex items-center justify-center">
-                    {notificationsCount}
-                  </span>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      {/* Barra superior */}
+      <header className="bg-gradient-to-r from-red-800 to-red-600 text-white border-b">
+        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center">
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon" className="text-white h-9 w-9 hover:bg-red-700/20">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="p-4 text-center text-gray-500">
-                  Carregando notificações...
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-0">
+                <div className="border-b pt-4 pb-3 px-4 flex items-center">
+                  <Truck className="h-6 w-6 mr-2" />
+                  <span className="font-bold text-lg">Portal do Fornecedor</span>
                 </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Perfil do usuário */}
+                <nav className="pt-5">
+                  {navigation.map((item) => (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (item.href === "/supplier/dashboard") {
+                          setLocation(item.href);
+                        } else {
+                          handleUnimplementedClick(item.name);
+                        }
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex items-center px-4 py-3 text-sm ${item.current ? "bg-red-50 text-red-800 font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      <item.icon className={`mr-3 h-5 w-5 ${item.current ? "text-red-600" : "text-gray-500"}`} />
+                      {item.name}
+                    </a>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <div 
+              className="flex items-center cursor-pointer" 
+              onClick={() => setLocation("/supplier/dashboard")}
+            >
+              <Truck className="h-8 w-8 text-white mr-2" />
+              <span className="font-bold text-xl">Portal do Fornecedor</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:text-white hover:bg-red-700/20 relative"
+                onClick={() => handleUnimplementedClick("Notificações")}
+              >
+                <Bell className="h-5 w-5" />
+                {user.unreadNotifications > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 p-0 text-center text-[10px] font-bold text-white">
+                    {user.unreadNotifications}
+                  </Badge>
+                )}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:text-white hover:bg-red-700/20 relative"
+                onClick={() => handleUnimplementedClick("Mensagens")}
+              >
+                <MessageSquare className="h-5 w-5" />
+                {user.unreadMessages > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 p-0 text-center text-[10px] font-bold text-white">
+                    {user.unreadMessages}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative p-0 h-10 overflow-hidden text-white hover:bg-red-700">
-                  <Avatar className="h-8 w-8 border border-white/50">
-                    <AvatarImage src={user.avatar || ""} />
-                    <AvatarFallback className="bg-red-500 text-white">
-                      {user.name.substring(0, 2).toUpperCase()}
+                <Button variant="ghost" className="h-9 w-9 rounded-full text-white ring-1 ring-white/20 hover:bg-red-700/20 hover:text-white">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-red-100 text-red-800 font-semibold text-sm">
+                      {user.initials}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="ml-2 hidden md:inline-block">{user.name}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation("/supplier/profile")}>
-                  Perfil da Empresa
+                <DropdownMenuItem onClick={() => handleUnimplementedClick("Perfil")}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation("/supplier/settings")}>
-                  Configurações
+                <DropdownMenuItem onClick={() => handleUnimplementedClick("Mensagens")}>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  <span>Mensagens</span>
+                  {user.unreadMessages > 0 && (
+                    <Badge className="ml-auto bg-amber-500">{user.unreadMessages}</Badge>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleUnimplementedClick("Notificações")}>
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>Notificações</span>
+                  {user.unreadNotifications > 0 && (
+                    <Badge className="ml-auto bg-amber-500">{user.unreadNotifications}</Badge>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleUnimplementedClick("Configurações")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Configurações</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleUnimplementedClick("Ajuda")}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  <span>Ajuda & Suporte</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
+                <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -126,102 +207,50 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         </div>
       </header>
 
-      {/* Navegação */}
-      <div className="bg-white border-b border-red-100 shadow-sm">
-        <div className="container mx-auto">
-          <nav className="flex overflow-x-auto">
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "overview"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/dashboard")}
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Visão Geral
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "products"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/products")}
-            >
-              <Package className="h-4 w-4 mr-2" />
-              Produtos
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "orders"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/orders")}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Pedidos
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "clients"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/clients")}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Clientes
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "tenders"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/tenders")}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Licitações
-            </Button>
-            
-            <Button
-              variant="ghost"
-              className={`h-14 px-4 rounded-none ${
-                getActiveTab() === "settings"
-                  ? "border-b-2 border-red-700 text-red-800"
-                  : "text-gray-600 hover:text-red-800"
-              }`}
-              onClick={() => setLocation("/supplier/settings")}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Configurações
-            </Button>
+      {/* Conteúdo principal */}
+      <div className="flex flex-1">
+        {/* Navegação lateral (visível apenas em telas maiores) */}
+        <aside className="hidden lg:flex flex-col w-64 border-r bg-white">
+          <nav className="flex-1 pt-5">
+            {navigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (item.href === "/supplier/dashboard") {
+                    setLocation(item.href);
+                  } else {
+                    handleUnimplementedClick(item.name);
+                  }
+                }}
+                className={`flex items-center px-4 py-3 text-sm ${item.current ? "bg-red-50 text-red-800 font-medium" : "text-gray-700 hover:bg-gray-50"}`}
+              >
+                <item.icon className={`mr-3 h-5 w-5 ${item.current ? "text-red-600" : "text-gray-500"}`} />
+                {item.name}
+              </a>
+            ))}
           </nav>
-        </div>
+          
+          <div className="p-4 border-t">
+            <Button 
+              variant="outline"
+              className="w-full justify-start text-red-700 border-red-200 hover:bg-red-50 hover:text-red-800"
+              onClick={() => handleUnimplementedClick("Central de Ajuda")}
+            >
+              <HelpCircle className="mr-2 h-4 w-4" />
+              Central de Ajuda
+            </Button>
+          </div>
+        </aside>
+
+        {/* Conteúdo da página */}
+        <main className="flex-1 min-w-0 overflow-auto">
+          <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-7xl">
+            {children}
+          </div>
+        </main>
       </div>
-
-      {/* Conteúdo Principal */}
-      <main className="flex-grow">
-        {children}
-      </main>
-
-      {/* Rodapé */}
-      <footer className="bg-red-900 text-white p-4">
-        <div className="container mx-auto text-center">
-          <p className="text-sm">© 2025 Portal do Fornecedor - Todos os direitos reservados</p>
-        </div>
-      </footer>
     </div>
   );
 }
