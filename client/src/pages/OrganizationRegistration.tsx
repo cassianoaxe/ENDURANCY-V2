@@ -206,8 +206,7 @@ export default function OrganizationRegistration() {
           phone: values.phone,
           adminName: values.adminName,
           createdAt: new Date(),
-          planName: planData?.name || "Plano Selecionado",
-          username: data.username || `${values.email.split('@')[0].toLowerCase()}${data.id}`
+          planName: planData?.name || "Plano Selecionado"
         };
         
         // Armazenar os dados da nova organização e exibir o modal
