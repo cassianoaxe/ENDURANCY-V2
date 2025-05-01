@@ -13,6 +13,7 @@ import CadastroFormularios from "@/pages/cadastro/formularios";
 import CadastroFormulariosNovo from "@/pages/cadastro/formularios/novo";
 import CadastroConfiguracoes from "@/pages/cadastro/configuracoes";
 import OrganizationRegistration from "@/pages/OrganizationRegistration";
+import Login from "@/pages/Login";
 import TourGuide from "@/components/features/TourGuide";
 
 // Importar outros componentes conforme necessário
@@ -64,7 +65,13 @@ function AppContent() {
   let Component = NotFound;
   
   // Rotas específicas que queremos tratar
-  if (currentPath === '/cadastro') {
+  // Rotas de autenticação
+  if (currentPath === '/login' || currentPath === '/login/' || 
+      currentPath.startsWith('/login/') || 
+      currentPath === '/auth' || currentPath === '/auth/') {
+    Component = Login;
+  }
+  else if (currentPath === '/cadastro') {
     Component = Cadastro;
   } 
   else if (currentPath === '/cadastro/dashboard') {
@@ -85,6 +92,11 @@ function AppContent() {
     Component = OrganizationRegistration;
   }
 
+  // Se for página de login ou registro, não usar o Layout padrão
+  if (Component === Login || Component === OrganizationRegistration) {
+    return <Component />;
+  }
+  
   return (
     <Layout>
       {typeof Component === 'function' ? <Component /> : <NotFound />}
