@@ -25,6 +25,7 @@ import { registerPlanRoutes } from './routes/plans';
 import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
+import carteirinhaRoutes from './routes-carteirinha';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
