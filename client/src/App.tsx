@@ -202,6 +202,11 @@ import SupplierLogin from "@/pages/supplier/SupplierLogin";
 import SupplierRegister from "@/pages/supplier/SupplierRegister";
 import SupplierRegisterSuccess from "@/pages/supplier/SupplierRegisterSuccess";
 import SupplierDashboard from "@/pages/supplier/SupplierDashboard";
+import SupplierOrders from "@/pages/supplier/SupplierOrders";
+import SupplierProducts from "@/pages/supplier/SupplierProducts";
+import SupplierFinance from "@/pages/supplier/SupplierFinance";
+import SupplierAnalytics from "@/pages/supplier/SupplierAnalytics";
+import SupplierSettings from "@/pages/supplier/SupplierSettings";
 
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
@@ -254,12 +259,12 @@ import QuadroKanban from "@/pages/organization/tarefas/quadro";
 import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
 import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
 
-// Importações do Portal do Fornecedor
+// Importações do Portal do Fornecedor (módulo de compras da organização)
 import SupplierPortalDashboard from "@/pages/organization/suppliers";
 import SupplierRegistration from "@/pages/organization/suppliers/register";
-import SupplierProducts from "@/pages/organization/suppliers/products";
+import OrgSupplierProducts from "@/pages/organization/suppliers/products";
 import SupplierTenders from "@/pages/organization/suppliers/tenders";
-import SupplierOrders from "@/pages/organization/suppliers/orders";
+import OrgSupplierOrders from "@/pages/organization/suppliers/orders";
 import SupplierCart from "@/pages/organization/suppliers/cart";
 
 // Importações do módulo Compras e Estoque
