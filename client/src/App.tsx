@@ -67,6 +67,10 @@ function AppContent() {
   // Esta versão simplificada lida principalmente com rotas /cadastro
   let Component = NotFound;
   
+  // Importação dinâmica para o dashboard da organização
+  const OrgAdminDashboard = React.lazy(() => import('./pages/dashboards/OrgAdminDashboard'));
+  const OrganizationDashboard = React.lazy(() => import('./pages/organization/Dashboard'));
+
   // Rotas específicas que queremos tratar
   // Rotas de autenticação
   if (currentPath === '/login' || currentPath === '/login/' || 
@@ -102,6 +106,24 @@ function AppContent() {
   }
   else if (currentPath.startsWith('/carteirinha/verificar/')) {
     Component = VerificarCarteirinha;
+  }
+  // Adicionar suporte para rotas de dashboard de organizações
+  else if (currentPath.match(/^\/organizations\/\d+\/dashboard\/?$/)) {
+    console.log("Renderizando dashboard de organização:", currentPath);
+    Component = () => (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+        <OrgAdminDashboard />
+      </Suspense>
+    );
+  }
+  // Rota antiga (para compatibilidade)
+  else if (currentPath.match(/^\/organization\/\d+\/dashboard\/?$/)) {
+    console.log("Renderizando dashboard de organização (compat):", currentPath);
+    Component = () => (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+        <OrganizationDashboard />
+      </Suspense>
+    );
   }
 
   // Se for página de login ou registro, não usar o Layout padrão
