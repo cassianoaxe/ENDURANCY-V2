@@ -172,3 +172,57 @@ export function isValidCNPJ(cnpj: string): boolean {
   
   return true;
 }
+
+/**
+ * Middleware para verificar se o usuário está autenticado
+ * @param req Requisição Express
+ * @param res Resposta Express
+ * @param next Função para passar para o próximo middleware
+ */
+import { Request, Response, NextFunction } from 'express';
+
+// Extensão do objeto Request para incluir o usuário
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: number;
+        username: string;
+        role: string;
+        organizationId?: number | null;
+        name: string;
+        email: string;
+        [key: string]: any;
+      };
+    }
+  }
+}
+
+export function authenticatedOnly(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.user) {
+    // Adicionar o usuário ao objeto req para facilitar acesso
+    req.user = req.session.user;
+    next();
+  } else {
+    res.status(401).json({ message: 'Não autenticado' });
+  }
+}
+
+/**
+ * Middleware para verificar se o usuário tem um papel específico
+ * @param roles Array de papéis permitidos
+ */
+export function roleGuard(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: 'Não autenticado' });
+    }
+
+    if (!roles.includes(req.session.user.role)) {
+      return res.status(403).json({ message: 'Acesso não autorizado para este papel de usuário' });
+    }
+
+    req.user = req.session.user;
+    next();
+  };
+}
