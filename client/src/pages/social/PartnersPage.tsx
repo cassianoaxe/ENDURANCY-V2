@@ -1,26 +1,29 @@
-import React from 'react';
-import { PartnersDiscountClub } from '@/components/social/PartnersDiscountClub';
-import { DashboardShell } from '@/components/shell';
-import { useAuth } from '@/hooks/use-auth';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { OrganizationShell } from "@/components/shell";
+import { PartnersDiscountClub } from "@/components/social/PartnersDiscountClub";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 export default function PartnersPage() {
   const { user } = useAuth();
-  const organizationId = user?.organizationId;
+  const [location, setLocation] = useState("");
 
-  if (!organizationId) {
-    return (
-      <DashboardShell>
-        <div className="p-4 border rounded-lg bg-orange-50 text-orange-700">
-          <h2 className="text-lg font-semibold">Organização não encontrada</h2>
-          <p>Você precisa estar vinculado a uma organização para acessar esta funcionalidade.</p>
-        </div>
-      </DashboardShell>
-    );
-  }
+  // Buscar dados da organização se necessário
+  const { data: organizationData } = useQuery({
+    queryKey: ['/api/organizations', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      const response = await fetch(`/api/organizations/${user.organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar dados da organização');
+      return response.json();
+    },
+    enabled: !!user?.organizationId
+  });
 
   return (
-    <DashboardShell>
-      <PartnersDiscountClub organizationId={organizationId} />
-    </DashboardShell>
+    <OrganizationShell title="">
+      <PartnersDiscountClub />
+    </OrganizationShell>
   );
 }
