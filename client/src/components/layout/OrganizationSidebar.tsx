@@ -13,7 +13,7 @@ import {
   ArrowUp, ArrowDown, ArrowRightLeft, LineChart,
   
   // Ícones de compras, produtos e logística
-  Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, Truck,
+  Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, ShoppingBag, Truck,
   
   // Ícones de documentos
   Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen, FilePlus,
@@ -1146,6 +1146,18 @@ export default function OrganizationSidebar() {
           path: "/organization/suppliers/tenders",
           active: currentPath === "/organization/suppliers/tenders",
           icon: <FileText size={16} />
+        },
+        {
+          title: "Pedidos",
+          path: "/organization/suppliers/orders",
+          active: currentPath === "/organization/suppliers/orders",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Carrinho de Compras",
+          path: "/organization/suppliers/cart",
+          active: currentPath === "/organization/suppliers/cart",
+          icon: <ShoppingBag size={16} className="text-red-500" />
         },
       ]
     },

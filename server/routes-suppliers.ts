@@ -838,7 +838,454 @@ router.get("/:id/products", async (req, res) => {
   }
 });
 
-// Adicionar mais rotas para o portal de fornecedores...
+// Rotas para gerenciamento de pedidos (Marketplace)
+
+// Listar todos os pedidos
+router.get("/orders", authenticate, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20, supplierId } = req.query;
+    
+    let query = db.select({
+      id: supplierSchema.orders.id,
+      orderNumber: supplierSchema.orders.orderNumber,
+      supplierId: supplierSchema.orders.supplierId,
+      organizationId: supplierSchema.orders.organizationId,
+      status: supplierSchema.orders.status,
+      totalAmount: supplierSchema.orders.totalAmount,
+      createdAt: supplierSchema.orders.createdAt,
+      paymentStatus: supplierSchema.orders.paymentStatus,
+      confirmedAt: supplierSchema.orders.confirmedAt,
+      estimatedDeliveryDate: supplierSchema.orders.estimatedDeliveryDate,
+      supplierName: supplierSchema.suppliers.name,
+      organizationName: organizations.name
+    })
+    .from(supplierSchema.orders)
+    .leftJoin(supplierSchema.suppliers, eq(supplierSchema.orders.supplierId, supplierSchema.suppliers.id))
+    .leftJoin(organizations, eq(supplierSchema.orders.organizationId, organizations.id))
+    .orderBy(desc(supplierSchema.orders.createdAt))
+    .limit(Number(limit))
+    .offset((Number(page) - 1) * Number(limit));
+
+    // Filtrar por status se fornecido
+    if (status) {
+      query = query.where(eq(supplierSchema.orders.status, status.toString()));
+    }
+
+    // Filtrar por fornecedor se fornecido
+    if (supplierId) {
+      query = query.where(eq(supplierSchema.orders.supplierId, Number(supplierId)));
+    }
+
+    // Filtrar por organização se o usuário for org_admin
+    if (req.user.role === 'org_admin') {
+      query = query.where(eq(supplierSchema.orders.organizationId, req.user.organizationId));
+    }
+
+    // Contar total para paginação
+    const countQuery = db.select({ count: sql<number>`count(*)` })
+      .from(supplierSchema.orders);
+    
+    // Aplicar os mesmos filtros à query de contagem
+    if (status) {
+      countQuery.where(eq(supplierSchema.orders.status, status.toString()));
+    }
+
+    if (supplierId) {
+      countQuery.where(eq(supplierSchema.orders.supplierId, Number(supplierId)));
+    }
+
+    if (req.user.role === 'org_admin') {
+      countQuery.where(eq(supplierSchema.orders.organizationId, req.user.organizationId));
+    }
+
+    const [orders, totalResults] = await Promise.all([
+      query,
+      countQuery
+    ]);
+
+    res.json({
+      success: true,
+      data: orders,
+      pagination: {
+        total: totalResults[0]?.count || 0,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil((totalResults[0]?.count || 0) / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao listar pedidos:", error);
+    res.status(500).json({ error: "Erro ao carregar pedidos" });
+  }
+});
+
+// Obter detalhes de um pedido específico
+router.get("/orders/:id", authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Buscar pedido
+    const [order] = await db.select()
+      .from(supplierSchema.orders)
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Verificar permissão
+    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+      return res.status(403).json({ error: "Você não tem permissão para acessar este pedido" });
+    }
+
+    // Buscar itens do pedido
+    const orderItems = await db.select({
+      id: supplierSchema.orderItems.id,
+      productId: supplierSchema.orderItems.productId,
+      productName: supplierSchema.products.name,
+      quantity: supplierSchema.orderItems.quantity,
+      price: supplierSchema.orderItems.price,
+      subtotal: supplierSchema.orderItems.subtotal,
+      productImage: supplierSchema.productImages.url
+    })
+    .from(supplierSchema.orderItems)
+    .leftJoin(supplierSchema.products, eq(supplierSchema.orderItems.productId, supplierSchema.products.id))
+    .leftJoin(
+      supplierSchema.productImages,
+      and(
+        eq(supplierSchema.productImages.productId, supplierSchema.products.id),
+        eq(supplierSchema.productImages.isFeatured, true)
+      )
+    )
+    .where(eq(supplierSchema.orderItems.orderId, parseInt(id)));
+
+    // Buscar informações do fornecedor
+    const [supplier] = await db.select({
+      id: supplierSchema.suppliers.id,
+      name: supplierSchema.suppliers.name,
+      email: supplierSchema.suppliers.email,
+      phone: supplierSchema.suppliers.phone,
+      address: supplierSchema.suppliers.address,
+      city: supplierSchema.suppliers.city,
+      state: supplierSchema.suppliers.state
+    })
+    .from(supplierSchema.suppliers)
+    .where(eq(supplierSchema.suppliers.id, order.supplierId))
+    .limit(1);
+
+    // Buscar informações da organização
+    const [organization] = await db.select({
+      id: organizations.id,
+      name: organizations.name,
+      email: users.email,
+      phone: organizations.phone,
+      address: organizations.address
+    })
+    .from(organizations)
+    .leftJoin(users, eq(organizations.adminId, users.id))
+    .where(eq(organizations.id, order.organizationId))
+    .limit(1);
+
+    res.json({
+      success: true,
+      data: {
+        ...order,
+        items: orderItems,
+        supplier,
+        organization
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar pedido:", error);
+    res.status(500).json({ error: "Erro ao carregar pedido" });
+  }
+});
+
+// Criar novo pedido
+router.post("/orders", authenticate, async (req, res) => {
+  try {
+    const { supplierId, items, shippingAddress, billingAddress } = req.body;
+
+    // Validar se o usuário pode criar pedidos
+    if (req.user.role !== 'org_admin') {
+      return res.status(403).json({ error: "Apenas administradores de organização podem criar pedidos" });
+    }
+
+    // Validar dados
+    if (!supplierId || !items || !items.length) {
+      return res.status(400).json({ error: "Dados incompletos" });
+    }
+
+    // Validar se o fornecedor existe
+    const [supplier] = await db.select()
+      .from(supplierSchema.suppliers)
+      .where(eq(supplierSchema.suppliers.id, supplierId))
+      .limit(1);
+
+    if (!supplier) {
+      return res.status(404).json({ error: "Fornecedor não encontrado" });
+    }
+
+    // Buscar produtos para validar preços e disponibilidade
+    const productIds = items.map(item => item.productId);
+    const products = await db.select()
+      .from(supplierSchema.products)
+      .where(and(
+        sql`${supplierSchema.products.id} IN (${sql.join(productIds)})`,
+        eq(supplierSchema.products.supplierId, supplierId),
+        eq(supplierSchema.products.status, "active")
+      ));
+
+    if (products.length !== productIds.length) {
+      return res.status(400).json({ error: "Um ou mais produtos não estão disponíveis" });
+    }
+
+    // Calcular valores
+    let subtotal = 0;
+    const validatedItems = items.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      const itemPrice = parseFloat(product.price.toString());
+      const itemSubtotal = itemPrice * item.quantity;
+      subtotal += itemSubtotal;
+      
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        price: itemPrice,
+        subtotal: itemSubtotal
+      };
+    });
+
+    // Aplicar taxas
+    const taxAmount = 0; // Implementar cálculo de impostos se necessário
+    const discountAmount = 0; // Implementar descontos se necessário
+    const shippingAmount = 0; // Implementar cálculo de frete se necessário
+    const totalAmount = subtotal + taxAmount + shippingAmount - discountAmount;
+
+    // Gerar número de pedido único
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    // Criar pedido
+    const [newOrder] = await db.insert(supplierSchema.orders)
+      .values({
+        organizationId: req.user.organizationId,
+        supplierId,
+        orderNumber,
+        status: "draft",
+        subtotal,
+        taxAmount,
+        discountAmount,
+        shippingAmount,
+        totalAmount,
+        paymentMethod: "pending",
+        paymentStatus: "pending",
+        shippingAddress: shippingAddress || null,
+        billingAddress: billingAddress || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: req.user.id
+      })
+      .returning();
+
+    // Criar itens do pedido
+    for (const item of validatedItems) {
+      await db.insert(supplierSchema.orderItems)
+        .values({
+          orderId: newOrder.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.subtotal,
+          createdAt: new Date()
+        });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newOrder,
+      message: "Pedido criado com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao criar pedido:", error);
+    res.status(500).json({ error: "Erro ao criar pedido" });
+  }
+});
+
+// Atualizar status do pedido
+router.put("/orders/:id/status", authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Validar status
+    if (!["draft", "pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "refunded"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    // Buscar pedido
+    const [order] = await db.select()
+      .from(supplierSchema.orders)
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Verificar permissão
+    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+      return res.status(403).json({ error: "Você não tem permissão para atualizar este pedido" });
+    }
+
+    // Atualizar campos específicos com base no status
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
+    };
+
+    if (status === 'confirmed' && order.status !== 'confirmed') {
+      updateData.confirmedAt = new Date();
+    } else if (status === 'shipped' && order.status !== 'shipped') {
+      updateData.shippedAt = new Date();
+    } else if (status === 'delivered' && order.status !== 'delivered') {
+      updateData.deliveredAt = new Date();
+    } else if (status === 'cancelled' && order.status !== 'cancelled') {
+      updateData.cancelledAt = new Date();
+      updateData.cancelledBy = req.user.id;
+      updateData.cancelReason = req.body.cancelReason || 'Cancelado pelo usuário';
+    }
+
+    // Atualizar pedido
+    const [updatedOrder] = await db.update(supplierSchema.orders)
+      .set(updateData)
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .returning();
+
+    res.json({
+      success: true,
+      data: updatedOrder,
+      message: `Status do pedido alterado para ${status}`
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar status do pedido:", error);
+    res.status(500).json({ error: "Erro ao atualizar status do pedido" });
+  }
+});
+
+// Integração de pagamento (Zoop)
+router.post("/orders/:id/payment", authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentMethod, paymentData } = req.body;
+    
+    // Buscar pedido
+    const [order] = await db.select()
+      .from(supplierSchema.orders)
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Verificar permissão
+    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+      return res.status(403).json({ error: "Você não tem permissão para processar pagamento deste pedido" });
+    }
+
+    // Simular processamento de pagamento (no futuro, integrar com Zoop)
+    // Em uma implementação real, aqui chamaríamos a API da Zoop para processar o pagamento
+    
+    const paymentResult = {
+      success: true,
+      transactionId: `TRANS-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      paymentMethod,
+      amount: order.totalAmount,
+      status: "approved"
+    };
+
+    // Atualizar pedido com informações de pagamento
+    const [updatedOrder] = await db.update(supplierSchema.orders)
+      .set({
+        paymentMethod,
+        paymentStatus: "paid",
+        status: "confirmed",
+        confirmedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .returning();
+
+    res.json({
+      success: true,
+      data: {
+        order: updatedOrder,
+        payment: paymentResult
+      },
+      message: "Pagamento processado com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao processar pagamento:", error);
+    res.status(500).json({ error: "Erro ao processar pagamento" });
+  }
+});
+
+// Adicionar rastreamento
+router.put("/orders/:id/tracking", authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { trackingNumber, trackingUrl, estimatedDeliveryDate } = req.body;
+    
+    // Buscar pedido
+    const [order] = await db.select()
+      .from(supplierSchema.orders)
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Verificar permissão
+    const isSupplierAdmin = await db.select()
+      .from(supplierSchema.supplierUsers)
+      .where(
+        and(
+          eq(supplierSchema.supplierUsers.userId, req.user.id),
+          eq(supplierSchema.supplierUsers.supplierId, order.supplierId),
+          eq(supplierSchema.supplierUsers.role, "admin")
+        )
+      )
+      .limit(1);
+
+    if (isSupplierAdmin.length === 0 && req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Você não tem permissão para adicionar rastreamento a este pedido" });
+    }
+
+    // Atualizar pedido com informações de rastreamento
+    const [updatedOrder] = await db.update(supplierSchema.orders)
+      .set({
+        trackingNumber: trackingNumber || null,
+        trackingUrl: trackingUrl || null,
+        estimatedDeliveryDate: estimatedDeliveryDate ? new Date(estimatedDeliveryDate) : null,
+        status: "shipped",
+        shippedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(supplierSchema.orders.id, parseInt(id)))
+      .returning();
+
+    res.json({
+      success: true,
+      data: updatedOrder,
+      message: "Informações de rastreamento adicionadas com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao adicionar rastreamento:", error);
+    res.status(500).json({ error: "Erro ao adicionar rastreamento" });
+  }
+});
 
 export function registerSupplierRoutes(app: express.Express) {
   app.use("/api/suppliers", router);
