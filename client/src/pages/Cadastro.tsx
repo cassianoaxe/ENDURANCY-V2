@@ -56,17 +56,6 @@ export default function Cadastro() {
   const { data: organizations, isLoading: loadingOrgs } = useQuery({
     queryKey: ['/api/organizations'],
     refetchInterval: 10000, // Recarregar a cada 10 segundos
-    queryFn: async () => {
-      console.log("Fazendo requisição explícita para /api/organizations");
-      try {
-        const response = await apiRequest('/api/organizations', { method: 'GET' });
-        console.log("Resposta da API de organizações:", response);
-        return response;
-      } catch (error) {
-        console.error("Erro explícito ao buscar organizações:", error);
-        throw error;
-      }
-    }
   });
 
   // Buscar planos
@@ -76,12 +65,6 @@ export default function Cadastro() {
       return await apiRequest('/api/plans', {
         method: 'GET'
       });
-    },
-    onSuccess: (data) => {
-      console.log("Planos carregados com sucesso:", data);
-    },
-    onError: (error) => {
-      console.error("Erro ao carregar planos:", error);
     }
   });
   
@@ -212,8 +195,6 @@ export default function Cadastro() {
   // Filtrar organizações por termo de busca e status
   const filteredOrganizations = Array.isArray(organizations) 
     ? organizations.filter((org: Organization) => {
-        console.log("Organização sendo filtrada:", org.id, org.name, "status:", org.status);
-        
         const matchesSearch = searchTerm === "" || 
                             org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             (org.adminName && org.adminName.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -221,21 +202,9 @@ export default function Cadastro() {
         
         // Mostrar todas as organizações na aba "Todas", independente do status
         if (currentTab === "todas") return matchesSearch;
-        if (currentTab === "ativas") {
-          const matches = matchesSearch && org.status === "active";
-          if (matches) console.log(`Organização ${org.id} (${org.name}) corresponde ao filtro 'ativas'`);
-          return matches;
-        }
-        if (currentTab === "pendentes") {
-          const matches = matchesSearch && org.status === "pending";
-          if (matches) console.log(`Organização ${org.id} (${org.name}) corresponde ao filtro 'pendentes'`);
-          return matches;
-        }
-        if (currentTab === "analise") {
-          const matches = matchesSearch && org.status === "review";
-          if (matches) console.log(`Organização ${org.id} (${org.name}) corresponde ao filtro 'analise'`);
-          return matches;
-        }
+        if (currentTab === "ativas") return matchesSearch && org.status === "active";
+        if (currentTab === "pendentes") return matchesSearch && org.status === "pending";
+        if (currentTab === "analise") return matchesSearch && org.status === "review";
         return false;
       }) 
     : [];

@@ -25,7 +25,6 @@ import { registerPlanRoutes } from './routes/plans';
 import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
-import carteirinhaRoutes from './routes-carteirinha';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -623,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             redirectUrl = '/researcher/dashboard';
             break;
           case 'org_admin':
-            redirectUrl = `/organizations/${orgsFound[0].id}/dashboard`;
+            redirectUrl = `/organization/${orgsFound[0].id}/dashboard`;
             break;
           case 'admin':
             redirectUrl = '/admin/dashboard';
@@ -753,10 +752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirectUrl = '/researcher/dashboard';
           break;
         case 'org_admin':
-          // Garantir que sempre use a versão com plural 'organizations'
-          redirectUrl = `/organizations/${user.organizationId}/dashboard`;
-          // Adicionar log para debug
-          console.log(`Definindo URL de redirecionamento para org_admin: ${redirectUrl}`);
+          redirectUrl = `/organization/${user.organizationId}/dashboard`;
           break;
         case 'admin':
           redirectUrl = '/admin/dashboard';
@@ -5736,9 +5732,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
   
-  // Rotas do módulo de carteirinha digital (acessível para todas as organizações)
-  app.use('/api/carteirinha', carteirinhaRoutes);
-  
   // Rotas de AI Chat
   app.use('/api/ai', aiChatRouter);
   
@@ -5787,10 +5780,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Registrando rotas do portal de transparência");
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
-  
-  // As rotas do módulo de carteirinha já foram registradas anteriormente
-  // Registrado em: app.use('/api/carteirinha', carteirinhaRoutes);
-  // Este módulo é acessível diretamente pelas organizações através de /api/carteirinha/organizations/:orgId/...
   
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {

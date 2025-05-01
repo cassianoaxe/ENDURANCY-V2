@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum, json, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, decimal, integer, boolean, pgEnum, json } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1300,33 +1300,6 @@ export const groupPermissions = pgTable("group_permissions", {
 });
 
 // Tabela para associar usuários a grupos
-// Enum para o status de membros da associação
-export const memberStatusEnum = pgEnum('member_status', ['active', 'inactive', 'pending', 'suspended']);
-
-// Tabela de membros para o módulo de carteirinha digital
-export const members = pgTable("members", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
-  organizationId: integer("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  cpf: text("cpf"),
-  email: text("email"),
-  phone: text("phone"),
-  address: text("address"),
-  dateOfBirth: date("date_of_birth"),
-  profilePhoto: text("profile_photo"),
-  membershipId: text("membership_id").unique(), // ID único da carteirinha (usado para QR code)
-  status: memberStatusEnum("status").notNull().default("active"),
-  registrationDate: timestamp("registration_date").defaultNow().notNull(),
-  validUntil: timestamp("valid_until").notNull(), // Data de validade da carteirinha
-  loyaltyPoints: integer("loyalty_points").default(0), // Pontos de fidelidade
-  membershipType: text("membership_type").default("regular"), // Tipo de associação (regular, premium, etc.)
-  membershipLevel: integer("membership_level").default(1), // Nível de associação (1, 2, 3, etc.)
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 export const userGroupMemberships = pgTable("user_group_memberships", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -1389,29 +1362,6 @@ export type UserGroupMembership = typeof userGroupMemberships.$inferSelect;
 export type InsertUserGroupMembership = z.infer<typeof insertUserGroupMembershipSchema>;
 export type UserInvitation = typeof userInvitations.$inferSelect;
 export type InsertUserInvitation = z.infer<typeof insertUserInvitationSchema>;
-
-// Schema para inserção de membros
-export const insertMemberSchema = createInsertSchema(members).pick({
-  userId: true,
-  organizationId: true,
-  name: true,
-  cpf: true,
-  email: true,
-  phone: true,
-  address: true,
-  dateOfBirth: true,
-  profilePhoto: true,
-  membershipId: true,
-  status: true,
-  validUntil: true,
-  membershipType: true,
-  membershipLevel: true,
-  notes: true,
-});
-
-// Tipos para o módulo de carteirinha 
-export type Member = typeof members.$inferSelect;
-export type InsertMember = z.infer<typeof insertMemberSchema>;
 
 // Re-exportar schemas do módulo de patrimônio para inclusão na migração
 export * from './schema-patrimonio';

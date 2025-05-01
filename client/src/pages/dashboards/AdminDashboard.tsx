@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -24,79 +24,27 @@ import { useQuery } from '@tanstack/react-query';
 
 // Função para obter dados das organizações a partir da API
 const useOrganizationData = () => {
-  // Usar apiRequest diretamente para garantir autenticação
-  const [organizationsData, setOrganizationsData] = useState<any[]>([]);
-  const [plansData, setPlansData] = useState<any[]>([]);
-  const [modulesData, setModulesData] = useState<any[]>([]);
-  const [orgModulesData, setOrgModulesData] = useState<any[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log("Buscando dados para o dashboard administrativo...");
-        setIsLoadingData(true);
-        
-        // Buscar organizações
-        console.log("Buscando organizações...");
-        const orgsResponse = await fetch('/api/organizations', {
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-        
-        console.log("Status da resposta das organizações:", orgsResponse.status);
-        const orgs = await orgsResponse.json();
-        console.log("Organizações obtidas:", orgs);
-        console.log(`Total de organizações retornadas: ${orgs?.length || 0}`);
-        setOrganizationsData(Array.isArray(orgs) ? orgs : []);
-        
-        // Buscar planos
-        const plansResponse = await fetch('/api/plans', { 
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-        const plans = await plansResponse.json();
-        setPlansData(Array.isArray(plans) ? plans : []);
-        
-        // Buscar módulos
-        const modulesResponse = await fetch('/api/modules', { 
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-        const modules = await modulesResponse.json();
-        setModulesData(Array.isArray(modules) ? modules : []);
-        
-        // Buscar módulos de organizações
-        const orgModulesResponse = await fetch('/api/organization-modules/all', { 
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-          }
-        });
-        const orgModules = await orgModulesResponse.json();
-        setOrgModulesData(Array.isArray(orgModules) ? orgModules : []);
-      } catch (error) {
-        console.error("Erro ao buscar dados para o dashboard:", error);
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
-  
-  // Utilizamos diretamente as variáveis de estado
-  const isLoading = isLoadingData;
+  const { data: organizations, isLoading: loadingOrgs } = useQuery({
+    queryKey: ['/api/organizations'],
+  });
+
+  const { data: plans, isLoading: loadingPlans } = useQuery({
+    queryKey: ['/api/plans'],
+  });
+
+  const { data: modules, isLoading: loadingModules } = useQuery({
+    queryKey: ['/api/modules'],
+  });
+
+  const { data: orgModules, isLoading: loadingOrgModules } = useQuery({
+    queryKey: ['/api/organization-modules/all'],
+  });
+
+  const isLoading = loadingOrgs || loadingPlans || loadingModules || loadingOrgModules;
 
   // Processar dados para exibição nos gráficos apenas quando todos estiverem carregados
   const processData = () => {
-    if (isLoading || !organizationsData || !plansData || !modulesData || !orgModulesData) {
+    if (isLoading || !organizations || !plans || !modules || !orgModules) {
       return {
         organizationsData: [],
         plansDistributionData: [],
@@ -115,10 +63,10 @@ const useOrganizationData = () => {
       review: 0
     };
 
-    const orgArray = Array.isArray(organizationsData) ? organizationsData : [];
-    const plansArray = Array.isArray(plansData) ? plansData : [];
-    const modulesArray = Array.isArray(modulesData) ? modulesData : [];
-    const orgModulesArray = Array.isArray(orgModulesData) ? orgModulesData : [];
+    const orgArray = Array.isArray(organizations) ? organizations : [];
+    const plansArray = Array.isArray(plans) ? plans : [];
+    const modulesArray = Array.isArray(modules) ? modules : [];
+    const orgModulesArray = Array.isArray(orgModules) ? orgModules : [];
 
     // Contar organizações por status
     orgArray.forEach(org => {
@@ -254,7 +202,7 @@ const useOrganizationData = () => {
     const plansSalesData = moduleSalesStats;
 
     // Calcular dados de organizações por mês (também simulados)
-    const organizationsGrowthData = [
+    const organizationsData = [
       { month: 'Jan', organizations: Math.round(orgArray.length * 0.25) },
       { month: 'Fev', organizations: Math.round(orgArray.length * 0.35) },
       { month: 'Mar', organizations: Math.round(orgArray.length * 0.45) },
@@ -276,7 +224,7 @@ const useOrganizationData = () => {
     ];
 
     return {
-      organizationsGrowthData,
+      organizationsData,
       plansDistributionData,
       moduleDistributionData,
       modulesPlanDistribution,
@@ -295,10 +243,7 @@ const useOrganizationData = () => {
 const COLORS = ['#4CAF50', '#FFC107', '#F44336', '#2196F3', '#9C27B0', '#FF5722'];
 
 export default function AdminDashboard() {
-  const auth = useAuth();
-  const { user } = auth;
-  console.log("Estado de autenticação no AdminDashboard:", auth);
-  
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   
   // Buscar dados dinâmicos para o dashboard
@@ -310,20 +255,8 @@ export default function AdminDashboard() {
     plansSalesData,
     activeStatusData,
     usersData,
-    organizationsGrowthData,
-    plansData, // Adicionar esta linha para ter acesso aos planos originais
     isLoading
   } = useOrganizationData();
-  
-  // Adicionar logs para depuração de planos
-  useEffect(() => {
-    if (plansData) {
-      console.log("plansData (dados originais):", plansData);
-    }
-    if (plansDistributionData) {
-      console.log("plansDistributionData (para gráficos):", plansDistributionData);
-    }
-  }, [plansData, plansDistributionData]);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -376,8 +309,8 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm font-medium">Organizações Totais</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{organizationsData?.length || 0}</div>
-                <p className="text-xs text-green-500">{!isLoading && organizationsData?.length > 0 ? '+12% em relação ao mês anterior' : 'Carregando dados...'}</p>
+                <div className="text-3xl font-bold">58</div>
+                <p className="text-xs text-green-500">+12% em relação ao mês anterior</p>
               </CardContent>
             </Card>
             <Card>
@@ -534,7 +467,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={organizationsGrowthData}>
+                    <LineChart data={organizationsData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -747,61 +680,51 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {isLoading ? (
-                        <tr>
-                          <td colSpan={5} className="px-6 py-4 text-center">
-                            <div className="flex justify-center">
-                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        organizationsData && Array.isArray(organizationsData) && organizationsData.length > 0 ? (
-                          organizationsData.map((org: any, index: number) => {
-                            // Encontrar o nome do plano usando plansData (dados originais da API)
-                            const planName = plansData && Array.isArray(plansData) 
-                              ? plansData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
-                              : 'Desconhecido';
-                            
-                            // Determinar a classe CSS do status
-                            let statusClass = 'bg-gray-100 text-gray-800';
-                            if (org.status === 'active') statusClass = 'bg-green-100 text-green-800';
-                            else if (org.status === 'pending') statusClass = 'bg-yellow-100 text-yellow-800';
-                            else if (org.status === 'blocked' || org.status === 'suspended') statusClass = 'bg-red-100 text-red-800';
-                            else if (org.status === 'review') statusClass = 'bg-blue-100 text-blue-800';
-                            
-                            // Formatar data de criação
-                            const createdDate = org.createdAt 
-                              ? new Date(org.createdAt).toLocaleDateString('pt-BR')
-                              : 'Data desconhecida';
-                              
-                            return (
-                              <tr key={index} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium">{org.name}</td>
-                                <td className="px-6 py-4">{org.type || 'Não especificado'}</td>
-                                <td className="px-6 py-4">
-                                  <span className={`${statusClass} text-xs font-medium me-2 px-2.5 py-0.5 rounded-full`}>
-                                    {org.status === 'active' ? 'Ativo' : 
-                                     org.status === 'pending' ? 'Pendente' : 
-                                     org.status === 'blocked' ? 'Bloqueado' : 
-                                     org.status === 'suspended' ? 'Suspenso' : 
-                                     org.status === 'review' ? 'Em Análise' : 
-                                     'Desconhecido'}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4">{createdDate}</td>
-                                <td className="px-6 py-4">{planName}</td>
-                              </tr>
-                            );
-                          })
-                        ) : (
-                          <tr>
-                            <td colSpan={5} className="px-6 py-4 text-center">
-                              Nenhuma organização encontrada
-                            </td>
-                          </tr>
-                        )
-                      )}
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td className="px-6 py-4 font-medium">Hospital Santa Maria</td>
+                        <td className="px-6 py-4">Empresa</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
+                        </td>
+                        <td className="px-6 py-4">15/05/2023</td>
+                        <td className="px-6 py-4">Pro</td>
+                      </tr>
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td className="px-6 py-4 font-medium">Clínica São Lucas</td>
+                        <td className="px-6 py-4">Empresa</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
+                        </td>
+                        <td className="px-6 py-4">20/06/2023</td>
+                        <td className="px-6 py-4">Freemium</td>
+                      </tr>
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td className="px-6 py-4 font-medium">Associação Médica Brasileira</td>
+                        <td className="px-6 py-4">Associação</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Pendente</span>
+                        </td>
+                        <td className="px-6 py-4">10/07/2023</td>
+                        <td className="px-6 py-4">Pro</td>
+                      </tr>
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td className="px-6 py-4 font-medium">Centro Médico Nacional</td>
+                        <td className="px-6 py-4">Empresa</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Ativo</span>
+                        </td>
+                        <td className="px-6 py-4">05/08/2023</td>
+                        <td className="px-6 py-4">Grow</td>
+                      </tr>
+                      <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td className="px-6 py-4 font-medium">Saúde Total</td>
+                        <td className="px-6 py-4">Empresa</td>
+                        <td className="px-6 py-4">
+                          <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">Suspenso</span>
+                        </td>
+                        <td className="px-6 py-4">18/04/2023</td>
+                        <td className="px-6 py-4">Seed</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
