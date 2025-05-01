@@ -15,6 +15,7 @@ import { registerAIRoutes } from "./routes-ai";
 import { registerLaboratoryPortalRoutes } from "./routes/laboratory-portal-routes";
 import { registerLaboratoryRoutes } from "./routes/laboratory-routes";
 import { registerLaboratoryAuthRoutes } from "./routes/laboratory-auth-routes";
+import { registerSupplierRoutes } from "./routes-suppliers";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -1069,7 +1070,10 @@ app.use((req, res, next) => {
   registerLaboratoryRoutes(app);
   registerLaboratoryAuthRoutes(app);
   
-  console.log("Rotas do Portal de Laboratório registradas com sucesso");
+  // Registrar rotas do Portal de Fornecedores
+  registerSupplierRoutes(app);
+  
+  console.log("Rotas do Portal de Laboratório e Fornecedores registradas com sucesso");
   
   // Inicializando portal de laboratório para Dall Solutions
 
