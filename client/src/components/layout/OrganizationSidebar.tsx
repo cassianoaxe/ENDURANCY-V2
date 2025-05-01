@@ -27,6 +27,9 @@ import {
   // Ícones médicos
   Pill, HeartPulse, Stethoscope, TestTube, Microscope,
   
+  // Ícones para carteirinha
+  UserSquare, Store,
+  
   // Ícones de indústria e negócios
   Factory, ShieldCheck, Building, Building2, Landmark, Scale, Briefcase,
   
@@ -48,12 +51,13 @@ import {
   // Ícones diversos
   Sparkles, BadgeHelp, Tag, RefreshCw, Network, Home, Map,
   Shapes, Target, GraduationCap, Video, Radio, Headphones, Phone,
-  BadgePercent, Printer, QrCode, Box, Trash2, Puzzle, Bot, 
+  BadgePercent, Printer, Box, Trash2, Puzzle, Bot, 
   Plane, Mailbox, Share2, Scissors, ScrollText, Library, Layers, HeartHandshake,
   Globe, FileCheck, AlertTriangle, FileUp,
   
   // Aliases
-  CreditCard as CreditCardIcon
+  CreditCard as CreditCardIcon,
+  QrCode
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -696,6 +700,48 @@ export default function OrganizationSidebar() {
           path: "/organization/comunicacao/credenciais",
           active: currentPath === "/organization/comunicacao/credenciais",
           icon: <ShieldCheck size={16} />
+        }
+      ]
+    },
+    
+    {
+      title: "Carteirinha",
+      path: "/social/membership-cards",
+      active: currentPath === "/social/membership-cards" || 
+              currentPath.startsWith("/social/membership-cards/") ||
+              currentPath.startsWith("/social/partners"),
+      icon: <CreditCardIcon size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Carteirinhas",
+          path: "/social/membership-cards",
+          active: currentPath === "/social/membership-cards" && !currentPath.includes("/social/membership-cards/"),
+          icon: <CreditCardIcon size={16} />
+        },
+        {
+          title: "Nova Carteirinha",
+          path: "/social/membership-cards/new",
+          active: currentPath === "/social/membership-cards/new",
+          icon: <UserSquare size={16} />
+        },
+        {
+          title: "Parceiros",
+          path: "/social/partners",
+          active: currentPath === "/social/partners" && !currentPath.includes("/social/partners/"),
+          icon: <Store size={16} />
+        },
+        {
+          title: "Novo Parceiro",
+          path: "/social/partners/new",
+          active: currentPath === "/social/partners/new",
+          icon: <UserPlus size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/social/membership-cards/settings",
+          active: currentPath === "/social/membership-cards/settings",
+          icon: <Settings size={16} />
         }
       ]
     },
