@@ -5733,6 +5733,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
   
+  // Rotas do módulo de carteirinha digital
+  app.use('/api', carteirinhaRoutes);
+  
   // Rotas de AI Chat
   app.use('/api/ai', aiChatRouter);
   
@@ -5782,10 +5785,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
   
-  // Registrar rotas do módulo de carteirinha digital
-  console.log("Registrando rotas do módulo de carteirinha digital");
-  app.use('/api/carteirinha', carteirinhaRoutes);
-  console.log("Rotas do módulo de carteirinha digital registradas");
+  // As rotas do módulo de carteirinha já foram registradas anteriormente
+  // Registrado em: app.use('/api', carteirinhaRoutes);
   
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {
