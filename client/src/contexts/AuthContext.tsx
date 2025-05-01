@@ -13,10 +13,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  userRole: string | null;
   login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => Promise<void>;
   logout: () => void;
-  checkAuthentication?: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -280,12 +278,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await response.json();
           console.log("Login bem-sucedido. Dados do usuário:", userData);
           
-          // Normalizar URL de redirecionamento (se presente)
-          if (userData.redirectUrl && userData.redirectUrl.match(/^\/organization\/\d+\/dashboard\/?$/)) {
-            userData.redirectUrl = userData.redirectUrl.replace('/organization/', '/organizations/');
-            console.log("Normalizando URL de redirecionamento:", userData.redirectUrl);
-          }
-          
           // Definir o estado do usuário
           setUser(userData);
           
@@ -297,7 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Redirecionar com base no papel do usuário
           // Usando window.location.href para redirecionamento mais confiável
-          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento para: ${userData.redirectUrl || 'URL padrão'}`);
+          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento...`);
           
           // Retorna sem redirecionamento para permitir que a página de login faça isso
           return;
@@ -379,7 +371,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated: !!user,
     isLoading,
-    userRole: user?.role || null,
     login,
     logout,
     checkAuthentication

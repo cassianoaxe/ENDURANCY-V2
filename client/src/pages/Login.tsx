@@ -319,8 +319,8 @@ export default function Login() {
         user = null;
       }
       
-      // Usar URL de redirecionamento da API, que vem do backend
-      // É importante respeitar as URLs exatas retornadas pelo servidor
+      // Usar URL de redirecionamento da API, nunca usar fallback para /dashboard
+      // O dashboard geral causa o flash indesejado antes do redirecionamento final
       let redirectUrl = user?.redirectUrl;
       
       // Se por algum motivo não tivermos URL de redirecionamento, determinar baseado no tipo de usuário
@@ -335,7 +335,7 @@ export default function Login() {
         } else if (userType === 'company_admin') {
           redirectUrl = '/organization/dashboard';
         } else if (userType === 'admin') {
-          redirectUrl = '/admin/dashboard';
+          redirectUrl = '/dashboard';
         } else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
           redirectUrl = '/doctor/dashboard';
         } else if (userType === 'pharmacist') {
@@ -358,8 +358,8 @@ export default function Login() {
       if (userType === 'company_admin' && 
           (localStorage.getItem('userType') === 'import_company' || 
            document.documentElement.classList.contains('importadora-theme'))) {
-        // Forçar redirecionamento para dashboard de importadora (usando plural)
-        redirectUrl = '/organizations/import-company/dashboard';
+        // Forçar redirecionamento para dashboard de importadora
+        redirectUrl = '/organization/import-company/dashboard';
         
         // Após definir o redirecionamento, limpar os marcadores
         document.documentElement.classList.remove('importadora-theme');
@@ -369,19 +369,6 @@ export default function Login() {
         // Nova lógica: usar direct_import_company ao invés de check_org_type
         // Para evitar a passagem pelo dashboard geral
         localStorage.setItem('direct_import_company', 'true');
-      }
-      
-      // Se estamos recebendo a URL do servidor, verificar se precisa normalizar
-      if (user?.redirectUrl) {
-        // Corrigir redirecionamentos para dashboards de organizações
-        // Converter "organization/X/dashboard" para "organizations/X/dashboard"
-        if (user.redirectUrl.match(/^\/organization\/\d+\/dashboard\/?$/)) {
-          const newUrl = user.redirectUrl.replace('/organization/', '/organizations/');
-          console.log("Convertendo URL de redirecionamento:", user.redirectUrl, "->", newUrl);
-          redirectUrl = newUrl;
-        } else {
-          redirectUrl = user.redirectUrl;
-        }
       }
       
       console.log("URL de redirecionamento (da API):", user?.redirectUrl);
