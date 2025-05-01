@@ -1019,6 +1019,9 @@ socialMembershipCardsRouter.get("/:id/generate-image", authenticate, async (req,
 // Rota para obter ou criar configurações de carteirinha
 socialMembershipCardsRouter.get("/settings/current", authenticate, isAssociation, async (req, res) => {
   try {
+    console.log("Acessando rota /settings/current com sessão:", req.session ? "Existe sessão" : "Sem sessão", 
+                "user:", req.session?.user ? "Existe usuário" : "Sem usuário");
+    
     const organizationId = req.session.user.organizationId;
     
     // Buscar configurações existentes
