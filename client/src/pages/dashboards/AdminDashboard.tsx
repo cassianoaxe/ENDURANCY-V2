@@ -91,11 +91,7 @@ const useOrganizationData = () => {
     fetchData();
   }, []);
   
-  // Alias para compatibilidade com o código existente
-  const organizations = organizationsData;
-  const plans = plansData;
-  const modules = modulesData;
-  const orgModules = orgModulesData;
+  // Utilizamos diretamente as variáveis de estado
   const isLoading = isLoadingData;
 
   // Processar dados para exibição nos gráficos apenas quando todos estiverem carregados
@@ -258,7 +254,7 @@ const useOrganizationData = () => {
     const plansSalesData = moduleSalesStats;
 
     // Calcular dados de organizações por mês (também simulados)
-    const organizationsData = [
+    const organizationsGrowthData = [
       { month: 'Jan', organizations: Math.round(orgArray.length * 0.25) },
       { month: 'Fev', organizations: Math.round(orgArray.length * 0.35) },
       { month: 'Mar', organizations: Math.round(orgArray.length * 0.45) },
@@ -280,7 +276,7 @@ const useOrganizationData = () => {
     ];
 
     return {
-      organizationsData,
+      organizationsGrowthData,
       plansDistributionData,
       moduleDistributionData,
       modulesPlanDistribution,
@@ -313,6 +309,7 @@ export default function AdminDashboard() {
     plansSalesData,
     activeStatusData,
     usersData,
+    organizationsGrowthData,
     isLoading
   } = useOrganizationData();
 
@@ -525,7 +522,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={organizationsData}>
+                    <LineChart data={organizationsGrowthData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -750,8 +747,8 @@ export default function AdminDashboard() {
                         organizationsData && Array.isArray(organizationsData) && organizationsData.length > 0 ? (
                           organizationsData.map((org: any, index: number) => {
                             // Encontrar o nome do plano
-                            const planName = plansData && Array.isArray(plansData) 
-                              ? plansData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
+                            const planName = plansDistributionData && Array.isArray(plansDistributionData) 
+                              ? plansDistributionData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
                               : 'Desconhecido';
                             
                             // Determinar a classe CSS do status
