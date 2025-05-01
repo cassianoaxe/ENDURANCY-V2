@@ -280,6 +280,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userData = await response.json();
           console.log("Login bem-sucedido. Dados do usuário:", userData);
           
+          // Normalizar URL de redirecionamento (se presente)
+          if (userData.redirectUrl && userData.redirectUrl.match(/^\/organization\/\d+\/dashboard\/?$/)) {
+            userData.redirectUrl = userData.redirectUrl.replace('/organization/', '/organizations/');
+            console.log("Normalizando URL de redirecionamento:", userData.redirectUrl);
+          }
+          
           // Definir o estado do usuário
           setUser(userData);
           
@@ -291,7 +297,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // Redirecionar com base no papel do usuário
           // Usando window.location.href para redirecionamento mais confiável
-          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento...`);
+          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento para: ${userData.redirectUrl || 'URL padrão'}`);
           
           // Retorna sem redirecionamento para permitir que a página de login faça isso
           return;

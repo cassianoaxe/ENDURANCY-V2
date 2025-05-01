@@ -26,6 +26,7 @@ export default function OrganizationDashboard() {
     if (checkOrgType === 'true' && user?.organizationId) {
       console.log("Dashboard: Verificando se esta organização é uma importadora...");
       
+      // Certifique-se de estar usando o caminho plural 'organizations' em todas as solicitações
       fetch(`/api/organizations/${user.organizationId}`, {
         credentials: 'include',
         headers: {
@@ -36,11 +37,11 @@ export default function OrganizationDashboard() {
       .then(orgData => {
         console.log("Dashboard: Tipo de organização detectado:", orgData.type);
         
-        // Se é uma importadora, redirecionar imediatamente
+        // Se é uma importadora, redirecionar imediatamente (usando padrão pluralizado)
         if (orgData.type === 'import_company') {
           console.log("Dashboard: REDIRECIONANDO para dashboard de importadora");
           localStorage.removeItem('check_org_type');
-          window.location.href = '/organization/import-company/dashboard';
+          window.location.href = '/organizations/import-company/dashboard';
           return;
         } else {
           // Limpar o flag se não é importadora
