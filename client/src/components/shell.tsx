@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import OrganizationSidebar from "./layout/OrganizationSidebar";
 
 interface ShellProps {
