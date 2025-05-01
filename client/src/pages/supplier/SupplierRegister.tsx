@@ -1,231 +1,181 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { 
-  Loader2, 
-  Truck, 
-  ArrowLeft,
-  CheckCircle,
-  AlertCircle,
-  FileText,
-  Building,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Info
-} from "lucide-react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Truck, Mail, Phone, Building, User, LoaderCircle, ArrowLeft, FileCheck, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Definir o schema para o formulário de registro
-const brazilianStates = [
-  "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", "MT", 
-  "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"
-];
-
-const supplierSchema = z.object({
-  // Dados básicos
-  name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
-  tradingName: z.string().min(3, { message: "Nome fantasia deve ter no mínimo 3 caracteres" }),
-  cnpj: z.string().min(14, { message: "CNPJ inválido" }).max(18),
-  phone: z.string().min(10, { message: "Telefone inválido" }),
-  email: z.string().email({ message: "Email inválido" }),
-  website: z.string().url({ message: "URL inválida" }).optional().or(z.literal("")),
-  description: z.string().min(20, { message: "Descrição deve ter no mínimo 20 caracteres" }),
-  
-  // Endereço
-  address: z.string().min(5, { message: "Endereço deve ter no mínimo 5 caracteres" }),
-  addressNumber: z.string().min(1, { message: "Número é obrigatório" }),
-  complement: z.string().optional(),
-  neighborhood: z.string().min(2, { message: "Bairro deve ter no mínimo 2 caracteres" }),
-  city: z.string().min(2, { message: "Cidade deve ter no mínimo 2 caracteres" }),
-  state: z.enum(brazilianStates as [string, ...string[]], {
-    message: "Estado inválido",
+// Definir schema de validação
+const formSchema = z.object({
+  companyName: z.string().min(3, "O nome da empresa deve ter pelo menos 3 caracteres"),
+  tradingName: z.string().min(2, "O nome fantasia deve ter pelo menos 2 caracteres"),
+  cnpj: z.string().min(14, "CNPJ inválido"),
+  email: z.string().email("Digite um e-mail válido"),
+  phone: z.string().min(10, "Telefone inválido"),
+  contactName: z.string().min(3, "O nome do contato deve ter pelo menos 3 caracteres"),
+  address: z.object({
+    street: z.string().min(3, "Endereço inválido"),
+    number: z.string().min(1, "Número inválido"),
+    complement: z.string().optional(),
+    neighborhood: z.string().min(2, "Bairro inválido"),
+    city: z.string().min(2, "Cidade inválida"),
+    state: z.string().min(2, "Estado inválido"),
+    zipCode: z.string().min(8, "CEP inválido"),
   }),
-  zipCode: z.string().min(8, { message: "CEP inválido" }).max(9),
-  
-  // Acesso
-  username: z.string().min(3, { message: "Nome de usuário deve ter no mínimo 3 caracteres" }),
-  password: z.string().min(8, { message: "Senha deve ter no mínimo 8 caracteres" }),
-  passwordConfirm: z.string().min(8, { message: "Confirme sua senha" }),
-}).refine((data) => data.password === data.passwordConfirm, {
+  category: z.string().min(1, "Selecione uma categoria"),
+  description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
+  website: z.string().url("URL inválida").or(z.literal("")),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "Você deve aceitar os termos de uso" }),
+  }),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(6, "A confirmação de senha deve ter pelo menos 6 caracteres"),
+}).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não conferem",
-  path: ["passwordConfirm"],
+  path: ["confirmPassword"],
 });
+
+// Tipagem para os dados do formulário
+type FormValues = z.infer<typeof formSchema>;
 
 export default function SupplierRegister() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("info");
-  const [registrationStep, setRegistrationStep] = useState(1);
-  const [registrationProgress, setRegistrationProgress] = useState(25);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("company");
 
-  // Criar o formulário com react-hook-form e validation com zod
-  const form = useForm<z.infer<typeof supplierSchema>>({
-    resolver: zodResolver(supplierSchema),
+  // Inicialização do formulário
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      companyName: "",
       tradingName: "",
       cnpj: "",
-      phone: "",
       email: "",
-      website: "",
+      phone: "",
+      contactName: "",
+      address: {
+        street: "",
+        number: "",
+        complement: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+        zipCode: "",
+      },
+      category: "",
       description: "",
-      address: "",
-      addressNumber: "",
-      complement: "",
-      neighborhood: "",
-      city: "",
-      state: "SP",
-      zipCode: "",
-      username: "",
+      website: "",
+      acceptTerms: false,
       password: "",
-      passwordConfirm: "",
+      confirmPassword: "",
     },
   });
 
-  // Mutação para o registro de fornecedor
-  const registerMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof supplierSchema>) => {
-      const response = await apiRequest("POST", "/api/suppliers/register", {
-        // Dados básicos
-        name: data.name,
-        tradingName: data.tradingName,
-        cnpj: data.cnpj,
-        phone: data.phone,
-        email: data.email,
-        website: data.website || null,
-        description: data.description,
+  // Função para lidar com o envio do formulário
+  const onSubmit = async (data: FormValues) => {
+    setIsLoading(true);
+    
+    try {
+      // Simulação de registro bem-sucedido para demonstração
+      setTimeout(() => {
+        toast({
+          title: "Registro realizado com sucesso",
+          description: "Sua conta de fornecedor foi criada.",
+        });
         
-        // Endereço completo
-        address: `${data.address}, ${data.addressNumber}${data.complement ? `, ${data.complement}` : ""}, ${data.neighborhood}`,
-        city: data.city,
-        state: data.state,
-        zipCode: data.zipCode,
-        
-        // Dados de acesso
-        username: data.username,
-        password: data.password,
-      });
+        setLocation("/supplier/register-success");
+        setIsLoading(false);
+      }, 1500);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Falha no cadastro");
+      // Implementação futura de chamada real de API
+      /*
+      const response = await apiRequest("POST", "/api/suppliers/register", data);
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: "Registro realizado com sucesso",
+          description: "Sua conta de fornecedor foi criada.",
+        });
+        
+        setLocation("/supplier/register-success");
+      } else {
+        toast({
+          title: "Erro ao registrar",
+          description: result.message || "Não foi possível completar o registro",
+          variant: "destructive",
+        });
       }
-      
-      return await response.json();
-    },
-    onSuccess: (data) => {
+      */
+    } catch (error) {
       toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Seu cadastro foi enviado e está em análise pela nossa equipe.",
-      });
-      setLocation("/supplier/register-success");
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Erro no cadastro",
-        description: error.message,
+        title: "Erro ao registrar",
+        description: "Ocorreu um erro ao processar sua solicitação",
         variant: "destructive",
       });
-    },
-  });
-
-  // Avançar para o próximo passo
-  const advanceStep = () => {
-    if (registrationStep === 1) {
-      // Validar campos do passo 1
-      const result = form.trigger(['name', 'tradingName', 'cnpj', 'email', 'phone', 'description']);
-      result.then(isValid => {
-        if (isValid) {
-          setRegistrationStep(2);
-          setActiveTab("address");
-          setRegistrationProgress(50);
-        }
-      });
-    } else if (registrationStep === 2) {
-      // Validar campos do passo 2
-      const result = form.trigger(['address', 'addressNumber', 'neighborhood', 'city', 'state', 'zipCode']);
-      result.then(isValid => {
-        if (isValid) {
-          setRegistrationStep(3);
-          setActiveTab("access");
-          setRegistrationProgress(75);
-        }
-      });
-    } else if (registrationStep === 3) {
-      // Validar campos do passo 3
-      const result = form.trigger(['username', 'password', 'passwordConfirm']);
-      result.then(isValid => {
-        if (isValid) {
-          setRegistrationStep(4);
-          setActiveTab("confirm");
-          setRegistrationProgress(100);
-        }
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Voltar para o passo anterior
-  const backStep = () => {
-    if (registrationStep === 2) {
-      setRegistrationStep(1);
-      setActiveTab("info");
-      setRegistrationProgress(25);
-    } else if (registrationStep === 3) {
-      setRegistrationStep(2);
-      setActiveTab("address");
-      setRegistrationProgress(50);
-    } else if (registrationStep === 4) {
-      setRegistrationStep(3);
-      setActiveTab("access");
-      setRegistrationProgress(75);
+  // Função para navegar entre as abas do formulário
+  const goToNextTab = () => {
+    if (activeTab === "company") {
+      // Validar campos da aba atual antes de prosseguir
+      const companyFields = ["companyName", "tradingName", "cnpj", "email", "phone", "contactName", "category"];
+      
+      const isValid = companyFields.every(field => {
+        const fieldState = form.getFieldState(field as any);
+        if (fieldState.invalid && fieldState.isDirty) return false;
+        
+        // Validar manualmente se o campo não foi tocado
+        form.trigger(field as any);
+        return !form.getFieldState(field as any).invalid;
+      });
+      
+      if (isValid) {
+        setActiveTab("address");
+      } else {
+        toast({
+          title: "Campos inválidos",
+          description: "Por favor, preencha todos os campos obrigatórios corretamente.",
+          variant: "destructive",
+        });
+      }
+    } else if (activeTab === "address") {
+      // Validar campos de endereço
+      const addressFields = ["address.street", "address.number", "address.neighborhood", "address.city", "address.state", "address.zipCode"];
+      
+      const isValid = addressFields.every(field => {
+        const fieldState = form.getFieldState(field as any);
+        if (fieldState.invalid && fieldState.isDirty) return false;
+        
+        // Validar manualmente se o campo não foi tocado
+        form.trigger(field as any);
+        return !form.getFieldState(field as any).invalid;
+      });
+      
+      if (isValid) {
+        setActiveTab("account");
+      } else {
+        toast({
+          title: "Campos inválidos",
+          description: "Por favor, preencha todos os campos obrigatórios corretamente.",
+          variant: "destructive",
+        });
+      }
     }
-  };
-
-  // Função para submeter o formulário
-  const onSubmit = (data: z.infer<typeof supplierSchema>) => {
-    registerMutation.mutate(data);
   };
 
   return (
@@ -238,67 +188,60 @@ export default function SupplierRegister() {
             <h1 className="text-2xl font-bold">Portal do Fornecedor</h1>
           </div>
           <nav>
-            <Button variant="ghost" className="text-white hover:text-white hover:bg-red-700" onClick={() => setLocation("/supplier/login")}>
-              Voltar para Login
+            <Button variant="ghost" className="text-white hover:text-white hover:bg-red-700" onClick={() => setLocation("/")}>
+              Voltar para Home
             </Button>
           </nav>
         </div>
       </header>
 
-      {/* Progresso do cadastro */}
-      <div className="bg-white shadow-sm border-b border-red-100 px-4 py-2">
-        <div className="container mx-auto">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Etapa {registrationStep} de 4</span>
-              <span>{registrationProgress}% concluído</span>
-            </div>
-            <Progress value={registrationProgress} className="h-2 bg-red-100" indicatorClassName="bg-red-700" />
-          </div>
-        </div>
-      </div>
-
       {/* Conteúdo Principal */}
-      <main className="flex-grow container mx-auto py-8 px-4">
-        <Card className="w-full max-w-3xl mx-auto shadow-lg border-red-100">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-red-800">Cadastro de Fornecedor</CardTitle>
-            <CardDescription>
-              Preencha os dados abaixo para se cadastrar como fornecedor na plataforma
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-4 mb-6">
-                <TabsTrigger value="info" disabled={registrationStep !== 1}>Informações</TabsTrigger>
-                <TabsTrigger value="address" disabled={registrationStep < 2}>Endereço</TabsTrigger>
-                <TabsTrigger value="access" disabled={registrationStep < 3}>Acesso</TabsTrigger>
-                <TabsTrigger value="confirm" disabled={registrationStep < 4}>Confirmação</TabsTrigger>
-              </TabsList>
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="w-full max-w-6xl bg-white rounded-lg shadow-xl overflow-hidden">
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-start mb-8 gap-4">
+              <Button 
+                variant="outline" 
+                className="flex items-center text-red-800"
+                onClick={() => setLocation("/supplier/login")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar para o login
+              </Button>
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Passo 1: Informações Básicas */}
-                  <TabsContent value="info" className="space-y-4">
-                    <Alert className="bg-red-50 border-red-200">
-                      <Info className="h-4 w-4 text-red-800" />
-                      <AlertTitle className="text-red-800">Importante</AlertTitle>
-                      <AlertDescription>
-                        Informe os dados exatos que constam no Cadastro Nacional de Pessoa Jurídica (CNPJ)
-                      </AlertDescription>
-                    </Alert>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Cadastro de Fornecedor</h2>
+                <p className="text-gray-600">Preencha o formulário para se cadastrar como fornecedor</p>
+              </div>
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="company" disabled={isLoading}>Dados da Empresa</TabsTrigger>
+                    <TabsTrigger value="address" disabled={isLoading}>Endereço</TabsTrigger>
+                    <TabsTrigger value="account" disabled={isLoading}>Conta e Acesso</TabsTrigger>
+                  </TabsList>
+
+                  {/* Aba 1: Dados da Empresa */}
+                  <TabsContent value="company" className="space-y-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
-                        name="name"
+                        name="companyName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Razão Social</FormLabel>
+                            <FormLabel>Razão Social *</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="Razão Social da empresa" className="pl-9" {...field} />
+                                <Input
+                                  placeholder="Nome da empresa conforme registro"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -311,25 +254,110 @@ export default function SupplierRegister() {
                         name="tradingName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nome Fantasia</FormLabel>
+                            <FormLabel>Nome Fantasia *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nome Fantasia da empresa" {...field} />
+                              <div className="relative">
+                                <Input
+                                  placeholder="Nome comercial da empresa"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="cnpj"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>CNPJ</FormLabel>
+                            <FormLabel>CNPJ *</FormLabel>
                             <FormControl>
-                              <Input placeholder="00.000.000/0000-00" {...field} />
+                              <div className="relative">
+                                <Input
+                                  placeholder="00.000.000/0000-00"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <FileCheck className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Categoria de Produtos *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione uma categoria" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="cannabis">Produtos de Cannabis</SelectItem>
+                                <SelectItem value="supplements">Suplementos</SelectItem>
+                                <SelectItem value="equipment">Equipamentos</SelectItem>
+                                <SelectItem value="laboratory">Insumos de Laboratório</SelectItem>
+                                <SelectItem value="cultivation">Insumos para Cultivo</SelectItem>
+                                <SelectItem value="other">Outros</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contactName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Responsável *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  placeholder="Nome completo do responsável"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>E-mail *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  placeholder="email@empresa.com"
+                                  type="email"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -341,30 +369,16 @@ export default function SupplierRegister() {
                         name="phone"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Telefone</FormLabel>
+                            <FormLabel>Telefone *</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="(00) 00000-0000" className="pl-9" {...field} />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email Comercial</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="email@empresa.com.br" className="pl-9" {...field} />
+                                <Input
+                                  placeholder="(00) 00000-0000"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -377,13 +391,23 @@ export default function SupplierRegister() {
                         name="website"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Website (opcional)</FormLabel>
+                            <FormLabel>Website</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input placeholder="https://www.empresa.com.br" className="pl-9" {...field} />
+                                <Input
+                                  placeholder="https://www.seusite.com.br"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <svg className="absolute left-3 top-3 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
                               </div>
                             </FormControl>
+                            <FormDescription>
+                              Campo opcional
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -395,38 +419,91 @@ export default function SupplierRegister() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descrição da Empresa</FormLabel>
+                          <FormLabel>Descrição da Empresa *</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Descreva brevemente sua empresa, áreas de atuação e principais produtos/serviços" 
-                              className="h-32 resize-none"
-                              {...field} 
+                            <Textarea
+                              placeholder="Descreva brevemente sua empresa e produtos"
+                              className="min-h-[100px]"
+                              {...field}
+                              disabled={isLoading}
                             />
                           </FormControl>
-                          <FormMessage />
                           <FormDescription>
-                            Mínimo de 20 caracteres
+                            Mínimo de 10 caracteres
                           </FormDescription>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
+                    
+                    <div className="flex justify-end">
+                      <Button 
+                        type="button" 
+                        className="bg-red-700 hover:bg-red-800"
+                        disabled={isLoading}
+                        onClick={goToNextTab}
+                      >
+                        Próximo
+                      </Button>
+                    </div>
                   </TabsContent>
 
-                  {/* Passo 2: Endereço */}
-                  <TabsContent value="address" className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="col-span-2">
+                  {/* Aba 2: Endereço */}
+                  <TabsContent value="address" className="space-y-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="address.street"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Rua/Avenida *</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Input
+                                  placeholder="Nome da rua ou avenida"
+                                  className="pl-10"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name="address"
+                          name="address.number"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Logradouro</FormLabel>
+                              <FormLabel>Número *</FormLabel>
                               <FormControl>
-                                <div className="relative">
-                                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                  <Input placeholder="Rua, Avenida, etc." className="pl-9" {...field} />
-                                </div>
+                                <Input
+                                  placeholder="123"
+                                  {...field}
+                                  disabled={isLoading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="address.complement"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Complemento</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Sala, Andar, etc."
+                                  {...field}
+                                  disabled={isLoading}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -436,28 +513,16 @@ export default function SupplierRegister() {
 
                       <FormField
                         control={form.control}
-                        name="addressNumber"
+                        name="address.neighborhood"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Número</FormLabel>
+                            <FormLabel>Bairro *</FormLabel>
                             <FormControl>
-                              <Input placeholder="123" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="complement"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Complemento (opcional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Sala, Andar, etc." {...field} />
+                              <Input
+                                placeholder="Nome do bairro"
+                                {...field}
+                                disabled={isLoading}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -466,28 +531,16 @@ export default function SupplierRegister() {
 
                       <FormField
                         control={form.control}
-                        name="neighborhood"
+                        name="address.zipCode"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Bairro</FormLabel>
+                            <FormLabel>CEP *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Bairro" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="zipCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>CEP</FormLabel>
-                            <FormControl>
-                              <Input placeholder="00000-000" {...field} />
+                              <Input
+                                placeholder="00000-000"
+                                {...field}
+                                disabled={isLoading}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -496,12 +549,16 @@ export default function SupplierRegister() {
 
                       <FormField
                         control={form.control}
-                        name="city"
+                        name="address.city"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Cidade</FormLabel>
+                            <FormLabel>Cidade *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Cidade" {...field} />
+                              <Input
+                                placeholder="Nome da cidade"
+                                {...field}
+                                disabled={isLoading}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -510,22 +567,44 @@ export default function SupplierRegister() {
 
                       <FormField
                         control={form.control}
-                        name="state"
+                        name="address.state"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Estado</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel>Estado *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
+                                  <SelectValue placeholder="Selecione o estado" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {brazilianStates.map((state) => (
-                                  <SelectItem key={state} value={state}>
-                                    {state}
-                                  </SelectItem>
-                                ))}
+                                <SelectItem value="AC">Acre</SelectItem>
+                                <SelectItem value="AL">Alagoas</SelectItem>
+                                <SelectItem value="AP">Amapá</SelectItem>
+                                <SelectItem value="AM">Amazonas</SelectItem>
+                                <SelectItem value="BA">Bahia</SelectItem>
+                                <SelectItem value="CE">Ceará</SelectItem>
+                                <SelectItem value="DF">Distrito Federal</SelectItem>
+                                <SelectItem value="ES">Espírito Santo</SelectItem>
+                                <SelectItem value="GO">Goiás</SelectItem>
+                                <SelectItem value="MA">Maranhão</SelectItem>
+                                <SelectItem value="MT">Mato Grosso</SelectItem>
+                                <SelectItem value="MS">Mato Grosso do Sul</SelectItem>
+                                <SelectItem value="MG">Minas Gerais</SelectItem>
+                                <SelectItem value="PA">Pará</SelectItem>
+                                <SelectItem value="PB">Paraíba</SelectItem>
+                                <SelectItem value="PR">Paraná</SelectItem>
+                                <SelectItem value="PE">Pernambuco</SelectItem>
+                                <SelectItem value="PI">Piauí</SelectItem>
+                                <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                                <SelectItem value="RN">Rio Grande do Norte</SelectItem>
+                                <SelectItem value="RS">Rio Grande do Sul</SelectItem>
+                                <SelectItem value="RO">Rondônia</SelectItem>
+                                <SelectItem value="RR">Roraima</SelectItem>
+                                <SelectItem value="SC">Santa Catarina</SelectItem>
+                                <SelectItem value="SP">São Paulo</SelectItem>
+                                <SelectItem value="SE">Sergipe</SelectItem>
+                                <SelectItem value="TO">Tocantins</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -533,48 +612,46 @@ export default function SupplierRegister() {
                         )}
                       />
                     </div>
+
+                    <div className="flex justify-between">
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        onClick={() => setActiveTab("company")}
+                        disabled={isLoading}
+                      >
+                        Voltar
+                      </Button>
+                      <Button 
+                        type="button" 
+                        className="bg-red-700 hover:bg-red-800"
+                        disabled={isLoading}
+                        onClick={goToNextTab}
+                      >
+                        Próximo
+                      </Button>
+                    </div>
                   </TabsContent>
 
-                  {/* Passo 3: Dados de Acesso */}
-                  <TabsContent value="access" className="space-y-4">
-                    <Alert className="bg-red-50 border-red-200">
-                      <AlertCircle className="h-4 w-4 text-red-800" />
-                      <AlertTitle className="text-red-800">Atenção</AlertTitle>
-                      <AlertDescription>
-                        Estas serão suas credenciais para acessar o Portal do Fornecedor.
-                        Escolha um nome de usuário e senha seguros.
-                      </AlertDescription>
-                    </Alert>
-
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome de Usuário</FormLabel>
-                          <FormControl>
-                            <Input placeholder="nome.usuario" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Seu nome de usuário único para acessar a plataforma
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Aba 3: Conta e Acesso */}
+                  <TabsContent value="account" className="space-y-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Senha</FormLabel>
+                            <FormLabel>Senha *</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
+                              <Input
+                                type="password"
+                                placeholder="Mínimo de 6 caracteres"
+                                {...field}
+                                disabled={isLoading}
+                              />
                             </FormControl>
                             <FormDescription>
-                              Mínimo de 8 caracteres
+                              Use uma senha segura com pelo menos 6 caracteres
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -583,149 +660,79 @@ export default function SupplierRegister() {
 
                       <FormField
                         control={form.control}
-                        name="passwordConfirm"
+                        name="confirmPassword"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Confirme a Senha</FormLabel>
+                            <FormLabel>Confirmar Senha *</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="********" {...field} />
+                              <Input
+                                type="password"
+                                placeholder="Repita sua senha"
+                                {...field}
+                                disabled={isLoading}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
-                  </TabsContent>
 
-                  {/* Passo 4: Confirmação */}
-                  <TabsContent value="confirm" className="space-y-6">
-                    <Alert className="bg-green-50 border-green-200">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <AlertTitle className="text-green-700">Quase lá!</AlertTitle>
-                      <AlertDescription className="text-green-600">
-                        Revise seus dados antes de finalizar o cadastro
-                      </AlertDescription>
-                    </Alert>
-
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-medium text-lg text-red-800">Dados da Empresa</h3>
-                        <Separator className="my-2" />
-                        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                          <div className="grid grid-cols-2">
-                            <dt className="font-medium">Razão Social:</dt>
-                            <dd>{form.watch("name")}</dd>
+                    <FormField
+                      control={form.control}
+                      name="acceptTerms"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={isLoading}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Eu aceito os termos de uso e políticas de privacidade *
+                            </FormLabel>
+                            <FormDescription>
+                              Ao se cadastrar, você concorda com nossos <a href="#" className="text-red-700 hover:text-red-900 underline">Termos de Uso</a> e <a href="#" className="text-red-700 hover:text-red-900 underline">Política de Privacidade</a>.
+                            </FormDescription>
+                            <FormMessage />
                           </div>
-                          <div className="grid grid-cols-2">
-                            <dt className="font-medium">Nome Fantasia:</dt>
-                            <dd>{form.watch("tradingName")}</dd>
-                          </div>
-                          <div className="grid grid-cols-2">
-                            <dt className="font-medium">CNPJ:</dt>
-                            <dd>{form.watch("cnpj")}</dd>
-                          </div>
-                          <div className="grid grid-cols-2">
-                            <dt className="font-medium">Telefone:</dt>
-                            <dd>{form.watch("phone")}</dd>
-                          </div>
-                          <div className="grid grid-cols-2">
-                            <dt className="font-medium">Email:</dt>
-                            <dd>{form.watch("email")}</dd>
-                          </div>
-                          {form.watch("website") && (
-                            <div className="grid grid-cols-2">
-                              <dt className="font-medium">Website:</dt>
-                              <dd>{form.watch("website")}</dd>
-                            </div>
-                          )}
-                        </dl>
-                      </div>
+                        </FormItem>
+                      )}
+                    />
 
-                      <div>
-                        <h3 className="font-medium text-lg text-red-800">Endereço</h3>
-                        <Separator className="my-2" />
-                        <p className="text-sm">
-                          {form.watch("address")}, {form.watch("addressNumber")}
-                          {form.watch("complement") && `, ${form.watch("complement")}`}<br />
-                          {form.watch("neighborhood")}, {form.watch("city")} - {form.watch("state")}<br />
-                          CEP: {form.watch("zipCode")}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-medium text-lg text-red-800">Dados de Acesso</h3>
-                        <Separator className="my-2" />
-                        <p className="text-sm">
-                          <span className="font-medium">Nome de usuário:</span> {form.watch("username")}<br />
-                          <span className="font-medium">Senha:</span> ********
-                        </p>
-                      </div>
-                    </div>
-
-                    <Alert className="bg-blue-50 border-blue-200">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <AlertTitle className="text-blue-700">Processo de verificação</AlertTitle>
-                      <AlertDescription className="text-blue-600">
-                        Após enviar o cadastro, nossa equipe fará a verificação dos dados informados.
-                        Você receberá um email quando seu cadastro for aprovado.
-                      </AlertDescription>
-                    </Alert>
-                  </TabsContent>
-
-                  {/* Botões de navegação */}
-                  <div className="flex justify-between pt-4">
-                    {registrationStep > 1 ? (
+                    <div className="flex justify-between mt-8">
                       <Button 
                         type="button" 
-                        variant="outline" 
-                        onClick={backStep}
-                        className="border-red-200 hover:bg-red-50"
+                        variant="outline"
+                        onClick={() => setActiveTab("address")}
+                        disabled={isLoading}
                       >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
                         Voltar
                       </Button>
-                    ) : (
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setLocation("/supplier/login")}
-                        className="border-red-200 hover:bg-red-50"
-                      >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Cancelar
-                      </Button>
-                    )}
-
-                    {registrationStep < 4 ? (
-                      <Button 
-                        type="button" 
-                        onClick={advanceStep}
-                        className="bg-red-700 hover:bg-red-800"
-                      >
-                        Continuar
-                      </Button>
-                    ) : (
                       <Button 
                         type="submit" 
                         className="bg-red-700 hover:bg-red-800"
-                        disabled={registerMutation.isPending}
+                        disabled={isLoading}
                       >
-                        {registerMutation.isPending ? (
+                        {isLoading ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Enviando...
+                            <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                            Processando...
                           </>
                         ) : (
                           "Finalizar Cadastro"
                         )}
                       </Button>
-                    )}
-                  </div>
-                </form>
-              </Form>
-            </Tabs>
-          </CardContent>
-        </Card>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </form>
+            </Form>
+          </div>
+        </div>
       </main>
 
       {/* Rodapé */}

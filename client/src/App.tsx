@@ -512,7 +512,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/supplier/dashboard'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -745,6 +745,23 @@ function AppContent() {
     // Página de teste para transparência (público)
     if (currentPath === '/transparencia-test') {
       return <TransparenciaTest />;
+    }
+    
+    // Rotas do Portal do Fornecedor (público)
+    if (currentPath === '/supplier/login') {
+      return <SupplierLogin />;
+    }
+    
+    if (currentPath === '/supplier/register') {
+      return <SupplierRegister />;
+    }
+    
+    if (currentPath === '/supplier/register-success') {
+      return <SupplierRegisterSuccess />;
+    }
+    
+    if (currentPath === '/supplier/dashboard') {
+      return <SupplierDashboard />;
     }
     
     // Página esqueceu a senha (público)
