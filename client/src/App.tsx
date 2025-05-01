@@ -196,6 +196,12 @@ import OrganizationSettings from "@/pages/organization/settings";
 import Cadastros from "@/pages/organization/Cadastros";
 import DataImport from "@/pages/DataImport";
 
+// Importar páginas do Portal do Fornecedor
+import SupplierLogin from "@/pages/supplier/SupplierLogin";
+import SupplierRegister from "@/pages/supplier/SupplierRegister";
+import SupplierRegisterSuccess from "@/pages/supplier/SupplierRegisterSuccess";
+import SupplierDashboard from "@/pages/supplier/SupplierDashboard";
+
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
