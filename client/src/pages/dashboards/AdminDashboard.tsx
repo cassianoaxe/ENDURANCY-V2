@@ -758,9 +758,9 @@ export default function AdminDashboard() {
                       ) : (
                         organizationsData && Array.isArray(organizationsData) && organizationsData.length > 0 ? (
                           organizationsData.map((org: any, index: number) => {
-                            // Encontrar o nome do plano
-                            const planName = plansDistributionData && Array.isArray(plansDistributionData) 
-                              ? plansDistributionData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
+                            // Encontrar o nome do plano usando plansData (dados originais da API)
+                            const planName = plansData && Array.isArray(plansData) 
+                              ? plansData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
                               : 'Desconhecido';
                             
                             // Determinar a classe CSS do status
