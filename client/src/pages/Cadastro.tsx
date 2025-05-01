@@ -56,12 +56,16 @@ export default function Cadastro() {
   const { data: organizations, isLoading: loadingOrgs } = useQuery({
     queryKey: ['/api/organizations'],
     refetchInterval: 10000, // Recarregar a cada 10 segundos
-    onSuccess: (data) => {
-      console.log("Organizações carregadas com sucesso:", data);
-      console.log("Total de organizações:", Array.isArray(data) ? data.length : 0);
-    },
-    onError: (error) => {
-      console.error("Erro ao carregar organizações:", error);
+    queryFn: async () => {
+      console.log("Fazendo requisição explícita para /api/organizations");
+      try {
+        const response = await apiRequest('/api/organizations', { method: 'GET' });
+        console.log("Resposta da API de organizações:", response);
+        return response;
+      } catch (error) {
+        console.error("Erro explícito ao buscar organizações:", error);
+        throw error;
+      }
     }
   });
 
