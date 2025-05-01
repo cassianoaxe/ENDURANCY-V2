@@ -81,25 +81,53 @@ export function MembershipCardDashboard() {
       if (!user) throw new Error('Usuário não autenticado');
       
       try {
+        console.log('Requisitando carteirinhas, usuário autenticado:', !!user);
         const response = await fetch('/api/carteirinha/membership-cards', {
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           credentials: 'include'
         });
         
         if (!response.ok) {
-          console.error('Resposta não ok:', await response.text());
-          throw new Error('Falha ao carregar carteirinhas');
+          const responseText = await response.text();
+          console.error('Resposta não ok:', response.status, responseText);
+          throw new Error(`Falha ao carregar carteirinhas: ${response.status}`);
         }
         
-        return await response.json();
+        // Verifica se a resposta é HTML (geralmente acontece quando a sessão expirou)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          console.error('Resposta retornou HTML em vez de JSON - sessão pode ter expirado');
+          throw new Error('Sessão expirada ou resposta inválida');
+        }
+        
+        const data = await response.json();
+        console.log('Dados de carteirinhas recebidos:', Array.isArray(data), data?.length || 0);
+        
+        if (!Array.isArray(data)) {
+          console.error('Resposta não é um array:', data);
+          return []; // Retorna array vazio para não quebrar o restante do componente
+        }
+        
+        return data;
       } catch (error) {
         console.error('Erro ao buscar carteirinhas:', error);
-        throw new Error('Falha ao carregar carteirinhas');
+        throw error;
       }
     },
-    enabled: !!user
+    enabled: !!user,
+    retry: 1, // Limita a 1 retry para evitar ciclos infinitos
+    staleTime: 60000, // Cache por 1 minuto
+    onError: (err) => {
+      console.error('Erro na query de carteirinhas:', err);
+      toast({
+        title: "Erro ao carregar carteirinhas",
+        description: "Não foi possível carregar as carteirinhas. Tente novamente mais tarde.",
+        variant: "destructive"
+      });
+    }
   });
   
   // Carregar configurações de carteirinha
@@ -109,67 +137,107 @@ export function MembershipCardDashboard() {
       if (!user) return null;
       
       try {
+        console.log('Requisitando configurações de carteirinha');
         const response = await fetch('/api/carteirinha/membership-cards/settings/current', {
           headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           credentials: 'include'
         });
         
-        if (!response.ok) throw new Error('Falha ao carregar configurações');
+        if (!response.ok) {
+          const responseText = await response.text();
+          console.error('Erro ao carregar configurações:', response.status, responseText);
+          return null;
+        }
         
-        return await response.json();
+        // Verifica se a resposta é HTML
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          console.error('Resposta de configurações retornou HTML em vez de JSON');
+          return null;
+        }
+        
+        const data = await response.json();
+        console.log('Configurações recebidas:', data);
+        return data;
       } catch (error) {
         console.error('Erro ao buscar configurações:', error);
         return null;
       }
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 60000, // Cache por 1 minuto
+    retry: 1
   });
   
   // Função para filtrar carteirinhas com base na pesquisa
-  const filterCards = (cards: MembershipCard[]) => {
-    if (!searchTerm) return cards;
+  const filterCards = (cards: MembershipCard[] = []) => {
+    if (!searchTerm || !cards || !Array.isArray(cards)) return cards || [];
     
     const searchLower = searchTerm.toLowerCase();
-    return cards.filter(card => 
-      card.beneficiary.name.toLowerCase().includes(searchLower) ||
-      card.beneficiary.cpf.includes(searchTerm) ||
-      card.cardNumber.toLowerCase().includes(searchLower)
-    );
+    return cards.filter(card => {
+      try {
+        return (
+          (card.beneficiary?.name?.toLowerCase()?.includes(searchLower) || false) ||
+          (card.beneficiary?.cpf?.includes(searchTerm) || false) ||
+          (card.cardNumber?.toLowerCase()?.includes(searchLower) || false)
+        );
+      } catch (error) {
+        console.error('Erro ao filtrar carteirinha:', error, card);
+        return false;
+      }
+    });
   };
   
   // Função para filtrar carteirinhas com base na aba ativa
-  const filterCardsByTab = (cards: MembershipCard[]) => {
-    switch (activeTab) {
-      case 'active':
-        return cards.filter(card => card.status === 'active');
-      case 'expired':
-        return cards.filter(card => card.status === 'expired');
-      case 'physical':
-        return cards.filter(card => !card.digitalOnly);
-      case 'pending':
-        return cards.filter(card => 
-          card.physicalCardStatus === 'pending' || 
-          card.physicalCardStatus === 'approved'
-        );
-      default:
-        return cards;
+  const filterCardsByTab = (cards: MembershipCard[] = []) => {
+    if (!cards || !Array.isArray(cards)) return [];
+    
+    try {
+      switch (activeTab) {
+        case 'active':
+          return cards.filter(card => card.status === 'active');
+        case 'expired':
+          return cards.filter(card => card.status === 'expired');
+        case 'physical':
+          return cards.filter(card => !card.digitalOnly);
+        case 'pending':
+          return cards.filter(card => 
+            card.physicalCardStatus === 'pending' || 
+            card.physicalCardStatus === 'approved'
+          );
+        default:
+          return cards;
+      }
+    } catch (error) {
+      console.error('Erro ao filtrar carteirinhas por aba:', error);
+      return [];
     }
   };
   
   // Função para obter a contagem de carteirinhas por status
   const getStatusCounts = (cards: MembershipCard[] = []) => {
-    return {
-      all: cards.length,
-      active: cards.filter(card => card.status === 'active').length,
-      expired: cards.filter(card => card.status === 'expired').length,
-      physical: cards.filter(card => !card.digitalOnly).length,
-      pending: cards.filter(card => 
-        card.physicalCardStatus === 'pending' || 
-        card.physicalCardStatus === 'approved'
-      ).length,
-    };
+    if (!cards || !Array.isArray(cards)) {
+      return { all: 0, active: 0, expired: 0, physical: 0, pending: 0 };
+    }
+    
+    try {
+      return {
+        all: cards.length,
+        active: cards.filter(card => card.status === 'active').length,
+        expired: cards.filter(card => card.status === 'expired').length,
+        physical: cards.filter(card => !card.digitalOnly).length,
+        pending: cards.filter(card => 
+          card.physicalCardStatus === 'pending' || 
+          card.physicalCardStatus === 'approved'
+        ).length,
+      };
+    } catch (error) {
+      console.error('Erro ao obter contagem de carteirinhas:', error);
+      return { all: 0, active: 0, expired: 0, physical: 0, pending: 0 };
+    }
   };
   
   // Função para verificar se uma carteirinha está expirada
