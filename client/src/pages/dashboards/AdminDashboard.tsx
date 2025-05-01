@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -24,23 +24,76 @@ import { useQuery } from '@tanstack/react-query';
 
 // Função para obter dados das organizações a partir da API
 const useOrganizationData = () => {
-  const { data: organizations, isLoading: loadingOrgs } = useQuery({
-    queryKey: ['/api/organizations'],
-  });
-
-  const { data: plans, isLoading: loadingPlans } = useQuery({
-    queryKey: ['/api/plans'],
-  });
-
-  const { data: modules, isLoading: loadingModules } = useQuery({
-    queryKey: ['/api/modules'],
-  });
-
-  const { data: orgModules, isLoading: loadingOrgModules } = useQuery({
-    queryKey: ['/api/organization-modules/all'],
-  });
-
-  const isLoading = loadingOrgs || loadingPlans || loadingModules || loadingOrgModules;
+  // Usar apiRequest diretamente para garantir autenticação
+  const [organizationsData, setOrganizationsData] = useState<any[]>([]);
+  const [plansData, setPlansData] = useState<any[]>([]);
+  const [modulesData, setModulesData] = useState<any[]>([]);
+  const [orgModulesData, setOrgModulesData] = useState<any[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log("Buscando dados para o dashboard administrativo...");
+        setIsLoadingData(true);
+        
+        // Buscar organizações
+        const orgsResponse = await fetch('/api/organizations', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        
+        const orgs = await orgsResponse.json();
+        console.log(`Organizações retornadas: ${orgs?.length || 0}`);
+        setOrganizationsData(Array.isArray(orgs) ? orgs : []);
+        
+        // Buscar planos
+        const plansResponse = await fetch('/api/plans', { 
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        const plans = await plansResponse.json();
+        setPlansData(Array.isArray(plans) ? plans : []);
+        
+        // Buscar módulos
+        const modulesResponse = await fetch('/api/modules', { 
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        const modules = await modulesResponse.json();
+        setModulesData(Array.isArray(modules) ? modules : []);
+        
+        // Buscar módulos de organizações
+        const orgModulesResponse = await fetch('/api/organization-modules/all', { 
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+        const orgModules = await orgModulesResponse.json();
+        setOrgModulesData(Array.isArray(orgModules) ? orgModules : []);
+      } catch (error) {
+        console.error("Erro ao buscar dados para o dashboard:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  // Alias para compatibilidade com o código existente
+  const organizations = organizationsData;
+  const plans = plansData;
+  const modules = modulesData;
+  const orgModules = orgModulesData;
+  const isLoading = isLoadingData;
 
   // Processar dados para exibição nos gráficos apenas quando todos estiverem carregados
   const processData = () => {
