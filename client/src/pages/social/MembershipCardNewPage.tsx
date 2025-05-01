@@ -1,29 +1,38 @@
-import React from 'react';
-import { MembershipCardForm } from '@/components/social/MembershipCardForm';
-import { DashboardShell } from '@/components/shell';
-import { useAuth } from '@/hooks/use-auth';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { OrganizationShell } from "@/components/shell";
+import { MembershipCardForm } from "@/components/social/MembershipCardForm";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { Link } from "wouter";
 
 export default function MembershipCardNewPage() {
   const { user } = useAuth();
-  const organizationId = user?.organizationId;
+  const [, navigate] = useLocation();
 
-  if (!organizationId) {
-    return (
-      <DashboardShell>
-        <div className="p-4 border rounded-lg bg-orange-50 text-orange-700">
-          <h2 className="text-lg font-semibold">Organização não encontrada</h2>
-          <p>Você precisa estar vinculado a uma organização para acessar esta funcionalidade.</p>
-        </div>
-      </DashboardShell>
-    );
-  }
+  // Função para redirecionar após sucesso
+  const handleSuccess = () => {
+    navigate("/social/membership-cards");
+    return "";
+  };
 
   return (
-    <DashboardShell>
-      <MembershipCardForm 
-        organizationId={organizationId} 
-        onSuccess={() => window.location.href = '/social/membership-cards'}
-      />
-    </DashboardShell>
+    <OrganizationShell title="">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Link href="/social/membership-cards">
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h2 className="text-3xl font-bold">Nova Carteirinha</h2>
+          </div>
+        </div>
+
+        <MembershipCardForm onSuccess={handleSuccess} />
+      </div>
+    </OrganizationShell>
   );
 }
