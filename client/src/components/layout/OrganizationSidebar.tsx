@@ -706,41 +706,41 @@ export default function OrganizationSidebar() {
     
     {
       title: "Carteirinha",
-      path: "/social/membership-cards",
-      active: currentPath === "/social/membership-cards" || 
-              currentPath.startsWith("/social/membership-cards/") ||
-              currentPath.startsWith("/social/partners"),
+      path: "/organization/carteirinha/membership-cards",
+      active: currentPath === "/organization/carteirinha/membership-cards" || 
+              currentPath.startsWith("/organization/carteirinha/membership-cards/") ||
+              currentPath.startsWith("/organization/carteirinha/partners"),
       icon: <CreditCardIcon size={18} />,
       isSubmenu: true,
       subItems: [
         {
           title: "Carteirinhas",
-          path: "/social/membership-cards",
-          active: currentPath === "/social/membership-cards" && !currentPath.includes("/social/membership-cards/"),
+          path: "/organization/carteirinha/membership-cards",
+          active: currentPath === "/organization/carteirinha/membership-cards" && !currentPath.includes("/organization/carteirinha/membership-cards/"),
           icon: <CreditCardIcon size={16} />
         },
         {
           title: "Nova Carteirinha",
-          path: "/social/membership-cards/new",
-          active: currentPath === "/social/membership-cards/new",
+          path: "/organization/carteirinha/membership-cards/new",
+          active: currentPath === "/organization/carteirinha/membership-cards/new",
           icon: <UserSquare size={16} />
         },
         {
           title: "Parceiros",
-          path: "/social/partners",
-          active: currentPath === "/social/partners" && !currentPath.includes("/social/partners/"),
+          path: "/organization/carteirinha/partners",
+          active: currentPath === "/organization/carteirinha/partners" && !currentPath.includes("/organization/carteirinha/partners/"),
           icon: <Store size={16} />
         },
         {
           title: "Novo Parceiro",
-          path: "/social/partners/new",
-          active: currentPath === "/social/partners/new",
+          path: "/organization/carteirinha/partners/new",
+          active: currentPath === "/organization/carteirinha/partners/new",
           icon: <UserPlus size={16} />
         },
         {
           title: "Configurações",
-          path: "/social/membership-cards/settings",
-          active: currentPath === "/social/membership-cards/settings",
+          path: "/organization/carteirinha/settings",
+          active: currentPath === "/organization/carteirinha/settings",
           icon: <Settings size={16} />
         }
       ]
