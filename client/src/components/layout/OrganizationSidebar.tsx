@@ -1112,6 +1112,44 @@ export default function OrganizationSidebar() {
   // Módulos Enterprise (disponíveis apenas no plano Enterprise)
   const enterpriseModules = [
     {
+      title: "Portal do Fornecedor",
+      path: "/organization/suppliers",
+      active: currentPath === "/organization/suppliers" || 
+              currentPath.startsWith("/organization/suppliers/"),
+      icon: <Store size={18} className="text-red-500" />,
+      isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
+      subItems: [
+        {
+          title: "Dashboard",
+          path: "/organization/suppliers",
+          active: currentPath === "/organization/suppliers" && !currentPath.includes("/organization/suppliers/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Cadastrar Fornecedor",
+          path: "/organization/suppliers/register",
+          active: currentPath === "/organization/suppliers/register",
+          icon: <UserPlus size={16} />
+        },
+        {
+          title: "Catálogo de Produtos",
+          path: "/organization/suppliers/products",
+          active: currentPath === "/organization/suppliers/products",
+          icon: <ShoppingCart size={16} />
+        },
+        {
+          title: "Licitações",
+          path: "/organization/suppliers/tenders",
+          active: currentPath === "/organization/suppliers/tenders",
+          icon: <FileText size={16} />
+        },
+      ]
+    },
+    {
       title: "Compras e Estoque",
       path: "/organization/compras",
       active: currentPath === "/organization/compras" || 
