@@ -102,13 +102,45 @@ export function PartnersDiscountClub() {
     queryKey: ['/api/carteirinha/partners'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/carteirinha/partners');
-        if (!response.ok) throw new Error('Falha ao carregar parceiros');
+        const response = await fetch('/api/carteirinha/partners', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
         
-        return await response.json();
+        if (!response.ok) {
+          const responseText = await response.text();
+          console.error('Resposta não ok:', response.status, responseText);
+          throw new Error('Falha ao carregar parceiros');
+        }
+        
+        // Verifica se a resposta é HTML
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          console.error('Resposta retornou HTML em vez de JSON - sessão pode ter expirado');
+          throw new Error('Sessão expirada ou resposta inválida');
+        }
+        
+        const result = await response.json();
+        console.log('Dados de parceiros recebidos:', result);
+        
+        // A API está retornando um objeto { data: [...], pagination: {...} }
+        if (result && result.data && Array.isArray(result.data)) {
+          console.log('Parceiros encontrados:', result.data.length);
+          return result.data;
+        } else if (Array.isArray(result)) {
+          // Fallback para o caso da API retornar diretamente um array
+          console.log('Parceiros encontrados (array direto):', result.length);
+          return result;
+        } else {
+          console.error('Resposta não contém dados válidos:', result);
+          return []; // Retorna array vazio para não quebrar o restante do componente
+        }
       } catch (error) {
         console.error('Erro ao buscar parceiros:', error);
-        throw new Error('Falha ao carregar parceiros');
+        throw error;
       }
     }
   });
