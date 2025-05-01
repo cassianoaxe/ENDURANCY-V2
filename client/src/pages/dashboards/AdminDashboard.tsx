@@ -747,11 +747,11 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ) : (
-                        organizations && Array.isArray(organizations) && organizations.length > 0 ? (
-                          organizations.map((org: any, index: number) => {
+                        organizationsData && Array.isArray(organizationsData) && organizationsData.length > 0 ? (
+                          organizationsData.map((org: any, index: number) => {
                             // Encontrar o nome do plano
-                            const planName = plans && Array.isArray(plans) 
-                              ? plans.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
+                            const planName = plansData && Array.isArray(plansData) 
+                              ? plansData.find((p: any) => p.id === org.planId)?.name || 'Desconhecido'
                               : 'Desconhecido';
                             
                             // Determinar a classe CSS do status
