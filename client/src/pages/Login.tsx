@@ -358,8 +358,8 @@ export default function Login() {
       if (userType === 'company_admin' && 
           (localStorage.getItem('userType') === 'import_company' || 
            document.documentElement.classList.contains('importadora-theme'))) {
-        // Forçar redirecionamento para dashboard de importadora
-        redirectUrl = '/organization/import-company/dashboard';
+        // Forçar redirecionamento para dashboard de importadora (usando plural)
+        redirectUrl = '/organizations/import-company/dashboard';
         
         // Após definir o redirecionamento, limpar os marcadores
         document.documentElement.classList.remove('importadora-theme');

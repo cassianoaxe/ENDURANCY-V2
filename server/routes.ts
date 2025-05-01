@@ -753,7 +753,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redirectUrl = '/researcher/dashboard';
           break;
         case 'org_admin':
+          // Garantir que sempre use a versão com plural 'organizations'
           redirectUrl = `/organizations/${user.organizationId}/dashboard`;
+          // Adicionar log para debug
+          console.log(`Definindo URL de redirecionamento para org_admin: ${redirectUrl}`);
           break;
         case 'admin':
           redirectUrl = '/admin/dashboard';
