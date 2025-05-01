@@ -5812,6 +5812,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de grupos de usuários e permissões
   // User group routes are registered directly via registerUserGroupRoutes(app);
   
+  // Middleware especial para garantir que API de carteirinha retorne sempre JSON
+  app.use("/api/carteirinha", (req, res, next) => {
+    // Se a requisição não estiver autenticada, retornar JSON
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({
+        message: "Não autenticado",
+        error: "Unauthorized",
+        authenticated: false
+      });
+    }
+    next();
+  });
+
   // Rotas do módulo Social (para associações)
   app.use("/api", socialRoutes);
   console.log("Rotas do módulo Social registradas com sucesso");
