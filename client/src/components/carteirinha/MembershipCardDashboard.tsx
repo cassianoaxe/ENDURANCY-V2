@@ -82,10 +82,13 @@ export function MembershipCardDashboard() {
       
       try {
         console.log('Requisitando carteirinhas, usuário autenticado:', !!user);
-        const response = await fetch('/api/carteirinha/membership-cards', {
+        // Adicionar timestamp para evitar cache e usar endpoint alternativo
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api-json/carteirinha/membership-cards?_t=${timestamp}`, {
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
           },
           credentials: 'include'
         });
@@ -148,10 +151,12 @@ export function MembershipCardDashboard() {
       
       try {
         console.log('Requisitando configurações de carteirinha');
-        const response = await fetch('/api/carteirinha/membership-cards/settings/current', {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api-json/carteirinha/membership-cards/settings/current?_t=${timestamp}`, {
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
           },
           credentials: 'include'
         });
