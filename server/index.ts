@@ -901,7 +901,7 @@ app.use((req, res, next) => {
   });
   
   // Rota específica para configurações de carteirinha
-  app.get('/api-json/carteirinha/membership-cards/settings/current', authenticate, (req, res) => {
+  app.get('/api-json/carteirinha/membership-cards/settings/current', apiJsonAuthenticate, apiJsonIsAssociation, (req, res) => {
     try {
       // Forçar Content-Type para JSON
       res.setHeader('Content-Type', 'application/json');
