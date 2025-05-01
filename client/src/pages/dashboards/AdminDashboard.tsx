@@ -38,6 +38,7 @@ const useOrganizationData = () => {
         setIsLoadingData(true);
         
         // Buscar organizações
+        console.log("Buscando organizações...");
         const orgsResponse = await fetch('/api/organizations', {
           credentials: 'include',
           headers: {
@@ -45,8 +46,10 @@ const useOrganizationData = () => {
           }
         });
         
+        console.log("Status da resposta das organizações:", orgsResponse.status);
         const orgs = await orgsResponse.json();
-        console.log(`Organizações retornadas: ${orgs?.length || 0}`);
+        console.log("Organizações obtidas:", orgs);
+        console.log(`Total de organizações retornadas: ${orgs?.length || 0}`);
         setOrganizationsData(Array.isArray(orgs) ? orgs : []);
         
         // Buscar planos
@@ -97,7 +100,7 @@ const useOrganizationData = () => {
 
   // Processar dados para exibição nos gráficos apenas quando todos estiverem carregados
   const processData = () => {
-    if (isLoading || !organizations || !plans || !modules || !orgModules) {
+    if (isLoading || !organizationsData || !plansData || !modulesData || !orgModulesData) {
       return {
         organizationsData: [],
         plansDistributionData: [],
@@ -116,10 +119,10 @@ const useOrganizationData = () => {
       review: 0
     };
 
-    const orgArray = Array.isArray(organizations) ? organizations : [];
-    const plansArray = Array.isArray(plans) ? plans : [];
-    const modulesArray = Array.isArray(modules) ? modules : [];
-    const orgModulesArray = Array.isArray(orgModules) ? orgModules : [];
+    const orgArray = Array.isArray(organizationsData) ? organizationsData : [];
+    const plansArray = Array.isArray(plansData) ? plansData : [];
+    const modulesArray = Array.isArray(modulesData) ? modulesData : [];
+    const orgModulesArray = Array.isArray(orgModulesData) ? orgModulesData : [];
 
     // Contar organizações por status
     orgArray.forEach(org => {
@@ -296,7 +299,9 @@ const useOrganizationData = () => {
 const COLORS = ['#4CAF50', '#FFC107', '#F44336', '#2196F3', '#9C27B0', '#FF5722'];
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const { user } = auth;
+  console.log("Estado de autenticação no AdminDashboard:", auth);
   const [activeTab, setActiveTab] = useState('overview');
   
   // Buscar dados dinâmicos para o dashboard
@@ -362,8 +367,8 @@ export default function AdminDashboard() {
                 <CardTitle className="text-sm font-medium">Organizações Totais</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{organizations?.length || 0}</div>
-                <p className="text-xs text-green-500">{!isLoading && organizations?.length > 0 ? '+12% em relação ao mês anterior' : 'Carregando dados...'}</p>
+                <div className="text-3xl font-bold">{organizationsData?.length || 0}</div>
+                <p className="text-xs text-green-500">{!isLoading && organizationsData?.length > 0 ? '+12% em relação ao mês anterior' : 'Carregando dados...'}</p>
               </CardContent>
             </Card>
             <Card>
