@@ -18,7 +18,7 @@ export default function OrganizationDashboard() {
   const { user } = useAuth();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
-  // Adicionar verificação de autenticação explícita para corrigir problemas de redirecionamento
+  // Verificação simplificada para evitar problemas de redirecionamento
   useEffect(() => {
     // Verificar se este é o redirecionamento de uma empresa importadora
     const checkOrgType = localStorage.getItem('check_org_type');
@@ -53,49 +53,10 @@ export default function OrganizationDashboard() {
       });
     }
     
-    if (user) {
-      // Usuário já está autenticado, não precisamos verificar
-      setIsCheckingAuth(false);
-      return;
-    }
+    // Simplesmente marcar que a verificação de autenticação está concluída
+    // Não precisamos mais verificar a autenticação aqui porque o AuthProvider já faz isso
+    setIsCheckingAuth(false);
     
-    // Verificar se temos cookies de sessão
-    const checkAuth = async () => {
-      try {
-        console.log("Verificando autenticação diretamente no dashboard...");
-        const response = await fetch('/api/user', {
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          console.log("Dashboard: autenticação verificada com sucesso:", userData);
-          
-          // Se estamos autenticados, recarregar a página para atualizar o contexto de autenticação
-          window.location.reload();
-        } else {
-          console.error("Dashboard: não autenticado, redirecionando para login...");
-          // Redirecionar para a página de login
-          window.location.href = '/login';
-        }
-      } catch (error) {
-        console.error("Erro ao verificar autenticação no dashboard:", error);
-        // Em caso de erro, redirecionar para a página de login
-        window.location.href = '/login';
-      } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-    
-    // Verificar autenticação após um curto delay
-    const timeoutId = setTimeout(checkAuth, 500);
-    return () => clearTimeout(timeoutId);
   }, [user]);
   
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
