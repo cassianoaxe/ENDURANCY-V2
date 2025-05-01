@@ -30,7 +30,19 @@ function AppContent() {
   // Listen for path changes
   useEffect(() => {
     const handlePathChange = () => {
-      const newPath = window.location.pathname;
+      let newPath = window.location.pathname;
+      
+      // Normalizar URLs entre /organization/ e /organizations/
+      if (newPath.match(/^\/organization\/\d+\/dashboard\/?$/)) {
+        // Redirecionar automaticamente para a versão plural do caminho
+        const newPluralPath = newPath.replace('/organization/', '/organizations/');
+        console.log("Normalizando URL:", newPath, "->", newPluralPath);
+        
+        // Atualizar URL sem recarregar a página
+        window.history.replaceState(null, '', newPluralPath);
+        newPath = newPluralPath;
+      }
+      
       console.log("Navegação detectada para:", newPath);
       setCurrentPath(newPath);
     };
@@ -40,7 +52,19 @@ function AppContent() {
     
     // Ouvir evento customizado para navegação manual
     const handleCustomNavigation = () => {
-      const newPath = window.location.pathname;
+      let newPath = window.location.pathname;
+      
+      // Normalizar URLs entre /organization/ e /organizations/
+      if (newPath.match(/^\/organization\/\d+\/dashboard\/?$/)) {
+        // Redirecionar automaticamente para a versão plural do caminho
+        const newPluralPath = newPath.replace('/organization/', '/organizations/');
+        console.log("Normalizando URL:", newPath, "->", newPluralPath);
+        
+        // Atualizar URL sem recarregar a página
+        window.history.replaceState(null, '', newPluralPath);
+        newPath = newPluralPath;
+      }
+      
       console.log("Navegação customizada para:", newPath);
       setCurrentPath(newPath);
     };
@@ -69,7 +93,6 @@ function AppContent() {
   
   // Importação dinâmica para o dashboard da organização
   const OrgAdminDashboard = React.lazy(() => import('./pages/dashboards/OrgAdminDashboard'));
-  const OrganizationDashboard = React.lazy(() => import('./pages/organization/Dashboard'));
 
   // Rotas específicas que queremos tratar
   // Rotas de autenticação
@@ -121,7 +144,7 @@ function AppContent() {
     console.log("Renderizando dashboard de organização (compat):", currentPath);
     Component = () => (
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-        <OrganizationDashboard />
+        <OrgAdminDashboard />
       </Suspense>
     );
   }
