@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { OrganizationShell } from "@/components/shell";
 import { MembershipCardDashboard } from "@/components/carteirinha/MembershipCardDashboard";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 
 export default function MembershipCardsPage() {
