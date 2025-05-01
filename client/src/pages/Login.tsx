@@ -319,8 +319,8 @@ export default function Login() {
         user = null;
       }
       
-      // Usar URL de redirecionamento da API, nunca usar fallback para /dashboard
-      // O dashboard geral causa o flash indesejado antes do redirecionamento final
+      // Usar URL de redirecionamento da API, que vem do backend
+      // É importante respeitar as URLs exatas retornadas pelo servidor
       let redirectUrl = user?.redirectUrl;
       
       // Se por algum motivo não tivermos URL de redirecionamento, determinar baseado no tipo de usuário
@@ -335,7 +335,7 @@ export default function Login() {
         } else if (userType === 'company_admin') {
           redirectUrl = '/organization/dashboard';
         } else if (userType === 'admin') {
-          redirectUrl = '/dashboard';
+          redirectUrl = '/admin/dashboard';
         } else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
           redirectUrl = '/doctor/dashboard';
         } else if (userType === 'pharmacist') {
