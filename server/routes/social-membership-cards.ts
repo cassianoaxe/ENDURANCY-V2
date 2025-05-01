@@ -517,7 +517,7 @@ socialMembershipCardsRouter.patch("/:id/status", authenticate, isAssociation, as
   try {
     const { id } = req.params;
     const { status } = req.body;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     if (!status || !["pending", "approved", "printed", "delivered", "expired", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Status inválido" });
@@ -591,8 +591,8 @@ socialMembershipCardsRouter.post("/:id/pin", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     const { pin } = req.body;
-    const userId = req.user.id;
-    const organizationId = req.user.organizationId;
+    const userId = req.session.user.id;
+    const organizationId = req.session.user.organizationId;
     
     // Verificar se a carteirinha existe
     const [card] = await db
@@ -610,7 +610,7 @@ socialMembershipCardsRouter.post("/:id/pin", authenticate, async (req, res) => {
     }
     
     // Verificar se o usuário é o beneficiário ou um admin
-    if (req.user.role !== 'org_admin' && req.user.role !== 'admin' && card.beneficiaryId !== userId) {
+    if (req.session.user.role !== 'org_admin' && req.session.user.role !== 'admin' && card.beneficiaryId !== userId) {
       return res.status(403).json({ message: "Acesso negado. Você não pode configurar o PIN desta carteirinha." });
     }
     
@@ -835,7 +835,7 @@ socialMembershipCardsRouter.get("/qr/:cardNumber", async (req, res) => {
 socialMembershipCardsRouter.get("/:id/generate-image", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     // Buscar carteirinha com beneficiário e configurações
     const [cardData] = await db
@@ -1019,7 +1019,7 @@ socialMembershipCardsRouter.get("/:id/generate-image", authenticate, async (req,
 // Rota para obter ou criar configurações de carteirinha
 socialMembershipCardsRouter.get("/settings/current", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     // Buscar configurações existentes
     let [settings] = await db
@@ -1067,7 +1067,7 @@ socialMembershipCardsRouter.get("/settings/current", authenticate, isAssociation
 // Rota para atualizar configurações de carteirinha
 socialMembershipCardsRouter.put("/settings/update", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const settingsData = req.body;
     
     // Verificar se já existem configurações
