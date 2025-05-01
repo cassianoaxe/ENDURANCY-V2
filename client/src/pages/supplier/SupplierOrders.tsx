@@ -5,26 +5,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Package2, 
-  ClipboardList, 
-  Search,
-  Filter,
-  ChevronDown,
-  ArrowUpDown,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  Eye,
-  FileText,
-  Truck,
-  CheckCircle,
-  XCircle,
-  AlertCircle
-} from "lucide-react";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,11 +31,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { 
+  Search, 
+  Filter, 
+  Truck, 
+  Package2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  Clock,
+  Eye,
+  ExternalLink,
+  FileText,
+  ChevronDown
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-// Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Tipo de pedido
 interface Order {
@@ -285,7 +296,7 @@ export default function SupplierOrders() {
   };
 
   return (
-    <SupplierLayout activeTab="orders">
+    <>
       <div className="pb-10">
         <h1 className="text-3xl font-bold tracking-tight mb-1">Pedidos</h1>
         <p className="text-muted-foreground mb-8">Gerencie todos os seus pedidos em um só lugar.</p>
@@ -526,11 +537,12 @@ export default function SupplierOrders() {
                 </div>
                 <div className="space-y-1">
                   <Label>Quantidade de Itens</Label>
-                  <div className="font-medium">{selectedOrder.items} itens</div>
+                  <div className="font-medium">{selectedOrder.items} {selectedOrder.items > 1 ? 'itens' : 'item'}</div>
                 </div>
               </div>
               
-              {(selectedOrder.status === "shipped" || selectedOrder.status === "delivered") && (
+              {/* Informações de Envio */}
+              {selectedOrder.trackingNumber && (
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <Label>Método de Envio</Label>
@@ -538,81 +550,77 @@ export default function SupplierOrders() {
                   </div>
                   <div className="space-y-1">
                     <Label>Código de Rastreamento</Label>
-                    <div className="font-medium">{selectedOrder.trackingNumber}</div>
+                    <div className="flex gap-2 items-center">
+                      <div className="font-medium">{selectedOrder.trackingNumber}</div>
+                      <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => {
+                        toast({
+                          title: "Rastreamento",
+                          description: "Redirecionando para a página de rastreamento...",
+                        });
+                      }}>
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Rastrear
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
               
-              <div className="pt-2">
-                <Label className="mb-3 block">Itens do Pedido</Label>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="text-right">Quantidade</TableHead>
-                      <TableHead className="text-right">Preço Unit.</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {/* Itens fictícios do pedido */}
-                    <TableRow>
-                      <TableCell>Extrato CBD 10%</TableCell>
-                      <TableCell className="text-right">2</TableCell>
-                      <TableCell className="text-right">R$ 250,00</TableCell>
-                      <TableCell className="text-right">R$ 500,00</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Óleo Full Spectrum</TableCell>
-                      <TableCell className="text-right">1</TableCell>
-                      <TableCell className="text-right">R$ 180,00</TableCell>
-                      <TableCell className="text-right">R$ 180,00</TableCell>
-                    </TableRow>
-                    {selectedOrder.items > 2 && (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-2">
-                          + {selectedOrder.items - 2} outros itens
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+              {/* Exemplo de lista de produtos */}
+              <div>
+                <Label className="mb-2 block">Produtos no Pedido</Label>
+                <div className="border rounded-md">
+                  <div className="bg-muted px-4 py-2 flex items-center justify-between font-medium text-sm">
+                    <div className="w-full md:w-1/2">Produto</div>
+                    <div className="hidden md:block w-1/6 text-center">Qtd.</div>
+                    <div className="hidden md:block w-1/6 text-right">Preço Unit.</div>
+                    <div className="w-1/4 md:w-1/6 text-right">Subtotal</div>
+                  </div>
+                  <div className="divide-y">
+                    {/* Produtos simulados do pedido */}
+                    {[
+                      { id: 1, name: "Extrato CBD 10%", price: 250.00, qty: 1 },
+                      { id: 2, name: "Óleo Full Spectrum", price: 180.00, qty: 2 },
+                    ].map((item) => (
+                      <div key={item.id} className="px-4 py-3 flex flex-wrap md:flex-nowrap items-center justify-between text-sm">
+                        <div className="w-full md:w-1/2 font-medium mb-2 md:mb-0">{item.name}</div>
+                        <div className="w-1/3 md:w-1/6 text-center">
+                          <span className="md:hidden text-gray-500 mr-2">Qtd:</span>
+                          {item.qty}
+                        </div>
+                        <div className="w-1/3 md:w-1/6 text-right">
+                          <span className="md:hidden text-gray-500 mr-2">Preço:</span>
+                          R$ {item.price.toFixed(2)}
+                        </div>
+                        <div className="w-1/3 md:w-1/6 text-right font-medium">
+                          <span className="md:hidden text-gray-500 mr-2">Total:</span>
+                          R$ {(item.price * item.qty).toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
           
-          <DialogFooter>
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-3">
-              <Button variant="outline" onClick={closeOrderDetails}>
-                Fechar
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-6">
+            {selectedOrder && (selectedOrder.status === "processing") && (
+              <Button className="gap-2 bg-orange-600 text-white hover:bg-orange-700" onClick={() => updateOrderStatus(selectedOrder.id, "shipped")}>
+                <Truck className="h-4 w-4" />
+                Marcar como Enviado
               </Button>
-              
-              <div className="flex gap-3">
-                {selectedOrder?.status === "processing" && (
-                  <Button variant="default" className="bg-orange-600 hover:bg-orange-700" onClick={() => updateOrderStatus(selectedOrder.id, "shipped")}>
-                    <Truck className="mr-2 h-4 w-4" />
-                    Marcar como Enviado
-                  </Button>
-                )}
-                
-                {selectedOrder?.status === "shipped" && (
-                  <Button variant="default" className="bg-green-600 hover:bg-green-700" onClick={() => updateOrderStatus(selectedOrder.id, "delivered")}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Marcar como Entregue
-                  </Button>
-                )}
-                
-                {(selectedOrder?.status === "processing" || selectedOrder?.status === "shipped") && (
-                  <Button variant="destructive" onClick={() => updateOrderStatus(selectedOrder.id, "cancelled")}>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Cancelar Pedido
-                  </Button>
-                )}
-              </div>
-            </div>
+            )}
+            
+            {selectedOrder && (selectedOrder.status === "shipped") && (
+              <Button className="gap-2 bg-green-600 text-white hover:bg-green-700" onClick={() => updateOrderStatus(selectedOrder.id, "delivered")}>
+                <CheckCircle className="h-4 w-4" />
+                Marcar como Entregue
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SupplierLayout>
+    </>
   );
 }

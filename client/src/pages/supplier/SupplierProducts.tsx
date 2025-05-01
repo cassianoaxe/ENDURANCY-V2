@@ -39,7 +39,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Layout do fornecedor
-import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+// O SupplierLayout é aplicado no App.tsx
 
 // Tipo de produto
 interface Product {
@@ -356,7 +356,7 @@ export default function SupplierProducts() {
   };
 
   return (
-    <SupplierLayout activeTab="products">
+    <>
       <div className="pb-10">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -850,6 +850,6 @@ export default function SupplierProducts() {
           </DialogContent>
         </Dialog>
       )}
-    </SupplierLayout>
+    </>
   );
 }
