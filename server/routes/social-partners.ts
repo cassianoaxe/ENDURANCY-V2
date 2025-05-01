@@ -59,10 +59,16 @@ const upload = multer({
 
 // Função para verificar se o usuário é admin de associação
 function isAssociation(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Não autenticado" });
+  // Verificar autenticação
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ 
+      message: "Não autenticado", 
+      error: "Unauthorized",
+      authenticated: false 
+    });
   }
-
+  
+  // Verificar permissões
   if (req.user.role !== 'org_admin' && req.user.role !== 'admin') {
     return res.status(403).json({ message: "Acesso negado. Apenas administradores de associações podem gerenciar parceiros." });
   }
@@ -75,11 +81,23 @@ function generateVerificationCode() {
   return crypto.randomBytes(4).toString('hex').toUpperCase();
 }
 
+// Middleware para garantir retorno de JSON em rotas de API não autenticadas
+function ensureJsonResponse(req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({
+      message: "Não autenticado",
+      error: "Unauthorized",
+      authenticated: false
+    });
+  }
+  next();
+}
+
 // Criar o router
 export const socialPartnersRouter = Router();
 
-// Rota para listar parceiros
-socialPartnersRouter.get("/", authenticate, isAssociation, async (req, res) => {
+// Rota para listar parceiros - Adiciona middleware ensureJsonResponse antes de authenticate
+socialPartnersRouter.get("/", ensureJsonResponse, authenticate, isAssociation, async (req, res) => {
   try {
     const organizationId = req.user.organizationId;
     const { category, status, query } = req.query;
@@ -121,7 +139,7 @@ socialPartnersRouter.get("/", authenticate, isAssociation, async (req, res) => {
 });
 
 // Rota para obter detalhes de um parceiro específico com seus benefícios
-socialPartnersRouter.get("/:id", authenticate, isAssociation, async (req, res) => {
+socialPartnersRouter.get("/:id", ensureJsonResponse, authenticate, isAssociation, async (req, res) => {
   try {
     const { id } = req.params;
     const organizationId = req.user.organizationId;
@@ -163,6 +181,7 @@ socialPartnersRouter.get("/:id", authenticate, isAssociation, async (req, res) =
 
 // Rota para criar novo parceiro
 socialPartnersRouter.post("/", 
+  ensureJsonResponse,
   authenticate, 
   isAssociation, 
   upload.fields([
@@ -236,6 +255,7 @@ socialPartnersRouter.post("/",
 
 // Rota para atualizar parceiro
 socialPartnersRouter.put("/:id", 
+  ensureJsonResponse,
   authenticate, 
   isAssociation, 
   upload.fields([
@@ -304,7 +324,7 @@ socialPartnersRouter.put("/:id",
 });
 
 // Rota para atualizar status do parceiro
-socialPartnersRouter.patch("/:id/status", authenticate, isAssociation, async (req, res) => {
+socialPartnersRouter.patch("/:id/status", ensureJsonResponse, authenticate, isAssociation, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -355,7 +375,7 @@ socialPartnersRouter.patch("/:id/status", authenticate, isAssociation, async (re
 });
 
 // Rota para adicionar benefício a um parceiro
-socialPartnersRouter.post("/:id/benefits", authenticate, isAssociation, upload.single("imageFile"), async (req, res) => {
+socialPartnersRouter.post("/:id/benefits", ensureJsonResponse, authenticate, isAssociation, upload.single("imageFile"), async (req, res) => {
   try {
     const { id } = req.params;
     const organizationId = req.user.organizationId;
