@@ -371,6 +371,19 @@ export default function Login() {
         localStorage.setItem('direct_import_company', 'true');
       }
       
+      // Se estamos recebendo a URL do servidor, verificar se precisa normalizar
+      if (user?.redirectUrl) {
+        // Corrigir redirecionamentos para dashboards de organizações
+        // Converter "organization/X/dashboard" para "organizations/X/dashboard"
+        if (user.redirectUrl.match(/^\/organization\/\d+\/dashboard\/?$/)) {
+          const newUrl = user.redirectUrl.replace('/organization/', '/organizations/');
+          console.log("Convertendo URL de redirecionamento:", user.redirectUrl, "->", newUrl);
+          redirectUrl = newUrl;
+        } else {
+          redirectUrl = user.redirectUrl;
+        }
+      }
+      
       console.log("URL de redirecionamento (da API):", user?.redirectUrl);
       console.log("URL de redirecionamento (final):", redirectUrl);
       
