@@ -639,6 +639,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case 'researcher':
             redirectUrl = '/researcher/dashboard';
             break;
+          case 'supplier':
+            redirectUrl = '/supplier/dashboard';
+            break;
           case 'org_admin':
             redirectUrl = `/organization/${orgsFound[0].id}/dashboard`;
             break;
@@ -768,6 +771,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         case 'researcher':
           redirectUrl = '/researcher/dashboard';
+          break;
+        case 'supplier':
+          redirectUrl = '/supplier/dashboard';
           break;
         case 'org_admin':
           redirectUrl = `/organization/${user.organizationId}/dashboard`;
