@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Loader2, User, Eye, ArrowRight, Building, Leaf, 
   Beaker, Stethoscope, Pill, UserCircle, PanelTopInactive,
-  Mail, AlertTriangle
+  Mail, AlertTriangle, Truck
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
@@ -35,7 +35,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
+type UserRole = 'admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -182,6 +182,16 @@ export default function Login() {
         password: 'pesquisa123'
       },
       color: 'bg-sky-50 text-sky-700 border-sky-100'
+    },
+    supplier: {
+      label: 'Fornecedor',
+      icon: <Truck className="h-5 w-5" />,
+      description: 'Acesse como fornecedor para o marketplace',
+      credentials: {
+        username: 'fornecedor@exemplo.com',
+        password: 'fornecedor123'
+      },
+      color: 'bg-red-50 text-red-700 border-red-100'
     }
   };
 
@@ -346,6 +356,8 @@ export default function Login() {
           redirectUrl = '/laboratory/dashboard';
         } else if (userType === 'researcher') {
           redirectUrl = '/researcher/dashboard';
+        } else if (userType === 'supplier') {
+          redirectUrl = '/supplier/dashboard';
         } else {
           // Fallback seguro
           redirectUrl = '/';
@@ -773,7 +785,7 @@ export default function Login() {
                   <div>
                     <h4 className="text-sm text-gray-600 mb-2">Outros acessos</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {['admin', 'pharmacist', 'laboratory', 'patient', 'researcher'].map((role) => {
+                      {['admin', 'pharmacist', 'laboratory', 'patient', 'researcher', 'supplier'].map((role) => {
                         const info = userTypeInfo[role as UserRole];
                         return (
                           <button
