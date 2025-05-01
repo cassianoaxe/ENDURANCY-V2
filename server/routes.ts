@@ -5782,6 +5782,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
   
+  // Registrar rotas do módulo de carteirinha digital
+  console.log("Registrando rotas do módulo de carteirinha digital");
+  app.use('/api/carteirinha', carteirinhaRoutes);
+  console.log("Rotas do módulo de carteirinha digital registradas");
+  
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
