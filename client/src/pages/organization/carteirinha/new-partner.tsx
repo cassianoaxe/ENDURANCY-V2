@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { OrganizationShell } from "@/components/shell";
 import { PartnerForm } from "@/components/carteirinha/PartnerForm";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -18,21 +17,19 @@ export default function PartnerNewPage() {
   };
 
   return (
-    <OrganizationShell title="">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Link href="/organization/carteirinha/partners">
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h2 className="text-3xl font-bold">Novo Parceiro</h2>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Link href="/organization/carteirinha/partners">
+            <Button variant="outline" size="icon" className="h-8 w-8">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <h2 className="text-3xl font-bold">Novo Parceiro</h2>
         </div>
-
-        <PartnerForm onSuccess={handleSuccess} />
       </div>
-    </OrganizationShell>
+
+      <PartnerForm onSuccess={handleSuccess} />
+    </div>
   );
 }

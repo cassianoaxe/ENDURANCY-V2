@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { OrganizationShell } from "@/components/shell";
 import { PartnersDiscountClub } from "@/components/carteirinha/PartnersDiscountClub";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -21,9 +20,5 @@ export default function PartnersPage() {
     enabled: !!user?.organizationId
   });
 
-  return (
-    <OrganizationShell title="">
-      <PartnersDiscountClub />
-    </OrganizationShell>
-  );
+  return <PartnersDiscountClub />;
 }
