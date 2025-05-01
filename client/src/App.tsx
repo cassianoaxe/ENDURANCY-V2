@@ -252,6 +252,8 @@ import SupplierPortalDashboard from "@/pages/organization/suppliers";
 import SupplierRegistration from "@/pages/organization/suppliers/register";
 import SupplierProducts from "@/pages/organization/suppliers/products";
 import SupplierTenders from "@/pages/organization/suppliers/tenders";
+import SupplierOrders from "@/pages/organization/suppliers/orders";
+import SupplierCart from "@/pages/organization/suppliers/cart";
 
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
@@ -1492,6 +1494,18 @@ function AppContent() {
     if (currentPath === '/organization/suppliers/tenders') {
       return <OrganizationLayout>
         <SupplierTenders />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/orders') {
+      return <OrganizationLayout>
+        <SupplierOrders />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/cart') {
+      return <OrganizationLayout>
+        <SupplierCart />
       </OrganizationLayout>;
     }
 
