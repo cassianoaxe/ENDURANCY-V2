@@ -47,9 +47,9 @@ export default function CarteirinhaDigital({ memberId }: CarteirinhaDigitalProps
       try {
         setLoading(true);
         
-        // Buscar dados do membro
+        // Buscar dados do membro usando a nova rota do módulo de carteirinha
         const memberResponse = await apiRequest(
-          `/api/members/${targetMemberId || 'me'}`, 
+          `/api/carteirinha/members/${targetMemberId || 'me'}`, 
           { method: 'GET' }
         );
         
