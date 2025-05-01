@@ -27,6 +27,14 @@ import SocialDespesas from "@/pages/organization/social/despesas/index";
 import SocialCampanhas from "@/pages/organization/social/campanhas/index";
 import SocialVoluntarios from "@/pages/organization/social/voluntarios/index";
 import SocialConfiguracoes from "@/pages/organization/social/configuracoes/index";
+
+// Novos imports do módulo de Carteirinha
+import MembershipCardsPage from "@/pages/organization/carteirinha/membership-cards";
+import MembershipCardNewPage from "@/pages/organization/carteirinha/new-card";
+import MembershipCardSettingsPage from "@/pages/organization/carteirinha/settings";
+import PartnersPage from "@/pages/organization/carteirinha/partners";
+import PartnerNewPage from "@/pages/organization/carteirinha/new-partner";
+import PartnerBenefitNewPage from "@/pages/organization/carteirinha/new-partner-benefit";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
 import LaboratoryAmostras from "@/pages/laboratory/Amostras";
@@ -1231,6 +1239,43 @@ function AppContent() {
     if (currentPath === '/organization/comunicacao/credenciais') {
       return <OrganizationLayout>
         <CredenciaisComunicacao />
+      </OrganizationLayout>;
+    }
+
+    // Rotas do módulo de Carteirinha
+    if (currentPath === '/organization/carteirinha/membership-cards') {
+      return <OrganizationLayout>
+        <MembershipCardsPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/membership-cards/new') {
+      return <OrganizationLayout>
+        <MembershipCardNewPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/settings') {
+      return <OrganizationLayout>
+        <MembershipCardSettingsPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/partners') {
+      return <OrganizationLayout>
+        <PartnersPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/partners/new') {
+      return <OrganizationLayout>
+        <PartnerNewPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath.match(/^\/organization\/carteirinha\/partners\/[\d]+\/benefit\/new$/)) {
+      return <OrganizationLayout>
+        <PartnerBenefitNewPage />
       </OrganizationLayout>;
     }
 
