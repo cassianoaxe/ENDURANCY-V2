@@ -7,7 +7,7 @@ import * as pesquisaSchema from './schema-pesquisa';
 import * as socialSchema from './schema-social';
 
 // Define a role enum para os diferentes tipos de usuário
-export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher']);
+export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher', 'supplier']);
 
 // Enum para o status de licença de farmacêutico
 export const pharmacistStatusEnum = pgEnum('pharmacist_status', ['active', 'inactive', 'suspended', 'pending']);
