@@ -196,7 +196,7 @@ const StatusBadge = ({ status }) => {
 // Página principal de pedidos
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [pageIndex, setPageIndex] = useState(1);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   
@@ -266,7 +266,7 @@ export default function OrdersPage() {
                   <SelectValue placeholder="Status do pedido" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="draft">Rascunho</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="confirmed">Confirmado</SelectItem>

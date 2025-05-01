@@ -866,8 +866,8 @@ router.get("/orders", authenticate, async (req, res) => {
     .limit(Number(limit))
     .offset((Number(page) - 1) * Number(limit));
 
-    // Filtrar por status se fornecido
-    if (status) {
+    // Filtrar por status se fornecido (e diferente de "all")
+    if (status && status !== 'all') {
       query = query.where(eq(supplierSchema.orders.status, status.toString()));
     }
 
