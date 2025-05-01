@@ -50,22 +50,17 @@ const upload = multer({
 
 // Função para verificar se o usuário é admin de associação
 function isAssociation(req, res, next) {
-  // Verifica se a requisição inclui Accept: application/json
-  const wantsJson = req.headers.accept && req.headers.accept.includes('application/json');
-  
-  // Se o usuário não estiver autenticado
-  if (!req.isAuthenticated()) {
-    if (wantsJson) {
-      // Se a requisição espera JSON, responde com JSON
-      return res.status(401).json({ message: "Não autenticado", error: "Unauthorized", authenticated: false });
-    } else {
-      // Caso contrário, continua com o comportamento padrão (redirecionamento)
-      return res.status(401).json({ message: "Não autenticado" });
-    }
+  // Verificar se o usuário está autenticado e tem sessão
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ 
+      message: "Não autenticado", 
+      error: "Unauthorized", 
+      authenticated: false 
+    });
   }
 
   // Verifica se o usuário tem permissão
-  if (req.user.role !== 'org_admin' && req.user.role !== 'admin') {
+  if (req.session.user.role !== 'org_admin' && req.session.user.role !== 'admin') {
     return res.status(403).json({ 
       message: "Acesso negado. Apenas administradores de associações podem gerenciar carteirinhas.",
       error: "Forbidden", 
@@ -164,7 +159,7 @@ socialMembershipCardsRouter.get("/test", async (req, res) => {
 // Rota para listar carteirinhas
 socialMembershipCardsRouter.get("/", authenticate, isAssociation, async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const { status, cardType, query, page = 1, limit = 20 } = req.query;
     
     // Construir a query base
@@ -260,7 +255,7 @@ socialMembershipCardsRouter.get("/", authenticate, isAssociation, async (req, re
 socialMembershipCardsRouter.get("/:id", authenticate, async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     
     // Buscar carteirinha
     const [card] = await db
@@ -311,7 +306,7 @@ socialMembershipCardsRouter.get("/:id", authenticate, async (req, res) => {
 // Rota para criar nova carteirinha
 socialMembershipCardsRouter.post("/", authenticate, isAssociation, upload.single("photoFile"), async (req, res) => {
   try {
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const cardData = req.body;
     
     // Verificar se o beneficiário existe e pertence à organização
@@ -469,7 +464,7 @@ socialMembershipCardsRouter.post("/", authenticate, isAssociation, upload.single
 socialMembershipCardsRouter.put("/:id", authenticate, isAssociation, upload.single("photoFile"), async (req, res) => {
   try {
     const { id } = req.params;
-    const organizationId = req.user.organizationId;
+    const organizationId = req.session.user.organizationId;
     const cardData = req.body;
     
     // Verificar se a carteirinha existe
