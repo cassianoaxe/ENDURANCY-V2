@@ -115,6 +115,14 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     // Determinar se a rota é da API com base no path
     const isApiRoute = req.path.startsWith('/api/');
     
+    // Verificar se é uma rota do módulo carteirinha
+    const isCarteirinhaRoute = req.path.includes('/carteirinha/') || req.path.startsWith('/api/carteirinha');
+    
+    // Forçar Content-Type para JSON em rotas de carteirinha
+    if (isCarteirinhaRoute) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+    
     // Sempre verificar se o usuário está autenticado
     if (!req.session || !req.session.user) {
       // Registrar a tentativa de acesso para depuração (exceto rotas frequentes)
@@ -122,8 +130,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         console.log(`GET ${req.path}: Requisição sem cookie de sessão`);
       }
       
-      // Para qualquer rota de API, sempre retornar um erro JSON formatado
-      if (isApiRoute) {
+      // Para qualquer rota de API ou carteirinha, sempre retornar um erro JSON formatado
+      if (isApiRoute || isCarteirinhaRoute) {
+        // Garantir que o Content-Type seja application/json
+        res.setHeader('Content-Type', 'application/json');
         return res.status(401).json({ 
           message: "Não autenticado", 
           error: "Unauthorized", 
@@ -5812,19 +5822,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de grupos de usuários e permissões
   // User group routes are registered directly via registerUserGroupRoutes(app);
   
-  // Middleware especial para garantir que API de carteirinha retorne sempre JSON
-  app.use("/api/carteirinha", (req, res, next) => {
-    // Se a requisição não estiver autenticada, retornar JSON
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({
-        message: "Não autenticado",
-        error: "Unauthorized",
-        authenticated: false
-      });
+  // Middleware para interceptar TODAS as requisições API antes do Vite
+  app.use((req, res, next) => {
+    const isApiRoute = req.path.startsWith('/api/');
+    const isCarteirinhaRoute = req.path.includes('/carteirinha/') || req.path.startsWith('/api/carteirinha');
+    
+    // Se for uma rota de API, definir o Content-Type para JSON
+    if (isApiRoute || isCarteirinhaRoute) {
+      res.setHeader('Content-Type', 'application/json');
+      
+      // Interceptar requisições não autenticadas para rotas protegidas
+      if ((!req.session || !req.session.user) && 
+          (isCarteirinhaRoute || req.path.includes('/partners'))) {
+        return res.status(401).json({
+          message: "Não autenticado",
+          error: "Unauthorized",
+          authenticated: false
+        });
+      }
     }
+    
     next();
   });
-
+  
   // Rotas do módulo Social (para associações)
   app.use("/api", socialRoutes);
   console.log("Rotas do módulo Social registradas com sucesso");
