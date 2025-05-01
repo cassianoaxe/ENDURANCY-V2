@@ -334,9 +334,10 @@ export default function Sidebar() {
         <button 
           onClick={() => {
             logout();
-            // Redirecionar diretamente para a página inicial com reload completo
+            // Redirecionar para a página inicial principal
             setTimeout(() => {
-              window.location.href = '/login?refresh=true';
+              // Forçar uma navegação completa para a página inicial
+              window.location.href = '/';
             }, 100);
           }}
           className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 py-2 mt-4 rounded-lg transition-colors text-sm text-red-600 hover:bg-red-50`}
