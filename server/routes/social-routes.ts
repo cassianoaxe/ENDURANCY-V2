@@ -772,7 +772,7 @@ router.use('/social/beneficiaries', socialBeneficiariesBatchRouter);
 router.use('/social/beneficios', socialBeneficiosRouter);
 
 // Utilizar o router de carteirinhas
-router.use('/membership-cards', socialMembershipCardsRouter);
+router.use('/carteirinha/membership-cards', socialMembershipCardsRouter);
 
 // Utilizar o router de parceiros e clube de benefícios
 router.use('/social/partners', socialPartnersRouter);

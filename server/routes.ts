@@ -112,12 +112,26 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
                            req.path === '/api/notifications' || 
                            req.path === '/api/organizations';
     
+    // Verificar se a requisição espera uma resposta JSON
+    const wantsJson = req.headers.accept && req.headers.accept.includes('application/json');
+    
     // Check if the Cookie header is present
     if (!req.headers.cookie) {
       if (!isFrequentRoute) {
         console.warn("Request without cookie:", req.path);
       }
-      return res.status(401).json({ message: "No authorization cookie found" });
+      
+      if (wantsJson) {
+        // Se for uma requisição de API, retornar um erro JSON
+        return res.status(401).json({ 
+          message: "Não autenticado", 
+          error: "Unauthorized", 
+          authenticated: false 
+        });
+      } else {
+        // Para requisições de página, retornar o comportamento padrão
+        return res.status(401).json({ message: "No authorization cookie found" });
+      }
     }
     
     // Verificações básicas de sessão
@@ -125,7 +139,18 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       if (!isFrequentRoute) {
         console.log("Usuário não autenticado para rota:", req.path);
       }
-      return res.status(401).json({ message: "Não autenticado" });
+      
+      if (wantsJson) {
+        // Se for uma requisição de API, retornar um erro JSON adequado
+        return res.status(401).json({ 
+          message: "Não autenticado", 
+          error: "Unauthorized", 
+          authenticated: false 
+        });
+      } else {
+        // Para requisições de página, retornar o comportamento padrão
+        return res.status(401).json({ message: "Não autenticado" });
+      }
     }
     
     // Update the session cookie to ensure it doesn't expire

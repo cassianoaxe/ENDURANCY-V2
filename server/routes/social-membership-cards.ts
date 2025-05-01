@@ -50,12 +50,28 @@ const upload = multer({
 
 // Função para verificar se o usuário é admin de associação
 function isAssociation(req, res, next) {
+  // Verifica se a requisição inclui Accept: application/json
+  const wantsJson = req.headers.accept && req.headers.accept.includes('application/json');
+  
+  // Se o usuário não estiver autenticado
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Não autenticado" });
+    if (wantsJson) {
+      // Se a requisição espera JSON, responde com JSON
+      return res.status(401).json({ message: "Não autenticado", error: "Unauthorized", authenticated: false });
+    } else {
+      // Caso contrário, continua com o comportamento padrão (redirecionamento)
+      return res.status(401).json({ message: "Não autenticado" });
+    }
   }
 
+  // Verifica se o usuário tem permissão
   if (req.user.role !== 'org_admin' && req.user.role !== 'admin') {
-    return res.status(403).json({ message: "Acesso negado. Apenas administradores de associações podem gerenciar carteirinhas." });
+    return res.status(403).json({ 
+      message: "Acesso negado. Apenas administradores de associações podem gerenciar carteirinhas.",
+      error: "Forbidden", 
+      authenticated: true, 
+      authorized: false 
+    });
   }
 
   next();
@@ -130,6 +146,20 @@ async function generateQRCode(data) {
 
 // Criar o router
 export const socialMembershipCardsRouter = Router();
+
+// Rota de teste para verificar se a API responde corretamente
+socialMembershipCardsRouter.get("/test", async (req, res) => {
+  try {
+    res.json({ 
+      message: "API funcionando corretamente",
+      timestamp: new Date().toISOString(),
+      route: "/api/carteirinha/membership-cards/test"
+    });
+  } catch (error) {
+    console.error("Erro na rota de teste:", error);
+    res.status(500).json({ message: "Erro interno no servidor" });
+  }
+});
 
 // Rota para listar carteirinhas
 socialMembershipCardsRouter.get("/", authenticate, isAssociation, async (req, res) => {
