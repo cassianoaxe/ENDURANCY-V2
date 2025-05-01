@@ -18,6 +18,13 @@ import { registerLaboratoryAuthRoutes } from "./routes/laboratory-auth-routes";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
+import { 
+  socialMembershipCards, 
+  socialMembershipCardSettings, 
+  socialBeneficiaries 
+} from "../shared/schema-social";
 import csrf from 'csurf';
 
 const app = express();
@@ -865,10 +872,12 @@ app.use((req, res, next) => {
   }
   
   // Rota específica para o módulo Carteirinha que força resposta JSON
-  app.get('/api-json/carteirinha/membership-cards', apiJsonAuthenticate, apiJsonIsAssociation, (req, res) => {
+  app.get('/api-json/carteirinha/membership-cards', apiJsonAuthenticate, apiJsonIsAssociation, async (req, res) => {
     try {
       // Forçar Content-Type para JSON
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
       console.log(`API-JSON: Rota direta carteirinhas, usuário:`, req.session.user?.username);
       
       const organizationId = req.session.user.organizationId;
@@ -879,17 +888,49 @@ app.use((req, res, next) => {
         });
       }
       
-      // Carregar dados das carteirinhas diretamente aqui
-      // Esta é uma rota alternativa que evita problemas de redirecionamento
-      const timestamp = new Date().toISOString();
-      res.json({
-        data: [],
-        message: "Endpoint alternativo funcionando corretamente",
-        timestamp,
-        userId: req.session.user.id,
-        organizationId: req.session.user.organizationId,
-        path: req.path
-      });
+      // Buscar dados do banco diretamente
+      try {
+        const { status, cardType, query, page = 1, limit = 100 } = req.query;
+        
+        // Buscar dados das carteirinhas usando a mesma lógica da rota normal
+        const dbQuery = db
+          .select({
+            card: socialMembershipCards,
+            beneficiary: {
+              name: socialBeneficiaries.name,
+              cpf: socialBeneficiaries.cpf,
+            }
+          })
+          .from(socialMembershipCards)
+          .innerJoin(
+            socialBeneficiaries,
+            eq(socialMembershipCards.beneficiaryId, socialBeneficiaries.id)
+          )
+          .where(eq(socialMembershipCards.organizationId, organizationId))
+          .orderBy(desc(socialMembershipCards.createdAt))
+          .limit(parseInt(limit as string))
+          .offset((parseInt(page as string) - 1) * parseInt(limit as string));
+          
+        // Adicionar filtros opcionais
+        if (status) {
+          dbQuery.where(eq(socialMembershipCards.status, status as string));
+        }
+        
+        const cards = await dbQuery;
+        
+        res.json({
+          data: cards,
+          timestamp: new Date().toISOString(),
+          count: cards.length
+        });
+      } catch (dbError) {
+        console.error('API-JSON-Carteirinha: Erro ao consultar banco de dados:', dbError);
+        return res.status(500).json({
+          error: true,
+          message: "Erro ao buscar dados do banco",
+          errorDetails: dbError.message
+        });
+      }
     } catch (error) {
       console.error('API-JSON-Carteirinha: Erro ao buscar dados:', error);
       res.status(500).json({
@@ -901,45 +942,105 @@ app.use((req, res, next) => {
   });
   
   // Rota específica para configurações de carteirinha
-  app.get('/api-json/carteirinha/membership-cards/settings/current', apiJsonAuthenticate, apiJsonIsAssociation, (req, res) => {
+  app.get('/api-json/carteirinha/membership-cards/settings/current', apiJsonAuthenticate, apiJsonIsAssociation, async (req, res) => {
     try {
       // Forçar Content-Type para JSON
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
       console.log(`API-JSON: Rota direta para configurações, usuário:`, req.session.user?.username);
       
-      // Retornar dados de configuração padrão
-      const defaultSettings = {
-        id: 0,
-        organizationId: req.session.user.organizationId,
-        cardTitleText: "Carteirinha de Associado",
-        cardSubtitleText: "Associação",
-        cardBackgroundColor: "#FFFFFF",
-        cardTextColor: "#000000",
-        cardHighlightColor: "#00AA00",
-        includeQrCode: true,
-        includePhoto: true,
-        includeLogo: true,
-        includeValidityDate: true,
-        validityPeriodMonths: 12,
-        physicalCardPrice: 25.00,
-        physicalCardEnabled: true,
-        pinEnabled: true,
-        pinDigits: 6,
-        pinRequireLetters: false,
-        pinRequireSpecialChars: false,
-        termsText: "Esta carteirinha é pessoal e intransferível.",
-        cardTemplate: "default",
-        customCss: null,
-        customFields: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      const organizationId = req.session.user.organizationId;
       
-      res.json({
-        success: true,
-        data: defaultSettings,
-        timestamp: new Date().toISOString()
-      });
+      try {
+        // Buscar configurações do banco
+        const [settings] = await db
+          .select()
+          .from(socialMembershipCardSettings)
+          .where(eq(socialMembershipCardSettings.organizationId, organizationId));
+      
+        // Se encontrou configurações, retorná-las
+        if (settings) {
+          return res.json({
+            success: true,
+            data: settings,
+            timestamp: new Date().toISOString(),
+            source: 'database'
+          });
+        }
+        
+        // Se não encontrou, retornar configurações padrão
+        const defaultSettings = {
+          id: 0,
+          organizationId: organizationId,
+          cardTitleText: "Carteirinha de Associado",
+          cardSubtitleText: "Associação",
+          cardBackgroundColor: "#FFFFFF",
+          cardTextColor: "#000000",
+          cardHighlightColor: "#00AA00",
+          includeQrCode: true,
+          includePhoto: true,
+          includeLogo: true,
+          includeValidityDate: true,
+          validityPeriodMonths: 12,
+          physicalCardPrice: 25.00,
+          physicalCardEnabled: true,
+          pinEnabled: true,
+          pinDigits: 6,
+          pinRequireLetters: false,
+          pinRequireSpecialChars: false,
+          termsText: "Esta carteirinha é pessoal e intransferível.",
+          cardTemplate: "default",
+          customCss: null,
+          customFields: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        res.json({
+          success: true,
+          data: defaultSettings,
+          timestamp: new Date().toISOString(),
+          source: 'default'
+        });
+      } catch (dbError) {
+        console.error('API-JSON-Configurações: Erro ao consultar banco de dados:', dbError);
+        
+        // Em caso de erro, retorna configuração padrão
+        const defaultSettings = {
+          id: 0,
+          organizationId: organizationId,
+          cardTitleText: "Carteirinha de Associado",
+          cardSubtitleText: "Associação",
+          cardBackgroundColor: "#FFFFFF",
+          cardTextColor: "#000000",
+          cardHighlightColor: "#00AA00",
+          includeQrCode: true,
+          includePhoto: true,
+          includeLogo: true,
+          includeValidityDate: true,
+          validityPeriodMonths: 12,
+          physicalCardPrice: 25.00,
+          physicalCardEnabled: true,
+          pinEnabled: true,
+          pinDigits: 6,
+          pinRequireLetters: false,
+          pinRequireSpecialChars: false,
+          termsText: "Esta carteirinha é pessoal e intransferível.",
+          cardTemplate: "default",
+          customCss: null,
+          customFields: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        
+        res.json({
+          success: true,
+          data: defaultSettings,
+          timestamp: new Date().toISOString(),
+          source: 'fallback-default'
+        });
+      }
     } catch (error) {
       console.error('API-JSON-Configurações: Erro ao buscar dados:', error);
       res.status(500).json({
