@@ -247,6 +247,12 @@ import QuadroKanban from "@/pages/organization/tarefas/quadro";
 import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
 import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
 
+// Importações do Portal do Fornecedor
+import SupplierPortalDashboard from "@/pages/organization/suppliers";
+import SupplierRegistration from "@/pages/organization/suppliers/register";
+import SupplierProducts from "@/pages/organization/suppliers/products";
+import SupplierTenders from "@/pages/organization/suppliers/tenders";
+
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
 import SolicitacoesCompra from "@/pages/organization/compras/solicitacoes";
@@ -1461,6 +1467,31 @@ function AppContent() {
     if (currentPath === '/organization/tarefas/configuracoes') {
       return <OrganizationLayout>
         <ConfiguracoesTarefas />
+      </OrganizationLayout>;
+    }
+    
+    // Rotas do Portal do Fornecedor
+    if (currentPath === '/organization/suppliers') {
+      return <OrganizationLayout>
+        <SupplierPortalDashboard />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/register') {
+      return <OrganizationLayout>
+        <SupplierRegistration />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/products') {
+      return <OrganizationLayout>
+        <SupplierProducts />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/tenders') {
+      return <OrganizationLayout>
+        <SupplierTenders />
       </OrganizationLayout>;
     }
 
