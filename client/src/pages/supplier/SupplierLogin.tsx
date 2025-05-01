@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Truck, Mail, Lock, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Definir schema de validação
 const formSchema = z.object({
@@ -26,6 +27,33 @@ export default function SupplierLogin() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Verificar se o usuário já está autenticado
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        console.log("Verificando status de autenticação...");
+        console.log("Tentativa 1/1 de verificar autenticação");
+        const userData = await apiRequest("/api/auth/me");
+        if (userData && userData.id) {
+          console.log("Usuário autenticado:", userData);
+          // Se o usuário já estiver autenticado como supplier, redirecionar para o dashboard
+          if (userData.role === "supplier") {
+            console.log("Verificando papel do usuário para redirecionamento correto:", userData.role);
+            console.log("Usuário precisa ser redirecionado para seu dashboard correto");
+            console.log("Redirecionando para /supplier/dashboard");
+            console.log("Redirecionamento de login em andamento, não interferir");
+            setLocation("/supplier/dashboard");
+          }
+        }
+      } catch (error) {
+        console.log("Usuário não autenticado. Status:", error.status || 401);
+        console.error("Erro de autenticação:", error.message);
+      }
+    };
+
+    checkAuthStatus();
+  }, [setLocation]);
+
   // Inicialização do formulário
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -41,41 +69,35 @@ export default function SupplierLogin() {
     setIsLoading(true);
     
     try {
-      // Simulação de autenticação bem-sucedida para demonstração
-      setTimeout(() => {
+      // Chama a API de login real
+      const loginData = {
+        username: data.email, // Pode ser username ou email
+        password: data.password,
+        userType: "supplier" // Indica que este é um login de fornecedor
+      };
+      
+      const result = await apiRequest("/api/auth/login", { 
+        method: "POST", 
+        data: loginData 
+      });
+      
+      if (result) {
+        console.log("Login bem sucedido:", { role: result.role, redirectUrl: result.redirectUrl });
+        
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        setLocation("/supplier/dashboard");
-        setIsLoading(false);
-      }, 1500);
-      
-      // Implementação futura de chamada real de API
-      /*
-      const response = await apiRequest("POST", "/api/suppliers/login", data);
-      const result = await response.json();
-      
-      if (response.ok) {
-        toast({
-          title: "Login realizado com sucesso",
-          description: "Bem-vindo ao Portal do Fornecedor",
-        });
-        
-        setLocation("/supplier/dashboard");
-      } else {
-        toast({
-          title: "Erro ao fazer login",
-          description: result.message || "E-mail ou senha incorretos",
-          variant: "destructive",
-        });
+        // Redireciona para a URL correta baseada na role
+        setLocation(result.redirectUrl || "/supplier/dashboard");
       }
-      */
     } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      
       toast({
         title: "Erro ao fazer login",
-        description: "Ocorreu um erro ao processar sua solicitação",
+        description: error.message || "Credenciais inválidas",
         variant: "destructive",
       });
     } finally {
