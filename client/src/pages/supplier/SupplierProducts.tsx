@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -26,7 +26,8 @@ import {
   Check,
   X,
   Upload,
-  DollarSign
+  DollarSign,
+  Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -37,24 +38,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { formatCurrency } from "@/lib/utils";
 
 // Layout do fornecedor
 // O SupplierLayout é aplicado no App.tsx
 
-// Tipo de produto
+// Tipos
 interface Product {
   id: number;
+  supplierId: number;
   name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string;
-  status: string;
   sku: string;
-  imageUrl?: string;
-  sales: number;
-  rating?: number;
-  discountPrice?: number;
+  shortDescription: string;
+  description?: string;
+  price: number;
+  compareAtPrice?: number;
+  status: string;
+  isFeatured: boolean;
+  inventory: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt?: string;
+  featuredImage?: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
 }
 
 export default function SupplierProducts() {
