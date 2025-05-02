@@ -44,21 +44,41 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Buscar dados do usuário autenticado
+  // Buscar dados do fornecedor autenticado
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const data = await apiRequest("/api/auth/me");
-        setUserData(data);
+        const response = await fetch("/api/suppliers/me");
+        if (!response.ok) {
+          // Se não estiver autenticado, redirecionar para o login
+          if (response.status === 401) {
+            setLocation("/supplier/login");
+            return;
+          }
+          throw new Error(`Erro ao buscar dados: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.success && result.data) {
+          setUserData(result.data);
+        } else {
+          throw new Error("Dados inválidos do fornecedor");
+        }
       } catch (error) {
-        console.error("Erro ao buscar dados do usuário:", error);
+        console.error("Erro ao buscar dados do fornecedor:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro de autenticação",
+          description: "Por favor, faça login novamente."
+        });
+        setLocation("/supplier/login");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [setLocation, toast]);
 
   const navigation = [
     { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
@@ -89,12 +109,22 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
   // Função para lidar com o logout
   const handleLogout = async () => {
     try {
-      await apiRequest("/api/auth/logout", { method: 'POST' as const });
-      toast({
-        title: "Logout realizado",
-        description: "Você foi desconectado com sucesso.",
+      const response = await fetch("/api/suppliers/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
-      setLocation("/supplier/login");
+      
+      if (response.ok) {
+        toast({
+          title: "Logout realizado",
+          description: "Você foi desconectado com sucesso.",
+        });
+        setLocation("/supplier/login");
+      } else {
+        throw new Error("Erro ao fazer logout");
+      }
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       toast({
@@ -102,6 +132,8 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         title: "Erro ao realizar logout",
         description: "Ocorreu um erro ao tentar sair do sistema.",
       });
+      // Em caso de erro, ainda redirecionamos para a página de login
+      setLocation("/supplier/login");
     }
   };
 

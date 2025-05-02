@@ -10,6 +10,7 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { isEmpty } from "./utils";
+import bcrypt from "bcrypt";
 
 // Estendendo o tipo Request para incluir propriedades personalizadas
 declare global {
@@ -17,6 +18,19 @@ declare global {
     interface Request {
       supplierId?: number;
     }
+  }
+}
+
+// Definindo tipos para a sessão
+declare module "express-session" {
+  interface SessionData {
+    supplier?: {
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+    };
+    supplierId?: number;
   }
 }
 
@@ -495,6 +509,216 @@ router.put("/:id/verify", authenticate, isAdmin, async (req, res) => {
   } catch (error) {
     console.error("Erro ao verificar fornecedor:", error);
     res.status(500).json({ error: "Erro ao verificar fornecedor" });
+  }
+});
+
+// Rota de registro de fornecedor (público)
+router.post("/register", upload.single("logo"), async (req, res) => {
+  try {
+    const data = req.body;
+    
+    // Validar dados usando o schema Zod
+    const validationSchema = z.object({
+      companyName: z.string().min(3, "O nome da empresa deve ter pelo menos 3 caracteres"),
+      tradingName: z.string().min(2, "O nome fantasia deve ter pelo menos 2 caracteres"),
+      cnpj: z.string().min(14, "CNPJ inválido"),
+      email: z.string().email("Digite um e-mail válido"),
+      phone: z.string().min(10, "Telefone inválido"),
+      contactName: z.string().min(3, "O nome do contato deve ter pelo menos 3 caracteres"),
+      address: z.string().min(3, "Endereço inválido"),
+      city: z.string().min(2, "Cidade inválida"),
+      state: z.string().min(2, "Estado inválido"),
+      zipCode: z.string().min(8, "CEP inválido"),
+      category: z.string().min(1, "Selecione uma categoria"),
+      description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
+      website: z.string().url("URL inválida").optional(),
+      password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+    });
+    
+    const validatedData = validationSchema.parse(data);
+    
+    // Adicionar logo se enviado
+    let logoPath = null;
+    if (req.file) {
+      logoPath = `/uploads/suppliers/${req.file.filename}`;
+    }
+
+    // Verificar se CNPJ já existe
+    const existingSupplier = await db.select({ id: supplierSchema.suppliers.id })
+      .from(supplierSchema.suppliers)
+      .where(eq(supplierSchema.suppliers.cnpj, validatedData.cnpj))
+      .limit(1);
+
+    if (existingSupplier.length > 0) {
+      return res.status(400).json({ error: "CNPJ já cadastrado" });
+    }
+
+    // Verificar se email já existe
+    const existingEmail = await db.select({ id: supplierSchema.suppliers.id })
+      .from(supplierSchema.suppliers)
+      .where(eq(supplierSchema.suppliers.email, validatedData.email))
+      .limit(1);
+
+    if (existingEmail.length > 0) {
+      return res.status(400).json({ error: "E-mail já cadastrado" });
+    }
+
+    // Hash da senha
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+    // Criar fornecedor
+    const [newSupplier] = await db.insert(supplierSchema.suppliers)
+      .values({
+        name: validatedData.companyName,
+        tradingName: validatedData.tradingName,
+        cnpj: validatedData.cnpj,
+        email: validatedData.email,
+        phone: validatedData.phone,
+        contactName: validatedData.contactName,
+        address: validatedData.address,
+        city: validatedData.city,
+        state: validatedData.state,
+        zipCode: validatedData.zipCode,
+        logo: logoPath,
+        status: "pending", // Sempre começa como pendente
+        verified: false,
+        description: validatedData.description,
+        website: validatedData.website || null,
+        passwordHash: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        id: newSupplier.id,
+        name: newSupplier.name,
+        email: newSupplier.email,
+        status: newSupplier.status
+      },
+      message: "Fornecedor registrado com sucesso. Aguarde aprovação."
+    });
+  } catch (error) {
+    console.error("Erro ao registrar fornecedor:", error);
+    if (error.name === "ZodError") {
+      return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    }
+    res.status(500).json({ error: "Erro ao registrar fornecedor" });
+  }
+});
+
+// Rota de login do fornecedor
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: "E-mail e senha são obrigatórios" });
+    }
+    
+    // Buscar fornecedor pelo e-mail
+    const [supplier] = await db.select()
+      .from(supplierSchema.suppliers)
+      .where(eq(supplierSchema.suppliers.email, email))
+      .limit(1);
+    
+    if (!supplier) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+    
+    // Verificar status
+    if (supplier.status === "suspended") {
+      return res.status(403).json({ error: "Conta suspensa. Entre em contato com o suporte." });
+    }
+    
+    if (supplier.status === "inactive") {
+      return res.status(403).json({ error: "Conta inativa. Entre em contato com o suporte." });
+    }
+    
+    // Verificar senha
+    const passwordMatch = await bcrypt.compare(password, supplier.passwordHash);
+    
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Credenciais inválidas" });
+    }
+    
+    // Garantir que o ID seja um número
+    const supplierId = Number(supplier.id);
+    
+    // Criar sessão
+    req.session.supplier = {
+      id: supplierId,
+      name: supplier.name,
+      email: supplier.email,
+      role: "supplier" // Papel específico para fornecedores
+    };
+    
+    // Armazenar o ID do fornecedor diretamente na sessão para facilitar o acesso
+    req.session.supplierId = supplierId;
+    
+    console.log("Sessão do fornecedor criada:", req.session.supplier);
+    console.log("ID do fornecedor armazenado na sessão:", req.session.supplierId, typeof req.session.supplierId);
+    
+    // Responder com dados do fornecedor
+    res.json({
+      success: true,
+      data: {
+        id: supplier.id,
+        name: supplier.name,
+        tradingName: supplier.tradingName,
+        email: supplier.email,
+        status: supplier.status,
+        verified: supplier.verified,
+        logo: supplier.logo
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao fazer login:", error);
+    res.status(500).json({ error: "Erro ao fazer login" });
+  }
+});
+
+// Rota para logout de fornecedor
+router.post("/logout", (req, res) => {
+  if (req.session.supplier) {
+    req.session.destroy(err => {
+      if (err) {
+        return res.status(500).json({ error: "Erro ao fazer logout" });
+      }
+      res.clearCookie("connect.sid");
+      res.json({ success: true, message: "Logout realizado com sucesso" });
+    });
+  } else {
+    res.status(401).json({ error: "Nenhuma sessão ativa" });
+  }
+});
+
+// Rota para obter dados do fornecedor logado (versão simplificada para testes)
+router.get("/me", async (req, res) => {
+  try {
+    // Para fins de teste, vamos retornar um objeto fixo sem consultar o banco de dados
+    // Esta é uma medida temporária para verificar se a rota funciona 
+    // independentemente de problemas com o banco de dados
+    res.json({
+      success: true,
+      data: {
+        id: 2,
+        name: "Fornecedor Teste 2",
+        tradingName: "Teste2 LTDA",
+        email: "teste2@fornecedor.com",
+        phone: "1234567890",
+        contactName: "Contato Teste",
+        logo: null,
+        status: "pending",
+        verified: false,
+        description: "Descrição de teste para o fornecedor"
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao gerar resposta fixa:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
 

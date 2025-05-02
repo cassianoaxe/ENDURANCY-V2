@@ -87,38 +87,51 @@ export default function SupplierRegister() {
     setIsLoading(true);
     
     try {
-      // Simulação de registro bem-sucedido para demonstração
-      setTimeout(() => {
-        toast({
-          title: "Registro realizado com sucesso",
-          description: "Sua conta de fornecedor foi criada.",
-        });
-        
-        setLocation("/supplier/register-success");
-        setIsLoading(false);
-      }, 1500);
+      // Preparar dados para envio
+      const formData = {
+        companyName: data.companyName,
+        tradingName: data.tradingName,
+        cnpj: data.cnpj,
+        email: data.email,
+        phone: data.phone,
+        contactName: data.contactName,
+        address: data.address.street + ', ' + data.address.number,
+        city: data.address.city,
+        state: data.address.state,
+        zipCode: data.address.zipCode,
+        category: data.category,
+        description: data.description,
+        website: data.website,
+        password: data.password,
+      };
       
-      // Implementação futura de chamada real de API
-      /*
-      const response = await apiRequest("POST", "/api/suppliers/register", data);
+      // Enviar dados para a API
+      const response = await fetch("/api/suppliers/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+      
       const result = await response.json();
       
       if (response.ok) {
         toast({
           title: "Registro realizado com sucesso",
-          description: "Sua conta de fornecedor foi criada.",
+          description: result.message || "Sua conta de fornecedor foi criada. Aguarde a aprovação.",
         });
         
-        setLocation("/supplier/register-success");
+        setLocation("/supplier/login");
       } else {
         toast({
           title: "Erro ao registrar",
-          description: result.message || "Não foi possível completar o registro",
+          description: result.error || "Não foi possível completar o registro",
           variant: "destructive",
         });
       }
-      */
     } catch (error) {
+      console.error("Erro ao registrar:", error);
       toast({
         title: "Erro ao registrar",
         description: "Ocorreu um erro ao processar sua solicitação",
