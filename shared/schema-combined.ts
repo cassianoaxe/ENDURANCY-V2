@@ -31,6 +31,9 @@ import * as pesquisaSchema from './schema-pesquisa';
 // Importando o schema do módulo social
 import * as socialSchema from './schema-social';
 
+// Importando o schema de fornecedores
+import * as suppliersSchema from './schema-suppliers';
+
 // Temporariamente removido devido a erros
 // import * as financeiroSchema from './schema-financeiro';
 
@@ -45,7 +48,8 @@ export const combinedSchema = {
   ...transparenciaSchema,
   ...patrimonioSchema,
   ...pesquisaSchema,
-  ...socialSchema
+  ...socialSchema,
+  ...suppliersSchema
 };
 
 // Exportando todos os tipos e enums
@@ -60,3 +64,4 @@ export * from './schema-transparencia';
 export * from './schema-patrimonio';
 export * from './schema-pesquisa';
 export * from './schema-social';
+export * from './schema-suppliers';
