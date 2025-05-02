@@ -69,28 +69,35 @@ export default function SupplierLogin() {
     setIsLoading(true);
     
     try {
-      // Chama a API de login real
+      // Preparar dados para o login
       const loginData = {
-        username: data.email, // Pode ser username ou email
-        password: data.password,
-        userType: "supplier" // Indica que este é um login de fornecedor
+        email: data.email,
+        password: data.password
       };
       
-      const result = await apiRequest("/api/auth/login", { 
-        method: "POST", 
-        data: loginData 
+      // Usar a nova API específica para fornecedores
+      const response = await fetch("/api/suppliers/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(loginData)
       });
       
-      if (result) {
-        console.log("Login bem sucedido:", { role: result.role, redirectUrl: result.redirectUrl });
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        console.log("Login bem sucedido:", result.data);
         
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        // Redireciona para a URL correta baseada na role
-        setLocation(result.redirectUrl || "/supplier/dashboard");
+        // Redireciona para o dashboard do fornecedor
+        setLocation("/supplier/dashboard");
+      } else {
+        throw new Error(result.error || "Erro ao fazer login");
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);

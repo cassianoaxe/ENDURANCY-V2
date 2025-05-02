@@ -52,6 +52,7 @@ export const suppliers = pgTable("suppliers", {
     account?: string,
     accountType?: string
   }>(),
+  passwordHash: text("password_hash"),
   documentationCompleted: boolean("documentation_completed").default(false),
   rating: decimal("rating", { precision: 3, scale: 2 }),
   ratingCount: integer("rating_count").default(0),
