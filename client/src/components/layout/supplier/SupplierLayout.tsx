@@ -48,30 +48,46 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Adicionar logs para diagnóstico
+        console.log("Buscando dados do fornecedor...");
+        
         const response = await fetch("/api/suppliers/me");
+        console.log("Resposta da API:", response.status, response.statusText);
+        
         if (!response.ok) {
           // Se não estiver autenticado, redirecionar para o login
           if (response.status === 401) {
+            console.log("Não autenticado. Redirecionando para login.");
             window.location.href = "/supplier/login";
             return;
           }
-          throw new Error(`Erro ao buscar dados: ${response.status}`);
+          throw new Error(`Erro ao buscar dados: ${response.status} - ${response.statusText}`);
         }
         
         const result = await response.json();
+        console.log("Dados recebidos da API:", result);
+        
         if (result.success && result.data) {
           setUserData(result.data);
+          console.log("Dados do fornecedor definidos com sucesso:", result.data);
         } else {
+          console.error("Dados inválidos recebidos da API:", result);
           throw new Error("Dados inválidos do fornecedor");
         }
       } catch (error) {
         console.error("Erro ao buscar dados do fornecedor:", error);
+        
+        // Mostrar mensagem amigável com detalhes do erro
         toast({
           variant: "destructive",
           title: "Erro de autenticação",
-          description: "Por favor, faça login novamente."
+          description: `Ocorreu um problema ao buscar seus dados. Por favor, faça login novamente. Detalhes: ${error.message || "Erro desconhecido"}`
         });
-        window.location.href = "/supplier/login";
+        
+        // Aguardar antes de redirecionar para dar tempo do usuário ver a mensagem
+        setTimeout(() => {
+          window.location.href = "/supplier/login";
+        }, 2000);
       } finally {
         setIsLoading(false);
       }
@@ -136,6 +152,17 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
       window.location.href = "/supplier/login";
     }
   };
+
+  // Adicionar tela de carregamento enquanto os dados não estão prontos
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-semibold text-red-800">Carregando Portal do Fornecedor...</h2>
+        <p className="text-gray-500 mt-2">Verificando suas credenciais e carregando seus dados.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
