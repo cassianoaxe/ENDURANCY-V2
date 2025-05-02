@@ -87,26 +87,56 @@ const upload = multer({
 // Middleware para verificar se o usuário é fornecedor
 const isSupplier = async (req, res, next) => {
   try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ error: "Não autenticado" });
+    console.log("Verificando se o usuário é fornecedor...");
+    
+    // Verificar se há usuário na sessão
+    if (!req.session || !req.session.user) {
+      console.log("Sessão ou usuário não encontrado:", { session: !!req.session, user: !!req.session?.user });
+      return res.status(401).json({ error: "Não autenticado", details: "Sessão ou usuário não encontrado" });
+    }
+    
+    // Obter ID do usuário da sessão
+    const userId = req.session.user.id;
+    console.log("ID do usuário da sessão:", userId);
+    
+    if (!userId) {
+      console.log("ID do usuário não encontrado na sessão");
+      return res.status(401).json({ error: "Não autenticado", details: "ID do usuário não encontrado na sessão" });
     }
 
     // Verificar se o usuário está associado a algum fornecedor
+    console.log("Buscando associação do usuário com fornecedor...");
     const supplierUser = await db.select()
       .from(supplierSchema.supplierUsers)
-      .where(eq(supplierSchema.supplierUsers.userId, req.user.id))
+      .where(eq(supplierSchema.supplierUsers.userId, userId))
       .limit(1);
+    
+    console.log("Resultado da busca de associação:", supplierUser);
 
     if (supplierUser.length === 0) {
-      return res.status(403).json({ error: "Acesso negado. Você não está associado a nenhum fornecedor." });
+      console.log("Usuário não está associado a nenhum fornecedor");
+      return res.status(403).json({ 
+        error: "Acesso negado. Você não está associado a nenhum fornecedor.",
+        details: "Não foi encontrada nenhuma associação entre o usuário e um fornecedor"
+      });
     }
 
     // Adicionar o ID do fornecedor ao request
     req.supplierId = supplierUser[0].supplierId;
+    console.log("ID do fornecedor adicionado ao request:", req.supplierId);
+    
+    // Para compatibilidade, também definimos req.user se não existir
+    if (!req.user) {
+      req.user = req.session.user;
+    }
+    
     next();
   } catch (error) {
     console.error("Erro ao verificar fornecedor:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    res.status(500).json({ 
+      error: "Erro interno do servidor", 
+      details: error instanceof Error ? error.message : "Erro desconhecido" 
+    });
   }
 };
 
@@ -696,28 +726,45 @@ router.post("/logout", (req, res) => {
 });
 
 // Rota para obter dados do fornecedor logado (versão simplificada para testes)
-router.get("/me", async (req, res) => {
+router.get("/me", authenticate, isSupplier, async (req, res) => {
   try {
-    // Para fins de teste, vamos retornar um objeto fixo sem consultar o banco de dados
-    // Esta é uma medida temporária para verificar se a rota funciona 
-    // independentemente de problemas com o banco de dados
+    // Obter o ID do fornecedor definido pelo middleware isSupplier
+    const supplierId = req.supplierId;
+    console.log("ID do fornecedor:", supplierId);
+    
+    if (!supplierId) {
+      console.log("ID do fornecedor não encontrado");
+      return res.status(401).json({ error: "Não autenticado como fornecedor" });
+    }
+
+    // Buscar fornecedor pelo ID
+    const [supplier] = await db.select({
+      id: supplierSchema.suppliers.id,
+      name: supplierSchema.suppliers.name,
+      tradingName: supplierSchema.suppliers.tradingName,
+      email: supplierSchema.suppliers.email,
+      phone: supplierSchema.suppliers.phone,
+      contactName: supplierSchema.suppliers.contactName,
+      logo: supplierSchema.suppliers.logo,
+      status: supplierSchema.suppliers.status,
+      verified: supplierSchema.suppliers.verified,
+      description: supplierSchema.suppliers.description
+    })
+    .from(supplierSchema.suppliers)
+    .where(eq(supplierSchema.suppliers.id, supplierId));
+
+    if (!supplier) {
+      console.log("Fornecedor não encontrado para o ID:", supplierId);
+      return res.status(404).json({ error: "Fornecedor não encontrado" });
+    }
+
+    console.log("Fornecedor encontrado:", supplier);
     res.json({
       success: true,
-      data: {
-        id: 2,
-        name: "Fornecedor Teste 2",
-        tradingName: "Teste2 LTDA",
-        email: "teste2@fornecedor.com",
-        phone: "1234567890",
-        contactName: "Contato Teste",
-        logo: null,
-        status: "pending",
-        verified: false,
-        description: "Descrição de teste para o fornecedor"
-      }
+      data: supplier
     });
   } catch (error) {
-    console.error("Erro ao gerar resposta fixa:", error);
+    console.error("Erro ao buscar fornecedor:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 });
