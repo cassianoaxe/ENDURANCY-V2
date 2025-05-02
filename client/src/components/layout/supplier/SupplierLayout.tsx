@@ -38,7 +38,7 @@ interface SupplierLayoutProps {
 }
 
 export default function SupplierLayout({ children, activeTab = "overview" }: SupplierLayoutProps) {
-  const [, setLocation] = useLocation();
+  // Removido setLocation do useLocation já que estamos usando window.location.href para navegação
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -52,7 +52,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         if (!response.ok) {
           // Se não estiver autenticado, redirecionar para o login
           if (response.status === 401) {
-            setLocation("/supplier/login");
+            window.location.href = "/supplier/login";
             return;
           }
           throw new Error(`Erro ao buscar dados: ${response.status}`);
@@ -71,14 +71,14 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
           title: "Erro de autenticação",
           description: "Por favor, faça login novamente."
         });
-        setLocation("/supplier/login");
+        window.location.href = "/supplier/login";
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [setLocation, toast]);
+  }, [toast]);
 
   const navigation = [
     { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
@@ -121,7 +121,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
           title: "Logout realizado",
           description: "Você foi desconectado com sucesso.",
         });
-        setLocation("/supplier/login");
+        window.location.href = "/supplier/login";
       } else {
         throw new Error("Erro ao fazer logout");
       }
@@ -133,7 +133,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         description: "Ocorreu um erro ao tentar sair do sistema.",
       });
       // Em caso de erro, ainda redirecionamos para a página de login
-      setLocation("/supplier/login");
+      window.location.href = "/supplier/login";
     }
   };
 
@@ -162,11 +162,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
                       href={item.href}
                       onClick={(e) => {
                         e.preventDefault();
-                        if (item.href === "/supplier/dashboard") {
-                          setLocation(item.href);
-                        } else {
-                          handleUnimplementedClick(item.name);
-                        }
+                        window.location.href = item.href;
                         setIsMenuOpen(false);
                       }}
                       className={`flex items-center px-4 py-3 text-sm ${item.current ? "bg-red-50 text-red-800 font-medium" : "text-gray-700 hover:bg-gray-50"}`}
@@ -180,7 +176,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
             </Sheet>
             <div 
               className="flex items-center cursor-pointer" 
-              onClick={() => setLocation("/supplier/dashboard")}
+              onClick={() => window.location.href = "/supplier/dashboard"}
             >
               <Truck className="h-8 w-8 text-white mr-2" />
               <span className="font-bold text-xl">Portal do Fornecedor</span>
@@ -288,11 +284,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
                 href={item.href}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (item.href === "/supplier/dashboard") {
-                    setLocation(item.href);
-                  } else {
-                    handleUnimplementedClick(item.name);
-                  }
+                  window.location.href = item.href;
                 }}
                 className={`flex items-center px-4 py-3 text-sm ${item.current ? "bg-red-50 text-red-800 font-medium" : "text-gray-700 hover:bg-gray-50"}`}
               >
