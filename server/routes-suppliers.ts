@@ -498,6 +498,449 @@ router.put("/:id/verify", authenticate, isAdmin, async (req, res) => {
   }
 });
 
+// -----------------------------------------
+// ROTAS DE PRODUTOS DOS FORNECEDORES
+// -----------------------------------------
+
+// Listar produtos do fornecedor atual
+router.get("/my-products", authenticate, isSupplier, async (req, res) => {
+  try {
+    const { search, status, category, page = 1, limit = 20, sort = "newest" } = req.query;
+    
+    let query = db.select({
+      id: supplierSchema.products.id,
+      supplierId: supplierSchema.products.supplierId,
+      name: supplierSchema.products.name,
+      sku: supplierSchema.products.sku,
+      shortDescription: supplierSchema.products.shortDescription,
+      price: supplierSchema.products.price,
+      compareAtPrice: supplierSchema.products.compareAtPrice,
+      status: supplierSchema.products.status,
+      isFeatured: supplierSchema.products.isFeatured,
+      inventory: supplierSchema.products.inventory,
+      tags: supplierSchema.products.tags,
+      createdAt: supplierSchema.products.createdAt,
+      featuredImage: supplierSchema.products.featuredImage
+    })
+    .from(supplierSchema.products)
+    .where(eq(supplierSchema.products.supplierId, req.supplierId))
+    .limit(Number(limit))
+    .offset((Number(page) - 1) * Number(limit));
+
+    // Aplicar filtros adicionais se fornecidos
+    if (search) {
+      const searchTerm = `%${search}%`;
+      query = query.where(
+        or(
+          like(supplierSchema.products.name, searchTerm),
+          like(supplierSchema.products.sku, searchTerm),
+          like(supplierSchema.products.shortDescription, searchTerm)
+        )
+      );
+    }
+
+    if (status) {
+      query = query.where(eq(supplierSchema.products.status, status.toString()));
+    }
+
+    if (category) {
+      // Buscar produtos com a categoria especificada
+      const categoryId = Number(category);
+      
+      query = query.where(
+        sql`${supplierSchema.products.id} IN (
+          SELECT product_id FROM ${supplierSchema.productCategories}
+          WHERE category_id = ${categoryId}
+        )`
+      );
+    }
+
+    // Ordenar os resultados
+    if (sort === "newest") {
+      query = query.orderBy(desc(supplierSchema.products.createdAt));
+    } else if (sort === "oldest") {
+      query = query.orderBy(asc(supplierSchema.products.createdAt));
+    } else if (sort === "price_asc") {
+      query = query.orderBy(asc(supplierSchema.products.price));
+    } else if (sort === "price_desc") {
+      query = query.orderBy(desc(supplierSchema.products.price));
+    } else if (sort === "name_asc") {
+      query = query.orderBy(asc(supplierSchema.products.name));
+    } else if (sort === "name_desc") {
+      query = query.orderBy(desc(supplierSchema.products.name));
+    }
+
+    // Contar total para paginação
+    const countQuery = db.select({ count: sql<number>`count(*)` })
+      .from(supplierSchema.products)
+      .where(eq(supplierSchema.products.supplierId, req.supplierId));
+    
+    // Aplicar os mesmos filtros à query de contagem
+    if (search) {
+      const searchTerm = `%${search}%`;
+      countQuery.where(
+        or(
+          like(supplierSchema.products.name, searchTerm),
+          like(supplierSchema.products.sku, searchTerm),
+          like(supplierSchema.products.shortDescription, searchTerm)
+        )
+      );
+    }
+
+    if (status) {
+      countQuery.where(eq(supplierSchema.products.status, status.toString()));
+    }
+
+    if (category) {
+      const categoryId = Number(category);
+      
+      countQuery.where(
+        sql`${supplierSchema.products.id} IN (
+          SELECT product_id FROM ${supplierSchema.productCategories}
+          WHERE category_id = ${categoryId}
+        )`
+      );
+    }
+
+    const [products, totalResults] = await Promise.all([
+      query,
+      countQuery
+    ]);
+
+    res.json({
+      success: true,
+      data: products,
+      pagination: {
+        total: totalResults[0]?.count || 0,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil((totalResults[0]?.count || 0) / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao listar produtos:", error);
+    res.status(500).json({ error: "Erro ao carregar produtos" });
+  }
+});
+
+// Obter detalhes de um produto específico do fornecedor
+router.get("/products/:id", authenticate, isSupplier, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const [product] = await db.select()
+      .from(supplierSchema.products)
+      .where(
+        and(
+          eq(supplierSchema.products.id, parseInt(id)),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      )
+      .limit(1);
+
+    if (!product) {
+      return res.status(404).json({ error: "Produto não encontrado" });
+    }
+
+    // Buscar categorias do produto
+    const categories = await db.select({
+      id: supplierSchema.productCategories.categoryId,
+      name: supplierSchema.supplierCategories.name
+    })
+    .from(supplierSchema.productCategories)
+    .innerJoin(
+      supplierSchema.supplierCategories,
+      eq(supplierSchema.productCategories.categoryId, supplierSchema.supplierCategories.id)
+    )
+    .where(eq(supplierSchema.productCategories.productId, parseInt(id)));
+
+    // Buscar imagens do produto
+    const images = await db.select()
+      .from(supplierSchema.productImages)
+      .where(eq(supplierSchema.productImages.productId, parseInt(id)))
+      .orderBy(asc(supplierSchema.productImages.position));
+
+    res.json({
+      success: true,
+      data: {
+        ...product,
+        categories,
+        images
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar produto:", error);
+    res.status(500).json({ error: "Erro ao carregar produto" });
+  }
+});
+
+// Criar novo produto
+router.post("/products", authenticate, isSupplier, upload.single("featuredImage"), async (req, res) => {
+  try {
+    const data = req.body;
+    
+    // Validar dados usando o schema Zod
+    const validationSchema = supplierSchema.insertProductSchema.omit({ id: true });
+    const validatedData = validationSchema.parse(data);
+    
+    // Adicionar imagem destaque se enviada
+    let featuredImagePath = null;
+    if (req.file) {
+      featuredImagePath = `/uploads/suppliers/products/${req.file.filename}`;
+    }
+
+    // Verificar se SKU já existe para este fornecedor
+    const existingProduct = await db.select({ id: supplierSchema.products.id })
+      .from(supplierSchema.products)
+      .where(
+        and(
+          eq(supplierSchema.products.sku, validatedData.sku),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      )
+      .limit(1);
+
+    if (existingProduct.length > 0) {
+      return res.status(400).json({ error: "SKU já cadastrado para este fornecedor" });
+    }
+
+    // Processar categorias se enviadas
+    let categories = [];
+    if (data.categories) {
+      try {
+        categories = JSON.parse(data.categories);
+      } catch (e) {
+        // Se não for um JSON válido, tentar tratar como array de strings
+        categories = data.categories.split(',').map(cat => cat.trim());
+      }
+    }
+
+    // Processar tags se enviadas
+    let tags = [];
+    if (data.tags) {
+      try {
+        tags = JSON.parse(data.tags);
+      } catch (e) {
+        // Se não for um JSON válido, tentar tratar como array de strings
+        tags = data.tags.split(',').map(tag => tag.trim());
+      }
+    }
+
+    // Criar produto
+    const [newProduct] = await db.insert(supplierSchema.products)
+      .values({
+        ...validatedData,
+        supplierId: req.supplierId,
+        featuredImage: featuredImagePath,
+        status: validatedData.status || "draft",
+        tags: tags,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+
+    // Adicionar categorias ao produto se enviadas
+    if (categories.length > 0) {
+      const categoryInserts = categories.map(categoryId => ({
+        productId: newProduct.id,
+        categoryId: parseInt(categoryId),
+        createdAt: new Date()
+      }));
+      
+      await db.insert(supplierSchema.productCategories)
+        .values(categoryInserts);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: newProduct,
+      message: "Produto criado com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao criar produto:", error);
+    if (error.name === "ZodError") {
+      return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    }
+    res.status(500).json({ error: "Erro ao criar produto" });
+  }
+});
+
+// Atualizar produto
+router.put("/products/:id", authenticate, isSupplier, upload.single("featuredImage"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    
+    // Verificar se o produto existe e pertence ao fornecedor
+    const [existingProduct] = await db.select()
+      .from(supplierSchema.products)
+      .where(
+        and(
+          eq(supplierSchema.products.id, parseInt(id)),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      )
+      .limit(1);
+
+    if (!existingProduct) {
+      return res.status(404).json({ error: "Produto não encontrado" });
+    }
+
+    // Validar dados
+    const validationSchema = supplierSchema.insertProductSchema.partial().omit({ id: true });
+    const validatedData = validationSchema.parse(data);
+    
+    // Adicionar imagem destaque se enviada
+    let featuredImagePath = existingProduct.featuredImage;
+    if (req.file) {
+      featuredImagePath = `/uploads/suppliers/products/${req.file.filename}`;
+      
+      // Remover imagem antiga se existir
+      if (existingProduct.featuredImage && existingProduct.featuredImage.startsWith('/uploads/')) {
+        const oldImagePath = path.join(__dirname, '..', existingProduct.featuredImage);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+    }
+
+    // Processar categorias se enviadas
+    let categories = [];
+    if (data.categories) {
+      try {
+        categories = JSON.parse(data.categories);
+      } catch (e) {
+        // Se não for um JSON válido, tentar tratar como array de strings
+        categories = data.categories.split(',').map(cat => cat.trim());
+      }
+    }
+
+    // Processar tags se enviadas
+    let tags = existingProduct.tags;
+    if (data.tags) {
+      try {
+        tags = JSON.parse(data.tags);
+      } catch (e) {
+        // Se não for um JSON válido, tentar tratar como array de strings
+        tags = data.tags.split(',').map(tag => tag.trim());
+      }
+    }
+
+    // Atualizar produto
+    const [updatedProduct] = await db.update(supplierSchema.products)
+      .set({
+        ...validatedData,
+        featuredImage: featuredImagePath,
+        tags: tags,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(supplierSchema.products.id, parseInt(id)),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      )
+      .returning();
+
+    // Atualizar categorias se enviadas
+    if (categories.length > 0) {
+      // Remover categorias antigas
+      await db.delete(supplierSchema.productCategories)
+        .where(eq(supplierSchema.productCategories.productId, parseInt(id)));
+      
+      // Adicionar novas categorias
+      const categoryInserts = categories.map(categoryId => ({
+        productId: parseInt(id),
+        categoryId: parseInt(categoryId),
+        createdAt: new Date()
+      }));
+      
+      await db.insert(supplierSchema.productCategories)
+        .values(categoryInserts);
+    }
+
+    res.json({
+      success: true,
+      data: updatedProduct,
+      message: "Produto atualizado com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar produto:", error);
+    if (error.name === "ZodError") {
+      return res.status(400).json({ error: "Dados inválidos", details: error.errors });
+    }
+    res.status(500).json({ error: "Erro ao atualizar produto" });
+  }
+});
+
+// Excluir produto
+router.delete("/products/:id", authenticate, isSupplier, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o produto existe e pertence ao fornecedor
+    const [existingProduct] = await db.select()
+      .from(supplierSchema.products)
+      .where(
+        and(
+          eq(supplierSchema.products.id, parseInt(id)),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      )
+      .limit(1);
+
+    if (!existingProduct) {
+      return res.status(404).json({ error: "Produto não encontrado" });
+    }
+
+    // Remover imagem destaque se existir
+    if (existingProduct.featuredImage && existingProduct.featuredImage.startsWith('/uploads/')) {
+      const imagePath = path.join(__dirname, '..', existingProduct.featuredImage);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    // Remover relacionamentos primeiro
+    await db.delete(supplierSchema.productCategories)
+      .where(eq(supplierSchema.productCategories.productId, parseInt(id)));
+    
+    // Buscar e remover imagens do produto
+    const images = await db.select()
+      .from(supplierSchema.productImages)
+      .where(eq(supplierSchema.productImages.productId, parseInt(id)));
+    
+    for (const image of images) {
+      if (image.url && image.url.startsWith('/uploads/')) {
+        const imagePath = path.join(__dirname, '..', image.url);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+    }
+    
+    await db.delete(supplierSchema.productImages)
+      .where(eq(supplierSchema.productImages.productId, parseInt(id)));
+    
+    // Finalmente excluir o produto
+    await db.delete(supplierSchema.products)
+      .where(
+        and(
+          eq(supplierSchema.products.id, parseInt(id)),
+          eq(supplierSchema.products.supplierId, req.supplierId)
+        )
+      );
+
+    res.json({
+      success: true,
+      message: "Produto excluído com sucesso"
+    });
+  } catch (error) {
+    console.error("Erro ao excluir produto:", error);
+    res.status(500).json({ error: "Erro ao excluir produto" });
+  }
+});
+
 // Rotas para gerenciar usuários do fornecedor
 
 // Listar usuários de um fornecedor
