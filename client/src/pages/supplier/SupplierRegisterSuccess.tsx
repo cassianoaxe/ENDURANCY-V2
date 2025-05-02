@@ -87,7 +87,7 @@ export default function SupplierRegisterSuccess() {
             <h1 className="text-2xl font-bold">Portal do Fornecedor</h1>
           </div>
           <nav>
-            <Button variant="ghost" className="text-white hover:text-white hover:bg-red-700" onClick={() => setLocation("/")}>
+            <Button variant="ghost" className="text-white hover:text-white hover:bg-red-700" onClick={() => window.location.href = "/"}>
               Voltar para Home
             </Button>
           </nav>

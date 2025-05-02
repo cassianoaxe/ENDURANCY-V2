@@ -188,6 +188,15 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
           </div>
           
           <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              className="text-white hover:text-white hover:bg-red-700/20"
+              onClick={() => window.location.href = "/"}
+            >
+              <Home className="h-5 w-5 mr-2" />
+              <span className="hidden md:inline">Voltar para Home</span>
+            </Button>
+            
             <div className="hidden md:flex">
               <Button 
                 variant="ghost" 
