@@ -122,7 +122,7 @@ export default function SupplierRegister() {
           description: result.message || "Sua conta de fornecedor foi criada. Aguarde a aprovação.",
         });
         
-        setLocation("/supplier/login");
+        window.location.href = "/supplier/login";
       } else {
         toast({
           title: "Erro ao registrar",
@@ -216,7 +216,7 @@ export default function SupplierRegister() {
               <Button 
                 variant="outline" 
                 className="flex items-center text-red-800"
-                onClick={() => setLocation("/supplier/login")}
+                onClick={() => window.location.href = "/supplier/login"}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar para o login
