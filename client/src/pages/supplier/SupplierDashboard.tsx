@@ -237,7 +237,7 @@ export default function SupplierDashboard() {
                     <Button 
                       variant="outline" 
                       className="w-full text-red-800 border-red-200 hover:bg-red-50 hover:text-red-900"
-                      onClick={() => setLocation("/supplier/orders")}
+                      onClick={() => window.location.href = "/supplier/orders"}
                     >
                       Ver todos os pedidos
                       <ArrowUpRight className="ml-2 h-4 w-4" />
@@ -358,7 +358,7 @@ export default function SupplierDashboard() {
                   <Button 
                     variant="outline" 
                     className="w-full text-red-800 border-red-200 hover:bg-red-50 hover:text-red-900"
-                    onClick={() => setLocation("/supplier/products")}
+                    onClick={() => window.location.href = "/supplier/products"}
                   >
                     Gerenciar catálogo de produtos
                     <ArrowUpRight className="ml-2 h-4 w-4" />
