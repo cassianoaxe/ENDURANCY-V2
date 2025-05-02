@@ -726,15 +726,36 @@ router.post("/logout", (req, res) => {
 });
 
 // Rota para obter dados do fornecedor logado (versão simplificada para testes)
-router.get("/me", authenticate, isSupplier, async (req, res) => {
+router.get("/me", async (req, res) => {
   try {
-    // Obter o ID do fornecedor definido pelo middleware isSupplier
-    const supplierId = req.supplierId;
-    console.log("ID do fornecedor:", supplierId);
+    console.log("Acessando rota /me para fornecedor");
+    console.log("Dados da sessão:", {
+      session: !!req.session,
+      supplier: !!req.session?.supplier,
+      supplierId: req.session?.supplierId
+    });
+    
+    // Verificar se o fornecedor está autenticado
+    if (!req.session || !req.session.supplier) {
+      console.log("Fornecedor não autenticado, sem dados na sessão");
+      return res.status(401).json({ 
+        success: false,
+        error: "Não autenticado como fornecedor", 
+        message: "Por favor, faça login novamente"
+      });
+    }
+
+    // Obter o ID do fornecedor diretamente da sessão
+    const supplierId = req.session.supplierId;
+    console.log("ID do fornecedor da sessão:", supplierId);
     
     if (!supplierId) {
-      console.log("ID do fornecedor não encontrado");
-      return res.status(401).json({ error: "Não autenticado como fornecedor" });
+      console.log("ID do fornecedor não encontrado na sessão");
+      return res.status(401).json({ 
+        success: false,
+        error: "Não autenticado como fornecedor",
+        details: "ID do fornecedor não encontrado na sessão"
+      });
     }
 
     // Buscar fornecedor pelo ID
@@ -755,7 +776,11 @@ router.get("/me", authenticate, isSupplier, async (req, res) => {
 
     if (!supplier) {
       console.log("Fornecedor não encontrado para o ID:", supplierId);
-      return res.status(404).json({ error: "Fornecedor não encontrado" });
+      return res.status(404).json({ 
+        success: false,
+        error: "Fornecedor não encontrado", 
+        details: `Não foi possível encontrar um fornecedor com o ID ${supplierId}` 
+      });
     }
 
     console.log("Fornecedor encontrado:", supplier);
@@ -765,7 +790,11 @@ router.get("/me", authenticate, isSupplier, async (req, res) => {
     });
   } catch (error) {
     console.error("Erro ao buscar fornecedor:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    res.status(500).json({ 
+      success: false,
+      error: "Erro interno do servidor", 
+      details: error instanceof Error ? error.message : "Erro desconhecido"
+    });
   }
 });
 
@@ -774,7 +803,19 @@ router.get("/me", authenticate, isSupplier, async (req, res) => {
 // -----------------------------------------
 
 // Listar produtos do fornecedor atual
-router.get("/my-products", authenticate, isSupplier, async (req, res) => {
+router.get("/my-products", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para listar produtos");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { search, status, category, page = 1, limit = 20, sort = "newest" } = req.query;
     
@@ -794,7 +835,7 @@ router.get("/my-products", authenticate, isSupplier, async (req, res) => {
       featuredImage: supplierSchema.products.featuredImage
     })
     .from(supplierSchema.products)
-    .where(eq(supplierSchema.products.supplierId, req.supplierId))
+    .where(eq(supplierSchema.products.supplierId, supplierId))
     .limit(Number(limit))
     .offset((Number(page) - 1) * Number(limit));
 
@@ -844,7 +885,7 @@ router.get("/my-products", authenticate, isSupplier, async (req, res) => {
     // Contar total para paginação
     const countQuery = db.select({ count: sql<number>`count(*)` })
       .from(supplierSchema.products)
-      .where(eq(supplierSchema.products.supplierId, req.supplierId));
+      .where(eq(supplierSchema.products.supplierId, supplierId));
     
     // Aplicar os mesmos filtros à query de contagem
     if (search) {
@@ -895,7 +936,19 @@ router.get("/my-products", authenticate, isSupplier, async (req, res) => {
 });
 
 // Obter detalhes de um produto específico do fornecedor
-router.get("/products/:id", authenticate, isSupplier, async (req, res) => {
+router.get("/products/:id", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para acessar produto");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     
@@ -904,7 +957,7 @@ router.get("/products/:id", authenticate, isSupplier, async (req, res) => {
       .where(
         and(
           eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       )
       .limit(1);
@@ -946,7 +999,19 @@ router.get("/products/:id", authenticate, isSupplier, async (req, res) => {
 });
 
 // Criar novo produto
-router.post("/products", authenticate, isSupplier, upload.single("featuredImage"), async (req, res) => {
+router.post("/products", upload.single("featuredImage"), async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para criar produto");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const data = req.body;
     
@@ -966,7 +1031,7 @@ router.post("/products", authenticate, isSupplier, upload.single("featuredImage"
       .where(
         and(
           eq(supplierSchema.products.sku, validatedData.sku),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       )
       .limit(1);
@@ -1001,7 +1066,7 @@ router.post("/products", authenticate, isSupplier, upload.single("featuredImage"
     const [newProduct] = await db.insert(supplierSchema.products)
       .values({
         ...validatedData,
-        supplierId: req.supplierId,
+        supplierId: supplierId,
         featuredImage: featuredImagePath,
         status: validatedData.status || "draft",
         tags: tags,
@@ -1037,7 +1102,19 @@ router.post("/products", authenticate, isSupplier, upload.single("featuredImage"
 });
 
 // Atualizar produto
-router.put("/products/:id", authenticate, isSupplier, upload.single("featuredImage"), async (req, res) => {
+router.put("/products/:id", upload.single("featuredImage"), async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para atualizar produto");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     const data = req.body;
