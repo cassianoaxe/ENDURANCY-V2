@@ -1125,7 +1125,7 @@ router.put("/products/:id", upload.single("featuredImage"), async (req, res) => 
       .where(
         and(
           eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       )
       .limit(1);
@@ -1185,7 +1185,7 @@ router.put("/products/:id", upload.single("featuredImage"), async (req, res) => 
       .where(
         and(
           eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       )
       .returning();
@@ -1222,7 +1222,19 @@ router.put("/products/:id", upload.single("featuredImage"), async (req, res) => 
 });
 
 // Excluir produto
-router.delete("/products/:id", authenticate, isSupplier, async (req, res) => {
+router.delete("/products/:id", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para excluir produto");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     
@@ -1232,7 +1244,7 @@ router.delete("/products/:id", authenticate, isSupplier, async (req, res) => {
       .where(
         and(
           eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       )
       .limit(1);
@@ -1275,7 +1287,7 @@ router.delete("/products/:id", authenticate, isSupplier, async (req, res) => {
       .where(
         and(
           eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, req.supplierId)
+          eq(supplierSchema.products.supplierId, supplierId)
         )
       );
 
@@ -1473,6 +1485,28 @@ router.delete("/:id/users/:userId", authenticate, isSupplierAdmin, async (req, r
 
 // Listar produtos de um fornecedor
 router.get("/:id/products", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para listar produtos");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Verificar se o ID do fornecedor na URL corresponde ao ID na sessão
+  const supplierId = req.session.supplierId;
+  const requestedId = parseInt(req.params.id);
+  
+  if (supplierId !== requestedId) {
+    return res.status(403).json({ 
+      success: false,
+      error: "Acesso negado", 
+      message: "Você não tem permissão para acessar produtos de outro fornecedor"
+    });
+  }
+  
   try {
     const { id } = req.params;
     const { search, category, status, featured, page = 1, limit = 20 } = req.query;
