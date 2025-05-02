@@ -561,6 +561,15 @@ export default function Login() {
                       <p className="text-xs text-gray-600">Histórico médico, prescrições e comunicação segura</p>
                     </div>
                   </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-red-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Truck className="h-3 w-3 text-red-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal do Fornecedor</span>
+                      <p className="text-xs text-gray-600">Cadastro de produtos, participação em licitações e vendas</p>
+                    </div>
+                  </li>
                 </ul>
               </div>
               
