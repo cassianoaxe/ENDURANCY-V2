@@ -1666,7 +1666,19 @@ router.get("/:id/products", async (req, res) => {
 // Rotas para gerenciamento de pedidos (Marketplace)
 
 // Listar todos os pedidos
-router.get("/orders", authenticate, async (req, res) => {
+router.get("/orders", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para listar pedidos");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { status, page = 1, limit = 20, supplierId } = req.query;
     
@@ -1745,7 +1757,19 @@ router.get("/orders", authenticate, async (req, res) => {
 });
 
 // Obter detalhes de um pedido específico
-router.get("/orders/:id", authenticate, async (req, res) => {
+router.get("/orders/:id", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para ver detalhes do pedido");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     
@@ -1759,8 +1783,8 @@ router.get("/orders/:id", authenticate, async (req, res) => {
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    // Verificar permissão
-    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+    // Verificar permissão para fornecedor
+    if (order.supplierId !== supplierId) {
       return res.status(403).json({ error: "Você não tem permissão para acessar este pedido" });
     }
 
@@ -1938,7 +1962,19 @@ router.post("/orders", authenticate, async (req, res) => {
 });
 
 // Atualizar status do pedido
-router.put("/orders/:id/status", authenticate, async (req, res) => {
+router.put("/orders/:id/status", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para atualizar status do pedido");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -1958,8 +1994,8 @@ router.put("/orders/:id/status", authenticate, async (req, res) => {
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    // Verificar permissão
-    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+    // Verificar permissão para fornecedor
+    if (order.supplierId !== supplierId) {
       return res.status(403).json({ error: "Você não tem permissão para atualizar este pedido" });
     }
 
@@ -1977,8 +2013,8 @@ router.put("/orders/:id/status", authenticate, async (req, res) => {
       updateData.deliveredAt = new Date();
     } else if (status === 'cancelled' && order.status !== 'cancelled') {
       updateData.cancelledAt = new Date();
-      updateData.cancelledBy = req.user.id;
-      updateData.cancelReason = req.body.cancelReason || 'Cancelado pelo usuário';
+      updateData.cancelledBy = supplierId;
+      updateData.cancelReason = req.body.cancelReason || 'Cancelado pelo fornecedor';
     }
 
     // Atualizar pedido
@@ -1999,7 +2035,19 @@ router.put("/orders/:id/status", authenticate, async (req, res) => {
 });
 
 // Integração de pagamento (Zoop)
-router.post("/orders/:id/payment", authenticate, async (req, res) => {
+router.post("/orders/:id/payment", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para processar pagamento");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     const { paymentMethod, paymentData } = req.body;
@@ -2014,8 +2062,8 @@ router.post("/orders/:id/payment", authenticate, async (req, res) => {
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    // Verificar permissão
-    if (req.user.role === 'org_admin' && order.organizationId !== req.user.organizationId) {
+    // Verificar permissão para fornecedor
+    if (order.supplierId !== supplierId) {
       return res.status(403).json({ error: "Você não tem permissão para processar pagamento deste pedido" });
     }
 
@@ -2057,7 +2105,19 @@ router.post("/orders/:id/payment", authenticate, async (req, res) => {
 });
 
 // Adicionar rastreamento
-router.put("/orders/:id/tracking", authenticate, async (req, res) => {
+router.put("/orders/:id/tracking", async (req, res) => {
+  // Verificar se o fornecedor está autenticado
+  if (!req.session || !req.session.supplier || !req.session.supplierId) {
+    console.log("Fornecedor não autenticado para adicionar rastreamento");
+    return res.status(401).json({ 
+      success: false,
+      error: "Não autenticado como fornecedor", 
+      message: "Por favor, faça login novamente"
+    });
+  }
+  
+  // Obter o ID do fornecedor da sessão
+  const supplierId = req.session.supplierId;
   try {
     const { id } = req.params;
     const { trackingNumber, trackingUrl, estimatedDeliveryDate } = req.body;
@@ -2072,19 +2132,8 @@ router.put("/orders/:id/tracking", authenticate, async (req, res) => {
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    // Verificar permissão
-    const isSupplierAdmin = await db.select()
-      .from(supplierSchema.supplierUsers)
-      .where(
-        and(
-          eq(supplierSchema.supplierUsers.userId, req.user.id),
-          eq(supplierSchema.supplierUsers.supplierId, order.supplierId),
-          eq(supplierSchema.supplierUsers.role, "admin")
-        )
-      )
-      .limit(1);
-
-    if (isSupplierAdmin.length === 0 && req.user.role !== 'admin') {
+    // Verificar permissão para fornecedor
+    if (order.supplierId !== supplierId) {
       return res.status(403).json({ error: "Você não tem permissão para adicionar rastreamento a este pedido" });
     }
 
