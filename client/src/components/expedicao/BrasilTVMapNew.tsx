@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui';
-import { Loader2, AlertCircle, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Settings, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { BRASIL_STATE_PATHS, STATE_COLORS_BY_REGION, GRAYSCALE_PALETTE } from './BrasilSVGPaths';
+import { BRAZILIAN_STATES, STATE_CENTERS, BRASIL_STATE_PATHS, STATE_COLORS_BY_REGION } from './BrasilSVGPaths';
 
-// Definição do tipo para os dados de cada estado
 interface StateData {
   id: string; // ID do estado (sigla: SP, RJ, etc)
   name: string; // Nome do estado
   value: number; // Quantidade de envios
 }
 
-// Props do componente
 interface BrasilTVMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
@@ -20,145 +18,88 @@ interface BrasilTVMapProps {
   colorMode?: 'colored' | 'grayscale' | 'outline';
 }
 
-// Lista de estados brasileiros e suas abreviaturas
-const BRAZILIAN_STATES = [
-  { id: 'RR', name: 'Roraima' },
-  { id: 'AP', name: 'Amapá' },
-  { id: 'AM', name: 'Amazonas' },
-  { id: 'PA', name: 'Pará' },
-  { id: 'AC', name: 'Acre' },
-  { id: 'RO', name: 'Rondônia' },
-  { id: 'MT', name: 'Mato Grosso' },
-  { id: 'TO', name: 'Tocantins' },
-  { id: 'MA', name: 'Maranhão' },
-  { id: 'PI', name: 'Piauí' },
-  { id: 'CE', name: 'Ceará' },
-  { id: 'RN', name: 'Rio Grande do Norte' },
-  { id: 'PB', name: 'Paraíba' },
-  { id: 'PE', name: 'Pernambuco' },
-  { id: 'AL', name: 'Alagoas' },
-  { id: 'SE', name: 'Sergipe' },
-  { id: 'BA', name: 'Bahia' },
-  { id: 'GO', name: 'Goiás' },
-  { id: 'DF', name: 'Distrito Federal' },
-  { id: 'MS', name: 'Mato Grosso do Sul' },
-  { id: 'MG', name: 'Minas Gerais' },
-  { id: 'ES', name: 'Espírito Santo' },
-  { id: 'RJ', name: 'Rio de Janeiro' },
-  { id: 'SP', name: 'São Paulo' },
-  { id: 'PR', name: 'Paraná' },
-  { id: 'SC', name: 'Santa Catarina' },
-  { id: 'RS', name: 'Rio Grande do Sul' }
+// Paleta de cores em escala de cinza
+const GRAYSCALE_PALETTE = [
+  "#f9f9f9", "#e0e0e0", "#d0d0d0", "#b0b0b0", "#909090", 
+  "#808080", "#606060", "#505050", "#404040", "#303030"
 ];
 
-// Coordenadas centrais de cada estado para posicionar os números, ajustadas ao mapa real do Brasil
-const STATE_CENTERS: Record<string, { x: number, y: number }> = {
-  'RR': { x: 188, y: 150 },
-  'AP': { x: 270, y: 150 },
-  'AM': { x: 185, y: 240 },
-  'PA': { x: 295, y: 240 },
-  'AC': { x: 95, y: 290 },
-  'RO': { x: 160, y: 310 },
-  'MT': { x: 230, y: 355 },
-  'TO': { x: 300, y: 310 },
-  'MA': { x: 340, y: 240 },
-  'PI': { x: 365, y: 280 },
-  'CE': { x: 410, y: 220 },
-  'RN': { x: 435, y: 225 },
-  'PB': { x: 435, y: 245 },
-  'PE': { x: 415, y: 265 },
-  'AL': { x: 425, y: 285 },
-  'SE': { x: 410, y: 300 },
-  'BA': { x: 370, y: 330 },
-  'GO': { x: 270, y: 380 },
-  'DF': { x: 285, y: 360 },
-  'MS': { x: 230, y: 420 },
-  'MG': { x: 330, y: 380 },
-  'ES': { x: 380, y: 380 },
-  'RJ': { x: 360, y: 415 },
-  'SP': { x: 270, y: 420 },
-  'PR': { x: 250, y: 450 },
-  'SC': { x: 250, y: 480 },
-  'RS': { x: 230, y: 530 }
-};
+// Função para gerar dados mockup para teste
+function getMockData(): StateData[] {
+  return [
+    { id: "SP", name: "São Paulo", value: 320 },
+    { id: "RJ", name: "Rio de Janeiro", value: 180 },
+    { id: "MG", name: "Minas Gerais", value: 150 },
+    { id: "BA", name: "Bahia", value: 110 },
+    { id: "RS", name: "Rio Grande do Sul", value: 95 },
+    { id: "PR", name: "Paraná", value: 85 },
+    { id: "PE", name: "Pernambuco", value: 75 },
+    { id: "CE", name: "Ceará", value: 65 },
+    { id: "SC", name: "Santa Catarina", value: 55 },
+    { id: "PA", name: "Pará", value: 45 },
+    { id: "MA", name: "Maranhão", value: 35 },
+    { id: "GO", name: "Goiás", value: 30 },
+    { id: "AM", name: "Amazonas", value: 25 },
+    { id: "ES", name: "Espírito Santo", value: 20 },
+    { id: "PB", name: "Paraíba", value: 18 },
+    { id: "RN", name: "Rio Grande do Norte", value: 16 },
+    { id: "MT", name: "Mato Grosso", value: 15 },
+    { id: "AL", name: "Alagoas", value: 12 },
+    { id: "PI", name: "Piauí", value: 10 },
+    { id: "DF", name: "Distrito Federal", value: 8 },
+    { id: "MS", name: "Mato Grosso do Sul", value: 7 },
+    { id: "SE", name: "Sergipe", value: 5 },
+    { id: "RO", name: "Rondônia", value: 3 },
+    { id: "TO", name: "Tocantins", value: 2 },
+    { id: "AC", name: "Acre", value: 1 },
+    { id: "AP", name: "Amapá", value: 1 },
+    { id: "RR", name: "Roraima", value: 1 }
+  ];
+}
 
-// Componente principal do mapa
-const BrasilTVMap: React.FC<BrasilTVMapProps> = ({ 
-  period, 
-  className = '',
+const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({ 
+  period = 'monthly', 
+  className = '', 
   fullscreen = false,
   showStateLabels = true,
   colorMode = 'colored'
 }) => {
-  const [activeState, setActiveState] = useState<string | null>(null);
-  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [mapConfig, setMapConfig] = useState({
-    showStateLabels,
-    colorMode,
+    showStateLabels: showStateLabels,
     showValues: true,
-    valueSize: fullscreen ? 'large' : 'medium',
-    borderWidth: 2
+    colorMode: colorMode,
+    valueSize: 'medium', // 'small', 'medium', 'large'
+    borderWidth: 2,
   });
-  
-  // Dados mockup para uso quando a API falhar
-  const MOCK_STATE_DATA: StateData[] = [
-    { id: 'SP', name: 'São Paulo', value: 458 },
-    { id: 'RJ', name: 'Rio de Janeiro', value: 237 },
-    { id: 'MG', name: 'Minas Gerais', value: 185 },
-    { id: 'RS', name: 'Rio Grande do Sul', value: 132 },
-    { id: 'PR', name: 'Paraná', value: 129 },
-    { id: 'BA', name: 'Bahia', value: 112 },
-    { id: 'SC', name: 'Santa Catarina', value: 98 },
-    { id: 'GO', name: 'Goiás', value: 76 },
-    { id: 'PE', name: 'Pernambuco', value: 63 },
-    { id: 'CE', name: 'Ceará', value: 54 },
-    { id: 'PA', name: 'Pará', value: 35 },
-    { id: 'MT', name: 'Mato Grosso', value: 34 },
-    { id: 'ES', name: 'Espírito Santo', value: 31 },
-    { id: 'MS', name: 'Mato Grosso do Sul', value: 27 },
-    { id: 'AM', name: 'Amazonas', value: 22 },
-    { id: 'PB', name: 'Paraíba', value: 21 },
-    { id: 'RN', name: 'Rio Grande do Norte', value: 18 },
-    { id: 'PI', name: 'Piauí', value: 15 },
-    { id: 'AL', name: 'Alagoas', value: 14 },
-    { id: 'DF', name: 'Distrito Federal', value: 13 },
-    { id: 'TO', name: 'Tocantins', value: 9 },
-    { id: 'SE', name: 'Sergipe', value: 8 },
-    { id: 'RO', name: 'Rondônia', value: 7 },
-    { id: 'MA', name: 'Maranhão', value: 6 },
-    { id: 'AC', name: 'Acre', value: 3 },
-    { id: 'AP', name: 'Amapá', value: 2 },
-    { id: 'RR', name: 'Roraima', value: 1 }
-  ];
 
-  // Multiplica os valores de mockup conforme o período
-  const getMockData = () => {
-    const multiplier = 
-      period === 'yearly' ? 12 : 
-      period === 'monthly' ? 1 : 
-      period === 'weekly' ? 0.25 : 0.035; // daily
-      
-    return MOCK_STATE_DATA.map(state => ({
+  // Função para modificar dados baseado no período
+  function adjustDataForPeriod(data: StateData[]): StateData[] {
+    const multipliers: Record<string, number> = {
+      'daily': 1,
+      'weekly': 7,
+      'monthly': 30,
+      'yearly': 365,
+    };
+    
+    const multiplier = multipliers[period] || 1;
+    
+    return data.map(state => ({
       ...state,
       value: Math.round(state.value * multiplier)
     }));
-  };
+  }
 
   // Consulta para buscar dados do backend
-  const { data: stateData, isLoading, error, refetch } = useQuery<StateData[]>({
+  const { data: fetchedData, isLoading } = useQuery<StateData[]>({
     queryKey: [`/api/expedicao/envios-por-estado/${period}`],
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    // Usar dados mockup em qualquer caso como placeholder e como fallback
     placeholderData: getMockData(),
-    enabled: true, // Sempre tentar buscar dados
-    // Configuração para garantir que usamos mockup se a API falhar
-    retry: 1,
+    retry: 3,
     retryDelay: 1000,
-    staleTime: 60000, // 1 minuto
-    // Função para garantir que sempre temos dados válidos
+    staleTime: 60000,
     select: (data) => {
-      // Se a API retornar dados vazios, usar os mockup
       if (!data || data.length === 0) {
         console.log('Usando dados mockup (API retornou vazio)');
         return getMockData();
@@ -167,20 +108,18 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
     }
   });
   
-  // Usar dados mockup quando não há dados da API
-  const displayData = stateData || getMockData();
+  // Garantir que sempre temos dados para exibir - usar mockup se a API falhar
+  const stateData = fetchedData || getMockData();
   
   // Altura adequada baseada no modo
   const mapHeight = fullscreen ? "h-[calc(100vh-120px)]" : "h-[600px]";
   
   // Calculando o valor máximo para gerar escala de cores
-  const maxValue = Math.max(...displayData.map(state => state.value), 1);
+  const maxValue = Math.max(...stateData.map((state: StateData) => state.value), 1);
   
   // Função para gerar cor baseada no valor e modo de cor selecionado
-  const getColorForState = (stateId: string) => {
-    if (!displayData) return "#e0e0e0"; // cor para quando não há dados
-    
-    const stateInfo = displayData.find(state => state.id === stateId);
+  function getColorForState(stateId: string): string {
+    const stateInfo = stateData.find(state => state.id === stateId);
     if (!stateInfo) return "#e0e0e0"; // cor para estados sem dados
     
     if (mapConfig.colorMode === 'outline') {
@@ -196,7 +135,6 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
     
     // Modo colorido - usar cores por região do Brasil
     const baseColor = STATE_COLORS_BY_REGION[stateId] || "#e0e0e0";
-    const opacity = Math.max(0.4, Math.min(1, stateInfo.value / maxValue * 0.6 + 0.4));
     
     // Para efeito visual, aplica transparência sutil para diferenciar estados com mais ou menos envios
     if (stateInfo.value === 0) {
@@ -209,27 +147,27 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
       // Muitos envios: totalmente opaco
       return baseColor;
     }
-  };
+  }
   
   // Função para determinar o tamanho da fonte dos valores exibidos no mapa
-  const getValueFontSize = () => {
+  function getValueFontSize(): number {
     switch (mapConfig.valueSize) {
       case 'small': return 14;
       case 'large': return 24;
       case 'medium':
       default: return 18;
     }
-  };
+  }
   
   // Determinar a cor do texto do valor com base na cor de fundo do estado
-  const getValueTextColor = (stateId: string) => {
+  function getValueTextColor(stateId: string): string {
     if (mapConfig.colorMode === 'outline') return '#000000';
     
     // Estados com cores escuras (que precisam de texto branco)
     const darkStates = ['RR', 'MT', 'MS', 'GO', 'MG', 'SP', 'PR', 'SC', 'RS'];
     
     return darkStates.includes(stateId) ? '#FFFFFF' : '#000000';
-  };
+  }
   
   // Renderizar indicador de carregamento
   if (isLoading) {
@@ -246,6 +184,9 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
       </div>
     );
   }
+  
+  // Calcular o total de envios para exibir na legenda
+  const totalEnvios = stateData.reduce((acc, state: StateData) => acc + state.value, 0);
   
   return (
     <div className={`w-full ${className}`}>
@@ -340,7 +281,7 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
             className="max-w-full"
           >
             {/* Mapa do Brasil usando paths otimizados para melhor representação */}
-            {BRAZILIAN_STATES.map(state => (
+            {BRAZILIAN_STATES.map((state: {id: string, name: string}) => (
               <React.Fragment key={state.id}>
                 <path 
                   d={BRASIL_STATE_PATHS[state.id]}
@@ -371,7 +312,7 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
                     fill={getValueTextColor(state.id)} 
                     pointerEvents="none"
                   >
-                    {displayData.find(s => s.id === state.id)?.value || 0}
+                    {stateData.find(s => s.id === state.id)?.value || 0}
                   </text>
                 )}
               </React.Fragment>
@@ -390,7 +331,7 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
                 {period === 'yearly' && 'Envios Anuais'}
               </span>
               <span className="text-sm text-muted-foreground">
-                Total: {displayData.reduce((acc, state) => acc + state.value, 0).toLocaleString('pt-BR')} envios
+                Total: {totalEnvios.toLocaleString('pt-BR')} envios
               </span>
             </div>
           </div>
@@ -400,4 +341,4 @@ const BrasilTVMap: React.FC<BrasilTVMapProps> = ({
   );
 };
 
-export default BrasilTVMap;
+export default BrasilTVMapNew;
