@@ -132,15 +132,18 @@ const MapaBi: React.FC = () => {
           {['daily', 'weekly', 'monthly', 'yearly'].map((value) => (
             <TabsContent value={value} key={value}>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-2 relative p-4 bg-white rounded-lg shadow border">
                   <BrasilTVMap 
                     period={period as any}
                     colorMode={colorMode}
                     showStateLabels={showStateLabels}
                   />
                 </div>
-                <div>
-                  <ShipmentStatsDashboard period={period as any} />
+                <div className="space-y-4">
+                  <div className="p-4 bg-white rounded-lg shadow border">
+                    <h3 className="text-lg font-semibold mb-3">Visão Geral</h3>
+                    <ShipmentStatsDashboard period={period as any} />
+                  </div>
                 </div>
               </div>
             </TabsContent>

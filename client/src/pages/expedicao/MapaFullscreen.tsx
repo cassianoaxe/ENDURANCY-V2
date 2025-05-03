@@ -108,7 +108,7 @@ const MapaFullscreen: React.FC = () => {
             period={period} 
             fullscreen={true} 
             colorMode="colored"
-            showStateLabels={false}
+            showStateLabels={true}
           />
         </div>
         

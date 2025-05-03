@@ -299,16 +299,14 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           <div 
             className="relative w-full h-full flex items-center justify-center"
           >
-            {/* Imagem do mapa somente em modos que não sejam de contorno */}
-            {mapConfig.colorMode !== 'outline' ? (
-              <img 
-                src="/mapa-brasil-base.jpg" 
-                alt="Mapa do Brasil" 
-                className="max-h-full max-w-full object-contain absolute z-10 opacity-80"
-              />
-            ) : (
-              <div className="absolute inset-0 z-10 bg-white"></div>
-            )}
+            {/* Imagem do mapa para todos os modos */}
+            <img 
+              src="/mapa-brasil-base.jpg" 
+              alt="Mapa do Brasil" 
+              className={`max-h-full max-w-full object-contain absolute z-10 ${
+                mapConfig.colorMode === 'outline' ? 'opacity-15' : 'opacity-80'
+              }`}
+            />
             <svg 
               viewBox="0 0 800 800" 
               preserveAspectRatio="xMidYMid meet"
@@ -432,7 +430,7 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
         </div>
         
         {/* Legenda do período */}
-        <div className="absolute left-4 top-4 bg-white px-4 py-2 rounded-md shadow-lg z-30">
+        <div className="absolute left-4 top-4 bg-white/95 px-4 py-2 rounded-md shadow-lg z-40">
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
               <span className="text-lg font-semibold">
@@ -448,8 +446,8 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           </div>
         </div>
         
-        {/* Legenda de cores e regiões */}
-        <div className="absolute right-4 bottom-4 bg-white px-4 py-2 rounded-md shadow-lg max-w-xs z-30">
+        {/* Legenda de cores e regiões - posicionada à direita com espaçamento para não sobrepor */}
+        <div className="absolute right-4 bottom-4 bg-white/95 px-4 py-2 rounded-md shadow-lg max-w-xs z-40">
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Volume de Envios</span>
