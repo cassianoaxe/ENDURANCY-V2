@@ -102,7 +102,7 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
   // Gráfico de pizza para status
   const StatusPieChart = () => (
     <div className="h-[200px] mt-6">
-      <Heading level="h3" className="text-lg font-semibold mb-2">
+      <Heading as="h3" size="lg" weight="semibold" className="mb-2">
         Status dos Envios
       </Heading>
       <ResponsivePie
@@ -129,7 +129,7 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
   // Gráfico de barras por período
   const ShipmentBarChart = () => (
     <div className="h-[200px] mt-6">
-      <Heading level="h3" className="text-lg font-semibold mb-2">
+      <Heading as="h3" size="lg" weight="semibold" className="mb-2">
         Envios por {period === 'daily' ? 'Hora' : period === 'weekly' ? 'Dia' : period === 'monthly' ? 'Dia' : 'Mês'}
       </Heading>
       <ResponsiveBar
@@ -185,7 +185,7 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
   
   return (
     <div className="space-y-4">
-      <Heading level="h2" className="text-xl font-semibold">
+      <Heading as="h2" size="xl" weight="semibold">
         Estatísticas de Envios
       </Heading>
       

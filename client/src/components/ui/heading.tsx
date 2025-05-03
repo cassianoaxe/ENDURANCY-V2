@@ -1,36 +1,45 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
-interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
-  level?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-  children: React.ReactNode;
+export interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  className?: string;
+  children?: React.ReactNode;
 }
 
-const Heading: React.FC<HeadingProps> = ({ 
-  level = "h1", 
-  children, 
-  className, 
-  ...props 
-}) => {
-  const Component = level;
-  
-  const styles = {
-    h1: "scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl",
-    h2: "scroll-m-20 text-3xl font-semibold tracking-tight transition-colors",
-    h3: "scroll-m-20 text-2xl font-semibold tracking-tight",
-    h4: "scroll-m-20 text-xl font-semibold tracking-tight",
-    h5: "scroll-m-20 text-lg font-semibold tracking-tight",
-    h6: "scroll-m-20 text-base font-semibold tracking-tight",
-  };
-  
+export const Heading = ({
+  as: Tag = 'h2',
+  size = 'xl',
+  weight = 'semibold',
+  className,
+  children,
+  ...props
+}: HeadingProps) => {
   return (
-    <Component
-      className={cn(styles[level], className)}
+    <Tag
+      className={cn(
+        {
+          'text-xs': size === 'xs',
+          'text-sm': size === 'sm',
+          'text-base': size === 'md',
+          'text-lg': size === 'lg',
+          'text-xl': size === 'xl',
+          'text-2xl': size === '2xl',
+          'text-3xl': size === '3xl',
+          'text-4xl': size === '4xl',
+          'font-normal': weight === 'normal',
+          'font-medium': weight === 'medium',
+          'font-semibold': weight === 'semibold',
+          'font-bold': weight === 'bold',
+        },
+        'tracking-tight',
+        className
+      )}
       {...props}
     >
       {children}
-    </Component>
+    </Tag>
   );
 };
-
-export { Heading };
