@@ -106,14 +106,18 @@ const MapaFullscreen: React.FC = () => {
           </Heading>
         </header>
         
-        <div className="flex flex-col gap-6 h-[calc(100vh-150px)]">
-          <div className="w-full flex justify-center" style={{ height: 'calc(70vh - 100px)' }}>
+        <div className="flex flex-col gap-8">
+          {/* Mapa centralizado com maior visibilidade */}
+          <div className="w-full flex justify-center">
             <BrasilShipmentMap
               period={period}
-              className="h-full"
+              className="w-full"
+              fullscreen={true}
             />
           </div>
-          <div className="w-full overflow-auto">
+          
+          {/* Estatísticas abaixo com melhor organização */}
+          <div className="w-full">
             <ShipmentStatsDashboard period={period} fullscreen={true} />
           </div>
         </div>

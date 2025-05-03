@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Heading, Card } from '@/components/ui';
 import { ResponsiveChoropleth } from '@nivo/geo';
-// Importação do arquivo GeoJSON completo para garantir dados mais precisos
+// Importação do arquivo GeoJSON
 import brasilGeoData from './brasil-geo-complete.json';
 import { Loader2 } from 'lucide-react';
 
@@ -15,12 +15,17 @@ interface StateDataItem {
 interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
+  fullscreen?: boolean;
 }
 
 // Dados geográficos estão disponíveis diretamente
 const geoFeatures = brasilGeoData;
 
-const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className }) => {
+const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ 
+  period, 
+  className = '',
+  fullscreen = false 
+}) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +63,6 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
           ];
         }
         
-        console.log('Dados de estados processados:', dataArray);
-        
         setStatesData(dataArray);
         setError(null);
       } catch (err) {
@@ -88,25 +91,33 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
     }
   }
 
+  // Definir altura do mapa com base no modo fullscreen
+  const mapHeight = fullscreen 
+    ? "h-[calc(100vh-180px)]" 
+    : "h-[550px]";
+
+  // Definir escala de projeção com base no modo fullscreen
+  const projectionScale = fullscreen ? 1350 : 1100;
+
   // Componente de carregamento
   const LoadingState = () => (
-    <div className="flex items-center justify-center h-[calc(100vh-200px)] min-h-[600px]">
+    <div className={`flex items-center justify-center ${mapHeight}`}>
       <div className="flex flex-col items-center">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
-        <p className="text-gray-500">Carregando dados do mapa...</p>
+        <p className="text-gray-500 text-lg">Carregando dados do mapa...</p>
       </div>
     </div>
   );
 
   // Componente de erro
   const ErrorState = () => (
-    <div className="flex items-center justify-center h-[calc(100vh-200px)] min-h-[600px]">
+    <div className={`flex items-center justify-center ${mapHeight}`}>
       <div className="text-center">
-        <p className="text-red-500 mb-2">{error}</p>
+        <p className="text-red-500 text-xl mb-3">{error}</p>
         <p className="text-gray-500 mb-4">Não foi possível carregar o mapa de expedição.</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+          className="px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
         >
           Tentar novamente
         </button>
@@ -116,12 +127,12 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
 
   return (
     <div className={`w-full ${className}`}>
-      <Heading as="h2" size="xl" weight="semibold" className="mb-4">
+      <Heading as="h2" size="xl" weight="semibold" className="mb-4 text-center">
         Distribuição de Envios por Estado
       </Heading>
       
-      <Card className="p-0 overflow-hidden border-gray-200">
-        <div className="h-[calc(100vh-200px)] min-h-[600px] relative">
+      <Card className="p-0 overflow-hidden border-gray-200 shadow-lg">
+        <div className={`${mapHeight} relative`}>
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -130,14 +141,14 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
             <ResponsiveChoropleth
               data={statesData}
               features={geoFeatures.features}
-              margin={{ top: 20, right: 20, bottom: 70, left: 20 }}
+              margin={{ top: 40, right: 40, bottom: 80, left: 40 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={1000}
-              projectionTranslation={[0.5, 0.6]}
+              projectionScale={projectionScale}
+              projectionTranslation={[0.5, 0.55]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.5}
@@ -150,8 +161,9 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               theme={{
                 background: "transparent",
                 text: {
-                  fontSize: 11,
-                  fill: "#333333"
+                  fontSize: fullscreen ? 14 : 12,
+                  fill: "#333333",
+                  fontWeight: 600
                 }
               }}
               legends={[
@@ -160,14 +172,14 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
                   direction: 'row',
                   justify: true,
                   translateX: 0,
-                  translateY: 50,
-                  itemsSpacing: 0,
-                  itemWidth: 94,
-                  itemHeight: 18,
+                  translateY: 60,
+                  itemsSpacing: 10,
+                  itemWidth: 100,
+                  itemHeight: 20,
                   itemDirection: 'left-to-right',
                   itemTextColor: '#444',
                   itemOpacity: 0.85,
-                  symbolSize: 18,
+                  symbolSize: 20,
                   effects: [
                     {
                       on: 'hover',
@@ -180,21 +192,19 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
                 }
               ]}
               tooltip={({ feature }) => {
-                // Obter o ID da feature (sigla do estado)
                 // @ts-ignore
                 const featureId = feature.properties?.sigla || '';
-                
-                // Encontrar os dados do estado correspondente
                 const state = statesData.find(s => s.id === featureId);
-                
                 // @ts-ignore
                 const stateName = feature.properties?.name || 'Estado';
                 
                 return (
-                  <div className="bg-white p-3 shadow-lg rounded-md border border-gray-100">
-                    <strong className="text-gray-900 block mb-1">{state?.name || stateName}</strong>
+                  <div className="bg-white p-4 shadow-lg rounded-md border border-gray-100">
+                    <strong className="text-gray-900 block mb-2 text-lg">
+                      {state?.name || stateName}
+                    </strong>
                     <div className="flex items-center">
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-blue-600 font-medium text-lg">
                         {state ? `${state.value} envios` : 'Sem dados de envio'}
                       </span>
                     </div>
@@ -206,7 +216,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
         </div>
         
         {/* Título do período abaixo do mapa */}
-        <div className="py-2 px-4 bg-gray-50 border-t border-gray-200 flex justify-center">
+        <div className="py-3 px-4 bg-gray-50 border-t border-gray-200 flex justify-center">
           <p className="text-sm text-gray-600">
             <span className="font-medium">Período:</span> {' '}
             {period === 'daily' ? 'Diário' : 
