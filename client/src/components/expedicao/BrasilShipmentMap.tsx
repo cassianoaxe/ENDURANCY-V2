@@ -35,7 +35,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({
     const fetchShipmentsData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
+        const response = await axios.get(`/api/expedicao/envios-por-estado/${period}`);
         
         // Forçando para garantir que estamos recebendo um array válido
         let dataArray = Array.isArray(response.data) ? response.data : [];
@@ -48,19 +48,8 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({
             id: item.id.toUpperCase() // Para garantir que o ID está em maiúsculo para o match
           }));
         } else {
-          // Dados de exemplo para garantir que algo é mostrado
-          dataArray = [
-            { id: "SP", name: "São Paulo", value: 1254 },
-            { id: "RJ", name: "Rio de Janeiro", value: 987 },
-            { id: "MG", name: "Minas Gerais", value: 765 },
-            { id: "BA", name: "Bahia", value: 542 },
-            { id: "RS", name: "Rio Grande do Sul", value: 421 },
-            { id: "PR", name: "Paraná", value: 380 },
-            { id: "PE", name: "Pernambuco", value: 310 },
-            { id: "CE", name: "Ceará", value: 285 },
-            { id: "GO", name: "Goiás", value: 240 },
-            { id: "AM", name: "Amazonas", value: 120 }
-          ];
+          // Se não houver dados, inicializamos com array vazio
+          dataArray = [];
         }
         
         setStatesData(dataArray);
