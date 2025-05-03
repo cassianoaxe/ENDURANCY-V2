@@ -1586,71 +1586,51 @@ function AppContent() {
     }
 
     if (currentPath === '/organization/expedicao') {
-      return <OrganizationLayout>
-        <Expedicao />
-      </OrganizationLayout>;
+      return <Expedicao />;
     }
     
     // Subpáginas de Expedição
     if (currentPath === '/organization/expedicao/pedidos') {
-      return <OrganizationLayout>
-        <PreparacaoPedidos />
-      </OrganizationLayout>;
+      return <PreparacaoPedidos />;
     }
     
     if (currentPath === '/organization/expedicao/etiquetas') {
-      return <OrganizationLayout>
-        <Etiquetas />
-      </OrganizationLayout>;
+      return <Etiquetas />;
     }
     
     if (currentPath === '/organization/expedicao/codigos') {
-      return <OrganizationLayout>
-        <CodigosExpedicao />
-      </OrganizationLayout>;
+      return <CodigosExpedicao />;
     }
     
     if (currentPath === '/organization/expedicao/documentacao') {
-      return <OrganizationLayout>
-        <DocumentacaoExpedicao />
-      </OrganizationLayout>;
+      return <DocumentacaoExpedicao />;
     }
     
     if (currentPath === '/organization/expedicao/mapa-bi') {
       const MapaBi = React.lazy(() => import('./pages/expedicao/MapaBi'));
       return (
-        <OrganizationLayout>
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <MapaBi />
-          </Suspense>
-        </OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <MapaBi />
+        </Suspense>
       );
     }
     
     if (currentPath === '/organization/expedicao/juncao') {
-      return <OrganizationLayout>
-        <JuncaoPedidos />
-      </OrganizationLayout>;
+      return <JuncaoPedidos />;
     }
     
     if (currentPath === '/organization/expedicao/malotes') {
-      return <OrganizationLayout>
-        <RegistroMalotes />
-      </OrganizationLayout>;
+      return <RegistroMalotes />;
     }
     
     if (currentPath === '/organization/expedicao/rastreios') {
-      return <OrganizationLayout>
-        <AtualizacaoRastreios />
-      </OrganizationLayout>;
+      return <AtualizacaoRastreios />;
     }
     
     if (currentPath === '/organization/expedicao/estoque') {
-      return <OrganizationLayout>
-        <EstoqueExpedicao />
-      </OrganizationLayout>;
+      return <EstoqueExpedicao />;
     }
     
     // Mapa BI está definido acima
