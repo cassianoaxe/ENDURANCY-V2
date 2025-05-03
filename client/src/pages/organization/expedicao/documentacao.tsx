@@ -436,7 +436,6 @@ export default function DocumentacaoExpedicao() {
   });
 
   return (
-    <OrganizationLayout>
       <div className="container py-6 space-y-6">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between">
@@ -1069,6 +1068,5 @@ export default function DocumentacaoExpedicao() {
           </DialogContent>
         </Dialog>
       </div>
-    </OrganizationLayout>
   );
 }
