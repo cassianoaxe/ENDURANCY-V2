@@ -3,6 +3,7 @@ import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent, Button } from 
 import { ExternalLink, MapPin, BarChart2 } from 'lucide-react';
 import BrasilShipmentMapSimple from '@/components/expedicao/BrasilShipmentMapSimple';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
+import OrganizationLayout from '@/components/layout/OrganizationLayout';
 
 // Interface para o botão de abrir em nova aba
 interface OpenInNewTabButtonProps {
@@ -32,57 +33,61 @@ const OpenInNewTabButton: React.FC<OpenInNewTabButtonProps> = ({ period }) => {
 const MapaBi: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   
-  return (
-    <div className="relative bg-gray-50 min-h-screen">
-      <div className="p-6">
-        <header className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <MapPin className="h-6 w-6 text-primary" />
-            <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
-          </div>
-          <p className="text-muted-foreground">
-            Visualização geográfica e estatísticas de envios em tempo real
-          </p>
-        </header>
-        
-        <Tabs 
-          defaultValue="monthly" 
-          className="space-y-6" 
-          onValueChange={value => setPeriod(value as any)}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3 rounded-lg shadow-sm border">
-            <div className="flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-primary" />
-              <span className="font-medium">Período:</span>
-            </div>
-            
-            <div className="flex flex-1 justify-between sm:justify-center">
-              <TabsList className="w-full max-w-md">
-                <TabsTrigger value="daily">Diário</TabsTrigger>
-                <TabsTrigger value="weekly">Semanal</TabsTrigger>
-                <TabsTrigger value="monthly">Mensal</TabsTrigger>
-                <TabsTrigger value="yearly">Anual</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <OpenInNewTabButton period={period} />
+  const conteudo = (
+    <div className="p-6">
+      <header className="mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <MapPin className="h-6 w-6 text-primary" />
+          <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
+        </div>
+        <p className="text-muted-foreground">
+          Visualização geográfica e estatísticas de envios em tempo real
+        </p>
+      </header>
+      
+      <Tabs 
+        defaultValue="monthly" 
+        className="space-y-6" 
+        onValueChange={value => setPeriod(value as any)}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3 rounded-lg shadow-sm border">
+          <div className="flex items-center gap-2">
+            <BarChart2 className="h-5 w-5 text-primary" />
+            <span className="font-medium">Período:</span>
           </div>
           
-          {['daily', 'weekly', 'monthly', 'yearly'].map((value) => (
-            <TabsContent value={value} key={value}>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <BrasilShipmentMapSimple period={period} />
-                </div>
-                <div>
-                  <ShipmentStatsDashboard period={period} />
-                </div>
+          <div className="flex flex-1 justify-between sm:justify-center">
+            <TabsList className="w-full max-w-md">
+              <TabsTrigger value="daily">Diário</TabsTrigger>
+              <TabsTrigger value="weekly">Semanal</TabsTrigger>
+              <TabsTrigger value="monthly">Mensal</TabsTrigger>
+              <TabsTrigger value="yearly">Anual</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <OpenInNewTabButton period={period} />
+        </div>
+        
+        {['daily', 'weekly', 'monthly', 'yearly'].map((value) => (
+          <TabsContent value={value} key={value}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <BrasilShipmentMapSimple period={period} />
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+              <div>
+                <ShipmentStatsDashboard period={period} />
+              </div>
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
+  );
+  
+  return (
+    <OrganizationLayout>
+      {conteudo}
+    </OrganizationLayout>
   );
 };
 
