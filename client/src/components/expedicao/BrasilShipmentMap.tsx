@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Heading } from '@/components/ui';
+import { Box, Heading, Card } from '@/components/ui';
 import { ResponsiveChoropleth } from '@nivo/geo';
 // Importação direta do arquivo GeoJSON para garantir a disponibilidade imediata
 import brasilGeoData from './brasil-geo.json';
+import { Loader2 } from 'lucide-react';
 
 interface StateDataItem {
   id: string;
@@ -13,9 +14,10 @@ interface StateDataItem {
 
 interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  className?: string;
 }
 
-const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
+const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,12 +27,10 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
     const fetchShipmentsData = async () => {
       setLoading(true);
       try {
-        console.log('Iniciando requisição para dados de expedição, período:', period);
         const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
         
         // Forçando para garantir que estamos recebendo um array válido
         const dataArray = Array.isArray(response.data) ? response.data : [];
-        console.log('Dados de estados recebidos:', dataArray);
         
         setStatesData(dataArray);
         setError(null);
@@ -60,111 +60,127 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[500px]">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+  // Componente de carregamento
+  const LoadingState = () => (
+    <div className="flex items-center justify-center h-[500px]">
+      <div className="flex flex-col items-center">
+        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+        <p className="text-gray-500">Carregando dados do mapa...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-[500px]">
-        <div className="text-center">
-          <p className="text-red-500">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-          >
-            Tentar novamente
-          </button>
-        </div>
+  // Componente de erro
+  const ErrorState = () => (
+    <div className="flex items-center justify-center h-[500px]">
+      <div className="text-center">
+        <p className="text-red-500 mb-2">{error}</p>
+        <p className="text-gray-500 mb-4">Não foi possível carregar o mapa de expedição.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Tentar novamente
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
-    <div className="h-[600px] w-full">
+    <div className={`w-full ${className}`}>
       <Heading as="h2" size="xl" weight="semibold" className="mb-4">
         Distribuição de Envios por Estado
       </Heading>
       
-      <div className="h-[550px] border border-gray-200 rounded-lg overflow-hidden bg-white">
-        <ResponsiveChoropleth
-          data={statesData}
-          features={brasilGeoData.features}
-          margin={{ top: 10, right: 10, bottom: 40, left: 10 }}
-          colors="blues"
-          domain={[minValue, maxValue]}
-          unknownColor="#e0e0e0"
-          label="properties.name"
-          valueFormat=".0f"
-          projectionScale={650}
-          projectionTranslation={[0.5, 0.85]}
-          projectionRotation={[0, 0, 0]}
-          enableGraticule={false}
-          borderWidth={0.5}
-          borderColor="#152538"
-          theme={{
-            background: "transparent",
-            text: {
-              fontSize: 11,
-              fill: "#333333",
-              outlineWidth: 0,
-              outlineColor: "transparent"
-            }
-          }}
-          legends={[
-            {
-              anchor: 'bottom-left',
-              direction: 'column',
-              justify: true,
-              translateX: 20,
-              translateY: -10,
-              itemsSpacing: 0,
-              itemWidth: 94,
-              itemHeight: 18,
-              itemDirection: 'left-to-right',
-              itemTextColor: '#444',
-              itemOpacity: 0.85,
-              symbolSize: 18,
-              effects: [
-                {
-                  on: 'hover',
-                  style: {
-                    itemTextColor: '#000',
-                    itemOpacity: 1
-                  }
+      <Card className="p-0 overflow-hidden border-gray-200">
+        <div className="h-[550px] relative">
+          {loading ? (
+            <LoadingState />
+          ) : error ? (
+            <ErrorState />
+          ) : (
+            <ResponsiveChoropleth
+              data={statesData}
+              features={brasilGeoData.features}
+              margin={{ top: 10, right: 10, bottom: 50, left: 10 }}
+              colors="blues"
+              domain={[minValue, maxValue]}
+              unknownColor="#e0e0e0"
+              label="properties.name"
+              valueFormat=".0f"
+              projectionScale={650}
+              projectionTranslation={[0.5, 0.85]}
+              projectionRotation={[0, 0, 0]}
+              enableGraticule={false}
+              borderWidth={0.5}
+              borderColor="#152538"
+              theme={{
+                background: "transparent",
+                text: {
+                  fontSize: 11,
+                  fill: "#333333",
+                  outlineWidth: 0,
+                  outlineColor: "transparent"
                 }
-              ]
-            }
-          ]}
-          tooltip={({ feature }) => {
-            // @ts-ignore - Ignorando erros de tipagem para obter o ID da feature
-            const featureId = feature.id;
-            const state = statesData.find(s => s.id === featureId);
-            
-            if (!state) {
-              // Mostrar o estado mesmo sem dados
-              return (
-                <div className="bg-white p-2 shadow-md rounded-md">
-                  {/* @ts-ignore - Ignorando erros de tipagem para obter propriedades da feature */}
-                  <strong>{feature.properties ? feature.properties.name : 'Estado'}</strong>
-                  <div>Sem dados de envio</div>
-                </div>
-              );
-            }
-            
-            return (
-              <div className="bg-white p-2 shadow-md rounded-md">
-                <strong>{state.name}</strong>
-                <div>Envios: {state.value}</div>
-              </div>
-            );
-          }}
-        />
-      </div>
+              }}
+              legends={[
+                {
+                  anchor: 'bottom-left',
+                  direction: 'column',
+                  justify: true,
+                  translateX: 20,
+                  translateY: -10,
+                  itemsSpacing: 0,
+                  itemWidth: 94,
+                  itemHeight: 18,
+                  itemDirection: 'left-to-right',
+                  itemTextColor: '#444',
+                  itemOpacity: 0.85,
+                  symbolSize: 18,
+                  effects: [
+                    {
+                      on: 'hover',
+                      style: {
+                        itemTextColor: '#000',
+                        itemOpacity: 1
+                      }
+                    }
+                  ]
+                }
+              ]}
+              tooltip={({ feature }) => {
+                // @ts-ignore - Ignorando erros de tipagem para obter o ID da feature
+                const featureId = feature.id;
+                const state = statesData.find(s => s.id === featureId);
+                
+                // @ts-ignore - Ignorando erros de tipagem para obter propriedades da feature
+                const stateName = feature.properties?.name || 'Estado';
+                
+                return (
+                  <div className="bg-white p-3 shadow-lg rounded-md border border-gray-100">
+                    <strong className="text-gray-900 block mb-1">{state?.name || stateName}</strong>
+                    <div className="flex items-center">
+                      <span className="text-blue-600 font-medium">
+                        {state ? `${state.value} envios` : 'Sem dados de envio'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }}
+            />
+          )}
+        </div>
+        
+        {/* Título do período abaixo do mapa */}
+        <div className="py-2 px-4 bg-gray-50 border-t border-gray-200 flex justify-center">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">Período:</span> {' '}
+            {period === 'daily' ? 'Diário' : 
+             period === 'weekly' ? 'Semanal' : 
+             period === 'monthly' ? 'Mensal' : 'Anual'}
+          </p>
+        </div>
+      </Card>
     </div>
   );
 };
