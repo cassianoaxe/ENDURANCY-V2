@@ -998,7 +998,7 @@ function AppContent() {
     if (orgDashboardMatch) {
       console.log("Renderizando dashboard de organização específica com ID:", orgDashboardMatch[1]);
       return <OrganizationLayout>
-        <OrganizationDashboard />
+        <OrganizationDashboard key={Date.now()} />
       </OrganizationLayout>;
     }
     
