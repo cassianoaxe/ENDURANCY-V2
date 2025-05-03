@@ -25,6 +25,7 @@ import { registerPlanRoutes } from './routes/plans';
 import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
+import { registerExpedicaoRoutes } from './routes/expedicao-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -5804,6 +5805,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Registrando rotas do portal de transparência");
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
+  
+  // Registrar rotas do módulo de expedição
+  registerExpedicaoRoutes(app);
+  console.log("Rotas do módulo de expedição registradas com sucesso");
   
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {
