@@ -1,274 +1,232 @@
-import express, { Express } from 'express';
+import { Router } from 'express';
 import { db } from '../db';
-import { format, subDays, subMonths, subWeeks, subYears } from 'date-fns';
+import { eq, sql } from 'drizzle-orm';
 
-const router = express.Router();
+const router = Router();
 
-export function registerExpedicaoRoutes(app: Express) {
-  app.use(router);
-  console.log("Rotas do módulo de expedição registradas com sucesso");
-  return router;
+// Dados simulados para entregas por estado
+const estadosData = {
+  "AC": "Acre",
+  "AL": "Alagoas",
+  "AP": "Amapá",
+  "AM": "Amazonas",
+  "BA": "Bahia",
+  "CE": "Ceará",
+  "DF": "Distrito Federal",
+  "ES": "Espírito Santo",
+  "GO": "Goiás",
+  "MA": "Maranhão",
+  "MT": "Mato Grosso",
+  "MS": "Mato Grosso do Sul",
+  "MG": "Minas Gerais",
+  "PA": "Pará",
+  "PB": "Paraíba",
+  "PR": "Paraná",
+  "PE": "Pernambuco",
+  "PI": "Piauí",
+  "RJ": "Rio de Janeiro",
+  "RN": "Rio Grande do Norte",
+  "RS": "Rio Grande do Sul",
+  "RO": "Rondônia",
+  "RR": "Roraima",
+  "SC": "Santa Catarina",
+  "SP": "São Paulo",
+  "SE": "Sergipe",
+  "TO": "Tocantins"
+};
+
+// Função para gerar dados de teste com alguma variação baseada no período
+function gerarDadosEnviosPorEstado(periodo: string) {
+  // Fator de multiplicação com base no período para criar alguma variação
+  const fatorPeriodo = {
+    'daily': 1,
+    'weekly': 7,
+    'monthly': 30,
+    'yearly': 365
+  }[periodo] || 1;
+  
+  // Dados base de exemplo para São Paulo, Rio de Janeiro e Minas Gerais
+  const dadosBase = {
+    'SP': 150,
+    'RJ': 100,
+    'MG': 80,
+    'RS': 60,
+    'PR': 55,
+    'SC': 45,
+    'BA': 40,
+    'PE': 35,
+    'CE': 30,
+    'GO': 25,
+    'DF': 20,
+    'AM': 15,
+    'PA': 12,
+    'ES': 10,
+    'MT': 8,
+    'MS': 7,
+    'MA': 6,
+    'PB': 5,
+    'RN': 4,
+    'AL': 3,
+    'PI': 3,
+    'SE': 2,
+    'RO': 2,
+    'TO': 2,
+    'AC': 1,
+    'AP': 1,
+    'RR': 1
+  };
+  
+  // Gerar dados com valores baseados no período e adicionar variação aleatória
+  return Object.entries(estadosData).map(([sigla, nome]) => {
+    const valorBase = dadosBase[sigla] || 1;
+    const variacao = Math.random() * 0.3 - 0.15; // Variação de -15% a +15%
+    const valor = Math.round(valorBase * fatorPeriodo * (1 + variacao));
+    
+    return {
+      id: sigla,
+      name: nome,
+      value: valor
+    };
+  });
 }
 
-// Endpoint para obter dados de expedição por estado
-router.get('/api/expedicao/envios-por-estado/:period', async (req, res) => {
-  try {
-    console.log('Recebida requisição para /api/expedicao/envios-por-estado/:period', { 
-      params: req.params,
-      headers: req.headers['user-agent']
-    });
-    
-    // O período pode ser 'daily', 'weekly', 'monthly' ou 'yearly'
-    const period = req.params.period || 'monthly';
-    console.log('Período selecionado:', period);
-    
-    // Em uma implementação real, aqui você buscaria os dados do banco
-    // Simulando dados para desenvolvimento
-    const states = [
-      { id: 'SP', name: 'São Paulo', value: Math.floor(Math.random() * 1000) + 800 },
-      { id: 'RJ', name: 'Rio de Janeiro', value: Math.floor(Math.random() * 400) + 600 },
-      { id: 'MG', name: 'Minas Gerais', value: Math.floor(Math.random() * 300) + 400 },
-      { id: 'BA', name: 'Bahia', value: Math.floor(Math.random() * 200) + 300 },
-      { id: 'RS', name: 'Rio Grande do Sul', value: Math.floor(Math.random() * 150) + 250 },
-      { id: 'PR', name: 'Paraná', value: Math.floor(Math.random() * 150) + 250 },
-      { id: 'PE', name: 'Pernambuco', value: Math.floor(Math.random() * 100) + 200 },
-      { id: 'CE', name: 'Ceará', value: Math.floor(Math.random() * 100) + 180 },
-      { id: 'SC', name: 'Santa Catarina', value: Math.floor(Math.random() * 80) + 180 },
-      { id: 'GO', name: 'Goiás', value: Math.floor(Math.random() * 80) + 160 },
-      { id: 'PA', name: 'Pará', value: Math.floor(Math.random() * 60) + 140 },
-      { id: 'MA', name: 'Maranhão', value: Math.floor(Math.random() * 50) + 120 },
-      { id: 'DF', name: 'Distrito Federal', value: Math.floor(Math.random() * 50) + 110 },
-      { id: 'ES', name: 'Espírito Santo', value: Math.floor(Math.random() * 50) + 100 },
-      { id: 'PB', name: 'Paraíba', value: Math.floor(Math.random() * 40) + 90 },
-      { id: 'AM', name: 'Amazonas', value: Math.floor(Math.random() * 40) + 80 },
-      { id: 'RN', name: 'Rio Grande do Norte', value: Math.floor(Math.random() * 30) + 80 },
-      { id: 'MT', name: 'Mato Grosso', value: Math.floor(Math.random() * 30) + 70 },
-      { id: 'AL', name: 'Alagoas', value: Math.floor(Math.random() * 30) + 70 },
-      { id: 'PI', name: 'Piauí', value: Math.floor(Math.random() * 20) + 60 },
-      { id: 'MS', name: 'Mato Grosso do Sul', value: Math.floor(Math.random() * 20) + 50 },
-      { id: 'SE', name: 'Sergipe', value: Math.floor(Math.random() * 20) + 40 },
-      { id: 'RO', name: 'Rondônia', value: Math.floor(Math.random() * 15) + 40 },
-      { id: 'TO', name: 'Tocantins', value: Math.floor(Math.random() * 15) + 30 },
-      { id: 'AC', name: 'Acre', value: Math.floor(Math.random() * 10) + 20 },
-      { id: 'AP', name: 'Amapá', value: Math.floor(Math.random() * 10) + 15 },
-      { id: 'RR', name: 'Roraima', value: Math.floor(Math.random() * 10) + 10 }
-    ];
-    
-    // Definir explicitamente o cabeçalho de conteúdo como JSON
-    res.setHeader('Content-Type', 'application/json');
-    res.json(states);
-  } catch (error) {
-    console.error('Erro ao buscar dados de expedição por estado:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados de expedição' });
+// Endpoint para obter dados de envios por estado
+router.get('/envios-por-estado/:periodo', (req, res) => {
+  const periodo = req.params.periodo as string;
+  
+  if (!['daily', 'weekly', 'monthly', 'yearly'].includes(periodo)) {
+    return res.status(400).json({ error: 'Período inválido. Use daily, weekly, monthly ou yearly.' });
   }
+  
+  // Gerar dados baseados no período
+  const dados = gerarDadosEnviosPorEstado(periodo);
+  
+  res.json(dados);
 });
 
-// Endpoint para obter estatísticas de expedição
-router.get('/api/expedicao/shipment-stats', async (req, res) => {
-  try {
-    // O período pode ser 'daily', 'weekly', 'monthly' ou 'yearly'
-    const period = req.query.period as string || 'monthly';
-    
-    // Obter a data de referência com base no período
-    const today = new Date();
-    let startDate: Date;
-    let labelFormat: string;
-    let dataPoints: number;
-    
-    switch (period) {
-      case 'daily':
-        startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
-        labelFormat = 'HH';
-        dataPoints = 10;
-        break;
-      case 'weekly':
-        startDate = subDays(today, 7);
-        labelFormat = 'EEE';
-        dataPoints = 7;
-        break;
-      case 'monthly':
-        startDate = subMonths(today, 1);
-        labelFormat = 'dd/MM';
-        dataPoints = 15;
-        break;
-      case 'yearly':
-        startDate = subYears(today, 1);
-        labelFormat = 'MMM';
-        dataPoints = 12;
-        break;
-      default:
-        startDate = subMonths(today, 1);
-        labelFormat = 'dd/MM';
-        dataPoints = 15;
-    }
-    
-    // Gerar dados de exemplo para o gráfico de barras
-    const shipmentsByDay = [];
-    for (let i = 0; i < dataPoints; i++) {
-      let date: Date;
-      let name: string;
-      
-      if (period === 'daily') {
-        date = new Date(startDate);
-        date.setHours(startDate.getHours() + i);
-        name = format(date, labelFormat) + 'h';
-      } else if (period === 'weekly') {
-        date = subDays(today, 6 - i);
-        name = format(date, labelFormat);
-      } else if (period === 'monthly') {
-        date = subDays(today, 14 - i);
-        name = format(date, labelFormat);
-      } else {
-        date = new Date(today.getFullYear(), i, 1);
-        name = format(date, labelFormat);
-      }
-      
-      const enviados = Math.floor(Math.random() * 40) + 10;
-      const entregues = Math.floor(Math.random() * enviados);
-      
-      shipmentsByDay.push({
-        name,
-        enviados,
-        entregues
-      });
-    }
-    
-    // Dados do gráfico de pizza para status dos envios
-    const totalEnviados = shipmentsByDay.reduce((sum, day) => sum + day.enviados, 0);
-    const totalEntregues = shipmentsByDay.reduce((sum, day) => sum + day.entregues, 0);
-    const emTransito = Math.floor(totalEnviados * 0.3);
-    const pendentes = Math.floor(totalEnviados * 0.15);
-    const atrasados = totalEnviados - totalEntregues - emTransito - pendentes;
-    
-    const shipmentsByStatus = [
-      { name: 'Entregue', value: totalEntregues, color: '#4CAF50' },
-      { name: 'Em trânsito', value: emTransito, color: '#2196F3' },
-      { name: 'Pendente', value: pendentes, color: '#FFC107' },
-      { name: 'Atrasado', value: atrasados, color: '#F44336' }
-    ];
-    
-    // Calcular estatísticas gerais
-    const totalShipments = totalEnviados;
-    const completedShipments = totalEntregues;
-    const inProgressShipments = totalShipments - completedShipments;
-    const averageDeliveryTime = Number((Math.random() * 2 + 2).toFixed(1)); // Entre 2 e 4 dias
-    
-    // Retornar estatísticas
-    // Definir explicitamente o cabeçalho de conteúdo como JSON
-    res.setHeader('Content-Type', 'application/json');
-    res.json({
-      shipmentsByDay,
-      shipmentsByStatus,
-      totalShipments,
-      completedShipments,
-      inProgressShipments,
-      averageDeliveryTime
-    });
-  } catch (error) {
-    console.error('Erro ao buscar estatísticas de expedição:', error);
-    res.status(500).json({ error: 'Erro ao buscar estatísticas de expedição' });
+// Endpoint para obter estatísticas gerais
+router.get('/estatisticas/:periodo', (req, res) => {
+  const periodo = req.params.periodo as string;
+  
+  if (!['daily', 'weekly', 'monthly', 'yearly'].includes(periodo)) {
+    return res.status(400).json({ error: 'Período inválido. Use daily, weekly, monthly ou yearly.' });
   }
+  
+  // Fator de multiplicação de acordo com o período
+  const fatorPeriodo = {
+    'daily': 1,
+    'weekly': 7,
+    'monthly': 30,
+    'yearly': 365
+  }[periodo] || 1;
+  
+  // Adicionar variação aleatória para cada período
+  const variacao = Math.random() * 0.2 - 0.1; // Variação de -10% a +10%
+  
+  // Dados de exemplo com alguma variação baseada no período
+  const dados = {
+    totalEnvios: Math.round(580 * fatorPeriodo * (1 + variacao)),
+    enviosPorStatus: {
+      emTransito: Math.round(320 * fatorPeriodo * (1 + variacao)),
+      entregues: Math.round(180 * fatorPeriodo * (1 + variacao)),
+      atrasados: Math.round(45 * fatorPeriodo * (1 + variacao)),
+      problemas: Math.round(35 * fatorPeriodo * (1 + variacao))
+    },
+    mediaTempo: {
+      preparacao: Math.round(45 + Math.random() * 15 - 7.5), // 45 min ± 7.5 min
+      transporte: Math.round(72 + Math.random() * 24 - 12), // 72 horas ± 12 horas
+      entrega: Math.round(24 + Math.random() * 8 - 4) // 24 horas ± 4 horas
+    },
+    custoMedio: {
+      valor: Math.round(15500 + Math.random() * 3000 - 1500) / 100, // R$ 155,00 ± R$ 15,00
+      variacao: Math.round((Math.random() * 10 - 5) * 10) / 10 // Variação de -5% a +5% com uma casa decimal
+    }
+  };
+  
+  res.json(dados);
 });
 
-// Endpoint para obter dados da jornada de um envio específico
-router.get('/api/expedicao/shipment-journey/:id?', async (req, res) => {
-  try {
-    // O id do envio é opcional - se não fornecido, retorna um envio de exemplo
-    const shipmentId = req.params.id;
-    console.log('Recebida requisição para /api/expedicao/shipment-journey', { 
-      params: req.params,
-      headers: req.headers['user-agent']
-    });
+// Rota para obter dados detalhados de um estado específico (para o tooltip)
+router.get('/detalhe-estado/:sigla/:periodo', (req, res) => {
+  const { sigla, periodo } = req.params;
+  
+  if (!Object.keys(estadosData).includes(sigla)) {
+    return res.status(404).json({ error: 'Estado não encontrado' });
+  }
+  
+  if (!['daily', 'weekly', 'monthly', 'yearly'].includes(periodo)) {
+    return res.status(400).json({ error: 'Período inválido. Use daily, weekly, monthly ou yearly.' });
+  }
+  
+  // Fator de multiplicação baseado no período
+  const fatorPeriodo = {
+    'daily': 1,
+    'weekly': 7,
+    'monthly': 30,
+    'yearly': 365
+  }[periodo] || 1;
+  
+  // Obter valor base para o estado
+  const dadosBase = gerarDadosEnviosPorEstado(periodo).find(item => item.id === sigla);
+  const valorBase = dadosBase?.value || 10;
+  
+  // Gerar detalhes fictícios
+  const detalhes = {
+    estado: estadosData[sigla],
+    sigla,
+    totalEnvios: valorBase,
+    detalhamento: {
+      medicamentos: Math.round(valorBase * 0.65), // 65% medicamentos
+      suplementos: Math.round(valorBase * 0.25), // 25% suplementos
+      outros: Math.round(valorBase * 0.1) // 10% outros
+    },
+    percentualTotal: Math.round((valorBase / (580 * fatorPeriodo)) * 1000) / 10, // Percentual com uma casa decimal
+    cidadesPrincipais: gerarCidadesPrincipais(sigla, valorBase)
+  };
+  
+  res.json(detalhes);
+});
+
+// Função auxiliar para gerar dados de cidades principais por estado
+function gerarCidadesPrincipais(siglaEstado: string, totalEnvios: number) {
+  // Mapeamento de estados para suas principais cidades (simplificado)
+  const cidadesPorEstado = {
+    'SP': ['São Paulo', 'Campinas', 'Ribeirão Preto', 'Santos', 'São José dos Campos'],
+    'RJ': ['Rio de Janeiro', 'Niterói', 'Duque de Caxias', 'Nova Iguaçu', 'Petrópolis'],
+    'MG': ['Belo Horizonte', 'Uberlândia', 'Juiz de Fora', 'Contagem', 'Betim'],
+    'RS': ['Porto Alegre', 'Caxias do Sul', 'Pelotas', 'Canoas', 'Santa Maria'],
+    'PR': ['Curitiba', 'Londrina', 'Maringá', 'Ponta Grossa', 'Cascavel'],
+    'SC': ['Florianópolis', 'Joinville', 'Blumenau', 'São José', 'Criciúma'],
+    'BA': ['Salvador', 'Feira de Santana', 'Vitória da Conquista', 'Camaçari', 'Itabuna'],
+    'PE': ['Recife', 'Jaboatão dos Guararapes', 'Olinda', 'Caruaru', 'Petrolina'],
+    'CE': ['Fortaleza', 'Caucaia', 'Juazeiro do Norte', 'Maracanaú', 'Sobral'],
+    'GO': ['Goiânia', 'Aparecida de Goiânia', 'Anápolis', 'Rio Verde', 'Luziânia'],
+    'DF': ['Brasília', 'Taguatinga', 'Ceilândia', 'Gama', 'Sobradinho'],
+    // Dados para os demais estados...
+    'DEFAULT': ['Cidade Principal', 'Segunda Cidade', 'Terceira Cidade']
+  };
+  
+  // Obter lista de cidades para o estado ou usar lista padrão
+  const cidades = cidadesPorEstado[siglaEstado] || cidadesPorEstado['DEFAULT'];
+  
+  // Distribuir os envios entre as cidades (60% para a capital, resto distribuído)
+  const cidadesComValores = cidades.map((cidade, index) => {
+    let percentual;
+    if (index === 0) {
+      // Primeira cidade (capital) com 60%
+      percentual = 0.6;
+    } else {
+      // Distribuir o restante (40%) entre as outras cidades
+      percentual = 0.4 / (cidades.length - 1);
+    }
     
-    // Em uma implementação real, aqui você buscaria os dados do banco
-    // Simulando dados para desenvolvimento
-    const mockShipment = {
-      id: shipmentId ? parseInt(shipmentId) : 1,
-      tracking_code: 'BR564897654321',
-      origin: {
-        city: 'São Paulo',
-        state: 'SP',
-        coordinates: [-30, 15]
-      },
-      destination: {
-        city: 'Rio de Janeiro',
-        state: 'RJ',
-        coordinates: [15, 10]
-      },
-      steps: [
-        {
-          id: 1,
-          type: 'pickup',
-          location: {
-            city: 'São Paulo',
-            state: 'SP',
-            coordinates: [-30, 15]
-          },
-          timestamp: '2025-05-01T08:30:00',
-          description: 'Pacote coletado em São Paulo',
-          status: 'completed'
-        },
-        {
-          id: 2,
-          type: 'transit',
-          location: {
-            city: 'Em trânsito',
-            state: 'SP',
-            coordinates: [-15, 13]
-          },
-          timestamp: '2025-05-01T14:20:00',
-          description: 'Em trânsito para centro de distribuição',
-          status: 'completed'
-        },
-        {
-          id: 3,
-          type: 'warehouse',
-          location: {
-            city: 'Resende',
-            state: 'RJ',
-            coordinates: [0, 12]
-          },
-          timestamp: '2025-05-02T07:15:00',
-          description: 'Chegou ao centro de distribuição em Resende',
-          status: 'in_progress'
-        },
-        {
-          id: 4,
-          type: 'transit',
-          location: {
-            city: 'Em trânsito',
-            state: 'RJ',
-            coordinates: [10, 10]
-          },
-          timestamp: '2025-05-02T16:45:00',
-          description: 'Em trânsito para o destino final',
-          status: 'upcoming'
-        },
-        {
-          id: 5,
-          type: 'delivery',
-          location: {
-            city: 'Rio de Janeiro',
-            state: 'RJ',
-            coordinates: [15, 10]
-          },
-          timestamp: '2025-05-03T10:00:00',
-          description: 'Entrega prevista no Rio de Janeiro',
-          status: 'upcoming'
-        }
-      ],
-      status: 'in_transit',
-      estimated_delivery: '2025-05-03T10:00:00'
+    return {
+      cidade,
+      envios: Math.round(totalEnvios * percentual)
     };
-    
-    // Definir explicitamente o cabeçalho de conteúdo como JSON
-    res.setHeader('Content-Type', 'application/json');
-    res.json(mockShipment);
-  } catch (error) {
-    console.error('Erro ao buscar dados da jornada de envio:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados da jornada de envio' });
-  }
-});
+  });
+  
+  return cidadesComValores;
+}
 
 export default router;

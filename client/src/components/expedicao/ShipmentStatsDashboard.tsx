@@ -1,293 +1,181 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, Heading } from '@/components/ui';
-import { ResponsiveBar } from '@nivo/bar';
-import { ResponsivePie } from '@nivo/pie';
-import axios from 'axios';
+import { TrendingUp, TrendingDown, Package, Clock, DollarSign, Truck, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface ShipmentStatsDashboardProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  fullscreen?: boolean;
 }
 
 interface ShipmentStats {
-  // Dados para gráfico de barras
-  shipmentsByDay: {
-    name: string;
-    enviados: number;
+  totalEnvios: number;
+  enviosPorStatus: {
+    emTransito: number;
     entregues: number;
-  }[];
-  
-  // Dados para gráfico de pizza
-  shipmentsByStatus: {
-    name: string;
-    value: number;
-    color: string;
-  }[];
-  
-  // Estatísticas gerais
-  totalShipments: number;
-  completedShipments: number;
-  inProgressShipments: number;
-  averageDeliveryTime: number;
+    atrasados: number;
+    problemas: number;
+  };
+  mediaTempo: {
+    preparacao: number;
+    transporte: number;
+    entrega: number;
+  };
+  custoMedio: {
+    valor: number;
+    variacao: number;
+  };
 }
 
-const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period, fullscreen = false }) => {
-  const [stats, setStats] = useState<ShipmentStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period }) => {
+  const { data: stats, isLoading, error } = useQuery<ShipmentStats>({
+    queryKey: [`/api/expedicao/estatisticas/${period}`],
+    refetchOnWindowFocus: false
+  });
   
-  useEffect(() => {
-    setLoading(true);
-    // Simular tempo de carregamento
-    setTimeout(() => {
-      try {
-        // Dados mock para visualização das estatísticas
-        const mockData: ShipmentStats = {
-          // Estatísticas gerais
-          totalShipments: 8742,
-          completedShipments: 7126,
-          inProgressShipments: 1616,
-          averageDeliveryTime: 3.2,
-          
-          // Dados para gráfico de status
-          shipmentsByStatus: [
-            { name: "Entregue", value: 7126, color: "#4ade80" },
-            { name: "Em Trânsito", value: 892, color: "#3b82f6" },
-            { name: "Pendente", value: 452, color: "#f59e0b" },
-            { name: "Atrasado", value: 272, color: "#ef4444" }
-          ],
-          
-          // Dados para gráfico de barras
-          shipmentsByDay: period === 'daily' ? [
-            { name: "08:00", enviados: 42, entregues: 18 },
-            { name: "10:00", enviados: 63, entregues: 26 },
-            { name: "12:00", enviados: 55, entregues: 38 },
-            { name: "14:00", enviados: 78, entregues: 51 },
-            { name: "16:00", enviados: 61, entregues: 44 },
-            { name: "18:00", enviados: 35, entregues: 27 }
-          ] : period === 'weekly' ? [
-            { name: "Seg", enviados: 245, entregues: 210 },
-            { name: "Ter", enviados: 358, entregues: 302 },
-            { name: "Qua", enviados: 287, entregues: 251 },
-            { name: "Qui", enviados: 315, entregues: 260 },
-            { name: "Sex", enviados: 401, entregues: 353 },
-            { name: "Sáb", enviados: 142, entregues: 124 }
-          ] : period === 'monthly' ? [
-            { name: "01-07", enviados: 1042, entregues: 845 },
-            { name: "08-14", enviados: 1358, entregues: 1276 },
-            { name: "15-21", enviados: 987, entregues: 861 },
-            { name: "22-28", enviados: 1215, entregues: 1103 }
-          ] : [
-            { name: "Jan", enviados: 4582, entregues: 4125 },
-            { name: "Fev", enviados: 3916, entregues: 3620 },
-            { name: "Mar", enviados: 5214, entregues: 4863 },
-            { name: "Abr", enviados: 4753, entregues: 4321 },
-            { name: "Mai", enviados: 5612, entregues: 5103 },
-            { name: "Jun", enviados: 4875, entregues: 4576 }
-          ]
-        };
-        
-        setStats(mockData);
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao carregar estatísticas de expedição:', err);
-        setError('Não foi possível carregar as estatísticas');
-      } finally {
-        setLoading(false);
-      }
-    }, 800);
-  }, [period]);
-  
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[300px]">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      </div>
+      <Card className="p-4 shadow-md h-full">
+        <div className="h-full flex flex-col items-center justify-center">
+          <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+          <p className="text-muted-foreground text-sm">Carregando estatísticas...</p>
+        </div>
+      </Card>
     );
   }
   
   if (error || !stats) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[300px]">
-        <div className="text-center">
-          <p className="text-red-500">{error || 'Erro ao carregar dados'}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-          >
-            Tentar novamente
-          </button>
+      <Card className="p-4 shadow-md h-full">
+        <div className="h-full flex flex-col items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <AlertCircle className="h-6 w-6 text-red-500" />
+          </div>
+          <Heading as="h3" size="sm" className="text-center mb-2">Erro ao carregar dados</Heading>
+          <p className="text-muted-foreground text-sm text-center">
+            Não foi possível obter as estatísticas de envio. Tente novamente mais tarde.
+          </p>
         </div>
-      </div>
+      </Card>
     );
   }
   
-  // Estatísticas resumidas
-  const StatsCards = () => {
-    // Verificar se os campos necessários estão disponíveis
-    const totalShipments = stats.totalShipments !== undefined ? stats.totalShipments : '-';
-    const completedShipments = stats.completedShipments !== undefined ? stats.completedShipments : '-';
-    const inProgressShipments = stats.inProgressShipments !== undefined ? stats.inProgressShipments : '-';
-    const averageDeliveryTime = stats.averageDeliveryTime !== undefined ? stats.averageDeliveryTime : '-';
-    
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Card className="p-3 bg-green-50 border-green-200">
-          <div className="text-sm text-muted-foreground">Total de Envios</div>
-          <div className="text-2xl font-bold">{totalShipments}</div>
-        </Card>
-        <Card className="p-3 bg-blue-50 border-blue-200">
-          <div className="text-sm text-muted-foreground">Entregues</div>
-          <div className="text-2xl font-bold">{completedShipments}</div>
-        </Card>
-        <Card className="p-3 bg-amber-50 border-amber-200">
-          <div className="text-sm text-muted-foreground">Em Progresso</div>
-          <div className="text-2xl font-bold">{inProgressShipments}</div>
-        </Card>
-        <Card className="p-3 bg-purple-50 border-purple-200">
-          <div className="text-sm text-muted-foreground">Tempo Médio</div>
-          <div className="text-2xl font-bold">{averageDeliveryTime}{typeof averageDeliveryTime === 'number' ? ' dias' : ''}</div>
-        </Card>
-      </div>
-    );
-  };
+  // Formatação dos números para exibição
+  const formatNumber = (num: number) => num.toLocaleString('pt-BR');
+  const formatCurrency = (value: number) => value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2
+  });
+  const formatPercentage = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
   
-  // Gráfico de pizza para status
-  const StatusPieChart = () => {
-    // Verificar se os dados de status estão disponíveis
-    if (!stats.shipmentsByStatus || !Array.isArray(stats.shipmentsByStatus) || stats.shipmentsByStatus.length === 0) {
-      return (
-        <div className="h-[200px] mt-6">
-          <Heading as="h3" size="lg" weight="semibold" className="mb-2">
-            Status dos Envios
-          </Heading>
-          <div className="flex items-center justify-center h-[200px] bg-slate-50 rounded-md">
-            <p className="text-slate-500">Dados de status não disponíveis</p>
-          </div>
-        </div>
-      );
-    }
-    
-    // Se os dados existirem, renderizar o gráfico
-    return (
-      <div className="h-[200px] mt-6">
-        <Heading as="h3" size="lg" weight="semibold" className="mb-2">
-          Status dos Envios
-        </Heading>
-        <ResponsivePie
-          data={stats.shipmentsByStatus.map(item => ({
-            id: item.name,
-            label: item.name,
-            value: item.value,
-            color: item.color
-          }))}
-          margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-          innerRadius={0.5}
-          padAngle={0.7}
-          cornerRadius={3}
-          colors={{ datum: 'data.color' }}
-          borderWidth={1}
-          borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
-          enableArcLinkLabels={false}
-          arcLabelsSkipAngle={10}
-          arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
-        />
-      </div>
-    );
-  };
-  
-  // Gráfico de barras por período
-  const ShipmentBarChart = () => {
-    // Verificar se os dados de shipmentsByDay estão disponíveis
-    if (!stats.shipmentsByDay || !Array.isArray(stats.shipmentsByDay) || stats.shipmentsByDay.length === 0) {
-      return (
-        <div className="h-[200px] mt-6">
-          <Heading as="h3" size="lg" weight="semibold" className="mb-2">
-            Envios por {period === 'daily' ? 'Hora' : period === 'weekly' ? 'Dia' : period === 'monthly' ? 'Dia' : 'Mês'}
-          </Heading>
-          <div className="flex items-center justify-center h-[200px] bg-slate-50 rounded-md">
-            <p className="text-slate-500">Dados de envios não disponíveis</p>
-          </div>
-        </div>
-      );
-    }
-    
-    // Se os dados existirem, renderizar o gráfico
-    return (
-      <div className="h-[200px] mt-6">
-        <Heading as="h3" size="lg" weight="semibold" className="mb-2">
-          Envios por {period === 'daily' ? 'Hora' : period === 'weekly' ? 'Dia' : period === 'monthly' ? 'Dia' : 'Mês'}
-        </Heading>
-        <ResponsiveBar
-          data={stats.shipmentsByDay}
-          keys={['enviados', 'entregues']}
-          indexBy="name"
-          margin={{ top: 10, right: 10, bottom: 30, left: 30 }}
-          padding={0.3}
-          valueScale={{ type: 'linear' }}
-          indexScale={{ type: 'band', round: true }}
-          colors={['#3b82f6', '#4ade80']}
-          borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-          axisBottom={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: -45,
-            legendPosition: 'middle',
-            legendOffset: 32
-          }}
-          axisLeft={null}
-          labelSkipWidth={12}
-          labelSkipHeight={12}
-          legends={[
-            {
-              dataFrom: 'keys',
-              anchor: 'bottom',
-              direction: 'row',
-              justify: false,
-              translateX: 0,
-              translateY: 50,
-              itemsSpacing: 2,
-              itemWidth: 100,
-              itemHeight: 20,
-              itemDirection: 'left-to-right',
-              itemOpacity: 0.85,
-              symbolSize: 20,
-              effects: [
-                {
-                  on: 'hover',
-                  style: {
-                    itemOpacity: 1
-                  }
-                }
-              ]
-            }
-          ]}
-          role="application"
-          ariaLabel="Gráfico de envios por período"
-          barAriaLabel={function(e){return e.id+": "+e.formattedValue+" envios no período: "+e.indexValue}}
-        />
-      </div>
-    );
-  };
-  
-  // Layout adaptativo baseado no modo fullscreen
   return (
-    <div className={`space-y-4 ${fullscreen ? 'p-4 bg-white rounded-lg shadow-md' : ''}`}>
-      <Heading as="h2" size="xl" weight="semibold" className="mb-6">
-        Estatísticas de Envios
-      </Heading>
+    <Card className="shadow-md h-full divide-y divide-gray-100">
+      <div className="p-4">
+        <Heading as="h2" size="lg" weight="semibold" className="mb-2">
+          Dashboard de Envios
+        </Heading>
+        <p className="text-muted-foreground text-sm">
+          Período: {
+            period === 'daily' ? 'Diário' : 
+            period === 'weekly' ? 'Semanal' : 
+            period === 'monthly' ? 'Mensal' : 'Anual'
+          }
+        </p>
+      </div>
       
-      <StatsCards />
-      
-      <div className={`grid grid-cols-1 ${fullscreen ? 'md:grid-cols-4' : 'md:grid-cols-2'} gap-6`}>
-        <div className={fullscreen ? 'md:col-span-2' : ''}>
-          <StatusPieChart />
+      {/* Resumo de envios totais */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Total de Envios</span>
+          <div className="flex items-center">
+            <Package className="w-4 h-4 text-primary mr-1" />
+          </div>
         </div>
-        <div className={fullscreen ? 'md:col-span-2' : ''}>
-          <ShipmentBarChart />
+        <div className="text-2xl font-bold">{formatNumber(stats.totalEnvios)}</div>
+      </div>
+      
+      {/* Status dos envios */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-muted-foreground">Status dos Envios</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-50 rounded-lg p-2">
+            <div className="flex items-center mb-1">
+              <Truck className="h-3.5 w-3.5 text-blue-600 mr-1" />
+              <span className="text-xs font-medium text-blue-600">Em Trânsito</span>
+            </div>
+            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.emTransito)}</div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-2">
+            <div className="flex items-center mb-1">
+              <CheckCircle className="h-3.5 w-3.5 text-green-600 mr-1" />
+              <span className="text-xs font-medium text-green-600">Entregues</span>
+            </div>
+            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.entregues)}</div>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-2">
+            <div className="flex items-center mb-1">
+              <Clock className="h-3.5 w-3.5 text-yellow-600 mr-1" />
+              <span className="text-xs font-medium text-yellow-600">Atrasados</span>
+            </div>
+            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.atrasados)}</div>
+          </div>
+          <div className="bg-red-50 rounded-lg p-2">
+            <div className="flex items-center mb-1">
+              <HelpCircle className="h-3.5 w-3.5 text-red-600 mr-1" />
+              <span className="text-xs font-medium text-red-600">Problemas</span>
+            </div>
+            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.problemas)}</div>
+          </div>
         </div>
       </div>
-    </div>
+      
+      {/* Tempo médio */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-muted-foreground">Tempo Médio</span>
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 text-primary mr-1" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Preparação</span>
+            <span className="text-xs font-medium">{stats.mediaTempo.preparacao} min</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Transporte</span>
+            <span className="text-xs font-medium">{stats.mediaTempo.transporte} horas</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Entrega</span>
+            <span className="text-xs font-medium">{stats.mediaTempo.entrega} horas</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Custo médio */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-muted-foreground">Custo Médio por Envio</span>
+          <div className="flex items-center">
+            <DollarSign className="w-4 h-4 text-primary mr-1" />
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-lg font-bold">{formatCurrency(stats.custoMedio.valor)}</div>
+          <div className={`flex items-center text-xs font-medium ${stats.custoMedio.variacao >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {stats.custoMedio.variacao >= 0 ? (
+              <TrendingUp className="h-3.5 w-3.5 mr-1" />
+            ) : (
+              <TrendingDown className="h-3.5 w-3.5 mr-1" />
+            )}
+            {formatPercentage(stats.custoMedio.variacao)}
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 };
 

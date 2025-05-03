@@ -16,7 +16,7 @@ import { registerLaboratoryPortalRoutes } from "./routes/laboratory-portal-route
 import { registerLaboratoryRoutes } from "./routes/laboratory-routes";
 import { registerLaboratoryAuthRoutes } from "./routes/laboratory-auth-routes";
 import { registerSupplierRoutes } from "./routes-suppliers";
-import { registerExpedicaoRoutes } from "./routes/expedicao-routes";
+import expedicaoRoutes from "./routes/expedicao-routes";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -1079,7 +1079,7 @@ app.use((req, res, next) => {
   registerSupplierRoutes(app);
   
   // Registrar rotas de expedição
-  registerExpedicaoRoutes(app);
+  app.use('/api/expedicao', expedicaoRoutes);
   console.log("Rotas do módulo de expedição registradas com sucesso");
   
   console.log("Rotas do Portal de Laboratório e Fornecedores registradas com sucesso");
