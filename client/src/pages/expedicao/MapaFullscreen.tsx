@@ -48,26 +48,26 @@ const MapaFullscreen: React.FC = () => {
   };
   
   return (
-    <div className="relative w-full h-screen bg-background">
+    <div className="relative w-full h-screen bg-white overflow-hidden">
       {/* Botão para fechar */}
       <button 
         onClick={exitAndClose}
-        className="absolute top-4 right-4 z-50 p-2 bg-white bg-opacity-80 rounded-full shadow-md hover:bg-opacity-100 transition-all"
+        className="absolute top-4 right-4 z-50 p-2 bg-white bg-opacity-90 rounded-full shadow-md hover:bg-opacity-100 transition-all"
         aria-label="Fechar tela cheia"
       >
         <X className="h-5 w-5 text-gray-700" />
       </button>
       
-      <div className="p-4">
-        <header className="mb-4">
-          <Heading as="h1" size="xl" weight="bold">
+      <div className="p-6">
+        <header className="mb-6">
+          <Heading as="h1" size="xl" weight="bold" className="text-gray-800">
             Mapa de Expedição - {period === 'daily' ? 'Diário' : 
                                period === 'weekly' ? 'Semanal' : 
                                period === 'monthly' ? 'Mensal' : 'Anual'}
           </Heading>
         </header>
         
-        <div className="h-[calc(100vh-120px)]">
+        <div className="h-[calc(100vh-150px)] w-full">
           <BrasilShipmentMap period={period} />
         </div>
       </div>
