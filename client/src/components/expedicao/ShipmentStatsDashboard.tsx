@@ -86,22 +86,22 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     const averageDeliveryTime = stats.averageDeliveryTime !== undefined ? stats.averageDeliveryTime : '-';
     
     return (
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <Card className="p-3 bg-green-50 border-green-200">
-          <div className="text-sm text-muted-foreground">Total de Envios</div>
-          <div className="text-2xl font-bold">{totalShipments}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <Card className="p-4 bg-green-50 border-green-200 flex flex-col items-center justify-center">
+          <div className="text-sm text-muted-foreground mb-1">Total de Envios</div>
+          <div className="text-3xl font-bold">{totalShipments}</div>
         </Card>
-        <Card className="p-3 bg-blue-50 border-blue-200">
-          <div className="text-sm text-muted-foreground">Entregues</div>
-          <div className="text-2xl font-bold">{completedShipments}</div>
+        <Card className="p-4 bg-blue-50 border-blue-200 flex flex-col items-center justify-center">
+          <div className="text-sm text-muted-foreground mb-1">Entregues</div>
+          <div className="text-3xl font-bold">{completedShipments}</div>
         </Card>
-        <Card className="p-3 bg-amber-50 border-amber-200">
-          <div className="text-sm text-muted-foreground">Em Progresso</div>
-          <div className="text-2xl font-bold">{inProgressShipments}</div>
+        <Card className="p-4 bg-amber-50 border-amber-200 flex flex-col items-center justify-center">
+          <div className="text-sm text-muted-foreground mb-1">Em Progresso</div>
+          <div className="text-3xl font-bold">{inProgressShipments}</div>
         </Card>
-        <Card className="p-3 bg-purple-50 border-purple-200">
-          <div className="text-sm text-muted-foreground">Tempo Médio</div>
-          <div className="text-2xl font-bold">{averageDeliveryTime}{typeof averageDeliveryTime === 'number' ? ' dias' : ''}</div>
+        <Card className="p-4 bg-purple-50 border-purple-200 flex flex-col items-center justify-center">
+          <div className="text-sm text-muted-foreground mb-1">Tempo Médio</div>
+          <div className="text-3xl font-bold">{averageDeliveryTime}{typeof averageDeliveryTime === 'number' ? ' dias' : ''}</div>
         </Card>
       </div>
     );
@@ -241,18 +241,18 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
   };
   
   return (
-    <div className="space-y-6">
-      <Heading as="h2" size="xl" weight="semibold">
+    <div className="space-y-6 w-full bg-white rounded-lg p-6 shadow-sm">
+      <Heading as="h2" size="xl" weight="semibold" className="text-center mb-6">
         Estatísticas de Envios
       </Heading>
       
       <StatsCards />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-4 border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center">
           <StatusPieChart />
         </Card>
-        <Card className="p-4">
+        <Card className="p-4 border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center">
           <ShipmentBarChart />
         </Card>
       </div>

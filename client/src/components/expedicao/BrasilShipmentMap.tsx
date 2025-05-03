@@ -22,7 +22,7 @@ interface BrasilShipmentMapProps {
 // Usando o objeto diretamente para evitar problemas de tipagem
 const geoFeatures = brasilGeoData;
 
-const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className, height = 550 }) => {
+const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className, height = 850 }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,13 +117,13 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
   );
 
   return (
-    <div className={`w-full ${className}`}>
-      <Heading as="h2" size="xl" weight="semibold" className="mb-4">
+    <div className={`w-full max-w-full mx-auto flex flex-col items-center ${className}`}>
+      <Heading as="h2" size="xl" weight="semibold" className="mb-4 text-center">
         Distribuição de Envios por Estado
       </Heading>
       
-      <Card className="p-0 overflow-hidden border-gray-200">
-        <div style={{ height: `${height}px` }} className="relative">
+      <Card className="p-0 overflow-hidden border-2 border-gray-100 shadow-md w-full">
+        <div style={{ height: `${height}px` }} className="relative flex justify-center items-center">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -132,14 +132,14 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
             <ResponsiveChoropleth
               data={statesData}
               features={geoFeatures.features}
-              margin={{ top: 10, right: 20, bottom: 40, left: 20 }}
+              margin={{ top: 20, right: 40, bottom: 60, left: 40 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={700}
-              projectionTranslation={[0.55, 0.5]}
+              projectionScale={1100}
+              projectionTranslation={[0.5, 0.55]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.8}
@@ -161,15 +161,16 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
                   anchor: 'bottom-right',
                   direction: 'column',
                   justify: true,
-                  translateX: -20,
-                  translateY: -10,
-                  itemsSpacing: 0,
-                  itemWidth: 94,
-                  itemHeight: 18,
+                  translateX: -30,
+                  translateY: -40,
+                  itemsSpacing: 2,
+                  itemWidth: 120,
+                  itemHeight: 20,
                   itemDirection: 'left-to-right',
                   itemTextColor: '#444',
-                  itemOpacity: 0.85,
+                  itemOpacity: 0.9,
                   symbolSize: 18,
+                  symbolShape: 'square',
                   effects: [
                     {
                       on: 'hover',
