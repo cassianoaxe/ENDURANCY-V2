@@ -132,19 +132,19 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
             <ResponsiveChoropleth
               data={statesData}
               features={geoFeatures.features}
-              margin={{ top: 0, right: 0, bottom: 30, left: 0 }}
+              margin={{ top: 10, right: 20, bottom: 40, left: 20 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={600}
-              projectionTranslation={[0.5, 0.5]}
+              projectionScale={700}
+              projectionTranslation={[0.55, 0.5]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
-              borderWidth={0.5}
+              borderWidth={0.8}
               borderColor="#152538"
-              fillColor="#f5f5f5"
+              fillColor="#f0f7ff"
               match={(feature, datum) => {
                 // @ts-ignore - Mapear a sigla do estado (AC, SP, etc) ao id dos dados
                 return feature.properties.sigla === datum.id;
@@ -158,10 +158,10 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               }}
               legends={[
                 {
-                  anchor: 'bottom-left',
+                  anchor: 'bottom-right',
                   direction: 'column',
                   justify: true,
-                  translateX: 20,
+                  translateX: -20,
                   translateY: -10,
                   itemsSpacing: 0,
                   itemWidth: 94,
