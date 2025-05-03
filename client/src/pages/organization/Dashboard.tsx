@@ -9,13 +9,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Organization } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function OrganizationDashboard() {
+  console.log("Iniciando renderização do dashboard");
   const [activeTab, setActiveTab] = React.useState('visao-geral');
   const { user } = useAuth();
+  console.log("useAuth retornou user:", user);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   
   // Verificação simplificada para evitar problemas de redirecionamento
