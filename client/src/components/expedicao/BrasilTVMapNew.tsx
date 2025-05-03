@@ -275,20 +275,19 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
         <div className={`${mapHeight} bg-white relative flex items-center justify-center overflow-hidden`}>
           {/* Implementação usando imagem de fundo do mapa do Brasil */}
           <div 
-            className="relative w-full h-full"
-            style={{ 
-              backgroundImage: "url('/mapa-brasil-base.jpg')", 
-              backgroundSize: "contain",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat"
-            }}
+            className="relative w-full h-full flex items-center justify-center"
           >
+            <img 
+              src="/mapa-brasil-base.jpg" 
+              alt="Mapa do Brasil" 
+              className="max-h-full max-w-full object-contain absolute z-10 opacity-80"
+            />
             <svg 
               viewBox="0 0 800 800" 
               preserveAspectRatio="xMidYMid meet"
               width="100%" 
               height="100%" 
-              className="max-w-full absolute inset-0"
+              className="max-w-full absolute inset-0 z-20"
             >
               {/* Sobreposição de dados nos estados */}
               {BRAZILIAN_STATES.map((state: {id: string, name: string}) => {
@@ -368,6 +367,41 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
               <span className="text-sm text-muted-foreground">
                 Total: {totalEnvios.toLocaleString('pt-BR')} envios
               </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Legenda de cores */}
+        <div className="absolute right-4 bottom-4 bg-white/80 px-4 py-2 rounded-md shadow-md">
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm font-medium">Volume de Envios</span>
+              <button 
+                onClick={() => {
+                  // Alternar entre modos de cor
+                  const modes: ('colored' | 'grayscale' | 'outline')[] = ['colored', 'grayscale', 'outline'];
+                  const currentIndex = modes.indexOf(mapConfig.colorMode);
+                  const nextIndex = (currentIndex + 1) % modes.length;
+                  setMapConfig({...mapConfig, colorMode: modes[nextIndex]});
+                }}
+                className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+              >
+                Mudar estilo
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              {[
+                { label: 'Muito Alto', color: '#1e40af' },
+                { label: 'Alto', color: '#2563eb' },
+                { label: 'Médio', color: '#3b82f6' },
+                { label: 'Baixo', color: '#60a5fa' },
+                { label: 'Muito Baixo', color: '#93c5fd' }
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span>{item.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
