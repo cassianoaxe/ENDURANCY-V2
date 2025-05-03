@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Heading } from '@/components/ui';
+import { Heading, Tabs, TabsList, TabsTrigger } from '@/components/ui';
 import { useLocation } from 'wouter';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import SimpleBrasilMap from '@/components/expedicao/SimpleBrasilMap';
-import { X, Maximize2 } from 'lucide-react';
+import BrasilMapSVG from '@/components/expedicao/BrasilMapSVG';
+import { X, Maximize2, BarChart2 } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -104,12 +104,34 @@ const MapaFullscreen: React.FC = () => {
                period === 'monthly' ? 'Mensal' : 'Anual'}
             </span>
           </Heading>
+          
+          {/* Seletor de período em tela cheia */}
+          <div className="flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm border">
+            <div className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-primary" />
+              <span className="font-medium">Período:</span>
+            </div>
+            
+            <Tabs 
+              value={period} 
+              onValueChange={(value) => setPeriod(value as any)}
+              defaultValue="monthly"
+              className="ml-4"
+            >
+              <TabsList>
+                <TabsTrigger value="daily">Diário</TabsTrigger>
+                <TabsTrigger value="weekly">Semanal</TabsTrigger>
+                <TabsTrigger value="monthly">Mensal</TabsTrigger>
+                <TabsTrigger value="yearly">Anual</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </header>
         
         <div className="flex flex-col gap-8">
           {/* Mapa centralizado com maior visibilidade */}
           <div className="w-full flex justify-center">
-            <SimpleBrasilMap
+            <BrasilMapSVG
               period={period}
               className="w-full"
               fullscreen={true}
