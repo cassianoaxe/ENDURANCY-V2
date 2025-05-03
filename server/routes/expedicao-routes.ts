@@ -54,6 +54,8 @@ router.get('/api/expedicao/shipments-by-state', async (req, res) => {
       { id: 'RR', name: 'Roraima', value: Math.floor(Math.random() * 10) + 10 }
     ];
     
+    // Definir explicitamente o cabeçalho de conteúdo como JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json(states);
   } catch (error) {
     console.error('Erro ao buscar dados de expedição por estado:', error);
@@ -153,6 +155,8 @@ router.get('/api/expedicao/shipment-stats', async (req, res) => {
     const averageDeliveryTime = Number((Math.random() * 2 + 2).toFixed(1)); // Entre 2 e 4 dias
     
     // Retornar estatísticas
+    // Definir explicitamente o cabeçalho de conteúdo como JSON
+    res.setHeader('Content-Type', 'application/json');
     res.json({
       shipmentsByDay,
       shipmentsByStatus,
