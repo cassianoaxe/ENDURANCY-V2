@@ -259,7 +259,16 @@ const logoUpload = multer({
   }
 });
 
+// Importar rotas de teste e autenticação simplificada
+import { addTestAuthRoutes } from './test-auth';
+import { registerAuthRoutes } from './auth-routes';
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Adicionar rotas de teste para diagnóstico de autenticação
+  addTestAuthRoutes(app);
+  
+  // Adicionar rotas de autenticação simplificadas
+  registerAuthRoutes(app);
   const server = createServer(app);
   // Setup session middleware
   const sessionConfig = {
