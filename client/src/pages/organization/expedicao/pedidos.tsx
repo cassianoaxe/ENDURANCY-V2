@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
   CardContent,
@@ -289,10 +288,6 @@ export default function PreparacaoPedidos() {
       description: `A etiqueta para o pedido ${orderId} está pronta para impressão`,
       variant: "default",
     });
-    
-    // Navegar para a página de etiquetas
-    // Alternativamente, poderia abrir um modal com a visualização da etiqueta
-    // navigateTo("/organization/expedicao/etiquetas");
   };
   
   // Função para gerar documentação para um pedido
@@ -303,10 +298,6 @@ export default function PreparacaoPedidos() {
       description: `A documentação para o pedido ${orderId} está pronta para impressão`,
       variant: "default",
     });
-    
-    // Navegar para a página de documentação
-    // Alternativamente, poderia abrir um modal com a visualização dos documentos
-    // navigateTo("/organization/expedicao/documentacao");
   };
 
   // Função para filtrar pedidos com base na guia selecionada e no termo de pesquisa
@@ -331,543 +322,520 @@ export default function PreparacaoPedidos() {
   });
 
   return (
-    <OrganizationLayout>
-      <div className="container py-6 space-y-6">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mb-2"
-              onClick={() => navigateTo("/organization/expedicao")}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Dashboard
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight">Preparação de Pedidos</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie os pedidos em preparação, pendentes e em revisão
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button>
-              <ListChecks className="h-4 w-4 mr-2" />
-              Novo Pedido
-            </Button>
-          </div>
+    <div className="container py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mb-2"
+            onClick={() => navigateTo("/organization/expedicao")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar ao Dashboard
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">Preparação de Pedidos</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie os pedidos em preparação, pendentes e em revisão
+          </p>
         </div>
-
-        {/* Estatísticas de Pedidos */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Total de Pedidos</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">{mockOrders.length}</span>
-                </div>
-                <div className="mt-4 text-blue-600 text-xs">
-                  <Package className="h-3 w-3 inline mr-1" />
-                  {mockOrders.reduce((sum, order) => sum + order.itens, 0)} itens no total
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Pedidos Pendentes</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockOrders.filter(order => order.status === "pendente").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-amber-600 text-xs">
-                  <Clock className="h-3 w-3 inline mr-1" />
-                  Aguardando processamento
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Em Preparação</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockOrders.filter(order => order.status === "preparacao").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-blue-600 text-xs">
-                  <CheckCircle2 className="h-3 w-3 inline mr-1" />
-                  Processamento em andamento
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Pedidos Urgentes</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockOrders.filter(order => order.prioridade === "alta").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-red-600 text-xs">
-                  <AlertTriangle className="h-3 w-3 inline mr-1" />
-                  Prioridade alta
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex space-x-2">
+          <Button>
+            <ListChecks className="h-4 w-4 mr-2" />
+            Novo Pedido
+          </Button>
         </div>
+      </div>
 
-        {/* Barra de pesquisa e filtros */}
-        <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por pedido, cliente ou destino..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Ordenar por
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Total de Pedidos</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">{mockOrders.length}</span>
+              </div>
+              <div className="mt-4 text-blue-600 text-xs">
+                <Package className="h-3 w-3 inline mr-1" />
+                {mockOrders.reduce((sum, order) => sum + order.itens, 0)} itens no total
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Pedidos Pendentes</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockOrders.filter(order => order.status === "pendente").length}
+                </span>
+              </div>
+              <div className="mt-4 text-amber-600 text-xs">
+                <Clock className="h-3 w-3 inline mr-1" />
+                Aguardando processamento
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Em Preparação</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockOrders.filter(order => order.status === "preparacao").length}
+                </span>
+              </div>
+              <div className="mt-4 text-blue-600 text-xs">
+                <CheckCircle2 className="h-3 w-3 inline mr-1" />
+                Processamento em andamento
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Pedidos Urgentes</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockOrders.filter(order => order.prioridade === "alta").length}
+                </span>
+              </div>
+              <div className="mt-4 text-red-600 text-xs">
+                <AlertTriangle className="h-3 w-3 inline mr-1" />
+                Prioridade alta
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por pedido, cliente ou destino..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Ordenar por
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Mais recentes</DropdownMenuItem>
+              <DropdownMenuItem>Mais antigos</DropdownMenuItem>
+              <DropdownMenuItem>Prioridade</DropdownMenuItem>
+              <DropdownMenuItem>Quantidade de itens</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      <Tabs defaultValue="todos" value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="todos">Todos os Pedidos</TabsTrigger>
+          <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
+          <TabsTrigger value="preparacao">Em Preparação</TabsTrigger>
+          <TabsTrigger value="revisao">Em Revisão</TabsTrigger>
+          <TabsTrigger value="urgentes">Urgentes</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={selectedTab} className="space-y-4">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nº Pedido</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Itens</TableHead>
+                    <TableHead>Destino</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Prioridade</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.length > 0 ? (
+                    filteredOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">{order.id}</TableCell>
+                        <TableCell>{order.cliente}</TableCell>
+                        <TableCell>{order.data}</TableCell>
+                        <TableCell>{order.itens}</TableCell>
+                        <TableCell>{order.destino}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={`
+                              ${order.status === "pendente" ? "bg-amber-50 text-amber-700 hover:bg-amber-50" : ""}
+                              ${order.status === "preparacao" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
+                              ${order.status === "revisao" ? "bg-purple-50 text-purple-700 hover:bg-purple-50" : ""}
+                            `}
+                          >
+                            {order.status === "pendente" ? "Pendente" : 
+                            order.status === "preparacao" ? "Em Preparação" : 
+                            "Em Revisão"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={`
+                              ${order.prioridade === "baixa" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
+                              ${order.prioridade === "media" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
+                              ${order.prioridade === "alta" ? "bg-red-50 text-red-700 hover:bg-red-50" : ""}
+                            `}
+                          >
+                            {order.prioridade === "baixa" ? "Baixa" : 
+                            order.prioridade === "media" ? "Média" : 
+                            "Alta"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openDetailModal(order)}>
+                                Ver detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openStatusModal(order)}>
+                                Atualizar status
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => generateLabel(order.id)}>
+                                Gerar etiqueta
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => generateDocumentation(order.id)}>
+                                Gerar documentação
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-4">
+                        Nenhum pedido encontrado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="flex justify-between border-t px-6 py-4">
+              <div className="text-xs text-muted-foreground">
+                Mostrando {filteredOrders.length} de {mockOrders.length} pedidos
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" disabled={filteredOrders.length === 0}>
+                  Anterior
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>Mais recentes</DropdownMenuItem>
-                <DropdownMenuItem>Mais antigos</DropdownMenuItem>
-                <DropdownMenuItem>Prioridade</DropdownMenuItem>
-                <DropdownMenuItem>Quantidade de itens</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+                <Button variant="outline" size="sm" disabled={filteredOrders.length === 0}>
+                  Próximo
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        {/* Tabs de categorias */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="todos">Todos os Pedidos</TabsTrigger>
-            <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
-            <TabsTrigger value="preparacao">Em Preparação</TabsTrigger>
-            <TabsTrigger value="revisao">Em Revisão</TabsTrigger>
-            <TabsTrigger value="urgentes">Urgentes</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={selectedTab} className="space-y-4">
-            {/* Tabela de pedidos */}
-            <Card>
-              <CardContent className="p-0">
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        {selectedOrder && (
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Detalhes do Pedido {selectedOrder.id}
+              </DialogTitle>
+              <DialogDescription>
+                Informações completas sobre o pedido
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Informações Gerais</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Status</div>
+                    <div>
+                      <Badge 
+                        variant="outline" 
+                        className={`mt-1
+                          ${selectedOrder.status === "pendente" ? "bg-amber-50 text-amber-700" : ""}
+                          ${selectedOrder.status === "preparacao" ? "bg-blue-50 text-blue-700" : ""}
+                          ${selectedOrder.status === "revisao" ? "bg-purple-50 text-purple-700" : ""}
+                          ${selectedOrder.status === "enviado" ? "bg-green-50 text-green-700" : ""}
+                          ${selectedOrder.status === "entregue" ? "bg-green-50 text-green-700" : ""}
+                          ${selectedOrder.status === "cancelado" ? "bg-red-50 text-red-700" : ""}
+                        `}
+                      >
+                        {selectedOrder.status === "pendente" ? "Pendente" : 
+                         selectedOrder.status === "preparacao" ? "Em Preparação" : 
+                         selectedOrder.status === "revisao" ? "Em Revisão" :
+                         selectedOrder.status === "enviado" ? "Enviado" :
+                         selectedOrder.status === "entregue" ? "Entregue" :
+                         "Cancelado"}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Prioridade</div>
+                    <div>
+                      <Badge 
+                        variant="outline" 
+                        className={`mt-1
+                          ${selectedOrder.prioridade === "baixa" ? "bg-green-50 text-green-700" : ""}
+                          ${selectedOrder.prioridade === "media" ? "bg-blue-50 text-blue-700" : ""}
+                          ${selectedOrder.prioridade === "alta" ? "bg-red-50 text-red-700" : ""}
+                        `}
+                      >
+                        {selectedOrder.prioridade === "baixa" ? "Baixa" : 
+                         selectedOrder.prioridade === "media" ? "Média" : 
+                         "Alta"}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Data</div>
+                    <div className="text-base flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {selectedOrder.data}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Método de Pagamento</div>
+                    <div className="text-base">{selectedOrder.metodoPagamento || "Não informado"}</div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Valor Total</div>
+                    <div className="text-base">{selectedOrder.valorTotal ? `R$ ${selectedOrder.valorTotal.toFixed(2)}` : "Não informado"}</div>
+                  </div>
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Transportadora</div>
+                    <div className="text-base flex items-center">
+                      <Truck className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {selectedOrder.transportadora || "Não definida"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-4">Informações do Cliente</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Nome</div>
+                    <div className="text-base flex items-center">
+                      <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {selectedOrder.cliente}
+                    </div>
+                  </div>
+                  
+                  {selectedOrder.email && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Email</div>
+                      <div className="text-base">{selectedOrder.email}</div>
+                    </div>
+                  )}
+                  
+                  {selectedOrder.telefone && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Telefone</div>
+                      <div className="text-base">{selectedOrder.telefone}</div>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Destino</div>
+                    <div className="text-base flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      {selectedOrder.destino}
+                    </div>
+                  </div>
+                  
+                  {selectedOrder.endereco && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Endereço</div>
+                      <div className="text-base">{selectedOrder.endereco}</div>
+                    </div>
+                  )}
+                  
+                  {selectedOrder.cep && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">CEP</div>
+                      <div className="text-base">{selectedOrder.cep}</div>
+                    </div>
+                  )}
+                  
+                  {selectedOrder.observacoes && (
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Observações</div>
+                      <div className="text-base">{selectedOrder.observacoes}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {selectedOrder.produtos && selectedOrder.produtos.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-4">Itens do Pedido</h3>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nº Pedido</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Itens</TableHead>
-                      <TableHead>Destino</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>SKU</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Preço</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Prioridade</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOrders.length > 0 ? (
-                      filteredOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.id}</TableCell>
-                          <TableCell>{order.cliente}</TableCell>
-                          <TableCell>{order.data}</TableCell>
-                          <TableCell>{order.itens}</TableCell>
-                          <TableCell>{order.destino}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={`
-                                ${order.status === "pendente" ? "bg-amber-50 text-amber-700 hover:bg-amber-50" : ""}
-                                ${order.status === "preparacao" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
-                                ${order.status === "revisao" ? "bg-purple-50 text-purple-700 hover:bg-purple-50" : ""}
-                              `}
-                            >
-                              {order.status === "pendente" ? "Pendente" : 
-                              order.status === "preparacao" ? "Em Preparação" : 
-                              "Em Revisão"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={`
-                                ${order.prioridade === "baixa" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
-                                ${order.prioridade === "media" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
-                                ${order.prioridade === "alta" ? "bg-red-50 text-red-700 hover:bg-red-50" : ""}
-                              `}
-                            >
-                              {order.prioridade === "baixa" ? "Baixa" : 
-                              order.prioridade === "media" ? "Média" : 
-                              "Alta"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openDetailModal(order)}>
-                                  Ver detalhes
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openStatusModal(order)}>
-                                  Atualizar status
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => generateLabel(order.id)}>
-                                  Gerar etiqueta
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => generateDocumentation(order.id)}>
-                                  Gerar documentação
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-4">
-                          Nenhum pedido encontrado
+                    {selectedOrder.produtos.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.nome}</TableCell>
+                        <TableCell>{item.sku}</TableCell>
+                        <TableCell>{item.quantidade}</TableCell>
+                        <TableCell>R$ {item.preco.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={`
+                              ${item.status === "pendente" ? "bg-amber-50 text-amber-700" : ""}
+                              ${item.status === "separado" ? "bg-blue-50 text-blue-700" : ""}
+                              ${item.status === "embalado" ? "bg-green-50 text-green-700" : ""}
+                            `}
+                          >
+                            {item.status === "pendente" ? "Pendente" : 
+                             item.status === "separado" ? "Separado" : 
+                             "Embalado"}
+                          </Badge>
                         </TableCell>
                       </TableRow>
-                    )}
+                    ))}
                   </TableBody>
                 </Table>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t px-6 py-4">
-                <div className="text-xs text-muted-foreground">
-                  Mostrando {filteredOrders.length} de {mockOrders.length} pedidos
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" disabled={filteredOrders.length === 0}>
-                    Anterior
-                  </Button>
-                  <Button variant="outline" size="sm" disabled={filteredOrders.length === 0}>
-                    Próximo
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      {/* Modal de detalhes do pedido */}
-      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {selectedOrder && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Detalhes do Pedido {selectedOrder.id}
-                </DialogTitle>
-                <DialogDescription>
-                  Informações completas sobre o pedido
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                {/* Informações básicas */}
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Informações Gerais</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Status</div>
-                      <div>
-                        <Badge 
-                          variant="outline" 
-                          className={`mt-1
-                            ${selectedOrder.status === "pendente" ? "bg-amber-50 text-amber-700" : ""}
-                            ${selectedOrder.status === "preparacao" ? "bg-blue-50 text-blue-700" : ""}
-                            ${selectedOrder.status === "revisao" ? "bg-purple-50 text-purple-700" : ""}
-                            ${selectedOrder.status === "enviado" ? "bg-green-50 text-green-700" : ""}
-                            ${selectedOrder.status === "entregue" ? "bg-green-50 text-green-700" : ""}
-                            ${selectedOrder.status === "cancelado" ? "bg-red-50 text-red-700" : ""}
-                          `}
-                        >
-                          {selectedOrder.status === "pendente" ? "Pendente" : 
-                           selectedOrder.status === "preparacao" ? "Em Preparação" : 
-                           selectedOrder.status === "revisao" ? "Em Revisão" :
-                           selectedOrder.status === "enviado" ? "Enviado" :
-                           selectedOrder.status === "entregue" ? "Entregue" :
-                           "Cancelado"}
-                        </Badge>
+              </div>
+            )}
+            
+            {selectedOrder.historico && selectedOrder.historico.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-4">Histórico do Pedido</h3>
+                <div className="space-y-3">
+                  {selectedOrder.historico.map((evento, index) => (
+                    <div key={index} className="flex items-start">
+                      <div className="flex-shrink-0 mr-4">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Clock className="h-4 w-4 text-primary" />
+                        </div>
+                      </div>
+                      <div className="flex-grow">
+                        <div className="text-sm font-medium">{evento.status}</div>
+                        <div className="text-xs text-muted-foreground">{evento.data}</div>
+                        <div className="text-sm mt-1">{evento.descricao}</div>
                       </div>
                     </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Prioridade</div>
-                      <div>
-                        <Badge 
-                          variant="outline" 
-                          className={`mt-1
-                            ${selectedOrder.prioridade === "baixa" ? "bg-green-50 text-green-700" : ""}
-                            ${selectedOrder.prioridade === "media" ? "bg-blue-50 text-blue-700" : ""}
-                            ${selectedOrder.prioridade === "alta" ? "bg-red-50 text-red-700" : ""}
-                          `}
-                        >
-                          {selectedOrder.prioridade === "baixa" ? "Baixa" : 
-                           selectedOrder.prioridade === "media" ? "Média" : 
-                           "Alta"}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Data</div>
-                      <div className="text-base flex items-center">
-                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {selectedOrder.data}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Método de Pagamento</div>
-                      <div className="text-base">{selectedOrder.metodoPagamento || "Não informado"}</div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Valor Total</div>
-                      <div className="text-base">{selectedOrder.valorTotal ? `R$ ${selectedOrder.valorTotal.toFixed(2)}` : "Não informado"}</div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Transportadora</div>
-                      <div className="text-base flex items-center">
-                        <Truck className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {selectedOrder.transportadora || "Não definida"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Informações do cliente */}
-                <div>
-                  <h3 className="text-lg font-medium mb-4">Informações do Cliente</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Nome</div>
-                      <div className="text-base flex items-center">
-                        <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {selectedOrder.cliente}
-                      </div>
-                    </div>
-                    
-                    {selectedOrder.email && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Email</div>
-                        <div className="text-base">{selectedOrder.email}</div>
-                      </div>
-                    )}
-                    
-                    {selectedOrder.telefone && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Telefone</div>
-                        <div className="text-base">{selectedOrder.telefone}</div>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Destino</div>
-                      <div className="text-base flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        {selectedOrder.destino}
-                      </div>
-                    </div>
-                    
-                    {selectedOrder.endereco && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Endereço</div>
-                        <div className="text-base">{selectedOrder.endereco}</div>
-                      </div>
-                    )}
-                    
-                    {selectedOrder.cep && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">CEP</div>
-                        <div className="text-base">{selectedOrder.cep}</div>
-                      </div>
-                    )}
-                    
-                    {selectedOrder.observacoes && (
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Observações</div>
-                        <div className="text-base">{selectedOrder.observacoes}</div>
-                      </div>
-                    )}
-                  </div>
+                  ))}
                 </div>
               </div>
-              
-              {/* Lista de produtos */}
-              {selectedOrder.produtos && selectedOrder.produtos.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-4">Produtos</h3>
-                  <Card>
-                    <CardContent className="p-0">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>SKU</TableHead>
-                            <TableHead>Produto</TableHead>
-                            <TableHead>Quantidade</TableHead>
-                            <TableHead>Preço</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Subtotal</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {selectedOrder.produtos.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell className="font-mono text-xs">{item.sku}</TableCell>
-                              <TableCell>{item.nome}</TableCell>
-                              <TableCell>{item.quantidade}</TableCell>
-                              <TableCell>R$ {item.preco.toFixed(2)}</TableCell>
-                              <TableCell>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`
-                                    ${item.status === "pendente" ? "bg-amber-50 text-amber-700" : ""}
-                                    ${item.status === "separado" ? "bg-blue-50 text-blue-700" : ""}
-                                    ${item.status === "embalado" ? "bg-green-50 text-green-700" : ""}
-                                  `}
-                                >
-                                  {item.status === "pendente" ? "Pendente" : 
-                                   item.status === "separado" ? "Separado" : 
-                                   "Embalado"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>R$ {(item.quantidade * item.preco).toFixed(2)}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
-              {/* Histórico do pedido */}
-              {selectedOrder.historico && selectedOrder.historico.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium mb-4">Histórico</h3>
-                  <div className="space-y-4">
-                    {selectedOrder.historico.map((entry, index) => (
-                      <div 
-                        key={index} 
-                        className="flex items-start gap-3 pb-4 border-b last:border-b-0 last:pb-0"
-                      >
-                        <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center mt-1">
-                          <Clock className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}</div>
-                          <div className="text-sm text-muted-foreground">{entry.descricao}</div>
-                          <div className="text-xs text-muted-foreground mt-1">{entry.data}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDetailModalOpen(false)} 
-                  className="mt-4"
-                >
-                  Fechar
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setDetailModalOpen(false);
-                    openStatusModal(selectedOrder);
-                  }} 
-                  className="mt-4"
-                >
+            )}
+            
+            <DialogFooter className="mt-6 gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => openStatusModal(selectedOrder)}>
+                  <Clock className="h-4 w-4 mr-2" />
                   Atualizar Status
                 </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-      
-      {/* Modal de atualização de status */}
-      <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
-        <DialogContent className="max-w-md">
-          {selectedOrder && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Atualizar Status do Pedido</DialogTitle>
-                <DialogDescription>
-                  Altere o status do pedido {selectedOrder.id} de {
-                    selectedOrder.status === "pendente" ? "Pendente" : 
-                    selectedOrder.status === "preparacao" ? "Em Preparação" : 
-                    selectedOrder.status === "revisao" ? "Em Revisão" :
-                    selectedOrder.status === "enviado" ? "Enviado" :
-                    selectedOrder.status === "entregue" ? "Entregue" :
-                    "Cancelado"
-                  } para um novo status.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-6">
-                <Select
-                  value={newStatus}
-                  onValueChange={setNewStatus}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um novo status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="preparacao">Em Preparação</SelectItem>
-                    <SelectItem value="revisao">Em Revisão</SelectItem>
-                    <SelectItem value="enviado">Enviado</SelectItem>
-                    <SelectItem value="entregue">Entregue</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button 
-                  onClick={updateOrderStatus}
-                  disabled={newStatus === selectedOrder.status}
-                >
-                  Salvar Alterações
+                <Button variant="outline" size="sm" onClick={() => generateLabel(selectedOrder.id)}>
+                  <Tag className="h-4 w-4 mr-2" />
+                  Gerar Etiqueta
                 </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
+                <Button variant="outline" size="sm" onClick={() => generateDocumentation(selectedOrder.id)}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Gerar Documentação
+                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Printer className="h-4 w-4 mr-2" />
+                        Imprimir
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Imprimir detalhes do pedido</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        )}
       </Dialog>
       
-    </OrganizationLayout>
+      <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+        {selectedOrder && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Atualizar status do pedido</DialogTitle>
+              <DialogDescription>
+                Selecione o novo status para o pedido {selectedOrder.id}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="preparacao">Em Preparação</SelectItem>
+                  <SelectItem value="revisao">Em Revisão</SelectItem>
+                  <SelectItem value="enviado">Enviado</SelectItem>
+                  <SelectItem value="entregue">Entregue</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button 
+                onClick={updateOrderStatus}
+                disabled={newStatus === selectedOrder.status}
+              >
+                Salvar Alterações
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
+    </div>
   );
 }
