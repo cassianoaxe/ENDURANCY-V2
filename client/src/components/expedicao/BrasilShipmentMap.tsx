@@ -90,7 +90,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
 
   // Componente de carregamento
   const LoadingState = () => (
-    <div className="flex items-center justify-center h-[800px]">
+    <div className="flex items-center justify-center h-[calc(100vh-200px)] min-h-[600px]">
       <div className="flex flex-col items-center">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
         <p className="text-gray-500">Carregando dados do mapa...</p>
@@ -100,7 +100,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
 
   // Componente de erro
   const ErrorState = () => (
-    <div className="flex items-center justify-center h-[800px]">
+    <div className="flex items-center justify-center h-[calc(100vh-200px)] min-h-[600px]">
       <div className="text-center">
         <p className="text-red-500 mb-2">{error}</p>
         <p className="text-gray-500 mb-4">Não foi possível carregar o mapa de expedição.</p>
@@ -121,7 +121,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
       </Heading>
       
       <Card className="p-0 overflow-hidden border-gray-200">
-        <div className="h-[800px] relative">
+        <div className="h-[calc(100vh-200px)] min-h-[600px] relative">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -136,8 +136,8 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={1200}
-              projectionTranslation={[0.5, 0.6]}
+              projectionScale={850}
+              projectionTranslation={[0.5, 0.8]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.5}
