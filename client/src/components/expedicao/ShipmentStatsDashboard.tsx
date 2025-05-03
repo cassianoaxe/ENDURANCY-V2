@@ -228,28 +228,22 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     );
   };
   
-  // Verifica se está em modo fullscreen (altura da tela > 700px)
-  const isFullscreen = typeof window !== 'undefined' && window.innerHeight > 700;
+  // Verifica se está em modo fullscreen e lado a lado (grid-cols-2)
+  const isFullscreen = typeof window !== 'undefined' && 
+    (window.innerHeight > 700 || document.querySelector('.grid-cols-2') !== null);
 
   return (
     <div className="space-y-4">
-      <Heading as="h2" size="xl" weight="semibold">
+      <Heading as="h2" size="xl" weight="semibold" className="mb-6">
         Estatísticas de Envios
       </Heading>
       
       <StatsCards />
       
-      {isFullscreen ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StatusPieChart />
-          <ShipmentBarChart />
-        </div>
-      ) : (
-        <>
-          <StatusPieChart />
-          <ShipmentBarChart />
-        </>
-      )}
+      <div className={isFullscreen ? "grid grid-cols-2 gap-6" : "space-y-6"}>
+        <StatusPieChart />
+        <ShipmentBarChart />
+      </div>
     </div>
   );
 };

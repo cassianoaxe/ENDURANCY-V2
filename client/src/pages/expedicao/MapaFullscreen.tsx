@@ -106,14 +106,14 @@ const MapaFullscreen: React.FC = () => {
           </Heading>
         </header>
         
-        <div className="flex flex-col gap-6 h-[calc(100vh-150px)]">
-          <div className="w-full h-[70vh]">
+        <div className="grid grid-cols-2 gap-6 h-[calc(100vh-150px)]">
+          <div className="w-full h-full">
             <BrasilShipmentMap
               period={period}
               className="h-full"
             />
           </div>
-          <div className="w-full overflow-auto">
+          <div className="w-full h-full overflow-auto">
             <ShipmentStatsDashboard period={period} />
           </div>
         </div>
