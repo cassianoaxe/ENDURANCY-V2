@@ -59,7 +59,9 @@ const MapaFullscreen: React.FC = () => {
         </button>
       </div>
       
-      <div className="fixed top-4 right-4 z-20 flex gap-2 bg-white/80 shadow-md rounded-full p-1">
+      <div className={`fixed top-4 z-20 flex gap-2 bg-white/80 shadow-md rounded-full p-1 transition-all duration-300 ${
+        showSidebar ? 'right-[calc(25%+16px)]' : 'right-4'
+      }`}>
         <button 
           onClick={() => setPeriod('daily')}
           className={`px-4 py-2 rounded-full text-sm font-medium ${
@@ -137,7 +139,9 @@ const MapaFullscreen: React.FC = () => {
         )}
       </div>
       
-      <div className="fixed bottom-4 left-4 z-10 p-3 text-sm text-gray-600 bg-white/90 rounded-lg shadow">
+      <div className={`fixed bottom-4 z-10 p-3 text-sm text-gray-600 bg-white/90 rounded-lg shadow transition-all duration-300 ${
+        showSidebar ? 'left-28' : 'left-4'
+      }`}>
         <strong>Atalhos:</strong> Pressione 1-4 para alternar períodos, S para o painel lateral, ESC para voltar
       </div>
     </div>
