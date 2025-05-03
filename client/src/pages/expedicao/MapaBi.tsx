@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { ExternalLink } from 'lucide-react';
+import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@/components/ui';
+import { ExternalLink, MapPin, BarChart2 } from 'lucide-react';
 import BrasilShipmentMap from '@/components/expedicao/BrasilShipmentMap';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
 
@@ -17,14 +17,15 @@ const OpenInNewTabButton: React.FC<OpenInNewTabButtonProps> = ({ period }) => {
   };
 
   return (
-    <button
+    <Button 
       onClick={openMapInNewTab}
-      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+      variant="outline"
+      className="flex items-center gap-1 shadow-sm"
       aria-label="Abrir em tela cheia"
     >
-      <ExternalLink className="h-4 w-4" />
-      <span>Abrir em tela cheia</span>
-    </button>
+      <ExternalLink className="h-4 w-4 mr-1" />
+      Abrir em tela cheia
+    </Button>
   );
 };
 
@@ -32,68 +33,82 @@ const MapaBi: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   
   return (
-    <div className="relative">
+    <div className="relative bg-gray-50 min-h-screen">
       <div className="p-6">
         <header className="mb-6">
-          <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
+          <div className="flex items-center gap-2 mb-1">
+            <MapPin className="h-6 w-6 text-primary" />
+            <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
+          </div>
           <p className="text-muted-foreground">
-            Visualização geográfica e estatísticas de envios
+            Visualização geográfica e estatísticas de envios em tempo real
           </p>
         </header>
         
-        <Tabs defaultValue="monthly" className="space-y-4" onValueChange={value => setPeriod(value as any)}>
-          <div className="flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="daily">Diário</TabsTrigger>
-              <TabsTrigger value="weekly">Semanal</TabsTrigger>
-              <TabsTrigger value="monthly">Mensal</TabsTrigger>
-              <TabsTrigger value="yearly">Anual</TabsTrigger>
-            </TabsList>
+        <Tabs 
+          defaultValue="monthly" 
+          className="space-y-6" 
+          onValueChange={value => setPeriod(value as any)}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3 rounded-lg shadow-sm border">
+            <div className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-primary" />
+              <span className="font-medium">Período:</span>
+            </div>
+            
+            <div className="flex flex-1 justify-between sm:justify-center">
+              <TabsList className="w-full max-w-md">
+                <TabsTrigger value="daily">Diário</TabsTrigger>
+                <TabsTrigger value="weekly">Semanal</TabsTrigger>
+                <TabsTrigger value="monthly">Mensal</TabsTrigger>
+                <TabsTrigger value="yearly">Anual</TabsTrigger>
+              </TabsList>
+            </div>
             
             <OpenInNewTabButton period={period} />
           </div>
           
-          <TabsContent value="daily" className="space-y-4">
+          <TabsContent value="daily">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-4">
+              <div className="lg:col-span-2">
                 <BrasilShipmentMap period="daily" />
-              </Card>
-              <Card className="p-4">
+              </div>
+              <div>
                 <ShipmentStatsDashboard period="daily" />
-              </Card>
+              </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="weekly" className="space-y-4">
+          <TabsContent value="weekly">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-4">
+              <div className="lg:col-span-2">
                 <BrasilShipmentMap period="weekly" />
-              </Card>
-              <Card className="p-4">
+              </div>
+              <div>
                 <ShipmentStatsDashboard period="weekly" />
-              </Card>
+              </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="monthly" className="space-y-4">
+          <TabsContent value="monthly">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-4">
+              <div className="lg:col-span-2">
                 <BrasilShipmentMap period="monthly" />
-              </Card>
-              <Card className="p-4">
+              </div>
+              <div>
                 <ShipmentStatsDashboard period="monthly" />
-              </Card>
+              </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="yearly" className="space-y-4">
+          <TabsContent value="yearly">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-4">
+              <div className="lg:col-span-2">
                 <BrasilShipmentMap period="yearly" />
-              </Card>
-              <Card className="p-4">
+              </div>
+              <div>
                 <ShipmentStatsDashboard period="yearly" />
-              </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
