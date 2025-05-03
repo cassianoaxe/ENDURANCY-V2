@@ -1016,9 +1016,5 @@ function DoctorDocumentsPage() {
 }
 
 export default function DocumentsPageWrapper() {
-  return (
-    <OrganizationLayout>
-      <DoctorDocumentsPage />
-    </OrganizationLayout>
-  );
+  return <DoctorDocumentsPage />;
 }
