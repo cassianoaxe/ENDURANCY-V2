@@ -6,6 +6,7 @@ import axios from 'axios';
 
 interface ShipmentStatsDashboardProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  fullscreen?: boolean;
 }
 
 interface ShipmentStats {
@@ -30,7 +31,7 @@ interface ShipmentStats {
   averageDeliveryTime: number;
 }
 
-const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period }) => {
+const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period, fullscreen = false }) => {
   const [stats, setStats] = useState<ShipmentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,11 +86,8 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     const inProgressShipments = stats.inProgressShipments !== undefined ? stats.inProgressShipments : '-';
     const averageDeliveryTime = stats.averageDeliveryTime !== undefined ? stats.averageDeliveryTime : '-';
     
-    // Verifica se está em modo fullscreen (altura da tela > 700px)
-    const isFullscreen = typeof window !== 'undefined' && window.innerHeight > 700;
-    
     return (
-      <div className={`grid ${isFullscreen ? 'grid-cols-4' : 'grid-cols-2'} gap-3 mb-6`}>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <Card className="p-3 bg-green-50 border-green-200">
           <div className="text-sm text-muted-foreground">Total de Envios</div>
           <div className="text-2xl font-bold">{totalShipments}</div>
@@ -228,10 +226,6 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     );
   };
   
-  // Verifica se está em modo fullscreen e lado a lado (grid-cols-2)
-  const isFullscreen = typeof window !== 'undefined' && 
-    (window.innerHeight > 700 || document.querySelector('.grid-cols-2') !== null);
-
   return (
     <div className="space-y-4">
       <Heading as="h2" size="xl" weight="semibold" className="mb-6">
@@ -240,7 +234,7 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
       
       <StatsCards />
       
-      <div className={isFullscreen ? "grid grid-cols-2 gap-6" : "space-y-6"}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatusPieChart />
         <ShipmentBarChart />
       </div>
