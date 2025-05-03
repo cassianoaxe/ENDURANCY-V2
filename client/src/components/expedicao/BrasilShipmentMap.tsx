@@ -130,14 +130,14 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
             <ResponsiveChoropleth
               data={statesData}
               features={geoFeatures.features}
-              margin={{ top: 0, right: 0, bottom: 30, left: 0 }}
+              margin={{ top: 20, right: 20, bottom: 70, left: 20 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={400}
-              projectionTranslation={[0.5, 0.8]}
+              projectionScale={350}
+              projectionTranslation={[0.5, 0.5]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.5}
@@ -156,11 +156,11 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               }}
               legends={[
                 {
-                  anchor: 'bottom-left',
-                  direction: 'column',
+                  anchor: 'bottom',
+                  direction: 'row',
                   justify: true,
-                  translateX: 20,
-                  translateY: -10,
+                  translateX: 0,
+                  translateY: 50,
                   itemsSpacing: 0,
                   itemWidth: 94,
                   itemHeight: 18,
