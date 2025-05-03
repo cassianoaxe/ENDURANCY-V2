@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Heading } from '@/components/ui';
 import { ResponsiveChoropleth } from '@nivo/geo';
+// Importação direta do arquivo GeoJSON para garantir a disponibilidade imediata
+import brasilGeoData from './brasil-geo.json';
 
 interface StateDataItem {
   id: string;
@@ -13,29 +15,10 @@ interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
 }
 
-// Precisamos importar os dados geográficos do Brasil
-// Este arquivo é geralmente grande, então você precisará criar um arquivo brasil-geo.json separado
 const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
-  const [geographyData, setGeographyData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Carregar os dados geográficos do Brasil
-  useEffect(() => {
-    const fetchGeographyData = async () => {
-      try {
-        // Importar dinamicamente o arquivo de dados geográficos
-        const response = await import('./brasil-geo.json');
-        setGeographyData(response.default);
-      } catch (err) {
-        console.error('Erro ao carregar dados geográficos:', err);
-        setError('Não foi possível carregar o mapa do Brasil');
-      }
-    };
-
-    fetchGeographyData();
-  }, []);
 
   // Carregar dados de expedição por estado
   useEffect(() => {
@@ -44,12 +27,10 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
       try {
         console.log('Iniciando requisição para dados de expedição, período:', period);
         const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
-        console.log('Dados recebidos:', response.data);
-        console.log('Tipo de dados:', typeof response.data, Array.isArray(response.data));
         
         // Forçando para garantir que estamos recebendo um array válido
         const dataArray = Array.isArray(response.data) ? response.data : [];
-        console.log('Dados após verificação de array:', dataArray);
+        console.log('Dados de estados recebidos:', dataArray);
         
         setStatesData(dataArray);
         setError(null);
@@ -68,17 +49,18 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
   let minValue = 0;
   let maxValue = 100;
   
-  try {
-    if (statesData && Array.isArray(statesData) && statesData.length > 0) {
-      const values = statesData.map(d => d.value);
-      minValue = Math.min(...values);
-      maxValue = Math.max(...values);
+  if (statesData && statesData.length > 0) {
+    const values = statesData.map(d => d.value);
+    minValue = Math.min(...values);
+    maxValue = Math.max(...values);
+    
+    // Ajustar o valor máximo para melhorar a visualização
+    if (minValue === maxValue) {
+      maxValue = minValue + 100;
     }
-  } catch (err) {
-    console.error('Erro ao calcular valores min/max:', err);
   }
 
-  if (loading && !geographyData) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-[500px]">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -108,29 +90,38 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
         Distribuição de Envios por Estado
       </Heading>
       
-      {geographyData && statesData && Array.isArray(statesData) && statesData.length > 0 ? (
+      <div className="h-[550px] border border-gray-200 rounded-lg overflow-hidden bg-white">
         <ResponsiveChoropleth
           data={statesData}
-          features={geographyData.features}
-          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          features={brasilGeoData.features}
+          margin={{ top: 10, right: 10, bottom: 40, left: 10 }}
           colors="blues"
-          domain={[minValue || 0, maxValue || 100]}
+          domain={[minValue, maxValue]}
           unknownColor="#e0e0e0"
           label="properties.name"
           valueFormat=".0f"
-          projectionScale={900}
-          projectionTranslation={[0.5, 0.5]}
+          projectionScale={650}
+          projectionTranslation={[0.5, 0.85]}
           projectionRotation={[0, 0, 0]}
           enableGraticule={false}
           borderWidth={0.5}
           borderColor="#152538"
+          theme={{
+            background: "transparent",
+            text: {
+              fontSize: 11,
+              fill: "#333333",
+              outlineWidth: 0,
+              outlineColor: "transparent"
+            }
+          }}
           legends={[
             {
               anchor: 'bottom-left',
               direction: 'column',
               justify: true,
               translateX: 20,
-              translateY: -20,
+              translateY: -10,
               itemsSpacing: 0,
               itemWidth: 94,
               itemHeight: 18,
@@ -149,32 +140,21 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
               ]
             }
           ]}
-          tooltip={(input) => {
-            const feature = input.feature;
-            console.log('Feature recebida no tooltip:', feature);
+          tooltip={({ feature }) => {
+            // @ts-ignore - Ignorando erros de tipagem para obter o ID da feature
+            const featureId = feature.id;
+            const state = statesData.find(s => s.id === featureId);
             
-            // Tentar extrair ID da feature com validações
-            let featureId;
-            try {
-              // @ts-ignore - ignorando erros de tipagem
-              featureId = feature.properties?.id || feature.properties?.code || feature.id;
-              console.log('Feature ID identificado:', featureId);
-            } catch (err) {
-              console.error('Erro ao extrair ID da feature:', err);
-              return null;
+            if (!state) {
+              // Mostrar o estado mesmo sem dados
+              return (
+                <div className="bg-white p-2 shadow-md rounded-md">
+                  {/* @ts-ignore - Ignorando erros de tipagem para obter propriedades da feature */}
+                  <strong>{feature.properties ? feature.properties.name : 'Estado'}</strong>
+                  <div>Sem dados de envio</div>
+                </div>
+              );
             }
-            
-            // Tentar encontrar o estado correspondente
-            let state;
-            try {
-              state = Array.isArray(statesData) ? statesData.find(s => s.id === featureId) : undefined;
-              console.log('Estado encontrado:', state);
-            } catch (err) {
-              console.error('Erro ao buscar estado:', err);
-              return null;
-            }
-            
-            if (!state) return null;
             
             return (
               <div className="bg-white p-2 shadow-md rounded-md">
@@ -184,11 +164,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
             );
           }}
         />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
