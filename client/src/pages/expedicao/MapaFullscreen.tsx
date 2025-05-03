@@ -1,147 +1,92 @@
-import React, { useEffect, useState } from 'react';
-import { Heading, Tabs, TabsList, TabsTrigger } from '@/components/ui';
-import { useLocation } from 'wouter';
-import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import BrasilMapSVG from '@/components/expedicao/BrasilMapSVG';
-import { X, Maximize2, BarChart2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import BrasilMapSimple from '../../components/expedicao/BrasilMapSimple';
+import { Loader2 } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
-  const [location] = useLocation();
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Configuração no carregamento da página
+  // Simular tempo de carregamento para transições suaves
   useEffect(() => {
-    // Extrai o parâmetro period da URL
-    const params = new URLSearchParams(window.location.search);
-    const periodParam = params.get('period') as 'daily' | 'weekly' | 'monthly' | 'yearly' | null;
-    
-    if (periodParam && ['daily', 'weekly', 'monthly', 'yearly'].includes(periodParam)) {
-      setPeriod(periodParam);
-    }
-    
-    // Pequeno atraso para garantir que a página seja renderizada primeiro
-    const timer = setTimeout(() => {
-      requestFullscreen();
-    }, 500);
-    
-    // Verificar se já está em modo de tela cheia
-    const checkFullscreenStatus = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+  }, []);
+  
+  // Alternar período com teclas de atalho (1-4)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '1') setPeriod('daily');
+      else if (e.key === '2') setPeriod('weekly');
+      else if (e.key === '3') setPeriod('monthly');
+      else if (e.key === '4') setPeriod('yearly');
     };
     
-    // Adicionar event listener para mudanças no estado de tela cheia
-    document.addEventListener('fullscreenchange', checkFullscreenStatus);
-    
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('fullscreenchange', checkFullscreenStatus);
-    };
-  }, [location]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   
-  // Função para entrar em tela cheia
-  const requestFullscreen = () => {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.error(`Erro ao entrar em tela cheia: ${err.message}`);
-      });
-    }
-  };
-  
-  // Função para sair da tela cheia
-  const exitFullscreen = () => {
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch(err => {
-        console.error(`Erro ao sair da tela cheia: ${err.message}`);
-      });
-    }
-  };
-  
-  // Manipulador para alternar tela cheia
-  const toggleFullscreen = () => {
-    if (isFullscreen) {
-      exitFullscreen();
-    } else {
-      requestFullscreen();
-    }
-  };
-  
-  // Manipulador para fechar a aba
-  const closeTab = () => {
-    window.close();
-  };
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground text-lg">Carregando mapa interativo...</p>
+      </div>
+    );
+  }
   
   return (
-    <div className="relative w-full h-screen bg-white overflow-hidden">
-      {/* Botões de controle */}
-      <div className="absolute top-4 right-4 z-50 flex gap-2">
-        <button 
-          onClick={toggleFullscreen}
-          className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
-          aria-label={isFullscreen ? "Sair da tela cheia" : "Entrar em tela cheia"}
-          title={isFullscreen ? "Sair da tela cheia" : "Entrar em tela cheia"}
-        >
-          <Maximize2 className="h-5 w-5 text-gray-700" />
-        </button>
+    <div className="h-screen w-screen bg-background p-4">
+      <div className="w-full h-[90vh]">
+        <div className="fixed top-2 right-2 z-10 flex gap-2">
+          <button 
+            onClick={() => setPeriod('daily')}
+            className={`px-3 py-1.5 rounded-md text-sm ${
+              period === 'daily' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            Diário
+          </button>
+          <button 
+            onClick={() => setPeriod('weekly')}
+            className={`px-3 py-1.5 rounded-md text-sm ${
+              period === 'weekly' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            Semanal
+          </button>
+          <button 
+            onClick={() => setPeriod('monthly')}
+            className={`px-3 py-1.5 rounded-md text-sm ${
+              period === 'monthly' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            Mensal
+          </button>
+          <button 
+            onClick={() => setPeriod('yearly')}
+            className={`px-3 py-1.5 rounded-md text-sm ${
+              period === 'yearly' 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            Anual
+          </button>
+        </div>
         
-        <button 
-          onClick={closeTab}
-          className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
-          aria-label="Fechar"
-          title="Fechar"
-        >
-          <X className="h-5 w-5 text-gray-700" />
-        </button>
-      </div>
-      
-      <div className="p-6">
-        <header className="mb-6 flex justify-between items-center">
-          <Heading as="h1" size="xl" weight="bold" className="text-gray-800">
-            Mapa de Expedição 
-            <span className="ml-2 text-primary">
-              {period === 'daily' ? 'Diário' : 
-               period === 'weekly' ? 'Semanal' : 
-               period === 'monthly' ? 'Mensal' : 'Anual'}
-            </span>
-          </Heading>
-          
-          {/* Seletor de período em tela cheia */}
-          <div className="flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm border">
-            <div className="flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-primary" />
-              <span className="font-medium">Período:</span>
-            </div>
-            
-            <Tabs 
-              value={period} 
-              onValueChange={(value) => setPeriod(value as any)}
-              defaultValue="monthly"
-              className="ml-4"
-            >
-              <TabsList>
-                <TabsTrigger value="daily">Diário</TabsTrigger>
-                <TabsTrigger value="weekly">Semanal</TabsTrigger>
-                <TabsTrigger value="monthly">Mensal</TabsTrigger>
-                <TabsTrigger value="yearly">Anual</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </header>
+        <div className="h-full">
+          <BrasilMapSimple period={period} fullscreen={true} />
+        </div>
         
-        <div className="flex flex-col gap-8">
-          {/* Mapa centralizado com maior visibilidade */}
-          <div className="w-full flex justify-center">
-            <BrasilMapSVG
-              period={period}
-              className="w-full"
-              fullscreen={true}
-            />
-          </div>
-          
-          {/* Estatísticas abaixo com melhor organização */}
-          <div className="w-full">
-            <ShipmentStatsDashboard period={period} fullscreen={true} />
-          </div>
+        <div className="fixed bottom-2 left-2 p-2 text-xs text-muted-foreground bg-white/80 rounded shadow">
+          <strong>Atalhos:</strong> Pressione 1-4 para alternar períodos
         </div>
       </div>
     </div>

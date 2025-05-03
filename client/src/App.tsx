@@ -597,7 +597,6 @@ function AppContent() {
   
   // Rota para o mapa em tela cheia (não precisa de autenticação)
   if (currentPath === '/expedicao/mapa-fullscreen') {
-    const MapaFullscreen = React.lazy(() => import('./pages/expedicao/MapaFullscreen'));
     return (
       <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

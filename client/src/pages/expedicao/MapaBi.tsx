@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@/components/ui';
 import { ExternalLink, MapPin, BarChart2, ArrowLeft } from 'lucide-react';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import BrasilMapSVG from '@/components/expedicao/BrasilMapSVG';
+import BrasilMapSimple from '@/components/expedicao/BrasilMapSimple';
 
 // Interface para o botão de abrir em nova aba
 interface OpenInNewTabButtonProps {
@@ -88,7 +88,7 @@ const MapaBi: React.FC = () => {
             <TabsContent value={value} key={value}>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <BrasilMapSVG period={period as any} />
+                  <BrasilMapSimple period={period as any} />
                 </div>
                 <div>
                   <ShipmentStatsDashboard period={period as any} />
