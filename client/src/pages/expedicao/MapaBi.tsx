@@ -1,85 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Card, Separator, Heading, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
-import { Maximize2, Minimize2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
+import { ExternalLink } from 'lucide-react';
 import BrasilShipmentMap from '@/components/expedicao/BrasilShipmentMap';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
 
-interface FullscreenControlProps {
-  isFullscreen: boolean;
-  onToggleFullscreen: () => void;
+// Interface para o botão de abrir em nova aba
+interface OpenInNewTabButtonProps {
+  period: 'daily' | 'weekly' | 'monthly' | 'yearly';
 }
 
-// Componente para controle de tela cheia
-const FullscreenControl: React.FC<FullscreenControlProps> = ({ 
-  isFullscreen, 
-  onToggleFullscreen 
-}) => {
+// Componente para abrir o mapa em uma nova aba
+const OpenInNewTabButton: React.FC<OpenInNewTabButtonProps> = ({ period }) => {
+  const openMapInNewTab = () => {
+    const url = `/expedicao/mapa-fullscreen?period=${period}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <button
-      onClick={onToggleFullscreen}
-      className="fixed top-4 right-4 z-50 p-2 bg-white bg-opacity-80 rounded-full shadow-md hover:bg-opacity-100 transition-all"
-      aria-label={isFullscreen ? "Sair da tela cheia" : "Entrar em tela cheia"}
+      onClick={openMapInNewTab}
+      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+      aria-label="Abrir em tela cheia"
     >
-      {isFullscreen ? (
-        <Minimize2 className="h-5 w-5 text-gray-700" />
-      ) : (
-        <Maximize2 className="h-5 w-5 text-gray-700" />
-      )}
+      <ExternalLink className="h-4 w-4" />
+      <span>Abrir em tela cheia</span>
     </button>
   );
 };
 
 const MapaBi: React.FC = () => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   
-  // Função para alternar o modo de tela cheia
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.error(`Erro ao entrar em tela cheia: ${err.message}`);
-      });
-      setIsFullscreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    }
-  };
-  
-  // Monitora alterações no estado de tela cheia
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-  
-  // Monitora eventos de teclado para esc (sair da tela cheia)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false);
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isFullscreen]);
-  
   return (
-    <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''}`}>
-      <FullscreenControl isFullscreen={isFullscreen} onToggleFullscreen={toggleFullscreen} />
-      
+    <div className="relative">
       <div className="p-6">
         <header className="mb-6">
           <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
@@ -88,7 +41,7 @@ const MapaBi: React.FC = () => {
           </p>
         </header>
         
-        <Tabs defaultValue="daily" className="space-y-4" onValueChange={value => setPeriod(value as any)}>
+        <Tabs defaultValue="monthly" className="space-y-4" onValueChange={value => setPeriod(value as any)}>
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="daily">Diário</TabsTrigger>
@@ -96,6 +49,8 @@ const MapaBi: React.FC = () => {
               <TabsTrigger value="monthly">Mensal</TabsTrigger>
               <TabsTrigger value="yearly">Anual</TabsTrigger>
             </TabsList>
+            
+            <OpenInNewTabButton period={period} />
           </div>
           
           <TabsContent value="daily" className="space-y-4">
