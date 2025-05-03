@@ -11,15 +11,15 @@ export function registerExpedicaoRoutes(app: Express) {
 }
 
 // Endpoint para obter dados de expedição por estado
-router.get('/api/expedicao/shipments-by-state', async (req, res) => {
+router.get('/api/expedicao/envios-por-estado/:period', async (req, res) => {
   try {
-    console.log('Recebida requisição para /api/expedicao/shipments-by-state', { 
-      query: req.query,
+    console.log('Recebida requisição para /api/expedicao/envios-por-estado/:period', { 
+      params: req.params,
       headers: req.headers['user-agent']
     });
     
     // O período pode ser 'daily', 'weekly', 'monthly' ou 'yearly'
-    const period = req.query.period || 'monthly';
+    const period = req.params.period || 'monthly';
     console.log('Período selecionado:', period);
     
     // Em uma implementação real, aqui você buscaria os dados do banco
@@ -168,6 +168,106 @@ router.get('/api/expedicao/shipment-stats', async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar estatísticas de expedição:', error);
     res.status(500).json({ error: 'Erro ao buscar estatísticas de expedição' });
+  }
+});
+
+// Endpoint para obter dados da jornada de um envio específico
+router.get('/api/expedicao/shipment-journey/:id?', async (req, res) => {
+  try {
+    // O id do envio é opcional - se não fornecido, retorna um envio de exemplo
+    const shipmentId = req.params.id;
+    console.log('Recebida requisição para /api/expedicao/shipment-journey', { 
+      params: req.params,
+      headers: req.headers['user-agent']
+    });
+    
+    // Em uma implementação real, aqui você buscaria os dados do banco
+    // Simulando dados para desenvolvimento
+    const mockShipment = {
+      id: shipmentId ? parseInt(shipmentId) : 1,
+      tracking_code: 'BR564897654321',
+      origin: {
+        city: 'São Paulo',
+        state: 'SP',
+        coordinates: [-30, 15]
+      },
+      destination: {
+        city: 'Rio de Janeiro',
+        state: 'RJ',
+        coordinates: [15, 10]
+      },
+      steps: [
+        {
+          id: 1,
+          type: 'pickup',
+          location: {
+            city: 'São Paulo',
+            state: 'SP',
+            coordinates: [-30, 15]
+          },
+          timestamp: '2025-05-01T08:30:00',
+          description: 'Pacote coletado em São Paulo',
+          status: 'completed'
+        },
+        {
+          id: 2,
+          type: 'transit',
+          location: {
+            city: 'Em trânsito',
+            state: 'SP',
+            coordinates: [-15, 13]
+          },
+          timestamp: '2025-05-01T14:20:00',
+          description: 'Em trânsito para centro de distribuição',
+          status: 'completed'
+        },
+        {
+          id: 3,
+          type: 'warehouse',
+          location: {
+            city: 'Resende',
+            state: 'RJ',
+            coordinates: [0, 12]
+          },
+          timestamp: '2025-05-02T07:15:00',
+          description: 'Chegou ao centro de distribuição em Resende',
+          status: 'in_progress'
+        },
+        {
+          id: 4,
+          type: 'transit',
+          location: {
+            city: 'Em trânsito',
+            state: 'RJ',
+            coordinates: [10, 10]
+          },
+          timestamp: '2025-05-02T16:45:00',
+          description: 'Em trânsito para o destino final',
+          status: 'upcoming'
+        },
+        {
+          id: 5,
+          type: 'delivery',
+          location: {
+            city: 'Rio de Janeiro',
+            state: 'RJ',
+            coordinates: [15, 10]
+          },
+          timestamp: '2025-05-03T10:00:00',
+          description: 'Entrega prevista no Rio de Janeiro',
+          status: 'upcoming'
+        }
+      ],
+      status: 'in_transit',
+      estimated_delivery: '2025-05-03T10:00:00'
+    };
+    
+    // Definir explicitamente o cabeçalho de conteúdo como JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.json(mockShipment);
+  } catch (error) {
+    console.error('Erro ao buscar dados da jornada de envio:', error);
+    res.status(500).json({ error: 'Erro ao buscar dados da jornada de envio' });
   }
 });
 

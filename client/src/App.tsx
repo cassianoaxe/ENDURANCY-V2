@@ -351,6 +351,7 @@ import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 // Import Mapa BI para o módulo de Expedição
 import MapaBi from "@/pages/expedicao/MapaBi";
 import MapaFullscreen from "@/pages/expedicao/MapaFullscreen";
+import JornadaEnvio from "@/pages/expedicao/JornadaEnvio";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -1624,6 +1625,19 @@ function AppContent() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>}>
             <MapaBi />
+          </Suspense>
+        </OrganizationLayout>
+      );
+    }
+    
+    if (currentPath === '/organization/expedicao/jornada-envio') {
+      const JornadaEnvio = React.lazy(() => import('./pages/expedicao/JornadaEnvio'));
+      return (
+        <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <JornadaEnvio />
           </Suspense>
         </OrganizationLayout>
       );
