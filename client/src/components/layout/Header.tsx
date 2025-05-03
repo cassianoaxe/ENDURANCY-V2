@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Sun, Moon, User, LogOut, Leaf, Home } from "lucide-react";
+import { Sun, Moon, User, LogOut, Leaf, Home, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsPopover from "@/components/features/NotificationsPopover";
@@ -147,7 +147,25 @@ export default function Header() {
             </Tooltip>
           </TooltipProvider>
 
-{/* Removido o ícone de folha do cabeçalho conforme solicitado */}
+          {/* Botão de atalho para Envio BI (MapaBI em tela cheia) */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mr-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800 font-medium flex items-center gap-1.5"
+                  onClick={() => window.location.href = '/expedicao/mapa-fullscreen'}
+                >
+                  <BarChart className="h-4 w-4" />
+                  <span>Envio BI</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Envio BI</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="flex items-center gap-2">
