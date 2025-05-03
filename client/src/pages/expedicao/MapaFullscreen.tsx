@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Heading } from '@/components/ui';
 import { useLocation } from 'wouter';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import SimpleBrasilMap from '@/components/expedicao/SimpleBrasilMap';
+import BrasilSVGMap from '@/components/expedicao/BrasilSVGMap';
 import { X, Maximize2 } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
@@ -109,7 +109,7 @@ const MapaFullscreen: React.FC = () => {
         <div className="flex flex-col gap-8">
           {/* Mapa centralizado com maior visibilidade */}
           <div className="w-full flex justify-center">
-            <SimpleBrasilMap
+            <BrasilSVGMap
               period={period}
               className="w-full"
               fullscreen={true}
