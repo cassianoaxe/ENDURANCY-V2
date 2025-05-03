@@ -27,6 +27,7 @@ import {
   socialBeneficiaries 
 } from "../shared/schema-social";
 import csrf from 'csurf';
+import { setupSessionMiddleware } from './session-config';
 
 const app = express();
 
@@ -85,6 +86,9 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Configurar cookie-parser para processamento de cookies
 app.use(cookieParser(process.env.COOKIE_SECRET || 'endurancy-app-secret-key-2025'));
+
+// Configurar o middleware de sessão antes de qualquer rota
+setupSessionMiddleware(app);
 
 // Configurar proteção CSRF para operações de estado mutável (POST, PUT, DELETE)
 const csrfProtection = csrf({
