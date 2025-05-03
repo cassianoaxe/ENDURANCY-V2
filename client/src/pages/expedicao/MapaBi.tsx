@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@/components/ui';
-import { ExternalLink, MapPin, BarChart2, ArrowLeft } from 'lucide-react';
+import { ExternalLink, MapPin, BarChart2, ArrowLeft, Palette } from 'lucide-react';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import BrasilMapSimple from '@/components/expedicao/BrasilMapSimple';
+import BrasilTVMap from '@/components/expedicao/BrasilTVMap';
 
 // Interface para o botão de abrir em nova aba
 interface OpenInNewTabButtonProps {
@@ -32,6 +32,8 @@ const OpenInNewTabButton: React.FC<OpenInNewTabButtonProps> = ({ period }) => {
 // Componente simplificado do Mapa BI sem dependências de layout
 const MapaBi: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [colorMode, setColorMode] = useState<'colored' | 'grayscale' | 'outline'>('colored');
+  const [showStateLabels, setShowStateLabels] = useState(true);
   
   // Função para voltar para a página anterior
   const navigateBack = () => {
@@ -52,9 +54,54 @@ const MapaBi: React.FC = () => {
         </Button>
         
         <header className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <MapPin className="h-6 w-6 text-primary" />
-            <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 mb-1">
+              <MapPin className="h-6 w-6 text-primary" />
+              <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className="relative group">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                  aria-label="Configurações de visualização"
+                >
+                  <Palette className="h-4 w-4 mr-1" />
+                  Visualização
+                </Button>
+                
+                <div className="absolute right-0 mt-1 w-56 bg-white shadow-lg rounded-lg p-3 z-10 hidden group-hover:block">
+                  <div className="mb-2">
+                    <label className="text-sm font-medium mb-1 block">Estilo do mapa:</label>
+                    <select 
+                      value={colorMode}
+                      onChange={(e) => setColorMode(e.target.value as any)}
+                      className="w-full text-sm border rounded p-1"
+                    >
+                      <option value="colored">Colorido</option>
+                      <option value="grayscale">Escala de cinza</option>
+                      <option value="outline">Apenas contorno</option>
+                    </select>
+                  </div>
+                  
+                  <div className="mb-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input 
+                        type="checkbox"
+                        checked={showStateLabels}
+                        onChange={(e) => setShowStateLabels(e.target.checked)}
+                        className="rounded"
+                      />
+                      Mostrar nomes dos estados
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <OpenInNewTabButton period={period} />
+            </div>
           </div>
           <p className="text-muted-foreground">
             Visualização geográfica e estatísticas de envios em tempo real
@@ -80,15 +127,17 @@ const MapaBi: React.FC = () => {
                 <TabsTrigger value="yearly">Anual</TabsTrigger>
               </TabsList>
             </div>
-            
-            <OpenInNewTabButton period={period} />
           </div>
           
           {['daily', 'weekly', 'monthly', 'yearly'].map((value) => (
             <TabsContent value={value} key={value}>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <BrasilMapSimple period={period as any} />
+                  <BrasilTVMap 
+                    period={period as any}
+                    colorMode={colorMode}
+                    showStateLabels={showStateLabels}
+                  />
                 </div>
                 <div>
                   <ShipmentStatsDashboard period={period as any} />
