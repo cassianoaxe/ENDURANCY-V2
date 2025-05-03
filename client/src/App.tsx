@@ -994,8 +994,7 @@ function AppContent() {
   // Handle organization-specific routes
   if (currentPath.startsWith('/organization/')) {
     // Verificar se é uma rota de dashboard específica da organização (com ID)
-    // Modificado para capturar parâmetros de query como ?t=1234
-    const orgDashboardMatch = currentPath.match(/^\/organization\/(\d+)\/dashboard(?:\?.*)?$/);
+    const orgDashboardMatch = currentPath.match(/^\/organization\/(\d+)\/dashboard$/);
     if (orgDashboardMatch) {
       console.log("Renderizando dashboard de organização específica com ID:", orgDashboardMatch[1]);
       return <OrganizationLayout>
