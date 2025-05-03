@@ -1,181 +1,195 @@
 import React from 'react';
-import { Card, Heading } from '@/components/ui';
-import { TrendingUp, TrendingDown, Package, Clock, DollarSign, Truck, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
+import { Loader2, TrendingUp, TrendingDown, Package, Mail, MapPin, Truck } from 'lucide-react';
+
+// Tipos para estatísticas de envio
+interface ShipmentStats {
+  total: number;
+  byRegion: {
+    norte: number;
+    nordeste: number;
+    centro_oeste: number;
+    sudeste: number;
+    sul: number;
+  };
+  topStates: Array<{
+    id: string;
+    name: string;
+    count: number;
+  }>;
+  growth: number;
+  deliveryRate: number;
+  avgDeliveryTime: number;
+}
 
 interface ShipmentStatsDashboardProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
 }
 
-interface ShipmentStats {
-  totalEnvios: number;
-  enviosPorStatus: {
-    emTransito: number;
-    entregues: number;
-    atrasados: number;
-    problemas: number;
-  };
-  mediaTempo: {
-    preparacao: number;
-    transporte: number;
-    entrega: number;
-  };
-  custoMedio: {
-    valor: number;
-    variacao: number;
-  };
-}
-
 const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period }) => {
-  const { data: stats, isLoading, error } = useQuery<ShipmentStats>({
-    queryKey: [`/api/expedicao/estatisticas/${period}`],
+  // Buscar dados de estatísticas da API
+  const { data, isLoading } = useQuery({
+    queryKey: [`/api/expedicao/stats/${period}`],
+    queryFn: async () => {
+      // Simular dados de estatísticas
+      const mockStats: ShipmentStats = {
+        total: period === 'daily' ? 342 : 
+              period === 'weekly' ? 1835 :
+              period === 'monthly' ? 6320 : 74500,
+        byRegion: {
+          norte: period === 'daily' ? 25 : period === 'weekly' ? 140 : period === 'monthly' ? 580 : 6800,
+          nordeste: period === 'daily' ? 78 : period === 'weekly' ? 420 : period === 'monthly' ? 1450 : 17200,
+          centro_oeste: period === 'daily' ? 54 : period === 'weekly' ? 290 : period === 'monthly' ? 1110 : 13000,
+          sudeste: period === 'daily' ? 128 : period === 'weekly' ? 680 : period === 'monthly' ? 2320 : 26500,
+          sul: period === 'daily' ? 57 : period === 'weekly' ? 305 : period === 'monthly' ? 860 : 11000
+        },
+        topStates: [
+          { id: "SP", name: "São Paulo", count: period === 'daily' ? 89 : period === 'weekly' ? 480 : period === 'monthly' ? 1650 : 19200 },
+          { id: "RJ", name: "Rio de Janeiro", count: period === 'daily' ? 42 : period === 'weekly' ? 230 : period === 'monthly' ? 800 : 9300 },
+          { id: "MG", name: "Minas Gerais", count: period === 'daily' ? 32 : period === 'weekly' ? 175 : period === 'monthly' ? 650 : 7500 },
+          { id: "RS", name: "Rio Grande do Sul", count: period === 'daily' ? 30 : period === 'weekly' ? 165 : period === 'monthly' ? 580 : 6900 },
+          { id: "PR", name: "Paraná", count: period === 'daily' ? 27 : period === 'weekly' ? 142 : period === 'monthly' ? 490 : 5800 }
+        ],
+        growth: period === 'daily' ? 5.7 : period === 'weekly' ? 3.8 : period === 'monthly' ? 12.4 : 8.2,
+        deliveryRate: 98.3,
+        avgDeliveryTime: 3.2
+      };
+      
+      return mockStats;
+    },
     refetchOnWindowFocus: false
   });
   
   if (isLoading) {
     return (
-      <Card className="p-4 shadow-md h-full">
-        <div className="h-full flex flex-col items-center justify-center">
-          <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
-          <p className="text-muted-foreground text-sm">Carregando estatísticas...</p>
-        </div>
-      </Card>
+      <div className="flex items-center justify-center h-32">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
     );
   }
   
-  if (error || !stats) {
+  if (!data) {
     return (
-      <Card className="p-4 shadow-md h-full">
-        <div className="h-full flex flex-col items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
-            <AlertCircle className="h-6 w-6 text-red-500" />
-          </div>
-          <Heading as="h3" size="sm" className="text-center mb-2">Erro ao carregar dados</Heading>
-          <p className="text-muted-foreground text-sm text-center">
-            Não foi possível obter as estatísticas de envio. Tente novamente mais tarde.
-          </p>
-        </div>
-      </Card>
+      <div className="p-4 rounded-lg bg-gray-50 border">
+        <p className="text-sm text-gray-600">Não foi possível carregar as estatísticas.</p>
+      </div>
     );
   }
   
-  // Formatação dos números para exibição
-  const formatNumber = (num: number) => num.toLocaleString('pt-BR');
-  const formatCurrency = (value: number) => value.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2
-  });
-  const formatPercentage = (value: number) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+  // Formatar período para exibição
+  const periodText = period === 'daily' ? 'hoje' : 
+                     period === 'weekly' ? 'esta semana' : 
+                     period === 'monthly' ? 'este mês' : 'este ano';
+  
+  // Formatar crescimento com sinal
+  const growthFormatted = data.growth > 0 ? `+${data.growth.toFixed(1)}%` : `${data.growth.toFixed(1)}%`;
+  const isPositiveGrowth = data.growth > 0;
   
   return (
-    <Card className="shadow-md h-full divide-y divide-gray-100">
-      <div className="p-4">
-        <Heading as="h2" size="lg" weight="semibold" className="mb-2">
-          Dashboard de Envios
-        </Heading>
-        <p className="text-muted-foreground text-sm">
-          Período: {
-            period === 'daily' ? 'Diário' : 
-            period === 'weekly' ? 'Semanal' : 
-            period === 'monthly' ? 'Mensal' : 'Anual'
-          }
-        </p>
-      </div>
+    <div className="space-y-4">
+      {/* Card principal com total e crescimento */}
+      <Card className="p-4">
+        <div className="flex flex-col">
+          <span className="text-sm text-muted-foreground">Total de Envios {periodText}</span>
+          <div className="flex items-end mt-1 gap-2">
+            <span className="text-2xl font-bold">{data.total.toLocaleString('pt-BR')}</span>
+            <div className={`flex items-center text-xs ${
+              isPositiveGrowth ? 'text-emerald-600' : 'text-rose-600'
+            }`}>
+              {isPositiveGrowth ? (
+                <TrendingUp className="h-3 w-3 mr-1" />
+              ) : (
+                <TrendingDown className="h-3 w-3 mr-1" />
+              )}
+              {growthFormatted}
+            </div>
+          </div>
+        </div>
+      </Card>
       
-      {/* Resumo de envios totais */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground">Total de Envios</span>
-          <div className="flex items-center">
-            <Package className="w-4 h-4 text-primary mr-1" />
-          </div>
-        </div>
-        <div className="text-2xl font-bold">{formatNumber(stats.totalEnvios)}</div>
-      </div>
-      
-      {/* Status dos envios */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-muted-foreground">Status dos Envios</span>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-blue-50 rounded-lg p-2">
-            <div className="flex items-center mb-1">
-              <Truck className="h-3.5 w-3.5 text-blue-600 mr-1" />
-              <span className="text-xs font-medium text-blue-600">Em Trânsito</span>
-            </div>
-            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.emTransito)}</div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-2">
-            <div className="flex items-center mb-1">
-              <CheckCircle className="h-3.5 w-3.5 text-green-600 mr-1" />
-              <span className="text-xs font-medium text-green-600">Entregues</span>
-            </div>
-            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.entregues)}</div>
-          </div>
-          <div className="bg-yellow-50 rounded-lg p-2">
-            <div className="flex items-center mb-1">
-              <Clock className="h-3.5 w-3.5 text-yellow-600 mr-1" />
-              <span className="text-xs font-medium text-yellow-600">Atrasados</span>
-            </div>
-            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.atrasados)}</div>
-          </div>
-          <div className="bg-red-50 rounded-lg p-2">
-            <div className="flex items-center mb-1">
-              <HelpCircle className="h-3.5 w-3.5 text-red-600 mr-1" />
-              <span className="text-xs font-medium text-red-600">Problemas</span>
-            </div>
-            <div className="text-sm font-bold">{formatNumber(stats.enviosPorStatus.problemas)}</div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Tempo médio */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-muted-foreground">Tempo Médio</span>
-          <div className="flex items-center">
-            <Clock className="w-4 h-4 text-primary mr-1" />
-          </div>
-        </div>
+      {/* Distribuição por região */}
+      <Card className="p-4">
+        <h3 className="text-sm font-medium mb-3">Distribuição por Região</h3>
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Preparação</span>
-            <span className="text-xs font-medium">{stats.mediaTempo.preparacao} min</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Transporte</span>
-            <span className="text-xs font-medium">{stats.mediaTempo.transporte} horas</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Entrega</span>
-            <span className="text-xs font-medium">{stats.mediaTempo.entrega} horas</span>
-          </div>
+          {Object.entries(data.byRegion).map(([region, count]) => {
+            const percentage = (count / data.total) * 100;
+            const regionNames: {[key: string]: string} = {
+              norte: 'Norte',
+              nordeste: 'Nordeste',
+              centro_oeste: 'Centro-Oeste',
+              sudeste: 'Sudeste',
+              sul: 'Sul'
+            };
+            
+            return (
+              <div key={region}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span>{regionNames[region]}</span>
+                  <span>{count.toLocaleString('pt-BR')} ({percentage.toFixed(1)}%)</span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </Card>
+      
+      {/* Top 5 estados */}
+      <Card className="p-4">
+        <h3 className="text-sm font-medium mb-3">Top 5 Estados</h3>
+        <div className="space-y-2">
+          {data.topStates.map((state, index) => (
+            <div key={state.id} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center mr-2">
+                  {index + 1}
+                </span>
+                <span className="text-sm">{state.name}</span>
+              </div>
+              <span className="text-sm font-medium">{state.count.toLocaleString('pt-BR')}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+      
+      {/* Métricas adicionais */}
+      <div className="grid grid-cols-2 gap-2">
+        <Card className="p-3">
+          <div className="flex items-center">
+            <Package className="h-5 w-5 text-primary mr-2" />
+            <div>
+              <div className="text-xs text-muted-foreground">Taxa de Entrega</div>
+              <div className="text-lg font-medium">{data.deliveryRate}%</div>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-3">
+          <div className="flex items-center">
+            <Truck className="h-5 w-5 text-primary mr-2" />
+            <div>
+              <div className="text-xs text-muted-foreground">Tempo Médio</div>
+              <div className="text-lg font-medium">{data.avgDeliveryTime} dias</div>
+            </div>
+          </div>
+        </Card>
       </div>
       
-      {/* Custo médio */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground">Custo Médio por Envio</span>
-          <div className="flex items-center">
-            <DollarSign className="w-4 h-4 text-primary mr-1" />
-          </div>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="text-lg font-bold">{formatCurrency(stats.custoMedio.valor)}</div>
-          <div className={`flex items-center text-xs font-medium ${stats.custoMedio.variacao >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {stats.custoMedio.variacao >= 0 ? (
-              <TrendingUp className="h-3.5 w-3.5 mr-1" />
-            ) : (
-              <TrendingDown className="h-3.5 w-3.5 mr-1" />
-            )}
-            {formatPercentage(stats.custoMedio.variacao)}
-          </div>
-        </div>
+      {/* Dicas */}
+      <div className="text-xs text-muted-foreground bg-primary/5 p-3 rounded-lg">
+        <p className="font-medium mb-1">Dicas:</p>
+        <ul className="list-disc pl-4 space-y-1">
+          <li>Clique no ícone <span className="font-mono bg-gray-100 px-1 rounded">S</span> para mostrar/esconder este painel</li>
+          <li>Use as teclas <span className="font-mono bg-gray-100 px-1 rounded">1-4</span> para mudar o período</li>
+        </ul>
       </div>
-    </Card>
+    </div>
   );
 };
 
