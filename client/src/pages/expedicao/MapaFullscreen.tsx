@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import BrasilTVMap from '../../components/expedicao/BrasilTVMapNew';
 import ShipmentStatsDashboard from '../../components/expedicao/ShipmentStatsDashboard';
-import { Loader2, ArrowLeft, LayoutPanelLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, LayoutPanelLeft, X } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
   const [location, setLocation] = useLocation();
@@ -17,6 +17,29 @@ const MapaFullscreen: React.FC = () => {
     }, 800);
   }, []);
   
+  // Função para navegação de volta que será chamada por várias fontes
+  const navigateBack = () => {
+    console.log('Navegando de volta para /organization/expedicao');
+    
+    // Para dispositivos Apple, usar abordagem mais direta
+    const isAppleDevice = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+    
+    if (isAppleDevice) {
+      console.log('Dispositivo Apple detectado, usando window.location');
+      window.location.href = '/organization/expedicao';
+      return;
+    }
+    
+    // Abordagem normal para outros dispositivos
+    try {
+      setLocation('/organization/expedicao');
+    } catch (error) {
+      console.error('Erro ao usar setLocation:', error);
+      // Fallback para window.location se setLocation falhar
+      window.location.href = '/organization/expedicao';
+    }
+  };
+
   // Alternar período com teclas de atalho (1-4)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,13 +47,29 @@ const MapaFullscreen: React.FC = () => {
       else if (e.key === '2') setPeriod('weekly');
       else if (e.key === '3') setPeriod('monthly');
       else if (e.key === '4') setPeriod('yearly');
-      else if (e.key === 'Escape') setLocation('/organization/expedicao');
+      else if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+        // Compatibilidade com diferentes formas de detectar a tecla ESC
+        console.log('Tecla ESC detectada');
+        e.preventDefault(); // Prevenir comportamento padrão
+        navigateBack();
+      }
       else if (e.key.toLowerCase() === 's') setShowSidebar(!showSidebar);
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSidebar, setLocation]);
+  }, [showSidebar]);
+  
+  // Botão físico de voltar para dispositivos móveis
+  useEffect(() => {
+    const handlePopState = () => {
+      console.log('Evento popstate detectado');
+      navigateBack();
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   
   if (isLoading) {
     return (
@@ -45,7 +84,7 @@ const MapaFullscreen: React.FC = () => {
     <div className="h-screen w-screen bg-background overflow-hidden">
       <div className="fixed top-4 left-4 z-20 flex gap-2">
         <button 
-          onClick={() => setLocation('/organization/expedicao')}
+          onClick={navigateBack}
           className="h-10 w-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md"
           title="Voltar"
         >
@@ -61,8 +100,23 @@ const MapaFullscreen: React.FC = () => {
         </button>
       </div>
       
+      {/* Botão específico para dispositivos Apple no canto superior direito */}
+      <button 
+        onClick={navigateBack}
+        className="fixed top-4 right-4 z-30 h-12 w-12 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg"
+        title="Fechar (para dispositivos Apple)"
+        aria-label="Fechar e voltar"
+      >
+        <X className="h-6 w-6" />
+      </button>
+      
+      {/* Texto explicativo sobre como sair (especialmente para Apple) */}
+      <div className="fixed top-20 right-4 z-30 bg-white/80 p-3 rounded-lg shadow-md text-sm max-w-[180px] text-center">
+        <p className="font-medium">Para sair, clique no X vermelho ou pressione ESC</p>
+      </div>
+
       <div className={`fixed top-4 z-20 flex gap-2 bg-white/80 shadow-md rounded-full p-1 transition-all duration-300 ${
-        showSidebar ? 'right-[calc(25%+16px)]' : 'right-4'
+        showSidebar ? 'right-[calc(25%+16px)]' : 'right-20'
       }`}>
         <button 
           onClick={() => setPeriod('daily')}
