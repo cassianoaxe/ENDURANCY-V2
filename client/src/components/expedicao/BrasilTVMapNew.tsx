@@ -16,6 +16,7 @@ interface BrasilTVMapProps {
   fullscreen?: boolean;
   showStateLabels?: boolean;
   colorMode?: 'colored' | 'grayscale' | 'outline';
+  sidebarOpen?: boolean; // Novo prop para indicar se o painel lateral está aberto
 }
 
 // Paleta de cores em escala de cinza
@@ -62,7 +63,8 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
   className = '', 
   fullscreen = false,
   showStateLabels = true,
-  colorMode = 'colored'
+  colorMode = 'colored',
+  sidebarOpen = false
 }) => {
   const [showSettings, setShowSettings] = useState(false);
   
@@ -429,8 +431,10 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           </div>
         </div>
         
-        {/* Legenda do período */}
-        <div className="absolute left-4 top-4 bg-white/95 px-4 py-2 rounded-md shadow-lg z-40">
+        {/* Legenda do período - se move para a esquerda quando o painel lateral aparece */}
+        <div className={`absolute transition-all duration-300 bg-white/95 px-4 py-2 rounded-md shadow-lg z-40 ${
+          sidebarOpen ? 'left-28 top-4' : 'left-4 top-4'
+        }`}>
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
               <span className="text-lg font-semibold">
@@ -446,8 +450,10 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           </div>
         </div>
         
-        {/* Legenda de cores e regiões - posicionada à direita com espaçamento para não sobrepor */}
-        <div className="absolute right-4 bottom-4 bg-white/95 px-4 py-2 rounded-md shadow-lg max-w-xs z-40">
+        {/* Legenda de cores e regiões - se move para a esquerda quando o painel lateral aparece */}
+        <div className={`absolute transition-all duration-300 bg-white/95 px-4 py-2 rounded-md shadow-lg max-w-xs z-40 ${
+          sidebarOpen ? 'right-[calc(25%+16px)]' : 'right-4'
+        } bottom-4`}>
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Volume de Envios</span>
