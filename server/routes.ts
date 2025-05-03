@@ -270,36 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Adicionar rotas de autenticação simplificadas
   registerAuthRoutes(app);
   const server = createServer(app);
-  // Setup session middleware
-  const sessionConfig = {
-    store: new PostgresStore({
-      pool,
-      tableName: 'session', // Table to store sessions
-      createTableIfMissing: true,
-      pruneSessionInterval: 60 * 60 // Limpar sessões a cada hora (em segundos)
-    }),
-    secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: false, // Definido como false para reduzir operações de gravação
-    saveUninitialized: false, // Não salva sessões não inicializadas para reduzir overhead
-    name: 'connect.sid', // Nome padrão para maximizar compatibilidade
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-      secure: false, // Set to false to ensure it works in both prod and dev
-      httpOnly: true,
-      sameSite: 'lax' as const, // Tipado explicitamente para evitar erro
-      path: '/' // Disponível em todas as rotas
-    },
-  };
   
-  console.log("Configurando sessão com as seguintes opções:", {
-    resave: sessionConfig.resave, 
-    saveUninitialized: sessionConfig.saveUninitialized,
-    cookiePath: sessionConfig.cookie.path,
-    cookieMaxAge: sessionConfig.cookie.maxAge,
-  });
-  
-  // Garantir que o middleware de sessão seja aplicado corretamente
-  app.use(session(sessionConfig));
+  // A sessão já foi configurada em index.ts via setupSessionMiddleware
   
   // Remover middleware de debug que estava causando muitos logs
   // Isso evita sobrecarga no servidor e reduz o número de requisições
