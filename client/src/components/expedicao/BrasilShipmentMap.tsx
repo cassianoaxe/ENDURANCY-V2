@@ -42,8 +42,16 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
     const fetchShipmentsData = async () => {
       setLoading(true);
       try {
+        console.log('Iniciando requisição para dados de expedição, período:', period);
         const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
-        setStatesData(response.data);
+        console.log('Dados recebidos:', response.data);
+        console.log('Tipo de dados:', typeof response.data, Array.isArray(response.data));
+        
+        // Forçando para garantir que estamos recebendo um array válido
+        const dataArray = Array.isArray(response.data) ? response.data : [];
+        console.log('Dados após verificação de array:', dataArray);
+        
+        setStatesData(dataArray);
         setError(null);
       } catch (err) {
         console.error('Erro ao carregar dados de expedição por estado:', err);
@@ -57,12 +65,18 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
   }, [period]);
 
   // Calcular valor mínimo e máximo para a escala de cores
-  const minValue = statesData && Array.isArray(statesData) && statesData.length > 0 
-    ? Math.min(...statesData.map(d => d.value)) 
-    : 0;
-  const maxValue = statesData && Array.isArray(statesData) && statesData.length > 0 
-    ? Math.max(...statesData.map(d => d.value)) 
-    : 100;
+  let minValue = 0;
+  let maxValue = 100;
+  
+  try {
+    if (statesData && Array.isArray(statesData) && statesData.length > 0) {
+      const values = statesData.map(d => d.value);
+      minValue = Math.min(...values);
+      maxValue = Math.max(...values);
+    }
+  } catch (err) {
+    console.error('Erro ao calcular valores min/max:', err);
+  }
 
   if (loading && !geographyData) {
     return (
@@ -137,9 +151,28 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
           ]}
           tooltip={(input) => {
             const feature = input.feature;
-            // Acesse o id da feature através de properties.id ou outro atributo disponível
-            const featureId = feature.properties?.id || feature.properties?.code || feature.id;
-            const state = Array.isArray(statesData) ? statesData.find(s => s.id === featureId) : undefined;
+            console.log('Feature recebida no tooltip:', feature);
+            
+            // Tentar extrair ID da feature com validações
+            let featureId;
+            try {
+              // @ts-ignore - ignorando erros de tipagem
+              featureId = feature.properties?.id || feature.properties?.code || feature.id;
+              console.log('Feature ID identificado:', featureId);
+            } catch (err) {
+              console.error('Erro ao extrair ID da feature:', err);
+              return null;
+            }
+            
+            // Tentar encontrar o estado correspondente
+            let state;
+            try {
+              state = Array.isArray(statesData) ? statesData.find(s => s.id === featureId) : undefined;
+              console.log('Estado encontrado:', state);
+            } catch (err) {
+              console.error('Erro ao buscar estado:', err);
+              return null;
+            }
             
             if (!state) return null;
             

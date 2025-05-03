@@ -13,8 +13,14 @@ export function registerExpedicaoRoutes(app: Express) {
 // Endpoint para obter dados de expedição por estado
 router.get('/api/expedicao/shipments-by-state', async (req, res) => {
   try {
+    console.log('Recebida requisição para /api/expedicao/shipments-by-state', { 
+      query: req.query,
+      headers: req.headers['user-agent']
+    });
+    
     // O período pode ser 'daily', 'weekly', 'monthly' ou 'yearly'
     const period = req.query.period || 'monthly';
+    console.log('Período selecionado:', period);
     
     // Em uma implementação real, aqui você buscaria os dados do banco
     // Simulando dados para desenvolvimento
