@@ -85,19 +85,60 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
     
     if (maxValue === 0) return "#e0e0e0"; // Evitar divisão por zero
     
-    // Paleta de cores baseada na imagem de referência
-    const colors = [
-      '#FFD700', // Amarelo (baixa quantidade)
-      '#3CB371', // Verde (média quantidade)
-      '#4682B4', // Azul (média-alta quantidade)
-      '#191970'  // Azul escuro (alta quantidade)
-    ];
+    // Paleta de cores exatamente como na imagem de referência
+    // Retorna a cor fixa do estado conforme a imagem e a sobrepõe com opacidade baseada no valor
+    const stateFixedColors: Record<string, string> = {
+      // Estados em Azul Escuro
+      'RR': '#191970',
+      'CE': '#191970',
+      'RN': '#191970',
+      'SE': '#191970',
+      'GO': '#191970',
+      'SP': '#191970',
+      'SC': '#191970',
+      
+      // Estados em Azul
+      'PA': '#4682B4',
+      'RO': '#4682B4',
+      'PI': '#4682B4',
+      'PB': '#4682B4',
+      'AL': '#4682B4',
+      'MG': '#4682B4',
+      
+      // Estados em Verde
+      'AP': '#3CB371',
+      'AC': '#3CB371',
+      'MT': '#3CB371',
+      'MA': '#3CB371',
+      'BA': '#3CB371',
+      'PR': '#3CB371',
+      
+      // Estados em Amarelo
+      'AM': '#FFD700',
+      'TO': '#FFD700',
+      'PE': '#FFD700',
+      'MS': '#FFD700',
+      'ES': '#FFD700',
+      'RJ': '#FFD700',
+      'RS': '#FFD700'
+    };
     
-    const ratio = stateInfo.value / maxValue;
-    if (ratio < 0.25) return colors[0];
-    if (ratio < 0.5) return colors[1];
-    if (ratio < 0.75) return colors[2];
-    return colors[3];
+    // Se quisermos aplicar uma escala de opacidade ao valor, podemos usar algo como:
+    const baseColor = stateFixedColors[stateId] || "#e0e0e0";
+    const opacity = Math.max(0.4, Math.min(1, stateInfo.value / maxValue * 0.5 + 0.5));
+    
+    // Para efeito visual, aplica transparência sutil para diferenciar estados com mais ou menos envios
+    // Mas mantém as cores base conforme a imagem de referência
+    if (stateInfo.value === 0) {
+      // Estado sem envios: mais transparente
+      return baseColor + "80"; // 50% opacity
+    } else if (stateInfo.value < maxValue * 0.3) {
+      // Poucos envios: levemente transparente
+      return baseColor + "C0"; // 75% opacity
+    } else {
+      // Muitos envios: totalmente opaco
+      return baseColor;
+    }
   };
   
   // Função para lidar com hover no estado
@@ -164,7 +205,7 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
         
         <div className={`${mapHeight} bg-white relative flex items-center justify-center p-4`}>
           <svg 
-            viewBox="0 0 800 600" 
+            viewBox="0 0 800 800" 
             preserveAspectRatio="xMidYMid meet"
             width="100%" 
             height="100%" 
@@ -173,9 +214,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               filter: "drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1))" 
             }}
           >
-            {/* Renderizando os estados baseados na imagem fornecida */}
+            {/* Copiando exatamente o formato da imagem de referência */}
+            
+            {/* Roraima - azul escuro */}
             <path 
-              d="M150,100 L200,80 L250,100 L300,80 L350,120 L280,170 L220,160 Z" 
+              d="M228,81 L198,90 L188,110 L205,138 L240,140 L274,120 L292,95 L270,81 Z" 
               fill={getColorForState('RR')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -183,10 +226,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="200" y="130" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Roraima</text>
+            <text x="228" y="115" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Roraima</text>
 
+            {/* Amapá - verde */}
             <path 
-              d="M350,120 L400,100 L450,150 L400,200 L350,180 Z" 
+              d="M352,65 L332,95 L345,135 L370,158 L398,140 L407,110 L397,85 L370,70 Z" 
               fill={getColorForState('AP')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -194,10 +238,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="380" y="150" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Amapá</text>
+            <text x="368" y="115" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Amapá</text>
 
+            {/* Amazonas - amarelo */}
             <path 
-              d="M150,100 L280,170 L350,180 L400,200 L350,250 L280,260 L200,240 L150,200 Z" 
+              d="M102,167 L122,140 L177,128 L188,110 L198,90 L228,81 L270,81 L292,95 L274,120 L240,140 L205,138 L230,175 L290,185 L348,173 L348,208 L318,238 L265,258 L200,265 L155,242 L130,270 Z" 
               fill={getColorForState('AM')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -205,10 +250,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="250" y="190" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Amazonas</text>
+            <text x="218" y="185" fontSize="18" textAnchor="middle" fill="#fff" pointerEvents="none">Amazonas</text>
 
+            {/* Pará - azul */}
             <path 
-              d="M400,200 L450,150 L500,180 L550,200 L520,250 L480,280 L400,300 L350,250 Z" 
+              d="M348,173 L370,158 L398,140 L430,148 L465,175 L495,175 L520,198 L515,228 L478,265 L425,275 L395,295 L348,208 Z" 
               fill={getColorForState('PA')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -216,10 +262,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="450" y="240" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Pará</text>
+            <text x="433" y="225" fontSize="18" textAnchor="middle" fill="#fff" pointerEvents="none">Pará</text>
 
+            {/* Acre - verde */}
             <path 
-              d="M150,200 L200,240 L180,280 L130,270 Z" 
+              d="M50,268 L60,245 L102,235 L130,270 L100,285 Z" 
               fill={getColorForState('AC')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -227,10 +274,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="160" y="250" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Acre</text>
+            <text x="90" y="260" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Acre</text>
 
+            {/* Rondônia - azul */}
             <path 
-              d="M180,280 L200,240 L280,260 L250,330 L200,320 Z" 
+              d="M130,270 L155,242 L200,265 L190,298 L155,325 L110,305 Z" 
               fill={getColorForState('RO')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -238,10 +286,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="230" y="290" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Rondônia</text>
+            <text x="150" y="290" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Rondônia</text>
 
+            {/* Mato Grosso - verde */}
             <path 
-              d="M250,330 L280,260 L350,250 L400,300 L380,380 L320,410 L250,380 Z" 
+              d="M190,298 L200,265 L265,258 L318,238 L348,208 L395,295 L370,345 L370,375 L330,415 L270,395 L225,370 L190,360 Z" 
               fill={getColorForState('MT')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -249,10 +298,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="320" y="340" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Mato Grosso</text>
+            <text x="280" y="345" fontSize="16" textAnchor="middle" fill="#fff" pointerEvents="none">Mato Grosso</text>
 
+            {/* Tocantins - amarelo */}
             <path 
-              d="M400,300 L480,280 L520,300 L500,350 L450,380 L420,360 L380,380 Z" 
+              d="M395,295 L425,275 L465,305 L450,348 L425,370 L395,372 L370,345 Z" 
               fill={getColorForState('TO')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -260,10 +310,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="440" y="330" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Tocantins</text>
+            <text x="420" y="335" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Tocantins</text>
 
+            {/* Maranhão - verde */}
             <path 
-              d="M520,250 L550,200 L600,180 L650,200 L630,250 L590,280 L520,300 Z" 
+              d="M478,265 L515,228 L560,210 L610,218 L615,245 L590,275 L550,282 L525,300 L465,305 L425,275 Z" 
               fill={getColorForState('MA')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -271,10 +322,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="580" y="240" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Maranhão</text>
+            <text x="545" y="250" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Maranhão</text>
 
+            {/* Piauí - azul */}
             <path 
-              d="M520,300 L590,280 L630,250 L650,280 L630,320 L590,350 L550,340 L500,350 Z" 
+              d="M525,300 L550,282 L590,275 L615,245 L625,262 L615,310 L583,332 L550,335 L525,340 L465,305 Z" 
               fill={getColorForState('PI')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -282,10 +334,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="580" y="310" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Piauí</text>
+            <text x="580" y="305" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Piauí</text>
 
+            {/* Ceará - azul escuro */}
             <path 
-              d="M650,200 L700,180 L720,200 L700,240 L650,280 L630,250 Z" 
+              d="M615,245 L610,218 L655,208 L685,228 L680,265 L650,278 L625,262 Z" 
               fill={getColorForState('CE')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -293,10 +346,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="680" y="230" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Ceará</text>
+            <text x="650" y="240" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Ceará</text>
 
+            {/* Rio Grande do Norte - azul escuro */}
             <path 
-              d="M700,240 L720,200 L750,210 L730,250 Z" 
+              d="M685,228 L718,222 L740,240 L720,265 L685,265 L680,265 Z" 
               fill={getColorForState('RN')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -304,10 +358,12 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="730" y="230" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">RN</text>
+            <text x="715" y="235" fontSize="11" textAnchor="middle" fill="#fff" pointerEvents="none">Rio Grande</text>
+            <text x="715" y="248" fontSize="11" textAnchor="middle" fill="#fff" pointerEvents="none">do Norte</text>
 
+            {/* Paraíba - azul */}
             <path 
-              d="M700,240 L730,250 L750,270 L700,290 L670,270 L650,280 Z" 
+              d="M680,265 L685,265 L720,265 L740,285 L705,298 L678,282 L650,278 Z" 
               fill={getColorForState('PB')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -315,10 +371,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="710" y="260" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">PB</text>
+            <text x="700" y="280" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">Paraíba</text>
 
+            {/* Pernambuco - amarelo */}
             <path 
-              d="M670,270 L700,290 L750,270 L760,290 L700,320 L650,310 Z" 
+              d="M650,278 L678,282 L705,298 L735,300 L715,325 L675,328 L645,318 L615,310 L625,262 Z" 
               fill={getColorForState('PE')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -326,10 +383,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="700" y="300" fontSize="11" textAnchor="middle" fill="#fff" pointerEvents="none">Pernambuco</text>
+            <text x="680" y="310" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Pernambuco</text>
 
+            {/* Alagoas - azul */}
             <path 
-              d="M700,320 L760,290 L780,310 L740,340 Z" 
+              d="M715,325 L735,300 L760,310 L740,335 Z" 
               fill={getColorForState('AL')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -337,10 +395,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="740" y="320" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">AL</text>
+            <text x="735" y="320" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">Alagoas</text>
 
+            {/* Sergipe - azul escuro */}
             <path 
-              d="M740,340 L780,310 L800,330 L760,350 Z" 
+              d="M740,335 L760,310 L775,325 L760,345 Z" 
               fill={getColorForState('SE')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -348,10 +407,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="770" y="330" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">SE</text>
+            <text x="760" y="330" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">Sergipe</text>
 
+            {/* Bahia - verde */}
             <path 
-              d="M500,350 L550,340 L590,350 L630,320 L650,310 L650,280 Z" 
+              d="M465,305 L525,340 L550,335 L583,332 L615,310 L645,318 L675,328 L715,325 L740,335 L760,345 L730,385 L690,405 L645,415 L605,415 L575,435 L535,425 L500,435 L465,405 L450,370 L465,350 L450,348 Z" 
               fill={getColorForState('BA')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -359,10 +419,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="550" y="370" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Bahia</text>
+            <text x="600" y="375" fontSize="18" textAnchor="middle" fill="#fff" pointerEvents="none">Bahia</text>
 
+            {/* Goiás - azul escuro */}
             <path 
-              d="M380,380 L420,360 L450,380 L430,420 L380,450 L320,410 Z" 
+              d="M370,345 L395,372 L425,370 L450,370 L465,405 L415,428 L388,442 L360,435 L330,415 L370,375 Z" 
               fill={getColorForState('GO')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -370,10 +431,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="400" y="410" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Goiás</text>
+            <text x="405" y="410" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Goiás</text>
 
+            {/* Distrito Federal - pequeno ponto ao lado de Goiás */}
             <path 
-              d="M430,420 L440,430 L420,440 L410,430 Z" 
+              d="M415,428 L423,423 L430,430 L422,435 Z" 
               fill={getColorForState('DF')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -381,10 +443,12 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="425" y="435" fontSize="8" textAnchor="middle" fill="#fff" pointerEvents="none">DF</text>
+            <text x="445" y="433" fontSize="7" textAnchor="middle" fill="#000" pointerEvents="none">Brasília (D.F)</text>
+            <line x1="430" y1="433" x2="465" y2="435" stroke="#f00" strokeWidth="1" />
 
+            {/* Mato Grosso do Sul - amarelo */}
             <path 
-              d="M250,380 L320,410 L380,450 L350,500 L280,470 L240,430 Z" 
+              d="M270,395 L330,415 L360,435 L330,480 L282,480 L245,460 L240,430 Z" 
               fill={getColorForState('MS')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -392,10 +456,12 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="310" y="440" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">MS</text>
+            <text x="305" y="445" fontSize="12" textAnchor="middle" fill="#000" pointerEvents="none">Mato Grosso</text>
+            <text x="305" y="460" fontSize="12" textAnchor="middle" fill="#000" pointerEvents="none">do Sul</text>
 
+            {/* Minas Gerais - azul */}
             <path 
-              d="M380,450 L430,420 L480,430 L520,420 L550,450 L500,500 L450,510 L380,490 L350,500 Z" 
+              d="M360,435 L388,442 L415,428 L465,405 L500,435 L535,425 L545,465 L515,495 L465,505 L412,510 L380,498 L360,480 L330,480 Z" 
               fill={getColorForState('MG')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -403,10 +469,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="450" y="470" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Minas Gerais</text>
+            <text x="450" y="465" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Minas Gerais</text>
 
+            {/* Espírito Santo - azul escuro */}
             <path 
-              d="M550,450 L600,430 L620,450 L600,480 L550,470 L500,500 Z" 
+              d="M535,425 L575,435 L585,445 L570,485 L545,465 Z" 
               fill={getColorForState('ES')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -414,10 +481,12 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="580" y="460" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">ES</text>
+            <text x="565" y="455" fontSize="9" textAnchor="middle" fill="#fff" pointerEvents="none">Espírito</text>
+            <text x="565" y="465" fontSize="9" textAnchor="middle" fill="#fff" pointerEvents="none">Santo</text>
 
+            {/* Rio de Janeiro - amarelo */}
             <path 
-              d="M500,500 L550,470 L600,480 L580,520 L530,530 L500,520 Z" 
+              d="M515,495 L545,465 L570,485 L555,502 L535,515 L505,505 Z" 
               fill={getColorForState('RJ')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -425,10 +494,12 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="550" y="510" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">RJ</text>
+            <text x="540" y="495" fontSize="10" textAnchor="middle" fill="#000" pointerEvents="none">Rio De</text>
+            <text x="540" y="505" fontSize="10" textAnchor="middle" fill="#000" pointerEvents="none">Janeiro</text>
 
+            {/* São Paulo - azul escuro */}
             <path 
-              d="M350,500 L380,490 L450,510 L400,550 L350,540 L320,520 Z" 
+              d="M330,480 L360,480 L380,498 L412,510 L395,535 L360,545 L330,530 L305,520 Z" 
               fill={getColorForState('SP')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -436,10 +507,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="380" y="520" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">São Paulo</text>
+            <text x="370" y="515" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">São Paulo</text>
 
+            {/* Paraná - verde */}
             <path 
-              d="M280,470 L350,500 L320,520 L350,540 L320,560 L270,550 L250,520 Z" 
+              d="M260,525 L305,520 L330,530 L345,557 L322,565 L292,560 L270,540 Z" 
               fill={getColorForState('PR')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -447,10 +519,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="300" y="530" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Paraná</text>
+            <text x="310" y="545" fontSize="14" textAnchor="middle" fill="#fff" pointerEvents="none">Paraná</text>
 
+            {/* Santa Catarina - azul escuro */}
             <path 
-              d="M270,550 L320,560 L300,580 L250,570 Z" 
+              d="M270,540 L292,560 L322,565 L310,585 L285,580 L260,575 Z" 
               fill={getColorForState('SC')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -458,10 +531,11 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="290" y="570" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">SC</text>
+            <text x="292" y="572" fontSize="10" textAnchor="middle" fill="#fff" pointerEvents="none">Santa Catarina</text>
 
+            {/* Rio Grande do Sul - amarelo */}
             <path 
-              d="M250,570 L300,580 L320,600 L270,620 L220,600 L200,580 Z" 
+              d="M225,580 L260,575 L285,580 L310,585 L322,600 L315,620 L275,640 L235,638 L215,625 L200,605 Z" 
               fill={getColorForState('RS')} 
               stroke="#fff" 
               strokeWidth="2"
@@ -469,7 +543,8 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
               onMouseLeave={handleStateLeave}
               style={{ cursor: 'pointer' }}
             />
-            <text x="260" y="600" fontSize="12" textAnchor="middle" fill="#fff" pointerEvents="none">Rio Grande do Sul</text>
+            <text x="270" y="615" fontSize="12" textAnchor="middle" fill="#000" pointerEvents="none">Rio Grande</text>
+            <text x="270" y="630" fontSize="12" textAnchor="middle" fill="#000" pointerEvents="none">do Sul</text>
 
             {/* Tooltip para o estado com hover */}
             {hoveredState && hoveredStateData && (
@@ -510,22 +585,22 @@ const BrasilMapSVG: React.FC<BrasilMapProps> = ({
             )}
           </svg>
           
-          {/* Legenda da escala de cores */}
+          {/* Legenda da escala de cores baseada na imagem de referência */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-90 py-2 px-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-6">
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-amber-300 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-[#FFD700] mr-2"></div>
               <span className="text-xs text-gray-600">Baixo</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-[#3CB371] mr-2"></div>
               <span className="text-xs text-gray-600">Médio</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-[#4682B4] mr-2"></div>
               <span className="text-xs text-gray-600">Médio-Alto</span>
             </div>
             <div className="flex items-center">
-              <div className="w-3 h-3 rounded-full bg-blue-900 mr-2"></div>
+              <div className="w-3 h-3 rounded-full bg-[#191970] mr-2"></div>
               <span className="text-xs text-gray-600">Alto</span>
             </div>
           </div>
