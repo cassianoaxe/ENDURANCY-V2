@@ -8,7 +8,6 @@ const MapaFullscreen: React.FC = () => {
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [location] = useLocation();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapHeight, setMapHeight] = useState(600);
   
   // Configuração no carregamento da página
   useEffect(() => {
@@ -20,9 +19,6 @@ const MapaFullscreen: React.FC = () => {
       setPeriod(periodParam);
     }
     
-    // Atualiza a altura do mapa baseado na altura da janela
-    setMapHeight(window.innerHeight - 200);
-    
     // Pequeno atraso para garantir que a página seja renderizada primeiro
     const timer = setTimeout(() => {
       requestFullscreen();
@@ -33,19 +29,12 @@ const MapaFullscreen: React.FC = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
     
-    // Atualiza altura do mapa quando a janela for redimensionada
-    const handleResize = () => {
-      setMapHeight(window.innerHeight - 200);
-    };
-    
-    // Adicionar event listeners
+    // Adicionar event listener para mudanças no estado de tela cheia
     document.addEventListener('fullscreenchange', checkFullscreenStatus);
-    window.addEventListener('resize', handleResize);
     
     return () => {
       clearTimeout(timer);
       document.removeEventListener('fullscreenchange', checkFullscreenStatus);
-      window.removeEventListener('resize', handleResize);
     };
   }, [location]);
   
@@ -120,7 +109,6 @@ const MapaFullscreen: React.FC = () => {
           <BrasilShipmentMap
             period={period}
             className="h-full"
-            height={mapHeight}
           />
         </div>
       </div>

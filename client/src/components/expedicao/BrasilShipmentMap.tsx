@@ -15,14 +15,12 @@ interface StateDataItem {
 interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
-  height?: number;
 }
 
-// Garantir que o mapa do Brasil está no formato correto para o componente
-// Usando o objeto diretamente para evitar problemas de tipagem
+// Dados geográficos estão disponíveis diretamente
 const geoFeatures = brasilGeoData;
 
-const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className, height = 850 }) => {
+const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,13 +115,13 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
   );
 
   return (
-    <div className={`w-full max-w-full mx-auto flex flex-col items-center ${className}`}>
-      <Heading as="h2" size="xl" weight="semibold" className="mb-4 text-center">
+    <div className={`w-full ${className}`}>
+      <Heading as="h2" size="xl" weight="semibold" className="mb-4">
         Distribuição de Envios por Estado
       </Heading>
       
-      <Card className="p-0 overflow-hidden border-2 border-gray-100 shadow-md w-full">
-        <div style={{ height: `${height}px` }} className="relative flex justify-center items-center">
+      <Card className="p-0 overflow-hidden border-gray-200">
+        <div className="h-[550px] relative">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -132,19 +130,19 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
             <ResponsiveChoropleth
               data={statesData}
               features={geoFeatures.features}
-              margin={{ top: 20, right: 40, bottom: 60, left: 40 }}
+              margin={{ top: 0, right: 0, bottom: 30, left: 0 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={1200}
-              projectionTranslation={[0.52, 0.58]}
+              projectionScale={600}
+              projectionTranslation={[0.5, 0.5]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
-              borderWidth={0.8}
+              borderWidth={0.5}
               borderColor="#152538"
-              fillColor="#f0f7ff"
+              fillColor="#f5f5f5"
               match={(feature, datum) => {
                 // @ts-ignore - Mapear a sigla do estado (AC, SP, etc) ao id dos dados
                 return feature.properties.sigla === datum.id;
@@ -158,19 +156,18 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               }}
               legends={[
                 {
-                  anchor: 'bottom-right',
+                  anchor: 'bottom-left',
                   direction: 'column',
                   justify: true,
-                  translateX: -30,
-                  translateY: -40,
-                  itemsSpacing: 2,
-                  itemWidth: 120,
-                  itemHeight: 20,
+                  translateX: 20,
+                  translateY: -10,
+                  itemsSpacing: 0,
+                  itemWidth: 94,
+                  itemHeight: 18,
                   itemDirection: 'left-to-right',
                   itemTextColor: '#444',
-                  itemOpacity: 0.9,
+                  itemOpacity: 0.85,
                   symbolSize: 18,
-                  symbolShape: 'square',
                   effects: [
                     {
                       on: 'hover',
