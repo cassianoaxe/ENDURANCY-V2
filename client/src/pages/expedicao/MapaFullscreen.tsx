@@ -109,6 +109,7 @@ const MapaFullscreen: React.FC = () => {
             fullscreen={true} 
             colorMode="colored"
             showStateLabels={true}
+            sidebarOpen={showSidebar}
           />
         </div>
         
