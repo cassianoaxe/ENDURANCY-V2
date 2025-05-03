@@ -29,43 +29,45 @@ const BrasilShipmentMapSimple: React.FC<ShipmentMapProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
-        
-        // Processamento dos dados de resposta
-        if (Array.isArray(response.data) && response.data.length > 0) {
-          setData(response.data.map(item => ({
-            ...item,
-            id: item.id.toUpperCase()
-          })));
-        } else {
-          // Dados de exemplo se a API não retornar dados válidos
-          setData([
-            { id: "SP", name: "São Paulo", value: 245 },
-            { id: "RJ", name: "Rio de Janeiro", value: 170 },
-            { id: "MG", name: "Minas Gerais", value: 135 },
-            { id: "RS", name: "Rio Grande do Sul", value: 95 },
-            { id: "PR", name: "Paraná", value: 80 },
-            { id: "BA", name: "Bahia", value: 70 },
-            { id: "SC", name: "Santa Catarina", value: 65 },
-            { id: "DF", name: "Distrito Federal", value: 45 },
-            { id: "GO", name: "Goiás", value: 35 },
-            { id: "PE", name: "Pernambuco", value: 30 }
-          ]);
-        }
+    // Simular carregamento para dar uma experiência de UI melhor
+    setLoading(true);
+    setTimeout(() => {
+      // Utilizando apenas dados mock para visualização
+      // Estes são dados de exemplo de distribuição de envios por estado
+      const mockData = [
+        { id: "SP", name: "São Paulo", value: 1254 },
+        { id: "RJ", name: "Rio de Janeiro", value: 987 },
+        { id: "MG", name: "Minas Gerais", value: 765 },
+        { id: "RS", name: "Rio Grande do Sul", value: 651 },
+        { id: "PR", name: "Paraná", value: 580 },
+        { id: "BA", name: "Bahia", value: 542 },
+        { id: "SC", name: "Santa Catarina", value: 498 },
+        { id: "PE", name: "Pernambuco", value: 410 },
+        { id: "CE", name: "Ceará", value: 385 },
+        { id: "GO", name: "Goiás", value: 340 },
+        { id: "PA", name: "Pará", value: 280 },
+        { id: "ES", name: "Espírito Santo", value: 220 },
+        { id: "DF", name: "Distrito Federal", value: 210 },
+        { id: "MT", name: "Mato Grosso", value: 170 },
+        { id: "MS", name: "Mato Grosso do Sul", value: 160 },
+        { id: "MA", name: "Maranhão", value: 150 },
+        { id: "AM", name: "Amazonas", value: 125 },
+        { id: "RN", name: "Rio Grande do Norte", value: 120 },
+        { id: "PI", name: "Piauí", value: 110 },
+        { id: "PB", name: "Paraíba", value: 105 },
+        { id: "AL", name: "Alagoas", value: 90 },
+        { id: "SE", name: "Sergipe", value: 75 },
+        { id: "TO", name: "Tocantins", value: 60 },
+        { id: "RO", name: "Rondônia", value: 50 },
+        { id: "AC", name: "Acre", value: 35 },
+        { id: "AP", name: "Amapá", value: 30 },
+        { id: "RR", name: "Roraima", value: 20 }
+      ];
 
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao carregar dados:', err);
-        setError('Não foi possível carregar os dados do mapa');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      setData(mockData);
+      setError(null);
+      setLoading(false);
+    }, 800);
   }, [period]);
 
   // Cálculo de valores mínimo e máximo para a escala de cores

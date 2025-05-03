@@ -37,11 +37,57 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period,
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
+    setLoading(true);
+    // Simular tempo de carregamento
+    setTimeout(() => {
       try {
-        const response = await axios.get(`/api/expedicao/shipment-stats?period=${period}`);
-        setStats(response.data);
+        // Dados mock para visualização das estatísticas
+        const mockData: ShipmentStats = {
+          // Estatísticas gerais
+          totalShipments: 8742,
+          completedShipments: 7126,
+          inProgressShipments: 1616,
+          averageDeliveryTime: 3.2,
+          
+          // Dados para gráfico de status
+          shipmentsByStatus: [
+            { name: "Entregue", value: 7126, color: "#4ade80" },
+            { name: "Em Trânsito", value: 892, color: "#3b82f6" },
+            { name: "Pendente", value: 452, color: "#f59e0b" },
+            { name: "Atrasado", value: 272, color: "#ef4444" }
+          ],
+          
+          // Dados para gráfico de barras
+          shipmentsByDay: period === 'daily' ? [
+            { name: "08:00", enviados: 42, entregues: 18 },
+            { name: "10:00", enviados: 63, entregues: 26 },
+            { name: "12:00", enviados: 55, entregues: 38 },
+            { name: "14:00", enviados: 78, entregues: 51 },
+            { name: "16:00", enviados: 61, entregues: 44 },
+            { name: "18:00", enviados: 35, entregues: 27 }
+          ] : period === 'weekly' ? [
+            { name: "Seg", enviados: 245, entregues: 210 },
+            { name: "Ter", enviados: 358, entregues: 302 },
+            { name: "Qua", enviados: 287, entregues: 251 },
+            { name: "Qui", enviados: 315, entregues: 260 },
+            { name: "Sex", enviados: 401, entregues: 353 },
+            { name: "Sáb", enviados: 142, entregues: 124 }
+          ] : period === 'monthly' ? [
+            { name: "01-07", enviados: 1042, entregues: 845 },
+            { name: "08-14", enviados: 1358, entregues: 1276 },
+            { name: "15-21", enviados: 987, entregues: 861 },
+            { name: "22-28", enviados: 1215, entregues: 1103 }
+          ] : [
+            { name: "Jan", enviados: 4582, entregues: 4125 },
+            { name: "Fev", enviados: 3916, entregues: 3620 },
+            { name: "Mar", enviados: 5214, entregues: 4863 },
+            { name: "Abr", enviados: 4753, entregues: 4321 },
+            { name: "Mai", enviados: 5612, entregues: 5103 },
+            { name: "Jun", enviados: 4875, entregues: 4576 }
+          ]
+        };
+        
+        setStats(mockData);
         setError(null);
       } catch (err) {
         console.error('Erro ao carregar estatísticas de expedição:', err);
@@ -49,9 +95,7 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period,
       } finally {
         setLoading(false);
       }
-    };
-    
-    fetchStats();
+    }, 800);
   }, [period]);
   
   if (loading) {
