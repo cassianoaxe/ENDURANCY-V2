@@ -1619,11 +1619,13 @@ function AppContent() {
     if (currentPath === '/organization/expedicao/mapa-bi') {
       const MapaBi = React.lazy(() => import('./pages/expedicao/MapaBi'));
       return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>}>
-          <MapaBi />
-        </Suspense>
+        <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <MapaBi />
+          </Suspense>
+        </OrganizationLayout>
       );
     }
     

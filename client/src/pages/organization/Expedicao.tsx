@@ -333,6 +333,7 @@ export default function Expedicao() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {[
               { title: "Dashboard Expedição", icon: <BarChart4 size={20} />, path: "/organization/expedicao" },
+              { title: "Mapa BI", icon: <MapPin size={20} />, path: "/organization/expedicao/mapa-bi" },
               { title: "Preparação de Pedidos", icon: <ListChecks size={20} />, path: "/organization/expedicao/pedidos" },
               { title: "Etiquetas", icon: <Printer size={20} />, path: "/organization/expedicao/etiquetas" },
               { title: "Leitura de Códigos", icon: <QrCode size={20} />, path: "/organization/expedicao/codigos" },
