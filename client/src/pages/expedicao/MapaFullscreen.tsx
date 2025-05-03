@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import BrasilTVMap from '../../components/expedicao/BrasilTVMap';
+import BrasilTVMap from '../../components/expedicao/BrasilTVMapNew';
 import { Loader2, ArrowLeft, LayoutPanelLeft } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {

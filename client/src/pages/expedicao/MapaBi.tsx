@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Heading, Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@/components/ui';
 import { ExternalLink, MapPin, BarChart2, ArrowLeft, Palette } from 'lucide-react';
 import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
-import BrasilTVMap from '@/components/expedicao/BrasilTVMap';
+import BrasilTVMap from '@/components/expedicao/BrasilTVMapNew';
 
 // Interface para o botão de abrir em nova aba
 interface OpenInNewTabButtonProps {

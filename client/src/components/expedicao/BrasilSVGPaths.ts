@@ -1,6 +1,68 @@
 // Definição de caminhos SVG (paths) para o mapa do Brasil com formato correto
 // Cada estado tem seu próprio path que define o formato no mapa
 
+// Lista de estados brasileiros com seus IDs (siglas) e nomes
+export const BRAZILIAN_STATES = [
+  { id: "AC", name: "Acre" },
+  { id: "AL", name: "Alagoas" },
+  { id: "AP", name: "Amapá" },
+  { id: "AM", name: "Amazonas" },
+  { id: "BA", name: "Bahia" },
+  { id: "CE", name: "Ceará" },
+  { id: "DF", name: "Distrito Federal" },
+  { id: "ES", name: "Espírito Santo" },
+  { id: "GO", name: "Goiás" },
+  { id: "MA", name: "Maranhão" },
+  { id: "MT", name: "Mato Grosso" },
+  { id: "MS", name: "Mato Grosso do Sul" },
+  { id: "MG", name: "Minas Gerais" },
+  { id: "PA", name: "Pará" },
+  { id: "PB", name: "Paraíba" },
+  { id: "PR", name: "Paraná" },
+  { id: "PE", name: "Pernambuco" },
+  { id: "PI", name: "Piauí" },
+  { id: "RJ", name: "Rio de Janeiro" },
+  { id: "RN", name: "Rio Grande do Norte" },
+  { id: "RS", name: "Rio Grande do Sul" },
+  { id: "RO", name: "Rondônia" },
+  { id: "RR", name: "Roraima" },
+  { id: "SC", name: "Santa Catarina" },
+  { id: "SP", name: "São Paulo" },
+  { id: "SE", name: "Sergipe" },
+  { id: "TO", name: "Tocantins" }
+];
+
+// Coordenadas centrais de cada estado para posicionamento de texto
+export const STATE_CENTERS: Record<string, { x: number, y: number }> = {
+  'AC': { x: 75, y: 270 },
+  'AL': { x: 430, y: 280 },
+  'AP': { x: 260, y: 145 },
+  'AM': { x: 165, y: 240 },
+  'BA': { x: 380, y: 320 },
+  'CE': { x: 410, y: 235 },
+  'DF': { x: 298, y: 352 },
+  'ES': { x: 385, y: 380 },
+  'GO': { x: 300, y: 375 },
+  'MA': { x: 350, y: 240 },
+  'MT': { x: 240, y: 325 },
+  'MS': { x: 260, y: 390 },
+  'MG': { x: 330, y: 380 },
+  'PA': { x: 290, y: 210 },
+  'PB': { x: 440, y: 240 },
+  'PR': { x: 265, y: 450 },
+  'PE': { x: 425, y: 255 },
+  'PI': { x: 380, y: 265 },
+  'RJ': { x: 355, y: 420 },
+  'RN': { x: 435, y: 220 },
+  'RS': { x: 230, y: 520 },
+  'RO': { x: 150, y: 305 },
+  'RR': { x: 180, y: 155 },
+  'SC': { x: 250, y: 480 },
+  'SP': { x: 295, y: 415 },
+  'SE': { x: 410, y: 295 },
+  'TO': { x: 320, y: 280 }
+};
+
 export const BRASIL_STATE_PATHS: Record<string, string> = {
   // Norte
   'AM': 'M185,205 L125,210 L95,220 L90,255 L110,275 L120,295 L150,295 L165,280 L195,280 L215,260 L240,240 L240,220 L220,210 Z',
