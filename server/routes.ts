@@ -260,6 +260,17 @@ const logoUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Adicionar rota de fallback para SPA que encaminha todas as rotas para o index.html
+  app.get([
+    '/organization/*',
+    '/dashboard',
+    '/pharmacist/*',
+    '/laboratory/*',
+    '/researcher/*',
+    '/supplier/*'
+  ], (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
   const server = createServer(app);
   // Setup session middleware
   const sessionConfig = {
