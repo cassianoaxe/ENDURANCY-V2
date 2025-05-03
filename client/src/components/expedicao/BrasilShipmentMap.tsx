@@ -121,7 +121,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
       </Heading>
       
       <Card className="p-0 overflow-hidden border-gray-200">
-        <div className="h-[550px] relative">
+        <div className="h-[600px] relative">
           {loading ? (
             <LoadingState />
           ) : error ? (
@@ -136,8 +136,8 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={600}
-              projectionTranslation={[0.5, 0.5]}
+              projectionScale={450}
+              projectionTranslation={[0.5, 0.65]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.5}
