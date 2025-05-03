@@ -652,6 +652,12 @@ export default function OrganizationSidebar() {
           path: "/organization/expedicao/documentacao",
           active: currentPath === "/organization/expedicao/documentacao",
           icon: <FileText size={16} />
+        },
+        {
+          title: "Mapa BI",
+          path: "/organization/expedicao/mapa-bi",
+          active: currentPath === "/organization/expedicao/mapa-bi",
+          icon: <BarChart3 size={16} />
         }
       ]
     },

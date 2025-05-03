@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { Loader2, ArrowLeft, Beaker, ChevronRight, BarChart, Users, FilePlus, Building } from "lucide-react";
+import { Loader2, ArrowLeft, Beaker, ChevronRight, BarChart, Users, FilePlus, Building, Map } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
@@ -347,6 +347,9 @@ import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
 
 // As importações para o módulo de Importação (RDC 660) já foram feitas anteriormente no arquivo
+
+// Import Mapa BI para o módulo de Expedição
+import MapaBi from "@/pages/expedicao/MapaBi";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -1600,6 +1603,19 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    if (currentPath === '/organization/expedicao/mapa-bi') {
+      const MapaBi = React.lazy(() => import('./pages/expedicao/MapaBi'));
+      return (
+        <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <MapaBi />
+          </Suspense>
+        </OrganizationLayout>
+      );
+    }
+    
     if (currentPath === '/organization/expedicao/juncao') {
       return <OrganizationLayout>
         <JuncaoPedidos />
@@ -1623,6 +1639,8 @@ function AppContent() {
         <EstoqueExpedicao />
       </OrganizationLayout>;
     }
+    
+    // Mapa BI está definido acima
 
     if (currentPath === '/organization/gerenciar-pacientes') {
       return <GerenciarPacientes />;
