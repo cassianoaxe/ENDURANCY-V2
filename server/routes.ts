@@ -263,13 +263,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Adicionar rota de fallback para SPA que encaminha todas as rotas para o index.html
   app.get([
     '/organization/*',
-    '/dashboard',
+    '/dashboard', 
     '/pharmacist/*',
     '/laboratory/*',
     '/researcher/*',
     '/supplier/*'
   ], (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    // Usar o caminho correto para o index.html
+    const distPath = '/home/runner/workspace/dist/public/index.html';
+    res.sendFile(distPath);
   });
   const server = createServer(app);
   // Setup session middleware
