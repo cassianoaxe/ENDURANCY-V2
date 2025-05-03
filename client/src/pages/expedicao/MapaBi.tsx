@@ -68,49 +68,18 @@ const MapaBi: React.FC = () => {
             <OpenInNewTabButton period={period} />
           </div>
           
-          <TabsContent value="daily">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="daily" />
+          {['daily', 'weekly', 'monthly', 'yearly'].map((value) => (
+            <TabsContent value={value} key={value}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <BrasilShipmentMap period={period} />
+                </div>
+                <div>
+                  <ShipmentStatsDashboard period={period} />
+                </div>
               </div>
-              <div>
-                <ShipmentStatsDashboard period="daily" />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="weekly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="weekly" />
-              </div>
-              <div>
-                <ShipmentStatsDashboard period="weekly" />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="monthly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="monthly" />
-              </div>
-              <div>
-                <ShipmentStatsDashboard period="monthly" />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="yearly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="yearly" />
-              </div>
-              <div>
-                <ShipmentStatsDashboard period="yearly" />
-              </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </div>
