@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Heading } from '@/components/ui';
 import { useLocation } from 'wouter';
 import BrasilShipmentMap from '@/components/expedicao/BrasilShipmentMap';
+import ShipmentStatsDashboard from '@/components/expedicao/ShipmentStatsDashboard';
 import { X, Maximize2 } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
@@ -105,11 +106,16 @@ const MapaFullscreen: React.FC = () => {
           </Heading>
         </header>
         
-        <div className="h-[calc(100vh-150px)] w-full">
-          <BrasilShipmentMap
-            period={period}
-            className="h-full"
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[calc(100vh-150px)]">
+          <div className="xl:col-span-3 h-full">
+            <BrasilShipmentMap
+              period={period}
+              className="h-full"
+            />
+          </div>
+          <div className="xl:col-span-1 h-full overflow-auto">
+            <ShipmentStatsDashboard period={period} />
+          </div>
         </div>
       </div>
     </div>
