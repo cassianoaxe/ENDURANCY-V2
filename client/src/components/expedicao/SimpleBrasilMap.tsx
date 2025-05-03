@@ -1,159 +1,171 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Heading } from '@/components/ui';
 import { Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
-// Tipo para os dados de envios por estado
-interface StateShipmentData {
-  id: string; // Código do estado (SP, RJ, etc)
-  name: string; // Nome do estado
-  value: number; // Quantidade de envios
+// Definição do tipo para os dados de cada estado
+interface StateData {
+  id: string;
+  name: string;
+  value: number;
 }
 
 // Props do componente
-interface SimpleBrasilMapProps {
+interface BrasilMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
   fullscreen?: boolean;
 }
 
-// Componente para estado de carregamento
-const LoadingDisplay = ({ height }: { height: string }) => (
-  <div className={`w-full ${height} flex items-center justify-center`}>
-    <div className="flex flex-col items-center">
-      <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
-      <p className="text-gray-600">Carregando mapa...</p>
-    </div>
-  </div>
-);
+// Lista de estados brasileiros e suas abreviaturas para o mapa
+const BRAZILIAN_STATES = [
+  { id: 'AC', name: 'Acre' },
+  { id: 'AL', name: 'Alagoas' },
+  { id: 'AM', name: 'Amazonas' },
+  { id: 'AP', name: 'Amapá' },
+  { id: 'BA', name: 'Bahia' },
+  { id: 'CE', name: 'Ceará' },
+  { id: 'DF', name: 'Distrito Federal' },
+  { id: 'ES', name: 'Espírito Santo' },
+  { id: 'GO', name: 'Goiás' },
+  { id: 'MA', name: 'Maranhão' },
+  { id: 'MG', name: 'Minas Gerais' },
+  { id: 'MS', name: 'Mato Grosso do Sul' },
+  { id: 'MT', name: 'Mato Grosso' },
+  { id: 'PA', name: 'Pará' },
+  { id: 'PB', name: 'Paraíba' },
+  { id: 'PE', name: 'Pernambuco' },
+  { id: 'PI', name: 'Piauí' },
+  { id: 'PR', name: 'Paraná' },
+  { id: 'RJ', name: 'Rio de Janeiro' },
+  { id: 'RN', name: 'Rio Grande do Norte' },
+  { id: 'RO', name: 'Rondônia' },
+  { id: 'RR', name: 'Roraima' },
+  { id: 'RS', name: 'Rio Grande do Sul' },
+  { id: 'SC', name: 'Santa Catarina' },
+  { id: 'SE', name: 'Sergipe' },
+  { id: 'SP', name: 'São Paulo' },
+  { id: 'TO', name: 'Tocantins' }
+];
 
-// Componente para exibição de erro
-const ErrorDisplay = ({ 
-  error, 
-  onRetry,
-  height 
-}: { 
-  error: string;
-  onRetry: () => void;
-  height: string;
-}) => (
-  <div className={`w-full ${height} flex items-center justify-center`}>
-    <div className="text-center">
-      <p className="text-red-500 mb-4">{error}</p>
-      <button
-        onClick={onRetry}
-        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-      >
-        Tentar novamente
-      </button>
-    </div>
-  </div>
-);
+// Dados padrão para o mapa (serão substituídos por dados do servidor)
+const DEFAULT_DATA: StateData[] = [
+  { id: "SP", name: "São Paulo", value: 0 },
+  { id: "RJ", name: "Rio de Janeiro", value: 0 },
+  { id: "MG", name: "Minas Gerais", value: 0 },
+  { id: "RS", name: "Rio Grande do Sul", value: 0 },
+  { id: "PR", name: "Paraná", value: 0 },
+  { id: "BA", name: "Bahia", value: 0 },
+  { id: "SC", name: "Santa Catarina", value: 0 },
+  { id: "PE", name: "Pernambuco", value: 0 },
+  { id: "CE", name: "Ceará", value: 0 },
+  { id: "GO", name: "Goiás", value: 0 },
+  { id: "PA", name: "Pará", value: 0 },
+  { id: "ES", name: "Espírito Santo", value: 0 },
+  { id: "DF", name: "Distrito Federal", value: 0 },
+  { id: "MT", name: "Mato Grosso", value: 0 },
+  { id: "MS", name: "Mato Grosso do Sul", value: 0 },
+  { id: "MA", name: "Maranhão", value: 0 },
+  { id: "AM", name: "Amazonas", value: 0 },
+  { id: "RN", name: "Rio Grande do Norte", value: 0 },
+  { id: "PI", name: "Piauí", value: 0 },
+  { id: "PB", name: "Paraíba", value: 0 },
+  { id: "AL", name: "Alagoas", value: 0 },
+  { id: "SE", name: "Sergipe", value: 0 },
+  { id: "TO", name: "Tocantins", value: 0 },
+  { id: "RO", name: "Rondônia", value: 0 },
+  { id: "AP", name: "Amapá", value: 0 },
+  { id: "AC", name: "Acre", value: 0 },
+  { id: "RR", name: "Roraima", value: 0 }
+];
 
-// Mapa interativo simplificado do Brasil baseado em SVG
-const SimpleBrasilMap: React.FC<SimpleBrasilMapProps> = ({ 
+const SimpleBrasilMap: React.FC<BrasilMapProps> = ({ 
   period, 
   className = '',
   fullscreen = false 
 }) => {
-  const [data, setData] = useState<StateShipmentData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedState, setSelectedState] = useState<string | null>(null);
-
+  const [hoveredState, setHoveredState] = useState<string | null>(null);
+  
+  // Consulta para buscar dados do backend
+  const { data: stateData, isLoading, error } = useQuery<StateData[]>({
+    queryKey: [`/api/expedicao/envios-por-estado/${period}`],
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    initialData: DEFAULT_DATA,
+  });
+  
+  // Calculando o valor máximo para gerar escala de cores
+  const maxValue = stateData ? Math.max(...stateData.map(state => state.value)) : 1;
+  
   // Altura adequada baseada no modo
-  const mapHeight = fullscreen ? "h-[calc(100vh-240px)]" : "h-[500px]";
+  const mapHeight = fullscreen ? "h-[calc(100vh-200px)]" : "h-[500px]";
   
-  // Carregamento de dados
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Dados mockados de envios por estado
-        const mockData = [
-          { id: "SP", name: "São Paulo", value: 1254 },
-          { id: "RJ", name: "Rio de Janeiro", value: 987 },
-          { id: "MG", name: "Minas Gerais", value: 765 },
-          { id: "RS", name: "Rio Grande do Sul", value: 651 },
-          { id: "PR", name: "Paraná", value: 580 },
-          { id: "BA", name: "Bahia", value: 542 },
-          { id: "SC", name: "Santa Catarina", value: 498 },
-          { id: "PE", name: "Pernambuco", value: 410 },
-          { id: "CE", name: "Ceará", value: 385 },
-          { id: "GO", name: "Goiás", value: 340 },
-          { id: "PA", name: "Pará", value: 280 },
-          { id: "ES", name: "Espírito Santo", value: 220 },
-          { id: "DF", name: "Distrito Federal", value: 210 },
-          { id: "MT", name: "Mato Grosso", value: 170 },
-          { id: "MS", name: "Mato Grosso do Sul", value: 160 },
-          { id: "MA", name: "Maranhão", value: 150 },
-          { id: "AM", name: "Amazonas", value: 125 },
-          { id: "RN", name: "Rio Grande do Norte", value: 120 },
-          { id: "PI", name: "Piauí", value: 110 },
-          { id: "PB", name: "Paraíba", value: 105 },
-          { id: "AL", name: "Alagoas", value: 90 },
-          { id: "SE", name: "Sergipe", value: 75 },
-          { id: "TO", name: "Tocantins", value: 60 },
-          { id: "RO", name: "Rondônia", value: 55 },
-          { id: "AP", name: "Amapá", value: 40 },
-          { id: "AC", name: "Acre", value: 35 },
-          { id: "RR", name: "Roraima", value: 25 }
-        ];
-        
-        // Simulação de atraso para melhor experiência de UI
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        setData(mockData);
-      } catch (err: any) {
-        console.error('Erro ao carregar dados de expedição:', err);
-        setError(`Falha ao carregar dados: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Função para gerar cor baseada no valor
+  const getColorForState = (stateId: string) => {
+    if (!stateData) return "#e0e0e0"; // cor para quando não há dados
     
-    loadData();
-  }, [period]);
-  
-  // Handler para tentar novamente em caso de erro
-  const handleRetry = () => {
-    setLoading(true);
-    setError(null);
-    window.location.reload();
+    const stateInfo = stateData.find(state => state.id === stateId);
+    if (!stateInfo) return "#e0e0e0"; // cor para estados sem dados
+    
+    if (maxValue === 0) return "#e0e0e0"; // Evitar divisão por zero
+    
+    const intensity = Math.floor((stateInfo.value / maxValue) * 100);
+    return `rgba(59, 130, 246, ${intensity / 100})`; // Escala de azul com opacidade baseada no valor
   };
   
-  // Encontra o valor máximo para calibrar a escala de cores
-  const maxValue = data.length > 0 ? Math.max(...data.map(d => d.value)) : 100;
-  
-  // Função para gerar a cor baseada no valor (escala de azul)
-  const getColorForValue = (value: number) => {
-    const normalizedValue = value / maxValue; // valor entre 0 e 1
-    const intensity = Math.floor(255 - normalizedValue * 200); // mais intenso para valores maiores
-    return `rgb(${intensity}, ${intensity}, 255)`;
-  };
-  
-  // Função para lidar com hover em um estado
+  // Função para lidar com hover no estado
   const handleStateHover = (stateId: string) => {
-    setSelectedState(stateId);
+    setHoveredState(stateId);
   };
   
   // Função para lidar com o fim do hover
   const handleStateLeave = () => {
-    setSelectedState(null);
+    setHoveredState(null);
   };
   
-  // Informações do estado selecionado
-  const selectedStateData = selectedState ? data.find(state => state.id === selectedState) : null;
-
-  if (loading) {
-    return <LoadingDisplay height={mapHeight} />;
+  // Obter dados do estado hovereado
+  const hoveredStateData = hoveredState && stateData 
+    ? stateData.find(state => state.id === hoveredState) 
+    : null;
+  
+  // Renderizar indicador de carregamento
+  if (isLoading) {
+    return (
+      <div className={`w-full ${className}`}>
+        <Card className={`shadow-md overflow-hidden ${fullscreen ? 'border-2 border-primary/20' : ''}`}>
+          <div className={`${mapHeight} bg-white relative flex items-center justify-center p-4`}>
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Carregando dados do mapa...</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
   }
-
+  
+  // Renderizar mensagem de erro
   if (error) {
-    return <ErrorDisplay error={error} onRetry={handleRetry} height={mapHeight} />;
+    return (
+      <div className={`w-full ${className}`}>
+        <Card className={`shadow-md overflow-hidden ${fullscreen ? 'border-2 border-primary/20' : ''}`}>
+          <div className={`${mapHeight} bg-white relative flex items-center justify-center p-4`}>
+            <div className="flex flex-col items-center gap-3 max-w-md text-center">
+              <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                <span className="text-red-600 text-2xl">!</span>
+              </div>
+              <p className="text-lg font-medium">Erro ao carregar os dados</p>
+              <p className="text-muted-foreground">
+                Não foi possível carregar os dados de envios por estado. 
+                Por favor, tente novamente mais tarde.
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
   }
-
+  
   return (
     <div className={`w-full ${className}`}>
       <Card className={`shadow-md overflow-hidden ${fullscreen ? 'border-2 border-primary/20' : ''}`}>
@@ -163,309 +175,115 @@ const SimpleBrasilMap: React.FC<SimpleBrasilMapProps> = ({
           </Heading>
         </div>
         
-        <div className={`${mapHeight} relative bg-sky-50 flex justify-center items-center`}>
-          {/* Mapa SVG simplificado do Brasil */}
-          <div className="max-w-2xl w-full px-6">
-            <svg 
-              viewBox="0 0 800 800" 
-              className="w-full h-full"
-              style={{ filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1))' }}
-            >
-              {/* Grupos de estados por região */}
-              <g id="norte">
-                {/* Amazonas */}
-                <path 
-                  id="AM" 
-                  d="M226,326 L200,250 L160,280 L120,260 L90,320 L130,350 L180,340 L240,370 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "AM")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("AM")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Pará */}
-                <path 
-                  id="PA" 
-                  d="M240,370 L320,350 L400,370 L380,430 L330,450 L270,440 L260,390 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "PA")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("PA")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Rondônia */}
-                <path 
-                  id="RO" 
-                  d="M180,340 L240,370 L260,390 L240,420 L200,430 L170,400 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "RO")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("RO")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Acre */}
-                <path 
-                  id="AC" 
-                  d="M90,320 L130,350 L170,400 L130,410 L100,380 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "AC")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("AC")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Roraima */}
-                <path 
-                  id="RR" 
-                  d="M200,250 L226,326 L200,280 L180,220 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "RR")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("RR")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Amapá */}
-                <path 
-                  id="AP" 
-                  d="M320,260 L340,300 L320,350 L300,330 L290,290 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "AP")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("AP")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Tocantins */}
-                <path 
-                  id="TO" 
-                  d="M380,430 L330,450 L340,480 L370,510 L400,480 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "TO")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("TO")}
-                  onMouseLeave={handleStateLeave}
-                />
-              </g>
+        <div className={`${mapHeight} bg-white relative flex items-center justify-center p-4`}>
+          {/* Renderização do mapa SVG do Brasil */}
+          <svg 
+            viewBox="-75 -33 150 66" 
+            width="100%" 
+            height="100%" 
+            className="max-w-full max-h-full" 
+            style={{ 
+              filter: "drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.1))" 
+            }}
+          >
+            {/* Mapa base do Brasil (SVG path simplificado do Brasil) */}
+            <path
+              d="M-43,5 L-40,0 L-30,-5 L-25,-10 L-20,-15 L-15,-20 L-5,-20 L0,-15 L10,-20 L20,-15 L25,-5 L30,0 L25,10 L20,15 L15,20 L5,25 L0,20 L-5,15 L-15,10 L-25,10 L-35,5 L-43,5 Z"
+              fill="#f0f9ff"
+              stroke="#ccc"
+              strokeWidth="0.5"
+            />
+            
+            {/* Círculos representando os estados */}
+            {BRAZILIAN_STATES.map((state) => {
+              // Posicionamento aproximado dos estados (simplificado)
+              const position = getStatePosition(state.id);
+              const stateInfo = stateData.find(s => s.id === state.id);
+              const value = stateInfo?.value || 0;
+              const radius = Math.max(2, Math.min(5, 2 + (value / maxValue) * 5));
               
-              <g id="nordeste">
-                {/* Maranhão */}
-                <path 
-                  id="MA" 
-                  d="M400,370 L440,360 L450,400 L420,430 L400,430 L380,430 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "MA")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("MA")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Piauí */}
-                <path 
-                  id="PI" 
-                  d="M450,400 L460,380 L490,410 L480,450 L450,460 L420,430 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "PI")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("PI")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Ceará */}
-                <path 
-                  id="CE" 
-                  d="M490,410 L520,390 L550,410 L530,450 L500,470 L480,450 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "CE")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("CE")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Rio Grande do Norte */}
-                <path 
-                  id="RN" 
-                  d="M550,410 L580,400 L590,420 L570,440 L530,450 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "RN")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("RN")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Paraíba */}
-                <path 
-                  id="PB" 
-                  d="M570,440 L590,420 L620,430 L610,460 L580,450 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "PB")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("PB")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Pernambuco */}
-                <path 
-                  id="PE" 
-                  d="M500,470 L530,450 L570,440 L580,450 L570,480 L530,490 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "PE")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("PE")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Alagoas */}
-                <path 
-                  id="AL" 
-                  d="M570,480 L610,460 L620,480 L590,510 L560,500 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "AL")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("AL")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Sergipe */}
-                <path 
-                  id="SE" 
-                  d="M560,500 L590,510 L600,530 L570,540 L550,520 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "SE")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("SE")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Bahia */}
-                <path 
-                  id="BA" 
-                  d="M450,460 L500,470 L530,490 L560,500 L550,520 L570,540 L520,590 L460,570 L400,530 L370,510 L450,460" 
-                  fill={getColorForValue(data.find(d => d.id === "BA")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("BA")}
-                  onMouseLeave={handleStateLeave}
-                />
-              </g>
-              
-              <g id="centro-oeste">
-                {/* Mato Grosso */}
-                <path 
-                  id="MT" 
-                  d="M240,420 L260,390 L270,440 L330,450 L340,480 L320,540 L250,490 L240,420" 
-                  fill={getColorForValue(data.find(d => d.id === "MT")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("MT")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Mato Grosso do Sul */}
-                <path 
-                  id="MS" 
-                  d="M250,490 L320,540 L300,610 L270,620 L240,570 L220,520 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "MS")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("MS")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Goiás */}
-                <path 
-                  id="GO" 
-                  d="M320,540 L340,480 L370,510 L400,530 L390,580 L350,590 L320,580 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "GO")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("GO")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Distrito Federal */}
-                <path 
-                  id="DF" 
-                  d="M370,530 L380,520 L390,530 L380,540 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "DF")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("DF")}
-                  onMouseLeave={handleStateLeave}
-                />
-              </g>
-              
-              <g id="sudeste">
-                {/* São Paulo */}
-                <path 
-                  id="SP" 
-                  d="M300,610 L320,580 L350,590 L390,580 L400,610 L380,640 L340,650 L320,630 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "SP")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("SP")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Minas Gerais */}
-                <path 
-                  id="MG" 
-                  d="M400,530 L460,570 L450,620 L400,610 L390,580 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "MG")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("MG")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Rio de Janeiro */}
-                <path 
-                  id="RJ" 
-                  d="M450,620 L470,630 L450,660 L420,670 L380,640 L400,610 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "RJ")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("RJ")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Espírito Santo */}
-                <path 
-                  id="ES" 
-                  d="M460,570 L520,590 L510,620 L470,630 L450,620 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "ES")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("ES")}
-                  onMouseLeave={handleStateLeave}
-                />
-              </g>
-              
-              <g id="sul">
-                {/* Paraná */}
-                <path 
-                  id="PR" 
-                  d="M270,620 L300,610 L320,630 L340,650 L320,680 L270,670 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "PR")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("PR")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Santa Catarina */}
-                <path 
-                  id="SC" 
-                  d="M270,670 L320,680 L310,720 L260,710 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "SC")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("SC")}
-                  onMouseLeave={handleStateLeave}
-                />
-                {/* Rio Grande do Sul */}
-                <path 
-                  id="RS" 
-                  d="M260,710 L310,720 L300,780 L250,780 L220,750 Z" 
-                  fill={getColorForValue(data.find(d => d.id === "RS")?.value || 0)}
-                  stroke="#152538"
-                  strokeWidth="1"
-                  onMouseEnter={() => handleStateHover("RS")}
-                  onMouseLeave={handleStateLeave}
-                />
-              </g>
-            </svg>
-          </div>
+              return (
+                <g key={state.id}>
+                  <circle
+                    cx={position.x}
+                    cy={position.y}
+                    r={radius}
+                    fill={getColorForState(state.id)}
+                    stroke={hoveredState === state.id ? "#000" : "#fff"}
+                    strokeWidth={hoveredState === state.id ? 0.8 : 0.3}
+                    onMouseEnter={() => handleStateHover(state.id)}
+                    onMouseLeave={handleStateLeave}
+                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  />
+                  {hoveredState === state.id && (
+                    <text
+                      x={position.x}
+                      y={position.y - radius - 1}
+                      textAnchor="middle"
+                      fontSize="3"
+                      fill="#333"
+                    >
+                      {state.id}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+            
+            {/* Tooltip para o estado com hover */}
+            {hoveredState && hoveredStateData && (
+              <foreignObject
+                x="-50"
+                y="-30"
+                width="100"
+                height="20"
+                style={{ 
+                  overflow: 'visible', 
+                  pointerEvents: 'none' 
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    backgroundColor: 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    padding: '8px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                    zIndex: 1000,
+                    pointerEvents: 'none',
+                    minWidth: '120px',
+                  }}
+                >
+                  <p style={{ fontWeight: 'bold', margin: '0', fontSize: '14px' }}>
+                    {hoveredStateData.name}
+                  </p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#3b82f6' }}>
+                    {hoveredStateData.value} envios
+                  </p>
+                </div>
+              </foreignObject>
+            )}
+          </svg>
           
-          {/* Tooltip customizado */}
-          {selectedState && selectedStateData && (
-            <div className="absolute top-4 right-4 bg-white p-4 shadow-lg rounded-md border border-gray-200 z-10">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">{selectedStateData.name}</h3>
-              <p className="text-blue-600 font-medium">{selectedStateData.value} envios</p>
+          {/* Legenda da escala de cores */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-90 py-2 px-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-8">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-blue-100 mr-2"></div>
+              <span className="text-xs text-gray-600">Baixo</span>
             </div>
-          )}
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-blue-300 mr-2"></div>
+              <span className="text-xs text-gray-600">Médio</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+              <span className="text-xs text-gray-600">Alto</span>
+            </div>
+          </div>
         </div>
         
         <div className="py-2 px-4 bg-gray-50 border-t border-gray-200 flex justify-center">
@@ -479,6 +297,41 @@ const SimpleBrasilMap: React.FC<SimpleBrasilMapProps> = ({
       </Card>
     </div>
   );
+};
+
+// Função auxiliar para obter a posição aproximada de cada estado no SVG
+const getStatePosition = (stateId: string) => {
+  const positions: Record<string, {x: number, y: number}> = {
+    'AC': { x: -40, y: -5 },
+    'AL': { x: 30, y: 0 },
+    'AM': { x: -30, y: -10 },
+    'AP': { x: -5, y: -25 },
+    'BA': { x: 20, y: 0 },
+    'CE': { x: 30, y: -10 },
+    'DF': { x: 5, y: 5 },
+    'ES': { x: 25, y: 10 },
+    'GO': { x: 0, y: 5 },
+    'MA': { x: 15, y: -15 },
+    'MG': { x: 15, y: 10 },
+    'MS': { x: -5, y: 15 },
+    'MT': { x: -10, y: 0 },
+    'PA': { x: 0, y: -15 },
+    'PB': { x: 35, y: -5 },
+    'PE': { x: 30, y: -5 },
+    'PI': { x: 20, y: -10 },
+    'PR': { x: 0, y: 20 },
+    'RJ': { x: 20, y: 15 },
+    'RN': { x: 35, y: -10 },
+    'RO': { x: -25, y: 0 },
+    'RR': { x: -20, y: -20 },
+    'RS': { x: -5, y: 25 },
+    'SC': { x: 0, y: 25 },
+    'SE': { x: 30, y: 5 },
+    'SP': { x: 10, y: 15 },
+    'TO': { x: 5, y: -5 },
+  };
+  
+  return positions[stateId] || { x: 0, y: 0 };
 };
 
 export default SimpleBrasilMap;
