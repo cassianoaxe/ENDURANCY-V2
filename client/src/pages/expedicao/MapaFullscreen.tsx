@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import BrasilTVMap from '../../components/expedicao/BrasilTVMapNew';
 import ShipmentStatsDashboard from '../../components/expedicao/ShipmentStatsDashboard';
 import { Loader2, ArrowLeft, LayoutPanelLeft } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
+  const [location, setLocation] = useLocation();
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [isLoading, setIsLoading] = useState(true);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -22,13 +24,13 @@ const MapaFullscreen: React.FC = () => {
       else if (e.key === '2') setPeriod('weekly');
       else if (e.key === '3') setPeriod('monthly');
       else if (e.key === '4') setPeriod('yearly');
-      else if (e.key === 'Escape') window.history.back();
-      else if (e.key === 's') setShowSidebar(!showSidebar);
+      else if (e.key === 'Escape') setLocation('/organization/expedicao');
+      else if (e.key.toLowerCase() === 's') setShowSidebar(!showSidebar);
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSidebar]);
+  }, [showSidebar, setLocation]);
   
   if (isLoading) {
     return (
@@ -43,7 +45,7 @@ const MapaFullscreen: React.FC = () => {
     <div className="h-screen w-screen bg-background overflow-hidden">
       <div className="fixed top-4 left-4 z-20 flex gap-2">
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => setLocation('/organization/expedicao')}
           className="h-10 w-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow-md"
           title="Voltar"
         >
