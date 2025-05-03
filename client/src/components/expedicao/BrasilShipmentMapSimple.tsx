@@ -163,7 +163,7 @@ const BrasilShipmentMapSimple: React.FC<ShipmentMapProps> = ({
           </Heading>
         </div>
         
-        <div className={mapHeight}>
+        <div className={`${mapHeight} bg-white`}>
           <React.Suspense fallback={<LoadingDisplay height="100%" />}>
             <ResponsiveChoroplethLazy
               data={data}
