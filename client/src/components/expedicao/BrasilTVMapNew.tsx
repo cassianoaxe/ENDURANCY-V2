@@ -120,7 +120,7 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
     if (!state) return "#f1f1f1"; // Cor padrão
     
     if (mapConfig.colorMode === 'outline') {
-      return 'transparent';
+      return 'rgba(255, 255, 255, 0.7)'; // Fundo branco sólido no modo de contorno
     }
     
     // Normalizar o valor entre 0 e 1
@@ -299,12 +299,15 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           <div 
             className="relative w-full h-full flex items-center justify-center"
           >
-            {mapConfig.colorMode !== 'outline' && (
+            {/* Imagem do mapa somente em modos que não sejam de contorno */}
+            {mapConfig.colorMode !== 'outline' ? (
               <img 
                 src="/mapa-brasil-base.jpg" 
                 alt="Mapa do Brasil" 
                 className="max-h-full max-w-full object-contain absolute z-10 opacity-80"
               />
+            ) : (
+              <div className="absolute inset-0 z-10 bg-white"></div>
             )}
             <svg 
               viewBox="0 0 800 800" 
@@ -384,8 +387,8 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
                       cy={y}
                       r={radius}
                       fill={getColorForState(state.id)}
-                      stroke="#fff"
-                      strokeWidth={2}
+                      stroke={mapConfig.colorMode === 'outline' ? "#333" : "#fff"}
+                      strokeWidth={mapConfig.colorMode === 'outline' ? 2.5 : 2}
                       opacity={0.9}
                     />
                     
@@ -415,7 +418,7 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
                         fontSize={getValueFontSize()}
                         fontWeight="bold" 
                         textAnchor="middle" 
-                        fill="#fff"
+                        fill={mapConfig.colorMode === 'outline' ? "#000" : "#fff"}
                         pointerEvents="none"
                       >
                         {value}
