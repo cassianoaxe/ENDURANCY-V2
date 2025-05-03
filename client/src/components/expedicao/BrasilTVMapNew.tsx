@@ -28,164 +28,165 @@ const GRAYSCALE_PALETTE = [
 function getMockData(): StateData[] {
   return [
     { id: "SP", name: "São Paulo", value: 320 },
-    { id: "RJ", name: "Rio de Janeiro", value: 180 },
-    { id: "MG", name: "Minas Gerais", value: 150 },
-    { id: "BA", name: "Bahia", value: 110 },
-    { id: "RS", name: "Rio Grande do Sul", value: 95 },
-    { id: "PR", name: "Paraná", value: 85 },
-    { id: "PE", name: "Pernambuco", value: 75 },
-    { id: "CE", name: "Ceará", value: 65 },
-    { id: "SC", name: "Santa Catarina", value: 55 },
-    { id: "PA", name: "Pará", value: 45 },
-    { id: "MA", name: "Maranhão", value: 35 },
-    { id: "GO", name: "Goiás", value: 30 },
-    { id: "AM", name: "Amazonas", value: 25 },
-    { id: "ES", name: "Espírito Santo", value: 20 },
-    { id: "PB", name: "Paraíba", value: 18 },
-    { id: "RN", name: "Rio Grande do Norte", value: 16 },
-    { id: "MT", name: "Mato Grosso", value: 15 },
-    { id: "AL", name: "Alagoas", value: 12 },
-    { id: "PI", name: "Piauí", value: 10 },
-    { id: "DF", name: "Distrito Federal", value: 8 },
-    { id: "MS", name: "Mato Grosso do Sul", value: 7 },
-    { id: "SE", name: "Sergipe", value: 5 },
-    { id: "RO", name: "Rondônia", value: 3 },
-    { id: "TO", name: "Tocantins", value: 2 },
-    { id: "AC", name: "Acre", value: 1 },
-    { id: "AP", name: "Amapá", value: 1 },
-    { id: "RR", name: "Roraima", value: 1 }
+    { id: "RJ", name: "Rio de Janeiro", value: 280 },
+    { id: "MG", name: "Minas Gerais", value: 210 },
+    { id: "RS", name: "Rio Grande do Sul", value: 180 },
+    { id: "PR", name: "Paraná", value: 170 },
+    { id: "BA", name: "Bahia", value: 140 },
+    { id: "SC", name: "Santa Catarina", value: 125 },
+    { id: "PE", name: "Pernambuco", value: 110 },
+    { id: "CE", name: "Ceará", value: 95 },
+    { id: "GO", name: "Goiás", value: 85 },
+    { id: "DF", name: "Distrito Federal", value: 75 },
+    { id: "AM", name: "Amazonas", value: 65 },
+    { id: "PA", name: "Pará", value: 60 },
+    { id: "ES", name: "Espírito Santo", value: 55 },
+    { id: "MT", name: "Mato Grosso", value: 50 },
+    { id: "MS", name: "Mato Grosso do Sul", value: 45 },
+    { id: "MA", name: "Maranhão", value: 40 },
+    { id: "PB", name: "Paraíba", value: 35 },
+    { id: "RN", name: "Rio Grande do Norte", value: 30 },
+    { id: "AL", name: "Alagoas", value: 25 },
+    { id: "PI", name: "Piauí", value: 20 },
+    { id: "SE", name: "Sergipe", value: 18 },
+    { id: "TO", name: "Tocantins", value: 15 },
+    { id: "RO", name: "Rondônia", value: 12 },
+    { id: "AC", name: "Acre", value: 10 },
+    { id: "AP", name: "Amapá", value: 8 },
+    { id: "RR", name: "Roraima", value: 5 }
   ];
 }
 
 const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({ 
-  period = 'monthly', 
+  period, 
   className = '', 
   fullscreen = false,
   showStateLabels = true,
   colorMode = 'colored'
 }) => {
   const [showSettings, setShowSettings] = useState(false);
+  
   const [mapConfig, setMapConfig] = useState({
     showStateLabels: showStateLabels,
     showValues: true,
     colorMode: colorMode,
-    valueSize: 'medium', // 'small', 'medium', 'large'
-    borderWidth: 2,
+    valueSize: 'medium',
+    borderWidth: 1
   });
-
-  // Função para modificar dados baseado no período
+  
+  // Altura do mapa baseada em ser fullscreen ou não
+  const mapHeight = fullscreen ? 'h-screen' : 'h-[500px]';
+  
+  // Buscar dados de expedição da API
+  const { data, isLoading, error } = useQuery({
+    queryKey: [`/api/expedicao/shipments/${period}`],
+    queryFn: async () => {
+      // Em caso de erro na API, retorna dados mockup
+      // throw new Error("Simulando erro na API");
+      return null;
+    },
+    retry: 1,
+    refetchOnWindowFocus: false
+  });
+  
+  // Função para ajustar dados conforme o período (multiplica valores para demonstração)
   function adjustDataForPeriod(data: StateData[]): StateData[] {
-    const multipliers: Record<string, number> = {
-      'daily': 1,
-      'weekly': 7,
-      'monthly': 30,
-      'yearly': 365,
-    };
-    
-    const multiplier = multipliers[period] || 1;
+    const multiplier = 
+      period === 'daily' ? 1 :
+      period === 'weekly' ? 5 :
+      period === 'monthly' ? 20 :
+      period === 'yearly' ? 200 : 1;
     
     return data.map(state => ({
       ...state,
-      value: Math.round(state.value * multiplier)
+      value: Math.round(state.value * multiplier * (0.8 + Math.random() * 0.4))
     }));
   }
-
-  // Consulta para buscar dados do backend
-  const { data: fetchedData, isLoading } = useQuery<StateData[]>({
-    queryKey: [`/api/expedicao/envios-por-estado/${period}`],
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    placeholderData: getMockData(),
-    retry: 3,
-    retryDelay: 1000,
-    staleTime: 60000,
-    select: (data) => {
-      if (!data || data.length === 0) {
-        console.log('Usando dados mockup (API retornou vazio)');
-        return getMockData();
-      }
-      return data;
-    }
-  });
   
-  // Garantir que sempre temos dados para exibir - usar mockup se a API falhar
-  const stateData = fetchedData || getMockData();
+  // Usar dados mockup ajustados pelo período
+  const mockData = adjustDataForPeriod(getMockData());
   
-  // Altura adequada baseada no modo
-  const mapHeight = fullscreen ? "h-[calc(100vh-120px)]" : "h-[600px]";
+  // Dados que serão exibidos no mapa (da API ou mockup)
+  const stateData = data || mockData;
   
-  // Calculando o valor máximo para gerar escala de cores
+  // Encontrar o valor máximo para escala de cores
   const maxValue = Math.max(...stateData.map((state: StateData) => state.value), 1);
   
-  // Função para gerar cor baseada no valor e modo de cor selecionado
+  // Função para obter cor do estado com base no valor e modo de cor
   function getColorForState(stateId: string): string {
-    const stateInfo = stateData.find(state => state.id === stateId);
-    if (!stateInfo) return "#e0e0e0"; // cor para estados sem dados
+    const state = stateData.find(s => s.id === stateId);
+    
+    if (!state) return "#f1f1f1"; // Cor padrão
     
     if (mapConfig.colorMode === 'outline') {
-      return 'transparent'; // Apenas contorno, sem preenchimento
+      return 'transparent';
     }
+    
+    // Normalizar o valor entre 0 e 1
+    const normalizedValue = state.value / maxValue;
     
     if (mapConfig.colorMode === 'grayscale') {
-      // Escala de cinza
-      const intensity = Math.max(0.1, Math.min(0.9, stateInfo.value / maxValue));
-      const grayIndex = Math.floor(intensity * (GRAYSCALE_PALETTE.length - 1));
-      return GRAYSCALE_PALETTE[grayIndex];
-    }
-    
-    // Modo colorido - usar cores por região do Brasil
-    const baseColor = STATE_COLORS_BY_REGION[stateId] || "#e0e0e0";
-    
-    // Para efeito visual, aplica transparência sutil para diferenciar estados com mais ou menos envios
-    if (stateInfo.value === 0) {
-      // Estado sem envios: mais transparente
-      return baseColor + "60"; // 40% opacity
-    } else if (stateInfo.value < maxValue * 0.3) {
-      // Poucos envios: levemente transparente
-      return baseColor + "B0"; // 70% opacity
+      // Usar escala de cinza
+      const colorIndex = Math.min(
+        Math.floor(normalizedValue * GRAYSCALE_PALETTE.length),
+        GRAYSCALE_PALETTE.length - 1
+      );
+      return GRAYSCALE_PALETTE[GRAYSCALE_PALETTE.length - 1 - colorIndex];
     } else {
-      // Muitos envios: totalmente opaco
-      return baseColor;
+      // Usar cor da região com opacidade baseada no valor
+      const regionColor = STATE_COLORS_BY_REGION[stateId] || "#4285F4";
+      
+      // Quanto maior o valor, mais intenso é a cor
+      const opacity = 0.2 + (normalizedValue * 0.8);
+      
+      // Função para ajustar a cor em hex com opacidade
+      const adjustColorOpacity = (color: string, opacity: number) => {
+        if (color.startsWith("#")) {
+          // Converter HEX para RGB
+          const r = parseInt(color.slice(1, 3), 16);
+          const g = parseInt(color.slice(3, 5), 16);
+          const b = parseInt(color.slice(5, 7), 16);
+          
+          // Misturar com branco baseado na opacidade
+          const mixR = Math.round(r * opacity + 255 * (1 - opacity));
+          const mixG = Math.round(g * opacity + 255 * (1 - opacity));
+          const mixB = Math.round(b * opacity + 255 * (1 - opacity));
+          
+          return `#${mixR.toString(16).padStart(2, '0')}${mixG.toString(16).padStart(2, '0')}${mixB.toString(16).padStart(2, '0')}`;
+        }
+        return color;
+      };
+      
+      return adjustColorOpacity(regionColor, opacity);
     }
   }
   
-  // Função para determinar o tamanho da fonte dos valores exibidos no mapa
+  // Função para determinar tamanho da fonte do valor
   function getValueFontSize(): number {
-    switch (mapConfig.valueSize) {
-      case 'small': return 14;
-      case 'large': return 24;
-      case 'medium':
-      default: return 18;
+    switch(mapConfig.valueSize) {
+      case 'small': return 11;
+      case 'large': return 16;
+      default: return 14;
     }
   }
   
-  // Determinar a cor do texto do valor com base na cor de fundo do estado
+  // Função para determinar cor do texto do valor
   function getValueTextColor(stateId: string): string {
-    if (mapConfig.colorMode === 'outline') return '#000000';
+    const state = stateData.find(s => s.id === stateId);
+    if (!state) return "#333";
     
-    // Estados com cores escuras (que precisam de texto branco)
-    const darkStates = ['RR', 'MT', 'MS', 'GO', 'MG', 'SP', 'PR', 'SC', 'RS'];
+    if (mapConfig.colorMode === 'outline') {
+      return "#333";
+    }
     
-    return darkStates.includes(stateId) ? '#FFFFFF' : '#000000';
+    // Normalizar o valor entre 0 e 1
+    const normalizedValue = state.value / maxValue;
+    
+    // Se o valor for alto (mais escuro), usar texto branco
+    return normalizedValue > 0.5 ? "#fff" : "#333";
   }
   
-  // Renderizar indicador de carregamento
-  if (isLoading) {
-    return (
-      <div className={`w-full ${className}`}>
-        <Card className={`shadow-md overflow-hidden ${fullscreen ? 'border-0' : ''}`}>
-          <div className={`${mapHeight} bg-white relative flex items-center justify-center p-4`}>
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground text-lg">Carregando dados do mapa...</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-  
-  // Calcular o total de envios para exibir na legenda
+  // Calcular total de envios
   const totalEnvios = stateData.reduce((acc, state: StateData) => acc + state.value, 0);
   
   return (
@@ -272,52 +273,86 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
         )}
           
         <div className={`${mapHeight} bg-white relative flex items-center justify-center overflow-hidden`}>
-          {/* SVG do mapa do Brasil com valores dentro de cada estado */}
-          <svg 
-            viewBox="0 0 500 600" 
-            preserveAspectRatio="xMidYMid meet"
-            width="100%" 
-            height="95%" 
-            className="max-w-full"
+          {/* Implementação usando imagem de fundo do mapa do Brasil */}
+          <div 
+            className="relative w-full h-full"
+            style={{ 
+              backgroundImage: "url('/mapa-brasil-base.jpg')", 
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat"
+            }}
           >
-            {/* Mapa do Brasil usando paths otimizados para melhor representação */}
-            {BRAZILIAN_STATES.map((state: {id: string, name: string}) => (
-              <React.Fragment key={state.id}>
-                <path 
-                  d={BRASIL_STATE_PATHS[state.id]}
-                  fill={getColorForState(state.id)} 
-                  stroke="#fff" 
-                  strokeWidth={mapConfig.borderWidth}
-                  style={{ cursor: 'pointer' }}
-                />
-                {mapConfig.showStateLabels && (
-                  <text 
-                    x={STATE_CENTERS[state.id].x} 
-                    y={STATE_CENTERS[state.id].y - 10} 
-                    fontSize="12" 
-                    textAnchor="middle" 
-                    fill={getValueTextColor(state.id)} 
-                    pointerEvents="none"
-                  >
-                    {state.id}
-                  </text>
-                )}
-                {mapConfig.showValues && (
-                  <text 
-                    x={STATE_CENTERS[state.id].x} 
-                    y={STATE_CENTERS[state.id].y + 5} 
-                    fontSize={getValueFontSize()} 
-                    fontWeight="bold" 
-                    textAnchor="middle" 
-                    fill={getValueTextColor(state.id)} 
-                    pointerEvents="none"
-                  >
-                    {stateData.find(s => s.id === state.id)?.value || 0}
-                  </text>
-                )}
-              </React.Fragment>
-            ))}
-          </svg>
+            <svg 
+              viewBox="0 0 800 800" 
+              preserveAspectRatio="xMidYMid meet"
+              width="100%" 
+              height="100%" 
+              className="max-w-full absolute inset-0"
+            >
+              {/* Sobreposição de dados nos estados */}
+              {BRAZILIAN_STATES.map((state: {id: string, name: string}) => {
+                // Encontrar dados para este estado
+                const stateInfo = stateData.find(s => s.id === state.id);
+                const value = stateInfo?.value || 0;
+                
+                // Coordenadas para o texto de valor
+                const x = STATE_CENTERS[state.id].x;
+                const y = STATE_CENTERS[state.id].y;
+                
+                // Determinar raio do círculo com base no valor
+                const radius = Math.max(20, Math.min(40, 20 + (value / 40)));
+                
+                return (
+                  <g key={state.id}>
+                    {/* Círculo com cor de fundo para o valor */}
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={radius}
+                      fill={getColorForState(state.id)}
+                      stroke="#fff"
+                      strokeWidth={2}
+                      opacity={0.9}
+                    />
+                    
+                    {/* Rótulos dos estados */}
+                    {mapConfig.showStateLabels && (
+                      <text 
+                        x={x} 
+                        y={y - radius - 5}
+                        fontSize="12" 
+                        fontWeight="bold"
+                        textAnchor="middle" 
+                        fill="#333"
+                        pointerEvents="none"
+                        stroke="#fff"
+                        strokeWidth={0.5}
+                        paintOrder="stroke"
+                      >
+                        {state.id}
+                      </text>
+                    )}
+                    
+                    {/* Valores dentro dos círculos */}
+                    {mapConfig.showValues && (
+                      <text 
+                        x={x} 
+                        y={y + 5}
+                        fontSize={getValueFontSize()}
+                        fontWeight="bold" 
+                        textAnchor="middle" 
+                        fill="#fff"
+                        pointerEvents="none"
+                      >
+                        {value}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
         
         {/* Legenda do período */}

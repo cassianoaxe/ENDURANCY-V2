@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BrasilTVMap from '../../components/expedicao/BrasilTVMapNew';
+import ShipmentStatsDashboard from '../../components/expedicao/ShipmentStatsDashboard';
 import { Loader2, ArrowLeft, LayoutPanelLeft } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
@@ -116,18 +117,8 @@ const MapaFullscreen: React.FC = () => {
             <h2 className="text-xl font-bold mb-4">Estatísticas de Expedição</h2>
             
             <div className="space-y-4">
-              {/* Aqui você pode adicionar outros componentes de estatísticas */}
-              {/* Exemplo: <ShipmentStatsDashboard period={period} /> */}
-              <div className="p-4 rounded-lg bg-gray-50 border">
-                <h3 className="font-medium mb-2">Resumo de Expedição</h3>
-                <p className="text-sm text-gray-600">
-                  Visualização dos dados de envio pelo Brasil no período {
-                    period === 'daily' ? 'diário' : 
-                    period === 'weekly' ? 'semanal' : 
-                    period === 'monthly' ? 'mensal' : 'anual'
-                  }.
-                </p>
-              </div>
+              {/* Painel de estatísticas de envio */}
+              <ShipmentStatsDashboard period={period} />
               
               <div className="p-4 rounded-lg bg-gray-50 border">
                 <h3 className="font-medium mb-2">Atalhos do Teclado</h3>
