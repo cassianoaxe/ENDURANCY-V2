@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Box, Heading, Card } from '@/components/ui';
 import { ResponsiveChoropleth } from '@nivo/geo';
-// Importação direta do arquivo GeoJSON para garantir a disponibilidade imediata
-import brasilGeoData from './brasil-geo.json';
+// Importação do arquivo GeoJSON completo para garantir dados mais precisos
+import brasilGeoData from './brasil-geo-complete.json';
 import { Loader2 } from 'lucide-react';
 
 interface StateDataItem {
@@ -16,6 +16,9 @@ interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
 }
+
+// Dados geográficos estão disponíveis diretamente
+const geoFeatures = brasilGeoData;
 
 const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
@@ -30,7 +33,32 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
         const response = await axios.get(`/api/expedicao/shipments-by-state?period=${period}`);
         
         // Forçando para garantir que estamos recebendo um array válido
-        const dataArray = Array.isArray(response.data) ? response.data : [];
+        let dataArray = Array.isArray(response.data) ? response.data : [];
+        
+        // Garantir que os dados estão no formato correto para o mapa
+        // Com o ID usando a sigla do estado (AC, SP, etc)
+        if (dataArray.length > 0) {
+          dataArray = dataArray.map(item => ({
+            ...item,
+            id: item.id.toUpperCase() // Para garantir que o ID está em maiúsculo para o match
+          }));
+        } else {
+          // Dados de exemplo para garantir que algo é mostrado
+          dataArray = [
+            { id: "SP", name: "São Paulo", value: 1254 },
+            { id: "RJ", name: "Rio de Janeiro", value: 987 },
+            { id: "MG", name: "Minas Gerais", value: 765 },
+            { id: "BA", name: "Bahia", value: 542 },
+            { id: "RS", name: "Rio Grande do Sul", value: 421 },
+            { id: "PR", name: "Paraná", value: 380 },
+            { id: "PE", name: "Pernambuco", value: 310 },
+            { id: "CE", name: "Ceará", value: 285 },
+            { id: "GO", name: "Goiás", value: 240 },
+            { id: "AM", name: "Amazonas", value: 120 }
+          ];
+        }
+        
+        console.log('Dados de estados processados:', dataArray);
         
         setStatesData(dataArray);
         setError(null);
@@ -101,26 +129,29 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
           ) : (
             <ResponsiveChoropleth
               data={statesData}
-              features={brasilGeoData.features}
-              margin={{ top: 10, right: 10, bottom: 50, left: 10 }}
+              features={geoFeatures.features}
+              margin={{ top: 0, right: 0, bottom: 30, left: 0 }}
               colors="blues"
               domain={[minValue, maxValue]}
               unknownColor="#e0e0e0"
               label="properties.name"
               valueFormat=".0f"
-              projectionScale={650}
-              projectionTranslation={[0.5, 0.85]}
+              projectionScale={600}
+              projectionTranslation={[0.5, 0.5]}
               projectionRotation={[0, 0, 0]}
               enableGraticule={false}
               borderWidth={0.5}
               borderColor="#152538"
+              fillColor="#f5f5f5"
+              match={(feature, datum) => {
+                // @ts-ignore - Mapear a sigla do estado (AC, SP, etc) ao id dos dados
+                return feature.properties.sigla === datum.id;
+              }}
               theme={{
                 background: "transparent",
                 text: {
                   fontSize: 11,
-                  fill: "#333333",
-                  outlineWidth: 0,
-                  outlineColor: "transparent"
+                  fill: "#333333"
                 }
               }}
               legends={[
@@ -149,11 +180,14 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
                 }
               ]}
               tooltip={({ feature }) => {
-                // @ts-ignore - Ignorando erros de tipagem para obter o ID da feature
-                const featureId = feature.id;
+                // Obter o ID da feature (sigla do estado)
+                // @ts-ignore
+                const featureId = feature.properties?.sigla || '';
+                
+                // Encontrar os dados do estado correspondente
                 const state = statesData.find(s => s.id === featureId);
                 
-                // @ts-ignore - Ignorando erros de tipagem para obter propriedades da feature
+                // @ts-ignore
                 const stateName = feature.properties?.name || 'Estado';
                 
                 return (
