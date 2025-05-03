@@ -69,9 +69,9 @@ const MapaBi: React.FC = () => {
           </div>
           
           <TabsContent value="daily">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="daily" />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <BrasilShipmentMap period="daily" height={650} />
               </div>
               <div>
                 <ShipmentStatsDashboard period="daily" />
@@ -80,9 +80,9 @@ const MapaBi: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="weekly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="weekly" />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <BrasilShipmentMap period="weekly" height={650} />
               </div>
               <div>
                 <ShipmentStatsDashboard period="weekly" />
@@ -91,9 +91,9 @@ const MapaBi: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="monthly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="monthly" />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <BrasilShipmentMap period="monthly" height={650} />
               </div>
               <div>
                 <ShipmentStatsDashboard period="monthly" />
@@ -102,9 +102,9 @@ const MapaBi: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="yearly">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <BrasilShipmentMap period="yearly" />
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <BrasilShipmentMap period="yearly" height={650} />
               </div>
               <div>
                 <ShipmentStatsDashboard period="yearly" />

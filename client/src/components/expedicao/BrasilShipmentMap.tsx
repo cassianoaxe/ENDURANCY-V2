@@ -15,12 +15,14 @@ interface StateDataItem {
 interface BrasilShipmentMapProps {
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   className?: string;
+  height?: number;
 }
 
-// Dados geográficos estão disponíveis diretamente
+// Garantir que o mapa do Brasil está no formato correto para o componente
+// Usando o objeto diretamente para evitar problemas de tipagem
 const geoFeatures = brasilGeoData;
 
-const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className }) => {
+const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className, height = 550 }) => {
   const [statesData, setStatesData] = useState<StateDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -121,7 +123,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period, className
       </Heading>
       
       <Card className="p-0 overflow-hidden border-gray-200">
-        <div className="h-[550px] relative">
+        <div style={{ height: `${height}px` }} className="relative">
           {loading ? (
             <LoadingState />
           ) : error ? (

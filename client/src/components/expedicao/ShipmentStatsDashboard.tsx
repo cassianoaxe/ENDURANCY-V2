@@ -112,11 +112,11 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     // Verificar se os dados de status estão disponíveis
     if (!stats.shipmentsByStatus || !Array.isArray(stats.shipmentsByStatus) || stats.shipmentsByStatus.length === 0) {
       return (
-        <div className="h-[200px] mt-6">
-          <Heading as="h3" size="lg" weight="semibold" className="mb-2">
+        <div>
+          <Heading as="h3" size="lg" weight="semibold" className="mb-3">
             Status dos Envios
           </Heading>
-          <div className="flex items-center justify-center h-[200px] bg-slate-50 rounded-md">
+          <div className="flex items-center justify-center h-[250px] bg-slate-50 rounded-md">
             <p className="text-slate-500">Dados de status não disponíveis</p>
           </div>
         </div>
@@ -125,28 +125,47 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     
     // Se os dados existirem, renderizar o gráfico
     return (
-      <div className="h-[200px] mt-6">
-        <Heading as="h3" size="lg" weight="semibold" className="mb-2">
+      <div>
+        <Heading as="h3" size="lg" weight="semibold" className="mb-3">
           Status dos Envios
         </Heading>
-        <ResponsivePie
-          data={stats.shipmentsByStatus.map(item => ({
-            id: item.name,
-            label: item.name,
-            value: item.value,
-            color: item.color
-          }))}
-          margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
-          innerRadius={0.5}
-          padAngle={0.7}
-          cornerRadius={3}
-          colors={{ datum: 'data.color' }}
-          borderWidth={1}
-          borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
-          enableArcLinkLabels={false}
-          arcLabelsSkipAngle={10}
-          arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
-        />
+        <div className="h-[250px]">
+          <ResponsivePie
+            data={stats.shipmentsByStatus.map(item => ({
+              id: item.name,
+              label: item.name,
+              value: item.value,
+              color: item.color
+            }))}
+            margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            innerRadius={0.5}
+            padAngle={0.7}
+            cornerRadius={3}
+            colors={{ datum: 'data.color' }}
+            borderWidth={1}
+            borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
+            enableArcLinkLabels={false}
+            arcLabelsSkipAngle={10}
+            arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
+            legends={[
+              {
+                anchor: 'bottom',
+                direction: 'row',
+                justify: false,
+                translateX: 0,
+                translateY: 20,
+                itemsSpacing: 10,
+                itemWidth: 85,
+                itemHeight: 18,
+                itemTextColor: '#777',
+                itemDirection: 'left-to-right',
+                itemOpacity: 1,
+                symbolSize: 12,
+                symbolShape: 'circle'
+              }
+            ]}
+          />
+        </div>
       </div>
     );
   };
@@ -156,11 +175,11 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     // Verificar se os dados de shipmentsByDay estão disponíveis
     if (!stats.shipmentsByDay || !Array.isArray(stats.shipmentsByDay) || stats.shipmentsByDay.length === 0) {
       return (
-        <div className="h-[200px] mt-6">
-          <Heading as="h3" size="lg" weight="semibold" className="mb-2">
+        <div>
+          <Heading as="h3" size="lg" weight="semibold" className="mb-3">
             Envios por {period === 'daily' ? 'Hora' : period === 'weekly' ? 'Dia' : period === 'monthly' ? 'Dia' : 'Mês'}
           </Heading>
-          <div className="flex items-center justify-center h-[200px] bg-slate-50 rounded-md">
+          <div className="flex items-center justify-center h-[250px] bg-slate-50 rounded-md">
             <p className="text-slate-500">Dados de envios não disponíveis</p>
           </div>
         </div>
@@ -169,71 +188,74 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period 
     
     // Se os dados existirem, renderizar o gráfico
     return (
-      <div className="h-[200px] mt-6">
-        <Heading as="h3" size="lg" weight="semibold" className="mb-2">
+      <div>
+        <Heading as="h3" size="lg" weight="semibold" className="mb-3">
           Envios por {period === 'daily' ? 'Hora' : period === 'weekly' ? 'Dia' : period === 'monthly' ? 'Dia' : 'Mês'}
         </Heading>
-        <ResponsiveBar
-          data={stats.shipmentsByDay}
-          keys={['enviados', 'entregues']}
-          indexBy="name"
-          margin={{ top: 10, right: 10, bottom: 30, left: 30 }}
-          padding={0.3}
-          valueScale={{ type: 'linear' }}
-          indexScale={{ type: 'band', round: true }}
-          colors={['#3b82f6', '#4ade80']}
-          borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-          axisBottom={{
-            tickSize: 5,
-            tickPadding: 5,
-            tickRotation: -45,
-            legendPosition: 'middle',
-            legendOffset: 32
-          }}
-          axisLeft={null}
-          labelSkipWidth={12}
-          labelSkipHeight={12}
-          legends={[
-            {
-              dataFrom: 'keys',
-              anchor: 'bottom',
-              direction: 'row',
-              justify: false,
-              translateX: 0,
-              translateY: 50,
-              itemsSpacing: 2,
-              itemWidth: 100,
-              itemHeight: 20,
-              itemDirection: 'left-to-right',
-              itemOpacity: 0.85,
-              symbolSize: 20,
-              effects: [
-                {
-                  on: 'hover',
-                  style: {
-                    itemOpacity: 1
-                  }
-                }
-              ]
-            }
-          ]}
-          role="application"
-          ariaLabel="Gráfico de envios por período"
-          barAriaLabel={function(e){return e.id+": "+e.formattedValue+" envios no período: "+e.indexValue}}
-        />
+        <div className="h-[250px]">
+          <ResponsiveBar
+            data={stats.shipmentsByDay}
+            keys={['enviados', 'entregues']}
+            indexBy="name"
+            margin={{ top: 10, right: 10, bottom: 30, left: 30 }}
+            padding={0.3}
+            valueScale={{ type: 'linear' }}
+            indexScale={{ type: 'band', round: true }}
+            colors={['#3b82f6', '#4ade80']}
+            borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
+            axisBottom={{
+              tickSize: 5,
+              tickPadding: 5,
+              tickRotation: -45,
+              legendPosition: 'middle',
+              legendOffset: 32
+            }}
+            axisLeft={null}
+            labelSkipWidth={12}
+            labelSkipHeight={12}
+            legends={[
+              {
+                dataFrom: 'keys',
+                anchor: 'bottom',
+                direction: 'row',
+                justify: false,
+                translateX: 0,
+                translateY: 20,
+                itemsSpacing: 10,
+                itemWidth: 85,
+                itemHeight: 18,
+                itemTextColor: '#777',
+                itemDirection: 'left-to-right',
+                itemOpacity: 1,
+                symbolSize: 12,
+                symbolShape: 'square'
+              }
+            ]}
+            role="application"
+            ariaLabel="Gráfico de envios por período"
+            barAriaLabel={function(e){return e.id+": "+e.formattedValue+" envios no período: "+e.indexValue}}
+          />
+        </div>
       </div>
     );
   };
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Heading as="h2" size="xl" weight="semibold">
         Estatísticas de Envios
       </Heading>
       
       <StatsCards />
-      <StatusPieChart />
-      <ShipmentBarChart />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-4">
+          <StatusPieChart />
+        </Card>
+        <Card className="p-4">
+          <ShipmentBarChart />
+        </Card>
+      </div>
     </div>
   );
 };
