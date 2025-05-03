@@ -57,8 +57,12 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
   }, [period]);
 
   // Calcular valor mínimo e máximo para a escala de cores
-  const minValue = Math.min(...statesData.map(d => d.value));
-  const maxValue = Math.max(...statesData.map(d => d.value));
+  const minValue = statesData && Array.isArray(statesData) && statesData.length > 0 
+    ? Math.min(...statesData.map(d => d.value)) 
+    : 0;
+  const maxValue = statesData && Array.isArray(statesData) && statesData.length > 0 
+    ? Math.max(...statesData.map(d => d.value)) 
+    : 100;
 
   if (loading && !geographyData) {
     return (
@@ -90,7 +94,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
         Distribuição de Envios por Estado
       </Heading>
       
-      {geographyData && statesData.length > 0 ? (
+      {geographyData && statesData && Array.isArray(statesData) && statesData.length > 0 ? (
         <ResponsiveChoropleth
           data={statesData}
           features={geographyData.features}
@@ -135,7 +139,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
             const feature = input.feature;
             // Acesse o id da feature através de properties.id ou outro atributo disponível
             const featureId = feature.properties?.id || feature.properties?.code || feature.id;
-            const state = statesData.find(s => s.id === featureId);
+            const state = Array.isArray(statesData) ? statesData.find(s => s.id === featureId) : undefined;
             
             if (!state) return null;
             
