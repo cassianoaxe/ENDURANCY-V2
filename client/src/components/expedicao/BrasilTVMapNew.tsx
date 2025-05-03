@@ -69,6 +69,7 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
   const [mapConfig, setMapConfig] = useState({
     showStateLabels: showStateLabels,
     showValues: true,
+    showRegions: true,
     colorMode: colorMode,
     valueSize: 'medium',
     borderWidth: 1
@@ -189,6 +190,15 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
   // Calcular total de envios
   const totalEnvios = stateData.reduce((acc, state: StateData) => acc + state.value, 0);
   
+  // Calcular envios por região
+  const enviosPorRegiao = {
+    norte: stateData.filter(s => ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO'].includes(s.id)).reduce((acc, s) => acc + s.value, 0),
+    nordeste: stateData.filter(s => ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE'].includes(s.id)).reduce((acc, s) => acc + s.value, 0),
+    centro_oeste: stateData.filter(s => ['DF', 'GO', 'MT', 'MS'].includes(s.id)).reduce((acc, s) => acc + s.value, 0),
+    sudeste: stateData.filter(s => ['ES', 'MG', 'RJ', 'SP'].includes(s.id)).reduce((acc, s) => acc + s.value, 0),
+    sul: stateData.filter(s => ['PR', 'RS', 'SC'].includes(s.id)).reduce((acc, s) => acc + s.value, 0)
+  };
+  
   return (
     <div className={`w-full ${className}`}>
       <Card className={`shadow-lg overflow-hidden ${fullscreen ? 'border-0' : ''}`}>
@@ -227,6 +237,18 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
                       className="rounded"
                     />
                     Mostrar valores
+                  </label>
+                </div>
+                
+                <div className="mb-2">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      checked={mapConfig.showRegions} 
+                      onChange={e => setMapConfig({...mapConfig, showRegions: e.target.checked})}
+                      className="rounded"
+                    />
+                    Mostrar indicadores regionais
                   </label>
                 </div>
                 
@@ -289,6 +311,56 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
               height="100%" 
               className="max-w-full absolute inset-0 z-20"
             >
+              {/* Indicadores de região com percentuais */}
+              {mapConfig.showRegions && (
+                <g className="region-indicators">
+                  {/* Norte */}
+                  <g transform="translate(300, 180)">
+                    <circle cx="0" cy="0" r="35" fill="#0c4a6e" fillOpacity="0.2" stroke="#0c4a6e" strokeWidth="1" />
+                    <text x="0" y="-7" textAnchor="middle" fill="#0c4a6e" fontSize="14" fontWeight="bold">Norte</text>
+                    <text x="0" y="12" textAnchor="middle" fill="#0c4a6e" fontSize="13">
+                      {((enviosPorRegiao.norte / totalEnvios) * 100).toFixed(1)}%
+                    </text>
+                  </g>
+                  
+                  {/* Nordeste */}
+                  <g transform="translate(550, 225)">
+                    <circle cx="0" cy="0" r="35" fill="#9f1239" fillOpacity="0.2" stroke="#9f1239" strokeWidth="1" />
+                    <text x="0" y="-7" textAnchor="middle" fill="#9f1239" fontSize="14" fontWeight="bold">Nordeste</text>
+                    <text x="0" y="12" textAnchor="middle" fill="#9f1239" fontSize="13">
+                      {((enviosPorRegiao.nordeste / totalEnvios) * 100).toFixed(1)}%
+                    </text>
+                  </g>
+                  
+                  {/* Centro-Oeste */}
+                  <g transform="translate(365, 365)">
+                    <circle cx="0" cy="0" r="35" fill="#3f6212" fillOpacity="0.2" stroke="#3f6212" strokeWidth="1" />
+                    <text x="0" y="-7" textAnchor="middle" fill="#3f6212" fontSize="14" fontWeight="bold">Centro</text>
+                    <text x="0" y="12" textAnchor="middle" fill="#3f6212" fontSize="13">
+                      {((enviosPorRegiao.centro_oeste / totalEnvios) * 100).toFixed(1)}%
+                    </text>
+                  </g>
+                  
+                  {/* Sudeste */}
+                  <g transform="translate(480, 465)">
+                    <circle cx="0" cy="0" r="35" fill="#7e22ce" fillOpacity="0.2" stroke="#7e22ce" strokeWidth="1" />
+                    <text x="0" y="-7" textAnchor="middle" fill="#7e22ce" fontSize="14" fontWeight="bold">Sudeste</text>
+                    <text x="0" y="12" textAnchor="middle" fill="#7e22ce" fontSize="13">
+                      {((enviosPorRegiao.sudeste / totalEnvios) * 100).toFixed(1)}%
+                    </text>
+                  </g>
+                  
+                  {/* Sul */}
+                  <g transform="translate(400, 575)">
+                    <circle cx="0" cy="0" r="35" fill="#0e7490" fillOpacity="0.2" stroke="#0e7490" strokeWidth="1" />
+                    <text x="0" y="-7" textAnchor="middle" fill="#0e7490" fontSize="14" fontWeight="bold">Sul</text>
+                    <text x="0" y="12" textAnchor="middle" fill="#0e7490" fontSize="13">
+                      {((enviosPorRegiao.sul / totalEnvios) * 100).toFixed(1)}%
+                    </text>
+                  </g>
+                </g>
+              )}
+              
               {/* Sobreposição de dados nos estados */}
               {BRAZILIAN_STATES.map((state: {id: string, name: string}) => {
                 // Encontrar dados para este estado
@@ -371,10 +443,10 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
           </div>
         </div>
         
-        {/* Legenda de cores */}
-        <div className="absolute right-4 bottom-4 bg-white/80 px-4 py-2 rounded-md shadow-md">
-          <div className="flex flex-col gap-1">
-            <div className="flex justify-between items-center mb-1">
+        {/* Legenda de cores e regiões */}
+        <div className="absolute right-4 bottom-4 bg-white/80 px-4 py-2 rounded-md shadow-md max-w-xs">
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Volume de Envios</span>
               <button 
                 onClick={() => {
@@ -389,7 +461,8 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
                 Mudar estilo
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-1">
               {[
                 { label: 'Muito Alto', color: '#1e40af' },
                 { label: 'Alto', color: '#2563eb' },
@@ -402,6 +475,56 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
                   <span>{item.label}</span>
                 </div>
               ))}
+            </div>
+            
+            {/* Distribuição por região */}
+            <div className="border-t border-gray-200 pt-2 mt-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium">Distribuição por Região</span>
+                <button 
+                  onClick={() => setMapConfig({...mapConfig, showRegions: !mapConfig.showRegions})}
+                  className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+                >
+                  {mapConfig.showRegions ? 'Ocultar' : 'Mostrar'}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-1 text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0c4a6e' }} />
+                    <span>Norte</span>
+                  </div>
+                  <span>{((enviosPorRegiao.norte / totalEnvios) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#9f1239' }} />
+                    <span>Nordeste</span>
+                  </div>
+                  <span>{((enviosPorRegiao.nordeste / totalEnvios) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3f6212' }} />
+                    <span>Centro-Oeste</span>
+                  </div>
+                  <span>{((enviosPorRegiao.centro_oeste / totalEnvios) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#7e22ce' }} />
+                    <span>Sudeste</span>
+                  </div>
+                  <span>{((enviosPorRegiao.sudeste / totalEnvios) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0e7490' }} />
+                    <span>Sul</span>
+                  </div>
+                  <span>{((enviosPorRegiao.sul / totalEnvios) * 100).toFixed(1)}%</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
