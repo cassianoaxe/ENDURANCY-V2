@@ -82,7 +82,7 @@ const MapaBi: React.FC = () => {
       
       <div className="p-6">
         <header className="mb-6">
-          <Heading className="text-2xl font-bold">Mapa BI - Expedição</Heading>
+          <Heading as="h1" size="2xl" weight="bold">Mapa BI - Expedição</Heading>
           <p className="text-muted-foreground">
             Visualização geográfica e estatísticas de envios
           </p>

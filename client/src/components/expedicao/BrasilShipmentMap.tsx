@@ -86,7 +86,7 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
 
   return (
     <div className="h-[600px] w-full">
-      <Heading level="h2" className="text-xl font-semibold mb-4">
+      <Heading as="h2" size="xl" weight="semibold" className="mb-4">
         Distribuição de Envios por Estado
       </Heading>
       
@@ -133,7 +133,9 @@ const BrasilShipmentMap: React.FC<BrasilShipmentMapProps> = ({ period }) => {
           ]}
           tooltip={(input) => {
             const feature = input.feature;
-            const state = statesData.find(s => s.id === feature.id);
+            // Acesse o id da feature através de properties.id ou outro atributo disponível
+            const featureId = feature.properties?.id || feature.properties?.code || feature.id;
+            const state = statesData.find(s => s.id === featureId);
             
             if (!state) return null;
             
