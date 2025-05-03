@@ -76,6 +76,7 @@ const BrasilShipmentMapSimple: React.FC<ShipmentMapProps> = ({
 
   // Altura adequada baseada no modo
   const mapHeight = fullscreen ? "h-[calc(100vh-200px)]" : "h-[500px]";
+  const projectionScale = fullscreen ? 1500 : 1000;
 
   if (loading) {
     return (
@@ -106,7 +107,7 @@ const BrasilShipmentMapSimple: React.FC<ShipmentMapProps> = ({
 
   return (
     <div className={`w-full ${className}`}>
-      <Card className="shadow-md overflow-hidden">
+      <Card className={`shadow-md overflow-hidden ${fullscreen ? 'border-2 border-primary/20' : ''}`}>
         <div className="p-4 bg-white">
           <Heading as="h2" size="lg" weight="semibold" className="mb-4 text-center">
             Distribuição de Envios por Estado
@@ -123,7 +124,7 @@ const BrasilShipmentMapSimple: React.FC<ShipmentMapProps> = ({
             unknownColor="#e0e0e0"
             label="properties.name"
             valueFormat=".0f"
-            projectionScale={fullscreen ? 1350 : 1000}
+            projectionScale={projectionScale}
             projectionTranslation={[0.5, 0.55]}
             borderWidth={0.5}
             borderColor="#152538"

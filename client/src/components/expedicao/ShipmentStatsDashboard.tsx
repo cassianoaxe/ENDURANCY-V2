@@ -270,17 +270,22 @@ const ShipmentStatsDashboard: React.FC<ShipmentStatsDashboardProps> = ({ period,
     );
   };
   
+  // Layout adaptativo baseado no modo fullscreen
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${fullscreen ? 'p-4 bg-white rounded-lg shadow-md' : ''}`}>
       <Heading as="h2" size="xl" weight="semibold" className="mb-6">
         Estatísticas de Envios
       </Heading>
       
       <StatsCards />
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StatusPieChart />
-        <ShipmentBarChart />
+      <div className={`grid grid-cols-1 ${fullscreen ? 'md:grid-cols-4' : 'md:grid-cols-2'} gap-6`}>
+        <div className={fullscreen ? 'md:col-span-2' : ''}>
+          <StatusPieChart />
+        </div>
+        <div className={fullscreen ? 'md:col-span-2' : ''}>
+          <ShipmentBarChart />
+        </div>
       </div>
     </div>
   );
