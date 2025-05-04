@@ -1,68 +1,143 @@
-import React from 'react';
-import { Search, Bell, ShoppingCart, UserCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+import { Search, Plus, Bell, MessageCircle, Filter } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CMarketLogo } from './CMarketLogo';
 import { Link } from 'wouter';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-export const CMarketHeader = () => {
+interface CMarketHeaderProps {
+  onSearch?: (query: string) => void;
+  onCategoryChange?: (category: string) => void;
+  onStatusChange?: (status: string) => void;
+  categories?: { id: number; name: string }[];
+}
+
+export const CMarketHeader: React.FC<CMarketHeaderProps> = ({
+  onSearch,
+  onCategoryChange,
+  onStatusChange,
+  categories = []
+}) => {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch?.(searchQuery);
+  };
+
   return (
-    <header className="bg-white border-b">
-      <div className="container mx-auto py-3 px-4">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+    <div className="border-b">
+      <div className="container mx-auto px-4 py-2">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="flex items-center">
             <Link href="/supplier/cmarket">
-              <CMarketLogo />
+              <a className="flex items-center">
+                <CMarketLogo />
+              </a>
             </Link>
           </div>
-          
-          {/* Barra de pesquisa */}
-          <div className="hidden md:flex flex-1 mx-6">
-            <div className="relative w-full max-w-lg">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <Input 
-                type="search" 
-                placeholder="Buscar produtos ou editais de compra..." 
-                className="pl-10 pr-4 py-2 w-full"
+
+          <form 
+            onSubmit={handleSearchSubmit}
+            className="flex-1 max-w-2xl"
+          >
+            <div className="relative">
+              <Input
+                type="search"
+                placeholder="Pesquisar anúncios de compra..."
+                className="w-full pl-10 h-10"
+                value={searchQuery}
+                onChange={handleSearchChange}
               />
+              <button 
+                type="submit"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              >
+                <Search size={18} />
+              </button>
             </div>
-          </div>
-          
-          {/* Ações */}
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" className="p-2 text-gray-700">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button variant="outline" className="p-2 text-gray-700">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" className="hidden md:flex items-center text-sm">
-              <UserCircle className="h-5 w-5 mr-2" />
-              Minha Conta
-            </Button>
-            <Button variant="default" className="hidden sm:inline-flex">
-              Publicar Anúncio
-            </Button>
+          </form>
+
+          <div className="flex items-center space-x-2">
+            {user && (
+              <>
+                <Link href="/supplier/cmarket/notifications">
+                  <Button variant="ghost" size="icon" aria-label="Notificações">
+                    <Bell size={20} />
+                  </Button>
+                </Link>
+                <Link href="/supplier/cmarket/messages">
+                  <Button variant="ghost" size="icon" aria-label="Mensagens">
+                    <MessageCircle size={20} />
+                  </Button>
+                </Link>
+                <Link href="/supplier/cmarket/announcement/new">
+                  <Button>
+                    <Plus size={16} className="mr-2" />
+                    Novo Anúncio
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
-        
-        {/* Barra de pesquisa (mobile) */}
-        <div className="mt-3 md:hidden">
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <Input 
-              type="search" 
-              placeholder="Buscar produtos ou editais..." 
-              className="pl-10 pr-4 py-2 w-full"
-            />
+
+        {/* Filtros */}
+        <div className="flex items-center gap-4 py-2">
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-gray-500" />
+            <span className="text-sm font-medium">Filtros:</span>
+          </div>
+          
+          <div className="w-40">
+            <Select onValueChange={onCategoryChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="w-40">
+            <Select onValueChange={onStatusChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="open">Abertos</SelectItem>
+                <SelectItem value="closed">Fechados</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
-    </header>
+    </div>
   );
 };

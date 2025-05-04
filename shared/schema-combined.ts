@@ -34,6 +34,9 @@ import * as socialSchema from './schema-social';
 // Importando o schema de fornecedores
 import * as suppliersSchema from './schema-suppliers';
 
+// Importando o schema do CMarket
+import * as cmarketSchema from './schema-cmarket';
+
 // Temporariamente removido devido a erros
 // import * as financeiroSchema from './schema-financeiro';
 
@@ -49,7 +52,8 @@ export const combinedSchema = {
   ...patrimonioSchema,
   ...pesquisaSchema,
   ...socialSchema,
-  ...suppliersSchema
+  ...suppliersSchema,
+  ...cmarketSchema
 };
 
 // Exportando todos os tipos e enums
@@ -65,3 +69,4 @@ export * from './schema-patrimonio';
 export * from './schema-pesquisa';
 export * from './schema-social';
 export * from './schema-suppliers';
+export * from './schema-cmarket';
