@@ -89,19 +89,6 @@ export async function apiRequest(
     ...headers,
   };
 
-  // Temporariamente desativando a verificação de CSRF devido a problemas no endpoint
-  // if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
-  //   try {
-  //     const token = await fetchCsrfToken();
-  //     if (token) {
-  //       requestHeaders['CSRF-Token'] = token;
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao obter token CSRF para requisição:', error);
-  //     // Continua a requisição mesmo sem o token CSRF em caso de erro
-  //   }
-  // }
-
   // Configuração da requisição
   const requestOptions: RequestInit = {
     method,
@@ -115,73 +102,99 @@ export async function apiRequest(
     requestOptions.body = JSON.stringify(data);
   }
 
-  try {
-    // Fazer a requisição
-    const response = await fetch(url, requestOptions);
-    
-    // Verificar o tipo de conteúdo da resposta
-    const contentType = response.headers.get('content-type');
-    console.log(`Resposta API: ${response.status} ${response.statusText}, Content-Type: ${contentType}`);
-    
-    // Tratar resposta de erro
-    if (!response.ok) {
-      // Verificar se a resposta contém HTML (comum em redirecionamentos de login)
-      if (contentType && contentType.includes('text/html')) {
-        // Verificar tipos específicos de erro
+  // Implementar retry com backoff exponencial para erros, especialmente 429
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+
+  while (true) {
+    try {
+      // Fazer a requisição
+      const response = await fetch(url, requestOptions);
+      const contentType = response.headers.get('content-type');
+      console.log(`Resposta API: ${response.status} ${response.statusText}`);
+
+      // Tratar erro de rate limit (429) com retry
+      if (response.status === 429) {
+        if (retryCount >= MAX_RETRIES) {
+          throw new Error('Muitas requisições. Por favor, aguarde um momento e tente novamente.');
+        }
+        
+        // Backoff exponencial: 1s, 2s, 4s
+        const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`Rate limit atingido. Tentativa ${retryCount + 1}/${MAX_RETRIES}. Aguardando ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        retryCount++;
+        continue;
+      }
+
+      // Tratar outros erros
+      if (!response.ok) {
+        // Verificar tipo de erro
         if (response.status === 401) {
-          // Sessão expirada ou não autenticado
           console.error('Erro 401: Usuário não autenticado ou sessão expirada');
           
           // Verificar se estamos na página de login para evitar loop de redirecionamento
-          if (!window.location.pathname.includes('/login')) {
+          const isLoginPage = window.location.pathname.includes('/login') || 
+                             window.location.pathname.includes('/supplier/login');
+                             
+          if (!isLoginPage) {
             console.log('Redirecionando para página de login devido a erro 401');
-            window.location.href = '/login';
+            
+            // Verificar se é uma rota de fornecedor
+            if (window.location.pathname.startsWith('/supplier')) {
+              window.location.replace('/supplier/login');
+            } else {
+              window.location.replace('/login');
+            }
           }
           
           throw new Error('Sessão expirada. Faça login novamente.');
-        } else if (response.status === 429) {
-          console.error('Erro 429: Rate limiting aplicado');
-          throw new Error('Muitas requisições. Por favor, aguarde um momento e tente novamente.');
-        } else {
-          console.error(`Erro ${response.status}: Resposta em HTML não esperada`);
-          throw new Error(`Erro na requisição (${response.status}): Resposta inesperada do servidor`);
         }
-      }
-      
-      // Tentar obter mensagem de erro detalhada da API para respostas JSON
-      let errorMessage = `API request failed: ${response.statusText}`;
-      
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          } else if (errorData.error && errorData.error.message) {
-            errorMessage = errorData.error.message;
+        
+        // Tentar obter mensagem de erro detalhada para outros erros
+        let errorMessage = `Erro na requisição: ${response.status} ${response.statusText}`;
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            } else if (errorData.error) {
+              errorMessage = typeof errorData.error === 'string' 
+                ? errorData.error 
+                : errorData.error.message || JSON.stringify(errorData.error);
+            }
+          } catch (e) {
+            // Se não conseguir parsear JSON, usar mensagem padrão
           }
-        } catch (jsonError) {
-          console.error('Erro ao parsear resposta JSON de erro:', jsonError);
-          // Se não conseguir parsear o JSON de erro, usa a mensagem padrão
         }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Processar resposta bem-sucedida
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
       }
       
-      throw new Error(errorMessage);
-    }
-    
-    // Verificar se há conteúdo para parsear como JSON
-    if (contentType && contentType.includes('application/json')) {
-      try {
-        return await response.json();
-      } catch (jsonError) {
-        console.error('Erro ao parsear resposta JSON:', jsonError);
-        throw new Error('Falha ao processar resposta do servidor');
+      // Retorno para não-JSON
+      return {};
+      
+    } catch (error) {
+      // Retry para erros de rede ou 429, outros erros são repassados
+      const errorMessage = error.message || 'Erro desconhecido';
+      const isRateLimitError = errorMessage.includes('429') || 
+                              errorMessage.includes('Muitas requisições');
+      
+      if (!isRateLimitError || retryCount >= MAX_RETRIES) {
+        console.error(`Erro na requisição API ${method} ${url}:`, error);
+        throw error;
       }
+      
+      const delay = Math.pow(2, retryCount) * 1000;
+      console.log(`Erro na requisição. Tentativa ${retryCount + 1}/${MAX_RETRIES}. Aguardando ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      retryCount++;
     }
-    
-    // Retorno vazio para respostas sem conteúdo JSON
-    return {}; 
-  } catch (error) {
-    console.error(`Erro na requisição API ${method} ${url}:`, error);
-    throw error;
   }
 }

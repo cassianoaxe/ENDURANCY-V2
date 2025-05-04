@@ -42,7 +42,9 @@ export default function SupplierLogin() {
             console.log("Usuário precisa ser redirecionado para o CMarket");
             console.log("Redirecionando para /supplier/cmarket");
             console.log("Redirecionamento de login em andamento, não interferir");
-            setLocation("/supplier/cmarket");
+            
+            // Usar replace em vez de setLocation para evitar histórico
+            window.location.replace("/supplier/cmarket");
           }
         }
       } catch (error) {
@@ -52,7 +54,7 @@ export default function SupplierLogin() {
     };
 
     checkAuthStatus();
-  }, [setLocation]);
+  }, []);
 
   // Inicialização do formulário
   const form = useForm<FormValues>({
@@ -94,8 +96,8 @@ export default function SupplierLogin() {
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        // Redireciona para o CMarket (marketplace do fornecedor) usando redirect mais direto
-        window.location.href = "/supplier/cmarket";
+        // Redireciona para o CMarket (marketplace do fornecedor) usando replace para evitar histórico
+        window.location.replace("/supplier/cmarket");
         return;
       } else {
         throw new Error(result.error || "Erro ao fazer login");
