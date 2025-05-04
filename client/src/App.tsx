@@ -536,7 +536,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi', '/landing/afiliados'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -821,6 +821,18 @@ function AppContent() {
     // Página de teste para transparência (público)
     if (currentPath === '/transparencia-test') {
       return <TransparenciaTest />;
+    }
+    
+    // Página de landing do programa de afiliados
+    if (currentPath === '/landing/afiliados') {
+      const LandingAfiliados = React.lazy(() => import('./pages/landing/afiliados'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <LandingAfiliados />
+        </Suspense>
+      );
     }
     
     // Rotas do Portal do Fornecedor (público)
@@ -1864,6 +1876,17 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <ComplyPayAssinaturas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/complypay/afiliados') {
+      const ComplyPayAfiliados = React.lazy(() => import('./pages/organization/complypay/afiliados'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayAfiliados />
         </Suspense>
       </OrganizationLayout>;
     }
@@ -3304,6 +3327,16 @@ function AppContent() {
       case '/payment-test': Component = PaymentTest; break;
       case '/admin/dashboard': Component = AdminDashboard; break;
       case '/super-admin/dashboard': Component = AdminDashboard; break;
+      case '/super-admin/afiliados': 
+        const SuperAdminAfiliados = React.lazy(() => import('./pages/super-admin/afiliados'));
+        Component = () => (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <SuperAdminAfiliados />
+          </Suspense>
+        );
+        break;
       
       // Rotas de integracoes
       case '/integracoes': Component = Integracoes; break;
