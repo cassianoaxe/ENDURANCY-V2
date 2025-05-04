@@ -219,6 +219,9 @@ import EstoqueCultivoPage from "@/pages/organization/cultivation/estoque";
 import CalendarioCultivo from "@/pages/organization/cultivation/calendario-cultivo";
 import ConfigStrains from "@/pages/organization/cultivation/configuracao/strains";
 import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
+import MonitoramentoPage from "@/pages/organization/cultivation/monitoramento";
+import QualidadePage from "@/pages/organization/cultivation/qualidade";
+import GenericaPage from "@/pages/organization/cultivation/genetica";
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
@@ -1144,6 +1147,18 @@ function AppContent() {
       return <CalendarioCultivo />;
     }
     
+    if (currentPath === '/organization/cultivation/monitoramento') {
+      return <MonitoramentoPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/qualidade') {
+      return <QualidadePage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/genetica') {
+      return <GenericaPage />;
+    }
+    
     if (currentPath === '/organization/cultivation/configuracao/strains') {
       return <ConfigStrains />;
     }
@@ -1549,8 +1564,8 @@ function AppContent() {
         <div className="container mx-auto py-8">
           <h1 className="text-2xl font-bold mb-4">Detalhes do Ativo</h1>
           <p className="text-muted-foreground">Página em desenvolvimento</p>
-          <Button asChild className="mt-4">
-            <a href="/organization/patrimonio">Voltar para Patrimônio</a>
+          <Button className="mt-4">
+            <a href="/organization/patrimonio" className="flex items-center">Voltar para Patrimônio</a>
           </Button>
         </div>
       </OrganizationLayout>;
@@ -2355,8 +2370,8 @@ function AppContent() {
               <p className="text-muted-foreground text-center mb-6">
                 Esta funcionalidade do portal do farmacêutico está sendo implementada e estará disponível em breve.
               </p>
-              <Button asChild>
-                <a href="/pharmacist">Voltar para o Dashboard</a>
+              <Button>
+                <a href="/pharmacist" className="flex items-center">Voltar para o Dashboard</a>
               </Button>
             </div>
           </PharmacistLayout>

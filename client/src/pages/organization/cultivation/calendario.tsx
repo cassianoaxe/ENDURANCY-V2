@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { pt as ptBR } from 'date-fns/locale';
 
 // Dados de exemplo dos eventos
 const eventosGlobais = [
@@ -193,22 +193,7 @@ const CalendarioCultivo = () => {
     );
   };
 
-  // Função de renderização personalizada para dias no calendário
-  const renderDay = (day: Date) => {
-    const isSelected = selectedDate && 
-      day.getDate() === selectedDate.getDate() &&
-      day.getMonth() === selectedDate.getMonth() &&
-      day.getFullYear() === selectedDate.getFullYear();
-
-    const hasEvent = hasEventOnDay(day);
-    
-    return (
-      <div className={`relative p-2 ${isSelected ? 'bg-primary text-primary-foreground rounded-md' : ''}`}>
-        <span>{day.getDate()}</span>
-        {hasEvent && <div className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />}
-      </div>
-    );
-  };
+  // Função de renderização personalizada para dias no calendário não está sendo usada para simplificação
 
   // Função para navegar entre os meses
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -230,8 +215,8 @@ const CalendarioCultivo = () => {
             <p className="text-gray-600 mt-1">Gerenciamento de eventos e atividades do cultivo</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-1" asChild>
-              <a href="/organization/cultivation">
+            <Button variant="outline" className="gap-1">
+              <a href="/organization/cultivation" className="flex items-center gap-1">
                 <ArrowLeft className="h-4 w-4" />
                 <span>Voltar</span>
               </a>
@@ -253,7 +238,7 @@ const CalendarioCultivo = () => {
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="font-medium">
-                    {format(date, 'MMMM yyyy', { locale: pt })}
+                    {format(date, 'MMMM yyyy', { locale: ptBR })}
                   </span>
                   <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>
                     <ChevronRight className="h-4 w-4" />
@@ -261,13 +246,12 @@ const CalendarioCultivo = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <Calendar
+                <CalendarComponent
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   month={date}
                   className="border rounded-md"
-                  renderDay={renderDay}
                   locale={ptBR}
                 />
               </CardContent>
