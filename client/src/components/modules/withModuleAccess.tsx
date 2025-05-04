@@ -45,6 +45,32 @@ export const bypassModuleAccess = <P extends object>(
   _props: WithModuleAccessProps // mantemos o parâmetro apenas para compatibilidade
 ) => {
   return function BypassModuleAccessWrapper(props: P) {
+    // Verificamos se o componente está sendo renderizado como um standalone
+    // Se sim, simplesmente renderizamos o componente sem verificações adicionais
+    try {
+      // Tentando verificar se o contexto de autenticação está disponível
+      // Se não estiver, isso gerará um erro que será capturado no catch
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { user } = useAuth();
+      
+      // Se usuário não estiver logado, exibimos uma mensagem de erro
+      if (!user) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-amber-600">Modo de desenvolvimento</h2>
+              <p className="mt-2 text-gray-600">
+                Este componente está em modo de desenvolvimento e não requer autenticação para visualização.
+              </p>
+            </div>
+          </div>
+        );
+      }
+    } catch (e) {
+      console.log("Executando em modo de bypass sem contexto de autenticação");
+    }
+    
+    // No modo de bypass, renderizamos o componente independentemente do status do módulo
     return <WrappedComponent {...props} />;
   };
 };
