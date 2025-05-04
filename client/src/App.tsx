@@ -326,6 +326,10 @@ import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
 
+// Import affiliate program pages
+import ProgramaAfiliados from "@/pages/organization/afiliados";
+import ConfiguracoesAfiliados from "@/pages/organization/afiliados/configuracoes";
+
 // Import integrations
 import Integracoes from "@/pages/integracoes";
 // Import specific integrations
@@ -1427,6 +1431,15 @@ function AppContent() {
       return <OrganizationLayout>
         <SocialDashboard />
       </OrganizationLayout>;
+    }
+    
+    // Rotas do módulo de Afiliados
+    if (currentPath === '/organization/afiliados') {
+      return <ProgramaAfiliados />;
+    }
+    
+    if (currentPath === '/organization/afiliados/configuracoes') {
+      return <ConfiguracoesAfiliados />;
     }
 
     if (currentPath === '/organization/social/beneficiarios') {
