@@ -16,6 +16,7 @@ import {
   ArrowUp, 
   ArrowDown, 
   Copy,
+  Check,
   BarChart3,
   Settings,
   User,
@@ -402,6 +403,68 @@ const ProgramaAfiliados = () => {
 
           <Card>
             <CardHeader>
+              <CardTitle>Ranking de Afiliados</CardTitle>
+              <CardDescription>Sua posição na lista de afiliados mais ativos</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-amber-50 border border-amber-100 rounded-md p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="h-10 w-10 rounded-full bg-amber-300 flex items-center justify-center">
+                      <Trophy className="h-5 w-5 text-amber-700" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-[10px] font-bold text-white rounded-full flex items-center justify-center">1</div>
+                  </div>
+                  <div>
+                    <p className="font-medium">Carlos Mendes</p>
+                    <p className="text-xs text-muted-foreground">4.850 pontos</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Ouro</Badge>
+              </div>
+              
+              <div className="bg-slate-50 border border-slate-100 rounded-md p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="h-10 w-10 rounded-full bg-slate-300 flex items-center justify-center">
+                      <Trophy className="h-5 w-5 text-slate-700" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-[10px] font-bold text-white rounded-full flex items-center justify-center">2</div>
+                  </div>
+                  <div>
+                    <p className="font-medium">Você</p>
+                    <p className="text-xs text-muted-foreground">2.450 pontos</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-slate-100 text-slate-800 border-slate-200">Prata</Badge>
+              </div>
+              
+              <div className="bg-orange-50 border border-orange-100 rounded-md p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="h-10 w-10 rounded-full bg-orange-300 flex items-center justify-center">
+                      <Trophy className="h-5 w-5 text-orange-700" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-[10px] font-bold text-white rounded-full flex items-center justify-center">3</div>
+                  </div>
+                  <div>
+                    <p className="font-medium">Ana Oliveira</p>
+                    <p className="text-xs text-muted-foreground">1.980 pontos</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">Bronze</Badge>
+              </div>
+              
+              <Separator />
+              
+              <div className="text-sm text-center text-muted-foreground">
+                <p>Você precisa de <span className="font-medium text-primary">550 pontos</span> para alcançar o 1º lugar</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
               <CardTitle>Seu Link de Afiliado</CardTitle>
               <CardDescription>
                 Compartilhe este link com novos possíveis associados
@@ -424,16 +487,20 @@ const ProgramaAfiliados = () => {
                   >
                     {copiado ? (
                       <>
+                        <Check className="h-4 w-4 mr-1" />
                         <span>Copiado</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-4 w-4 mr-2" />
+                        <Copy className="h-4 w-4 mr-1" />
                         <span>Copiar</span>
                       </>
                     )}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Este link é único e identifica você como afiliado
+                </p>
               </div>
 
               <div className="pt-4 space-y-4">
@@ -469,31 +536,110 @@ const ProgramaAfiliados = () => {
               <Separator className="my-4" />
 
               <div>
-                <h3 className="font-medium mb-2">Materiais Promocionais</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border rounded-md p-2">
-                    <div className="flex items-center">
-                      <div className="bg-blue-100 h-8 w-8 rounded-full flex items-center justify-center mr-2">
-                        <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                <h3 className="font-medium mb-3">Materiais Promocionais</h3>
+                <Tabs defaultValue="imagens" className="w-full">
+                  <TabsList className="mb-3 w-full">
+                    <TabsTrigger value="imagens" className="flex-1">Imagens</TabsTrigger>
+                    <TabsTrigger value="documentos" className="flex-1">Documentos</TabsTrigger>
+                    <TabsTrigger value="videos" className="flex-1">Vídeos</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="imagens" className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="border rounded-md p-3 hover:bg-slate-50 transition-colors group">
+                        <div className="aspect-video bg-slate-100 rounded-md mb-2 overflow-hidden">
+                          <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+                            <ImageIcon className="h-8 w-8 text-slate-400" />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">Banner Instagram</p>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">1080x1080px • JPG</p>
                       </div>
-                      <span>Banner para redes sociais</span>
-                    </div>
-                    <Button variant="ghost" size="sm">Baixar</Button>
-                  </div>
-                  <div className="flex items-center justify-between border rounded-md p-2">
-                    <div className="flex items-center">
-                      <div className="bg-blue-100 h-8 w-8 rounded-full flex items-center justify-center mr-2">
-                        <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                      
+                      <div className="border rounded-md p-3 hover:bg-slate-50 transition-colors group">
+                        <div className="aspect-video bg-slate-100 rounded-md mb-2 overflow-hidden">
+                          <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+                            <ImageIcon className="h-8 w-8 text-slate-400" />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">Banner Facebook</p>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">1200x630px • JPG</p>
                       </div>
-                      <span>Folheto informativo (PDF)</span>
                     </div>
-                    <Button variant="ghost" size="sm">Baixar</Button>
-                  </div>
-                </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="documentos" className="space-y-3">
+                    <div className="p-3 border rounded-md flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center">
+                        <div className="bg-red-100 h-10 w-10 rounded-md flex items-center justify-center mr-3">
+                          <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7 3C5.9 3 5 3.9 5 5v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8.4L13.6 3H7zM13 9V4.4L17.6 9H13z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Guia do Afiliado 2025</p>
+                          <p className="text-xs text-muted-foreground">PDF • 2.4 MB</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        <FileDown className="h-4 w-4 mr-1" />
+                        <span>Baixar</span>
+                      </Button>
+                    </div>
+                    
+                    <div className="p-3 border rounded-md flex items-center justify-between hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center">
+                        <div className="bg-blue-100 h-10 w-10 rounded-md flex items-center justify-center mr-3">
+                          <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7 3C5.9 3 5 3.9 5 5v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8.4L13.6 3H7zM13 9V4.4L17.6 9H13z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Catálogo de Produtos</p>
+                          <p className="text-xs text-muted-foreground">PDF • 4.8 MB</p>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">
+                        <FileDown className="h-4 w-4 mr-1" />
+                        <span>Baixar</span>
+                      </Button>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="videos" className="space-y-3">
+                    <div className="border rounded-md p-3 hover:bg-slate-50 transition-colors">
+                      <div className="aspect-video bg-slate-100 rounded-md mb-2 flex items-center justify-center relative">
+                        <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
+                          <div className="h-12 w-12 rounded-full bg-white/90 shadow-md flex items-center justify-center">
+                            <svg className="h-6 w-6 text-slate-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-sm">Tutorial do Programa de Afiliados</p>
+                          <p className="text-xs text-muted-foreground">MP4 • 3:24 min</p>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          <FileDown className="h-4 w-4 mr-1" />
+                          <span>Baixar</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </div>
             </CardContent>
           </Card>
