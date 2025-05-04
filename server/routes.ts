@@ -71,6 +71,7 @@ import medicalPortalRouter from './routes/medical-portal';
 import { dispensarioRouter } from './routes/dispensario-routes';
 // Importar rotas do programa de afiliados
 import { affiliatesRouter } from './routes/affiliates-routes';
+import cmarketRouter from './routes/cmarket-routes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -5868,6 +5869,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas do programa de afiliados
   app.use('/api/affiliates', affiliatesRouter);
+  
+  // Registrar rotas do CMarket (Portal do Fornecedor)
+  app.use('/api/cmarket', cmarketRouter);
+  console.log('Rotas do CMarket registradas com sucesso');
   
   // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);
