@@ -824,22 +824,84 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Plantio",
-          path: "/organization/cultivation/plantio",
-          active: currentPath === "/organization/cultivation/plantio",
-          icon: <Leaf size={16} />
+          title: "Plantas",
+          path: "/organization/cultivation/plantas",
+          active: currentPath === "/organization/cultivation/plantas" ||
+                  currentPath === "/organization/cultivation/plantio" ||
+                  currentPath === "/organization/cultivation/colheita",
+          icon: <Leaf size={16} />,
+          isSubmenu: true,
+          subItems: [
+            {
+              title: "Plantio",
+              path: "/organization/cultivation/plantio",
+              active: currentPath === "/organization/cultivation/plantio",
+              icon: <Leaf size={16} />
+            },
+            {
+              title: "Mudança de Fase",
+              path: "/organization/cultivation/mudanca-fase",
+              active: currentPath === "/organization/cultivation/mudanca-fase",
+              icon: <RefreshCw size={16} />
+            },
+            {
+              title: "Cadastro de Lotes",
+              path: "/organization/cultivation/lotes",
+              active: currentPath === "/organization/cultivation/lotes",
+              icon: <Tag size={16} />
+            },
+            {
+              title: "Colheita",
+              path: "/organization/cultivation/colheita",
+              active: currentPath === "/organization/cultivation/colheita",
+              icon: <Scissors size={16} />
+            }
+          ]
         },
         {
-          title: "Colheita",
-          path: "/organization/cultivation/colheita",
-          active: currentPath === "/organization/cultivation/colheita",
-          icon: <Scissors size={16} />
+          title: "Transferências",
+          path: "/organization/cultivation/transferencias",
+          active: currentPath === "/organization/cultivation/transferencias",
+          icon: <ArrowRightLeft size={16} />
         },
         {
-          title: "Análises",
-          path: "/organization/cultivation/analises",
-          active: currentPath === "/organization/cultivation/analises",
-          icon: <LineChart size={16} />
+          title: "Estoque",
+          path: "/organization/cultivation/estoque",
+          active: currentPath === "/organization/cultivation/estoque",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Testes",
+          path: "/organization/cultivation/testes",
+          active: currentPath === "/organization/cultivation/testes",
+          icon: <FlaskConical size={16} />
+        },
+        {
+          title: "Estufas",
+          path: "/organization/cultivation/estufas",
+          active: currentPath === "/organization/cultivation/estufas",
+          icon: <Building2 size={16} />
+        },
+        {
+          title: "Configuração",
+          path: "/organization/cultivation/configuracao",
+          active: currentPath === "/organization/cultivation/configuracao",
+          icon: <Settings size={16} />,
+          isSubmenu: true,
+          subItems: [
+            {
+              title: "Strains",
+              path: "/organization/cultivation/configuracao/strains",
+              active: currentPath === "/organization/cultivation/configuracao/strains",
+              icon: <Beaker size={16} />
+            },
+            {
+              title: "Tipos",
+              path: "/organization/cultivation/configuracao/tipos",
+              active: currentPath === "/organization/cultivation/configuracao/tipos",
+              icon: <Shapes size={16} />
+            }
+          ]
         }
       ]
     },
