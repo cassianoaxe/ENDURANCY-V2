@@ -758,6 +758,21 @@ router.get("/me", async (req, res) => {
       });
     }
 
+    // Garantir que supplierId seja um número
+    const supplierIdNum = Number(supplierId);
+    
+    // Verificar se a conversão gerou um número válido
+    if (isNaN(supplierIdNum)) {
+      console.log("ID do fornecedor inválido:", supplierId);
+      return res.status(400).json({ 
+        success: false,
+        error: "ID de fornecedor inválido", 
+        details: `O ID ${supplierId} não é um número válido` 
+      });
+    }
+    
+    console.log("Buscando fornecedor com ID (numérico):", supplierIdNum);
+    
     // Buscar fornecedor pelo ID
     const [supplier] = await db.select({
       id: supplierSchema.suppliers.id,
@@ -772,7 +787,7 @@ router.get("/me", async (req, res) => {
       description: supplierSchema.suppliers.description
     })
     .from(supplierSchema.suppliers)
-    .where(eq(supplierSchema.suppliers.id, supplierId));
+    .where(eq(supplierSchema.suppliers.id, supplierIdNum));
 
     if (!supplier) {
       console.log("Fornecedor não encontrado para o ID:", supplierId);

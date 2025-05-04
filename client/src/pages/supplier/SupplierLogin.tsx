@@ -94,8 +94,9 @@ export default function SupplierLogin() {
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        // Redireciona para o CMarket (marketplace do fornecedor)
-        setLocation("/supplier/cmarket");
+        // Redireciona para o CMarket (marketplace do fornecedor) usando redirect mais direto
+        window.location.href = "/supplier/cmarket";
+        return;
       } else {
         throw new Error(result.error || "Erro ao fazer login");
       }
