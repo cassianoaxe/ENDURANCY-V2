@@ -10,48 +10,80 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Check, Copy, Facebook, Gift, GitBranch, Instagram, BarChart, Users, Twitter, Share2, Award, AlertCircle, Zap, Lightbulb, Info, Copy as CopyIcon, Mail, MessageSquare, Clock } from 'lucide-react';
+import { Check, Copy, Facebook, Gift, GitBranch, Instagram, BarChart, Users, Twitter, Share2, Award, AlertCircle, Zap, Lightbulb, Info, Copy as CopyIcon, Mail, MessageSquare, Clock, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAffiliate } from '@/hooks/use-affiliate';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const PatientAfiliadosPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [copySuccess, setCopySuccess] = useState(false);
   
-  // Dados fictícios do programa de afiliados do paciente
-  const affiliateData = {
-    username: 'paciente123',
-    affiliateCode: 'PFLORAMED22',
-    referralLink: 'https://mediflora.com.br/registro?ref=PFLORAMED22',
-    points: 125,
-    level: 'Iniciante',
-    nextLevel: 'Bronze',
-    pointsToNextLevel: 75,
-    referrals: 3,
-    activeReferrals: 2,
-    totalEarnings: 'R$ 62,50',
-    rewardsAvailable: 2,
-    pendingPoints: 25,
-    history: [
-      { date: '12/04/2025', activity: 'Referência cadastrada', points: 50, name: 'Maria Silva' },
-      { date: '03/04/2025', activity: 'Primeira compra da referência', points: 25, name: 'João Pereira' },
-      { date: '28/03/2025', activity: 'Referência cadastrada', points: 50, name: 'João Pereira' },
-    ],
-    promotionalMaterials: [
-      { id: 1, title: 'Banner para Website', type: 'Imagem', format: 'JPG, PNG', size: '1200 x 628px' },
-      { id: 2, title: 'Postagem para Instagram', type: 'Imagem', format: 'JPG, PNG', size: '1080 x 1080px' },
-      { id: 3, title: 'Texto para WhatsApp', type: 'Texto', format: 'TXT', size: '500 caracteres' },
-    ],
-    rewards: [
-      { id: 1, title: 'Cupom de 10% de desconto', points: 100, available: true },
-      { id: 2, title: 'Frete grátis na próxima compra', points: 150, available: false },
-      { id: 3, title: 'Produto exclusivo', points: 300, available: false },
-    ]
-  };
+  // Usar o hook de afiliado para obter dados reais da API
+  const { 
+    affiliate, 
+    pointsHistory, 
+    referrals,
+    rewards: availableRewards,
+    materials,
+    isLoadingAffiliate,
+    isLoadingPoints,
+    isLoadingReferrals,
+    isLoadingRewards,
+    isLoadingMaterials,
+    redeemReward
+  } = useAffiliate();
   
+  // Dados temporários para uso enquanto a API é implementada
+  const tempAffiliateData = {
+    username: 'paciente123',
+    affiliateCode: affiliate?.affiliateCode || 'CODIGO',
+    referralLink: `https://example.com/registro?ref=${affiliate?.affiliateCode || 'CODIGO'}`,
+    points: affiliate?.points || 0,
+    level: affiliate?.level || 'beginner',
+    nextLevel: affiliate?.level === 'beginner' ? 'bronze' : 
+               affiliate?.level === 'bronze' ? 'silver' :
+               affiliate?.level === 'silver' ? 'gold' : 
+               affiliate?.level === 'gold' ? 'platinum' : 'platinum',
+    pointsToNextLevel: 75,
+    referrals: referrals?.length || 0,
+    activeReferrals: referrals?.filter(r => r.isActive).length || 0,
+    totalEarnings: `R$ ${(affiliate?.totalEarned || 0).toFixed(2)}`,
+    rewardsAvailable: availableRewards?.filter(r => r.pointsCost <= (affiliate?.points || 0)).length || 0,
+    pendingPoints: 25,
+    history: pointsHistory ? 
+      pointsHistory.map(point => ({
+        date: format(new Date(point.createdAt), 'dd/MM/yyyy', { locale: ptBR }),
+        activity: point.activityType === 'referral_signup' ? 'Referência cadastrada' :
+                  point.activityType === 'referral_purchase' ? 'Compra da referência' :
+                  point.activityType === 'bonus' ? 'Pontos bônus' : 
+                  point.activityType === 'redemption' ? 'Resgate de recompensa' : 'Atividade',
+        points: point.points,
+        name: 'Usuário'
+      })) : [],
+    promotionalMaterials: materials ? 
+      materials.map(material => ({
+        id: material.id,
+        title: material.title,
+        type: material.fileType.includes('image') ? 'Imagem' : 
+              material.fileType.includes('text') ? 'Texto' : 'Arquivo',
+        format: material.fileType.replace('image/', '').replace('text/', '').toUpperCase(),
+        size: 'Variável'
+      })) : [],
+    rewards: availableRewards ? 
+      availableRewards.map(reward => ({
+        id: reward.id,
+        title: reward.name,
+        points: reward.pointsCost,
+        available: (affiliate?.points || 0) >= reward.pointsCost
+      })) : []
+  };
+
   // Função para copiar o link de afiliado
   const copyReferralLink = () => {
-    navigator.clipboard.writeText(affiliateData.referralLink);
+    navigator.clipboard.writeText(tempAffiliateData.referralLink);
     setCopySuccess(true);
     toast({
       title: "Link copiado!",
@@ -64,11 +96,15 @@ const PatientAfiliadosPage = () => {
   };
   
   // Função para resgatar uma recompensa
-  const redeemReward = (reward) => {
-    toast({
-      title: "Recompensa resgatada!",
-      description: `Você resgatou: ${reward.title}`,
-    });
+  const handleRedeemReward = (reward: any) => {
+    if (affiliate && reward && reward.pointsCost <= affiliate.points) {
+      redeemReward.mutate(reward.id);
+    } else {
+      toast({
+        title: "Pontos insuficientes",
+        description: `Você precisa de ${reward?.pointsCost || 0} pontos para resgatar esta recompensa.`,
+      });
+    }
   };
   
   return (
@@ -118,13 +154,13 @@ const PatientAfiliadosPage = () => {
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="px-3 font-semibold">
-                  {affiliateData.level}
+                  {tempAffiliateData.level}
                 </Badge>
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
                   <div className="w-full md:w-3/4 bg-gray-100 dark:bg-gray-800 p-3 rounded-md font-mono text-sm break-all">
-                    {affiliateData.referralLink}
+                    {tempAffiliateData.referralLink}
                   </div>
                   <Button 
                     className="w-full md:w-auto flex items-center gap-2" 
@@ -135,7 +171,7 @@ const PatientAfiliadosPage = () => {
                   </Button>
                 </div>
                 <div className="mt-4">
-                  <p className="text-sm font-medium mb-1">Seu código de afiliado: <span className="font-bold">{affiliateData.affiliateCode}</span></p>
+                  <p className="text-sm font-medium mb-1">Seu código de afiliado: <span className="font-bold">{tempAffiliateData.affiliateCode}</span></p>
                 </div>
               </CardContent>
             </Card>
@@ -148,11 +184,11 @@ const PatientAfiliadosPage = () => {
                   <Gift className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{affiliateData.points}</div>
+                  <div className="text-3xl font-bold">{tempAffiliateData.points}</div>
                   <p className="text-xs text-muted-foreground">
-                    Mais {affiliateData.pointsToNextLevel} pontos para o nível {affiliateData.nextLevel}
+                    Mais {tempAffiliateData.pointsToNextLevel} pontos para o nível {tempAffiliateData.nextLevel}
                   </p>
-                  <Progress value={(affiliateData.points / (affiliateData.points + affiliateData.pointsToNextLevel)) * 100} className="h-2 mt-2" />
+                  <Progress value={(tempAffiliateData.points / (tempAffiliateData.points + tempAffiliateData.pointsToNextLevel)) * 100} className="h-2 mt-2" />
                 </CardContent>
               </Card>
               
@@ -163,14 +199,14 @@ const PatientAfiliadosPage = () => {
                   <GitBranch className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{affiliateData.referrals}</div>
+                  <div className="text-3xl font-bold">{tempAffiliateData.referrals}</div>
                   <p className="text-xs text-muted-foreground">
-                    {affiliateData.activeReferrals} indicações ativas
+                    {tempAffiliateData.activeReferrals} indicações ativas
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-xs font-medium">Conversão:</span>
-                    <Progress value={(affiliateData.activeReferrals / affiliateData.referrals) * 100} className="h-2 flex-1" />
-                    <span className="text-xs font-medium">{Math.round((affiliateData.activeReferrals / affiliateData.referrals) * 100)}%</span>
+                    <Progress value={(tempAffiliateData.activeReferrals / tempAffiliateData.referrals) * 100} className="h-2 flex-1" />
+                    <span className="text-xs font-medium">{Math.round((tempAffiliateData.activeReferrals / tempAffiliateData.referrals) * 100)}%</span>
                   </div>
                 </CardContent>
               </Card>
@@ -182,7 +218,7 @@ const PatientAfiliadosPage = () => {
                   <Award className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{affiliateData.rewardsAvailable}</div>
+                  <div className="text-3xl font-bold">{tempAffiliateData.rewardsAvailable}</div>
                   <p className="text-xs text-muted-foreground">
                     Recompensas disponíveis para resgate
                   </p>
@@ -256,8 +292,8 @@ const PatientAfiliadosPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {affiliateData.history.length > 0 ? (
-                    affiliateData.history.map((item, index) => (
+                  {tempAffiliateData.history.length > 0 ? (
+                    tempAffiliateData.history.map((item, index) => (
                       <div key={index}>
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                           <div className="flex items-center gap-3">
@@ -276,7 +312,7 @@ const PatientAfiliadosPage = () => {
                             </Badge>
                           </div>
                         </div>
-                        {index < affiliateData.history.length - 1 && (
+                        {index < tempAffiliateData.history.length - 1 && (
                           <Separator className="my-4" />
                         )}
                       </div>
@@ -302,7 +338,7 @@ const PatientAfiliadosPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {affiliateData.pendingPoints > 0 ? (
+                {tempAffiliateData.pendingPoints > 0 ? (
                   <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900/50 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -312,7 +348,7 @@ const PatientAfiliadosPage = () => {
                         <p className="font-medium">Pontos em processamento</p>
                       </div>
                       <Badge variant="outline" className="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/50">
-                        +{affiliateData.pendingPoints} pontos
+                        +{tempAffiliateData.pendingPoints} pontos
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -339,7 +375,7 @@ const PatientAfiliadosPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {affiliateData.rewards.map((reward) => (
+                  {tempAffiliateData.rewards.map((reward) => (
                     <div key={reward.id} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className={`bg-primary/10 p-2 rounded-full ${!reward.available && 'opacity-50'}`}>
@@ -355,11 +391,11 @@ const PatientAfiliadosPage = () => {
                       <Button 
                         variant={reward.available ? "default" : "outline"} 
                         disabled={!reward.available}
-                        onClick={() => redeemReward(reward)}
+                        onClick={() => handleRedeemReward(reward)}
                       >
                         {reward.available 
-                          ? `Resgatar (${affiliateData.points}/${reward.points})` 
-                          : `Pontos insuficientes (${affiliateData.points}/${reward.points})`
+                          ? `Resgatar (${tempAffiliateData.points}/${reward.points})` 
+                          : `Pontos insuficientes (${tempAffiliateData.points}/${reward.points})`
                         }
                       </Button>
                     </div>
@@ -416,7 +452,7 @@ const PatientAfiliadosPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {affiliateData.promotionalMaterials.map((material) => (
+                  {tempAffiliateData.promotionalMaterials.map((material) => (
                     <div key={material.id} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 border rounded-lg">
                       <div className="flex items-center gap-3">
                         {material.type === 'Imagem' ? (
@@ -556,7 +592,7 @@ const PatientAfiliadosPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {affiliateData.referrals > 0 ? (
+                {tempAffiliateData.referrals > 0 ? (
                   <div className="space-y-4">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 border rounded-lg">
                       <div className="flex items-center gap-3">
