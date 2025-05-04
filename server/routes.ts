@@ -2947,11 +2947,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para obter dados da organização atual
   app.get("/api/organizations/current", authenticate, async (req, res) => {
     try {
+      console.log("Acessando organização atual. Dados da sessão:", req.session?.user?.id, req.session?.user?.role);
+      
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
         return res.status(401).json({ message: "Organização não disponível" });
       }
       
       const organizationId = req.session.user.organizationId;
+      
+      // Verificar se o ID da organização é válido
+      if (typeof organizationId !== 'number' || isNaN(organizationId)) {
+        console.error(`ID de organização inválido: ${organizationId}, tipo: ${typeof organizationId}`);
+        return res.status(400).json({ message: "ID de organização inválido" });
+      }
+      
+      console.log(`Buscando organização atual com ID: ${organizationId}`);
       
       // Buscar organização
       const [organization] = await db.select()
@@ -2959,13 +2969,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(organizations.id, organizationId));
       
       if (!organization) {
+        console.error(`Organização não encontrada para o ID: ${organizationId}`);
         return res.status(404).json({ message: "Organização não encontrada" });
       }
       
+      console.log(`Organização atual encontrada: ${organization.name}`);
       res.json(organization);
     } catch (error) {
       console.error("Erro ao buscar organização atual:", error);
-      res.status(500).json({ message: "Falha ao buscar dados da organização" });
+      res.status(500).json({ 
+        message: "Falha ao buscar dados da organização",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
@@ -2991,6 +3006,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const organizationId = req.session.user.organizationId;
+      
+      // Verificar se o ID da organização é válido
+      if (typeof organizationId !== 'number' || isNaN(organizationId)) {
+        console.error(`ID de organização inválido em /api/modules/organization: ${organizationId}, tipo: ${typeof organizationId}`);
+        return res.status(400).json({ message: "ID de organização inválido" });
+      }
       
       console.log(`Buscando módulos para organização ${organizationId} do usuário atual (ID: ${req.session.user.id}, Role: ${req.session.user.role})`);
       
