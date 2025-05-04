@@ -26,6 +26,7 @@ import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
 import expedicaoRoutes from './routes/expedicao-routes';
+import { registerAffiliatesRoutes } from './routes/affiliates-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -68,6 +69,8 @@ import modulesRouter from './routes/modules';
 import medicalPortalRouter from './routes/medical-portal';
 // Importar rotas do módulo de farmácia
 import { dispensarioRouter } from './routes/dispensario-routes';
+// Importar rotas do programa de afiliados
+import { affiliatesRouter } from './routes/affiliates-routes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -5863,6 +5866,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de AI Chat
   app.use('/api/ai', aiChatRouter);
   
+  // Registrar rotas do programa de afiliados
+  app.use('/api/affiliates', affiliatesRouter);
+  
   // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);
   const pharmacistRoutes = await registerPharmacistRoutes(app);
@@ -5962,6 +5968,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas do módulo Social (para associações)
   app.use("/api", socialRoutes);
   console.log("Rotas do módulo Social registradas com sucesso");
+  
+  // Registrar rotas do programa de afiliados
+  registerAffiliatesRoutes(app);
+  console.log("Rotas do programa de afiliados registradas com sucesso");
   
   const httpServer = createServer(app);
 
