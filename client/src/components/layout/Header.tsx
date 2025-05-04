@@ -196,8 +196,20 @@ export default function Header() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="user-profile">
-                <User className="h-5 w-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="user-profile relative hover:bg-gray-100 dark:hover:bg-gray-800"
+                aria-label="Menu do usuário"
+              >
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {user?.name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                  {user?.profilePhoto && (
+                    <AvatarImage src={user.profilePhoto} alt={user?.name || 'Usuário'} />
+                  )}
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="dark:bg-gray-800 dark:border-gray-700">
