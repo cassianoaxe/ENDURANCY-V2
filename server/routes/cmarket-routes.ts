@@ -1,370 +1,364 @@
 import express from 'express';
-import { isAuthenticated } from '../auth-middleware';
 import { db } from '../db';
+import { eq, desc, and, like, ne, sql, count } from 'drizzle-orm';
+import {
+  cmarketCategoriesTable,
+  cmarketAnnouncementsTable,
+  cmarketProposalsTable,
+  cmarketProductsTable,
+  insertCmarketAnnouncementSchema,
+  insertCmarketProposalSchema,
+  insertCmarketProductSchema,
+  insertCmarketCategorySchema
+} from '@shared/schema-cmarket';
+import { organizations } from '@shared/schema';
 
-const router = express.Router();
+export const router = express.Router();
 
-// Middleware de autenticação para todas as rotas
-router.use(isAuthenticated);
+// Middleware para garantir que o usuário está autenticado
+const isAuthenticated = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  return res.status(401).json({ message: 'Não autenticado' });
+};
 
-// Obter categorias
+// Middleware para verificar se é um fornecedor ou admin
+const isSupplierOrAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.isAuthenticated() && (req.user.role === 'supplier' || req.user.role === 'org_admin' || req.user.role === 'admin')) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Acesso não autorizado' });
+};
+
+// Rota para obter todas as categorias
 router.get('/categories', async (req, res) => {
   try {
-    // Categorias de exemplo - em produção viriam do banco de dados
-    const categories = [
-      { id: 1, name: 'Vidrarias', slug: 'vidrarias', iconName: 'Beaker' },
-      { id: 2, name: 'Reagentes', slug: 'reagentes', iconName: 'Flask' },
-      { id: 3, name: 'Equipamentos', slug: 'equipamentos', iconName: 'Microscope' },
-      { id: 4, name: 'EPIs', slug: 'epis', iconName: 'ShieldAlert' },
-      { id: 5, name: 'Livros Técnicos', slug: 'livros', iconName: 'BookOpen' },
-      { id: 6, name: 'Consumíveis', slug: 'consumiveis', iconName: 'Package' },
-    ];
-    
-    res.json(categories);
+    const categories = await db.select().from(cmarketCategoriesTable).orderBy(cmarketCategoriesTable.name);
+    return res.json(categories);
   } catch (error) {
     console.error('Erro ao buscar categorias:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar categorias' });
+    return res.status(500).json({ message: 'Erro ao buscar categorias' });
   }
 });
 
-// Obter produtos em destaque
-router.get('/featured-products', async (req, res) => {
+// Rota para criar uma nova categoria
+router.post('/categories', isSupplierOrAdmin, async (req, res) => {
   try {
-    // Produtos de exemplo - em produção viriam do banco de dados
-    const products = [
-      {
-        id: 1,
-        name: 'Frasco Coletor 1,300ml Aspiramax Omron',
-        price: 114,
-        installmentPrice: 19,
-        image: '/images/lab-beaker.jpg',
-        rating: 4.8,
-        reviews: 25,
-        freeShipping: true,
-        categoryId: 1
-      },
-      {
-        id: 2,
-        name: 'Kit 5 Unid. Copo De Bécker Forma Baixa Em Vidro De 1000ml',
-        price: 90,
-        installmentPrice: 15,
-        image: '/images/lab-beaker-kit.jpg',
-        rating: 5.0,
-        reviews: 2,
-        freeShipping: true,
-        categoryId: 1
-      },
-      {
-        id: 3,
-        name: 'Laboratório De Química Show Da Luna 24 Experiências',
-        price: 77.97,
-        installmentPrice: null,
-        image: '/images/lab-kit.jpg',
-        rating: 4.7,
-        reviews: 60,
-        freeShipping: true,
-        discount: '40% OFF',
-        originalPrice: 129.95,
-        categoryId: 3
-      },
-      {
-        id: 4,
-        name: 'Becker Plastico 1000ml Graduado Polipropileno',
-        price: 49.90,
-        installmentPrice: 8.32,
-        image: '/images/plastic-beaker.jpg',
-        rating: 4.5,
-        reviews: 18,
-        freeShipping: true,
-        categoryId: 1
-      }
-    ];
-    
-    res.json(products);
+    const validatedData = insertCmarketCategorySchema.parse(req.body);
+    const [category] = await db.insert(cmarketCategoriesTable).values(validatedData).returning();
+    return res.status(201).json(category);
   } catch (error) {
-    console.error('Erro ao buscar produtos em destaque:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar produtos em destaque' });
+    console.error('Erro ao criar categoria:', error);
+    return res.status(400).json({ message: 'Erro ao criar categoria', error });
   }
 });
 
-// Obter editais de compra
+// Rota para obter anúncios de compra (com paginação e filtros)
 router.get('/announcements', async (req, res) => {
   try {
-    // Editais de exemplo - em produção viriam do banco de dados
-    const announcements = [
-      {
-        id: 101,
-        title: 'Compra de 2000 frascos de reagentes químicos',
-        organization: 'Associação Médica Brasileira',
-        deadline: '15/05/2025',
-        budget: 'R$ 15.000,00',
-        status: 'Aberto para propostas'
-      },
-      {
-        id: 102,
-        title: 'Aquisição de equipamentos de laboratório',
-        organization: 'Instituto de Pesquisa ABC',
-        deadline: '22/05/2025',
-        budget: 'R$ 50.000,00',
-        status: 'Aberto para propostas'
-      },
-      {
-        id: 103,
-        title: 'Compra de material para análise cromatográfica',
-        organization: 'Centro de Pesquisas XYZ',
-        deadline: '10/05/2025',
-        budget: 'R$ 8.500,00',
-        status: 'Aberto para propostas'
-      }
-    ];
+    const { page = 1, limit = 10, category, search, status = 'open' } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
     
-    res.json(announcements);
+    let query = db.select({
+      announcement: cmarketAnnouncementsTable,
+      organization: {
+        id: organizations.id,
+        name: organizations.name,
+        logo: organizations.logo,
+      }
+    })
+    .from(cmarketAnnouncementsTable)
+    .leftJoin(organizations, eq(cmarketAnnouncementsTable.organizationId, organizations.id))
+    .orderBy(desc(cmarketAnnouncementsTable.createdAt))
+    .limit(Number(limit))
+    .offset(offset);
+    
+    // Aplicar filtros se fornecidos
+    if (category) {
+      query = query.where(eq(cmarketAnnouncementsTable.categoryId, Number(category)));
+    }
+    
+    if (search) {
+      query = query.where(
+        like(cmarketAnnouncementsTable.title, `%${search}%`)
+      );
+    }
+    
+    if (status) {
+      query = query.where(eq(cmarketAnnouncementsTable.status, String(status)));
+    }
+    
+    const announcements = await query;
+    
+    // Contar total para paginação
+    const countQuery = db.select({ count: count() })
+      .from(cmarketAnnouncementsTable);
+    
+    if (category) {
+      countQuery.where(eq(cmarketAnnouncementsTable.categoryId, Number(category)));
+    }
+    
+    if (search) {
+      countQuery.where(like(cmarketAnnouncementsTable.title, `%${search}%`));
+    }
+    
+    if (status) {
+      countQuery.where(eq(cmarketAnnouncementsTable.status, String(status)));
+    }
+    
+    const [{ count: total }] = await countQuery;
+    
+    return res.json({
+      data: announcements,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit))
+      }
+    });
   } catch (error) {
-    console.error('Erro ao buscar editais de compra:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar editais de compra' });
+    console.error('Erro ao buscar anúncios:', error);
+    return res.status(500).json({ message: 'Erro ao buscar anúncios' });
   }
 });
 
-// Obter detalhes de um edital específico
+// Rota para obter detalhes de um anúncio específico
 router.get('/announcements/:id', async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const { id } = req.params;
     
-    // Simulação - em produção buscaria do banco de dados com o ID fornecido
-    const announcement = {
-      id: 101,
-      title: 'Compra de 2000 frascos de reagentes químicos',
-      organization: 'Associação Médica Brasileira',
-      published: '01/05/2025',
-      deadline: '15/05/2025',
-      closeTime: '18:00',
-      budget: 'R$ 15.000,00',
-      status: 'Aberto para propostas',
-      description: `
-        A Associação Médica Brasileira está abrindo um edital para a compra de 2000 frascos de reagentes químicos para uso em laboratórios de pesquisa médica.
-        
-        ## Especificações técnicas:
-        
-        - 1000 frascos de álcool etílico 95% - 500ml
-        - 500 frascos de formaldeído 37% - 1L
-        - 500 frascos de xilol - 1L
-        
-        Os produtos devem atender às normas de qualidade estabelecidas pela ANVISA e possuir registro no Ministério da Saúde quando aplicável.
-        
-        ## Prazo de entrega:
-        
-        Os produtos devem ser entregues em até 15 dias após a aprovação da proposta.
-        
-        ## Critérios de seleção:
-        
-        A seleção da proposta vencedora será feita com base no menor preço global, desde que atendidas todas as especificações técnicas.
-        
-        ## Documentação necessária:
-        
-        - Comprovante de regularidade fiscal
-        - Certificado de boas práticas de fabricação
-        - Ficha técnica dos produtos
-        
-        A entrega deve ser feita na sede da Associação Médica Brasileira, localizada na Rua Radialista Antônio Assunção, 1500, São Paulo/SP.
-      `,
-      attachments: [
-        { name: 'Edital_completo.pdf', size: '1.2 MB' },
-        { name: 'Modelo_de_proposta.docx', size: '250 KB' },
-        { name: 'Ficha_técnica_exemplo.pdf', size: '500 KB' }
-      ],
-      proposals: [
-        { id: 1, supplier: 'Laboratório Industrial XYZ', date: '02/05/2025', status: 'Em análise' },
-        { id: 2, supplier: 'Química Brasil LTDA', date: '03/05/2025', status: 'Em análise' },
-      ]
-    };
+    // Incrementar contador de visualizações
+    await db.update(cmarketAnnouncementsTable)
+      .set({ viewCount: sql`${cmarketAnnouncementsTable.viewCount} + 1` })
+      .where(eq(cmarketAnnouncementsTable.id, Number(id)));
     
-    // Se não encontrar o edital (em produção)
-    if (id !== 101 && id !== announcement.id) {
-      return res.status(404).json({ message: 'Edital não encontrado' });
+    const [announcement] = await db.select({
+      announcement: cmarketAnnouncementsTable,
+      organization: {
+        id: organizations.id,
+        name: organizations.name,
+        logo: organizations.logo,
+        address: organizations.address,
+        city: organizations.city,
+        state: organizations.state,
+      },
+      category: {
+        id: cmarketCategoriesTable.id,
+        name: cmarketCategoriesTable.name,
+      }
+    })
+    .from(cmarketAnnouncementsTable)
+    .leftJoin(organizations, eq(cmarketAnnouncementsTable.organizationId, organizations.id))
+    .leftJoin(cmarketCategoriesTable, eq(cmarketAnnouncementsTable.categoryId, cmarketCategoriesTable.id))
+    .where(eq(cmarketAnnouncementsTable.id, Number(id)));
+    
+    if (!announcement) {
+      return res.status(404).json({ message: 'Anúncio não encontrado' });
     }
     
-    res.json(announcement);
+    // Obter propostas para este anúncio (se o usuário for o criador ou um administrador)
+    let proposals = [];
+    if (req.isAuthenticated() && 
+        (req.user.role === 'admin' || 
+         req.user.organizationId === announcement.announcement.organizationId)) {
+      proposals = await db.select()
+        .from(cmarketProposalsTable)
+        .where(eq(cmarketProposalsTable.announcementId, Number(id)))
+        .orderBy(desc(cmarketProposalsTable.createdAt));
+    }
+    
+    // Verificar se o usuário logado já enviou uma proposta
+    let userProposal = null;
+    if (req.isAuthenticated()) {
+      const [proposal] = await db.select()
+        .from(cmarketProposalsTable)
+        .where(and(
+          eq(cmarketProposalsTable.announcementId, Number(id)),
+          eq(cmarketProposalsTable.vendorId, req.user.id)
+        ));
+      
+      userProposal = proposal || null;
+    }
+    
+    return res.json({
+      ...announcement,
+      proposals,
+      userProposal
+    });
   } catch (error) {
-    console.error('Erro ao buscar detalhes do edital:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar detalhes do edital' });
+    console.error('Erro ao buscar detalhes do anúncio:', error);
+    return res.status(500).json({ message: 'Erro ao buscar detalhes do anúncio' });
   }
 });
 
-// Enviar proposta para um edital
-router.post('/announcements/:id/proposals', async (req, res) => {
+// Rota para criar um novo anúncio
+router.post('/announcements', isAuthenticated, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    const { price, deliveryTime, description } = req.body;
+    const validatedData = insertCmarketAnnouncementSchema.parse({
+      ...req.body,
+      creatorId: req.user.id,
+      organizationId: req.user.organizationId
+    });
     
-    // Validar dados
-    if (!price || !deliveryTime || !description) {
-      return res.status(400).json({ message: 'Campos obrigatórios não informados' });
+    const [announcement] = await db.insert(cmarketAnnouncementsTable)
+      .values(validatedData)
+      .returning();
+    
+    return res.status(201).json(announcement);
+  } catch (error) {
+    console.error('Erro ao criar anúncio:', error);
+    return res.status(400).json({ message: 'Erro ao criar anúncio', error });
+  }
+});
+
+// Rota para atualizar um anúncio
+router.put('/announcements/:id', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o anúncio existe e pertence ao usuário ou organização
+    const [existingAnnouncement] = await db.select()
+      .from(cmarketAnnouncementsTable)
+      .where(eq(cmarketAnnouncementsTable.id, Number(id)));
+    
+    if (!existingAnnouncement) {
+      return res.status(404).json({ message: 'Anúncio não encontrado' });
     }
     
-    // Simulação - em produção salvaria no banco de dados
-    // e retornaria o ID da proposta criada
-    res.status(201).json({ 
-      message: 'Proposta enviada com sucesso',
-      proposalId: Math.floor(Math.random() * 1000),
-      status: 'Em análise' 
+    // Verificar se o usuário é o criador ou um administrador
+    if (existingAnnouncement.creatorId !== req.user.id && 
+        existingAnnouncement.organizationId !== req.user.organizationId && 
+        req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Sem permissão para editar este anúncio' });
+    }
+    
+    const validatedData = insertCmarketAnnouncementSchema.partial().parse(req.body);
+    
+    const [updatedAnnouncement] = await db.update(cmarketAnnouncementsTable)
+      .set(validatedData)
+      .where(eq(cmarketAnnouncementsTable.id, Number(id)))
+      .returning();
+    
+    return res.json(updatedAnnouncement);
+  } catch (error) {
+    console.error('Erro ao atualizar anúncio:', error);
+    return res.status(400).json({ message: 'Erro ao atualizar anúncio', error });
+  }
+});
+
+// Rota para enviar uma proposta para um anúncio
+router.post('/announcements/:id/proposals', isAuthenticated, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o anúncio existe
+    const [announcement] = await db.select()
+      .from(cmarketAnnouncementsTable)
+      .where(eq(cmarketAnnouncementsTable.id, Number(id)));
+    
+    if (!announcement) {
+      return res.status(404).json({ message: 'Anúncio não encontrado' });
+    }
+    
+    // Verificar se o anúncio está aberto
+    if (announcement.status !== 'open') {
+      return res.status(400).json({ message: 'Este anúncio não está mais aceitando propostas' });
+    }
+    
+    // Verificar se o usuário já enviou uma proposta
+    const [existingProposal] = await db.select()
+      .from(cmarketProposalsTable)
+      .where(and(
+        eq(cmarketProposalsTable.announcementId, Number(id)),
+        eq(cmarketProposalsTable.vendorId, req.user.id)
+      ));
+    
+    if (existingProposal) {
+      return res.status(400).json({ message: 'Você já enviou uma proposta para este anúncio' });
+    }
+    
+    const validatedData = insertCmarketProposalSchema.parse({
+      ...req.body,
+      announcementId: Number(id),
+      vendorId: req.user.id,
+      organizationId: req.user.organizationId
     });
+    
+    const [proposal] = await db.insert(cmarketProposalsTable)
+      .values(validatedData)
+      .returning();
+    
+    return res.status(201).json(proposal);
   } catch (error) {
     console.error('Erro ao enviar proposta:', error);
-    res.status(500).json({ message: 'Erro interno ao enviar proposta' });
+    return res.status(400).json({ message: 'Erro ao enviar proposta', error });
   }
 });
 
-// Buscar produtos
-router.get('/products', async (req, res) => {
+// Rota para atualizar o status de uma proposta (aceitar/rejeitar)
+router.patch('/proposals/:id/status', isAuthenticated, async (req, res) => {
   try {
-    const { query, category, page = 1, limit = 20 } = req.query;
+    const { id } = req.params;
+    const { status } = req.body;
     
-    // Lógica de busca - em produção buscaria do banco de dados
-    // com filtros por nome do produto e categoria
-    
-    // Simulação de produtos para demonstração
-    const products = [
-      {
-        id: 1,
-        name: 'Frasco Coletor 1,300ml Aspiramax Omron',
-        price: 114,
-        installmentPrice: 19,
-        image: '/images/lab-beaker.jpg',
-        rating: 4.8,
-        reviews: 25,
-        freeShipping: true,
-        categoryId: 1
-      },
-      {
-        id: 2,
-        name: 'Kit 5 Unid. Copo De Bécker Forma Baixa Em Vidro De 1000ml',
-        price: 90,
-        installmentPrice: 15,
-        image: '/images/lab-beaker-kit.jpg',
-        rating: 5.0,
-        reviews: 2,
-        freeShipping: true,
-        categoryId: 1
-      },
-      // mais produtos...
-    ];
-    
-    res.json({
-      products,
-      totalItems: products.length,
-      totalPages: 1,
-      currentPage: 1
-    });
-  } catch (error) {
-    console.error('Erro ao buscar produtos:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar produtos' });
-  }
-});
-
-// Obter detalhes de um produto
-router.get('/products/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    
-    // Lógica de busca - em produção buscaria do banco de dados com base no ID
-    
-    // Simulação - produto exemplo para demonstração
-    const product = {
-      id: 1,
-      name: 'Frasco Coletor 1,300ml Aspiramax Omron',
-      description: 'Frasco coletor para uso em aspiradores de secreção, com capacidade de 1,300ml. Compatível com equipamentos Aspiramax e Omron.',
-      price: 114,
-      installmentPrice: 19,
-      installments: 6,
-      image: '/images/lab-beaker.jpg',
-      images: [
-        '/images/lab-beaker.jpg',
-        '/images/lab-beaker-side.jpg',
-        '/images/lab-beaker-top.jpg'
-      ],
-      rating: 4.8,
-      reviews: 25,
-      freeShipping: true,
-      stock: 50,
-      categoryId: 1,
-      categoryName: 'Vidrarias',
-      seller: {
-        id: 5,
-        name: 'Medical Supplies Inc.',
-        rating: 4.7,
-        sales: 324,
-        joinedDate: '2023-09-15'
-      },
-      specifications: [
-        { name: 'Material', value: 'Vidro borossilicato' },
-        { name: 'Capacidade', value: '1,300ml' },
-        { name: 'Graduação', value: 'Sim' },
-        { name: 'Autoclavável', value: 'Sim' },
-        { name: 'Dimensões', value: '15cm x 10cm' },
-        { name: 'Peso', value: '350g' }
-      ]
-    };
-    
-    // Se não encontrar o produto
-    if (id !== 1 && id !== product.id) {
-      return res.status(404).json({ message: 'Produto não encontrado' });
+    if (!['pending', 'accepted', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Status inválido' });
     }
     
-    res.json(product);
-  } catch (error) {
-    console.error('Erro ao buscar detalhes do produto:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar detalhes do produto' });
-  }
-});
-
-// Adicionar ao carrinho
-router.post('/cart/add', async (req, res) => {
-  try {
-    const { productId, quantity } = req.body;
+    // Verificar se a proposta existe
+    const [proposal] = await db.select({
+      proposal: cmarketProposalsTable,
+      announcement: {
+        id: cmarketAnnouncementsTable.id,
+        creatorId: cmarketAnnouncementsTable.creatorId,
+        organizationId: cmarketAnnouncementsTable.organizationId
+      }
+    })
+    .from(cmarketProposalsTable)
+    .leftJoin(cmarketAnnouncementsTable, eq(cmarketProposalsTable.announcementId, cmarketAnnouncementsTable.id))
+    .where(eq(cmarketProposalsTable.id, Number(id)));
     
-    // Validar dados
-    if (!productId || !quantity) {
-      return res.status(400).json({ message: 'Produto e quantidade são obrigatórios' });
+    if (!proposal) {
+      return res.status(404).json({ message: 'Proposta não encontrada' });
     }
     
-    // Simulação - em produção adicionaria ao carrinho no banco de dados
-    res.status(201).json({ 
-      message: 'Produto adicionado ao carrinho',
-      cartItemId: Math.floor(Math.random() * 1000),
-      totalItems: 1
-    });
-  } catch (error) {
-    console.error('Erro ao adicionar ao carrinho:', error);
-    res.status(500).json({ message: 'Erro interno ao adicionar ao carrinho' });
-  }
-});
-
-// Obter carrinho
-router.get('/cart', async (req, res) => {
-  try {
-    // Simulação - em produção buscaria do banco de dados
-    const cart = {
-      items: [
-        {
-          id: 1,
-          productId: 1,
-          name: 'Frasco Coletor 1,300ml Aspiramax Omron',
-          price: 114,
-          quantity: 2,
-          image: '/images/lab-beaker.jpg'
-        }
-      ],
-      subtotal: 228,
-      shipping: 0,
-      total: 228
-    };
+    // Verificar se o usuário é o criador do anúncio ou um administrador
+    if (proposal.announcement.creatorId !== req.user.id && 
+        proposal.announcement.organizationId !== req.user.organizationId && 
+        req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Sem permissão para atualizar esta proposta' });
+    }
     
-    res.json(cart);
+    const [updatedProposal] = await db.update(cmarketProposalsTable)
+      .set({ status })
+      .where(eq(cmarketProposalsTable.id, Number(id)))
+      .returning();
+    
+    // Se a proposta foi aceita, atualizar o status do anúncio para fechado
+    if (status === 'accepted') {
+      await db.update(cmarketAnnouncementsTable)
+        .set({ status: 'closed' })
+        .where(eq(cmarketAnnouncementsTable.id, proposal.announcement.id));
+      
+      // Rejeitar todas as outras propostas para este anúncio
+      await db.update(cmarketProposalsTable)
+        .set({ status: 'rejected' })
+        .where(and(
+          eq(cmarketProposalsTable.announcementId, proposal.announcement.id),
+          ne(cmarketProposalsTable.id, Number(id))
+        ));
+    }
+    
+    return res.json(updatedProposal);
   } catch (error) {
-    console.error('Erro ao buscar carrinho:', error);
-    res.status(500).json({ message: 'Erro interno ao buscar carrinho' });
+    console.error('Erro ao atualizar status da proposta:', error);
+    return res.status(400).json({ message: 'Erro ao atualizar status da proposta', error });
   }
 });
 
-// Exportar como default
-export default router;
+export const registerCMarketRoutes = (app: express.Express) => {
+  app.use('/api/cmarket', router);
+  console.log('Rotas do CMarket registradas com sucesso');
+};

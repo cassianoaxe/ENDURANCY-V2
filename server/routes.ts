@@ -27,6 +27,7 @@ import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
 import expedicaoRoutes from './routes/expedicao-routes';
 import { registerAffiliatesRoutes } from './routes/affiliates-routes';
+import { registerCMarketRoutes } from './routes/cmarket-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -7167,6 +7168,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========= Rotas do Portal de Laboratório =========
   registerLaboratoryRoutes(app);
   registerLaboratorySamplesRoutes(app);
+  
+  // ========= Rotas do CMarket (Marketplace de Fornecedores) =========
+  registerCMarketRoutes(app);
+  console.log("Rotas do CMarket registradas com sucesso");
   
   return server;
 }
