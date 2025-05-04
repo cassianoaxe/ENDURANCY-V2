@@ -354,6 +354,54 @@ export default function OrganizationSidebar() {
       icon: <Users size={18} />
     },
     {
+      title: "Expedição",
+      path: "/organization/expedicao",
+      active: currentPath === "/organization/expedicao" || 
+              currentPath === "/organization/expedition" || 
+              currentPath === "/organization/producao" ||
+              currentPath.startsWith("/organization/expedicao/"),
+      icon: <Truck size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Expedição",
+          path: "/organization/expedicao",
+          active: currentPath === "/organization/expedicao" && !currentPath.includes("/organization/expedicao/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Preparação de Envios",
+          path: "/organization/expedicao/pedidos",
+          active: currentPath === "/organization/expedicao/pedidos",
+          icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Etiquetas",
+          path: "/organization/expedicao/etiquetas",
+          active: currentPath === "/organization/expedicao/etiquetas",
+          icon: <Printer size={16} />
+        },
+        {
+          title: "Leitura de Códigos",
+          path: "/organization/expedicao/codigos",
+          active: currentPath === "/organization/expedicao/codigos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Documentação",
+          path: "/organization/expedicao/documentacao",
+          active: currentPath === "/organization/expedicao/documentacao",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Mapa BI",
+          path: "/organization/expedicao/mapa-bi",
+          active: currentPath === "/organization/expedicao/mapa-bi",
+          icon: <BarChart3 size={16} />
+        }
+      ]
+    },
+    {
       title: "Módulo Social",
       path: "/organization/social",
       active: currentPath === "/organization/social" || 
@@ -613,56 +661,6 @@ export default function OrganizationSidebar() {
         }
       ]
     },
-    {
-      title: "Expedição",
-      path: "/organization/expedicao",
-      active: currentPath === "/organization/expedicao" || 
-              currentPath === "/organization/expedition" || 
-              currentPath === "/organization/producao" ||
-              currentPath.startsWith("/organization/expedicao/"),
-      icon: <Truck size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Expedição",
-          path: "/organization/expedicao",
-          active: currentPath === "/organization/expedicao" && !currentPath.includes("/organization/expedicao/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Preparação de Envios",
-          path: "/organization/expedicao/pedidos",
-          active: currentPath === "/organization/expedicao/pedidos",
-          icon: <ClipboardList size={16} />
-        },
-        {
-          title: "Etiquetas",
-          path: "/organization/expedicao/etiquetas",
-          active: currentPath === "/organization/expedicao/etiquetas",
-          icon: <Printer size={16} />
-        },
-        {
-          title: "Leitura de Códigos",
-          path: "/organization/expedicao/codigos",
-          active: currentPath === "/organization/expedicao/codigos",
-          icon: <FileText size={16} />
-        },
-        {
-          title: "Documentação",
-          path: "/organization/expedicao/documentacao",
-          active: currentPath === "/organization/expedicao/documentacao",
-          icon: <FileText size={16} />
-        },
-        {
-          title: "Mapa BI",
-          path: "/organization/expedicao/mapa-bi",
-          active: currentPath === "/organization/expedicao/mapa-bi",
-          icon: <BarChart3 size={16} />
-        }
-      ]
-    },
-    
-    
     {
       title: "Comunicação",
       path: "/organization/comunicacao",
