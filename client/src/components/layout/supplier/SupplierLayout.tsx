@@ -58,8 +58,8 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         
         if (!response.ok) {
           // Se não estiver autenticado, redirecionar para o login
-          if (response.status === 401) {
-            console.log("Não autenticado. Redirecionando para login.");
+          if (response.status === 401 || response.status === 400) {
+            console.log("Não autenticado ou erro de ID. Redirecionando para login.");
             window.location.href = "/supplier/login";
             return;
           }
