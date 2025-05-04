@@ -33,7 +33,8 @@ const PatientAfiliadosPage = () => {
     isLoadingReferrals,
     isLoadingRewards,
     isLoadingMaterials,
-    redeemReward
+    redeemReward,
+    registerAsAffiliate
   } = useAffiliate();
   
   // Dados temporários para uso enquanto a API é implementada
@@ -107,6 +108,204 @@ const PatientAfiliadosPage = () => {
     }
   };
   
+  // Função para registrar como afiliado
+  const handleRegisterAsAffiliate = () => {
+    registerAsAffiliate.mutate();
+  };
+  
+  // Renderizar uma tela de inscrição se o usuário não for um afiliado
+  if (!affiliate && !isLoadingAffiliate) {
+    return (
+      <PatientLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Programa de Afiliados</h1>
+            <p className="text-muted-foreground mb-8">
+              Indique amigos e familiares e ganhe pontos e recompensas exclusivas.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Junte-se ao nosso Programa de Afiliados</CardTitle>
+                <CardDescription>
+                  Torne-se um afiliado hoje e comece a ganhar recompensas por suas indicações
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Como funciona:</h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Registre-se gratuitamente como afiliado</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Obtenha seu código de afiliado exclusivo</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Compartilhe com amigos, familiares e em redes sociais</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Ganhe pontos por cada indicação bem-sucedida</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Troque seus pontos por recompensas exclusivas</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Benefícios:</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gift className="h-5 w-5 text-primary" />
+                        <span className="font-medium">Ganhe Recompensas</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Resgate seus pontos por produtos, descontos e benefícios exclusivos.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Award className="h-5 w-5 text-primary" />
+                        <span className="font-medium">Suba de Nível</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Quanto mais indicações, mais você avança em nossos níveis de afiliados.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart className="h-5 w-5 text-primary" />
+                        <span className="font-medium">Acompanhe Resultados</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Monitore suas indicações e ganhos em um painel intuitivo.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-primary/5 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Share2 className="h-5 w-5 text-primary" />
+                        <span className="font-medium">Material Promocional</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Acesse materiais para compartilhar em suas redes sociais.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full md:w-auto" 
+                  size="lg"
+                  onClick={handleRegisterAsAffiliate}
+                  disabled={registerAsAffiliate.isPending}
+                >
+                  {registerAsAffiliate.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      Tornar-se um Afiliado
+                    </>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Como ser um Afiliado de Sucesso</CardTitle>
+                <CardDescription>
+                  Dicas para maximizar seus ganhos
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <Lightbulb className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Compartilhe sua história</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Experiências pessoais são mais convincentes.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <Users className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Use as redes sociais</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Alcance mais pessoas nos grupos certos.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Converse regularmente</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Mantenha contato com potenciais indicados.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <Mail className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Email marketing</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Envie convites personalizados por email.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </PatientLayout>
+    );
+  }
+  
+  // Se estiver carregando o status de afiliado, mostrar uma tela de carregamento
+  if (isLoadingAffiliate) {
+    return (
+      <PatientLayout>
+        <div className="flex items-center justify-center min-h-[500px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Carregando informações do programa de afiliados...</p>
+          </div>
+        </div>
+      </PatientLayout>
+    );
+  }
+  
+  // Renderizar o painel principal para afiliados existentes
   return (
     <PatientLayout>
       <div className="space-y-6">

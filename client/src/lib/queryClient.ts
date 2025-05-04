@@ -4,10 +4,10 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: true, // Alterado para true para forçar recarregamento ao focar a janela
-      refetchOnMount: true, // Sempre recarregar ao montar o componente
-      staleTime: 10000, // 10 segundos para considerar os dados obsoletos
-      cacheTime: 30000, // 30 segundos para manter o cache
+      refetchOnWindowFocus: false, // Não recarregar automaticamente ao focar a janela
+      refetchOnMount: true, // Apenas recarregar ao montar o componente
+      staleTime: 30000, // 30 segundos para considerar os dados obsoletos
+      gcTime: 30 * 60 * 1000 // 30 minutos para garbage collection
     },
   },
 });
@@ -20,7 +20,7 @@ interface ApiRequestOptions {
 }
 
 // Armazenar o token CSRF após obtê-lo
-let csrfToken: string | null = null;
+let csrfToken = '';
 
 /**
  * Obter o token CSRF do servidor
@@ -42,24 +42,43 @@ async function fetchCsrfToken(): Promise<string> {
     const data = await response.json();
     if (data && typeof data.csrfToken === 'string') {
       csrfToken = data.csrfToken;
-      return csrfToken;
+      return data.csrfToken; // Retorna diretamente o valor do token
     }
     
     throw new Error('Token CSRF não encontrado na resposta');
   } catch (error) {
     console.error('Erro ao obter token CSRF:', error);
-    throw error;
+    throw new Error('Falha ao obter token CSRF');
   }
 }
 
 /**
  * Função utilitária para requisições à API com suporte a CSRF
  * @param url URL da requisição
- * @param options Opções da requisição
+ * @param method Método HTTP opcional (GET, POST, etc)
+ * @param data Dados opcionais para enviar na requisição
  * @returns Resposta JSON da API
  */
-export async function apiRequest(url: string, options: ApiRequestOptions = { method: 'GET' }) {
-  const { method, data, headers = {}, includeCredentials = true } = options;
+export async function apiRequest(url: string, method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', data?: any): Promise<any>;
+export async function apiRequest(url: string, options?: ApiRequestOptions): Promise<any>;
+export async function apiRequest(
+  url: string, 
+  methodOrOptions?: string | ApiRequestOptions, 
+  data?: any
+): Promise<any> {
+  let options: ApiRequestOptions;
+  
+  // Verificar se o segundo parâmetro é uma string (método HTTP) ou objeto de opções
+  if (typeof methodOrOptions === 'string') {
+    options = {
+      method: methodOrOptions as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+      data
+    };
+  } else {
+    options = methodOrOptions || { method: 'GET' };
+  }
+  
+  const { method, data: requestData, headers = {}, includeCredentials = true } = options;
   
   console.log(`Iniciando requisição API: ${method} ${url}`);
   

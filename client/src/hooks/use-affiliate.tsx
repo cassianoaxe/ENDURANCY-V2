@@ -86,6 +86,33 @@ export function useAffiliate() {
   } = useQuery<Affiliate>({ 
     queryKey: ['/api/affiliates/my-affiliate'],
     staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: false, // Evitar solicitações repetidas
+    refetchOnReconnect: false, // Não refetch ao reconectar
+    retry: 1, // Limitar tentativas de retry
+    enabled: true, // Esta query sempre estará habilitada
+  });
+  
+  // Mutação para registrar como afiliado
+  const registerAsAffiliate = useMutation<{ affiliateCode: string }, Error, void>({
+    mutationFn: async () => {
+      const response = await apiRequest('/api/affiliates/register', { 
+        method: 'POST' 
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Registro de afiliado concluído',
+        description: `Você foi registrado como afiliado com sucesso. Seu código de afiliado é ${data.affiliateCode}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/affiliates/my-affiliate'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao registrar como afiliado',
+        description: error.message,
+      });
+    },
   });
 
   // Buscar histórico de pontos
@@ -94,8 +121,12 @@ export function useAffiliate() {
     isLoading: isLoadingPoints,
     refetch: refetchPoints 
   } = useQuery<AffiliatePoint[]>({ 
-    queryKey: ['/api/affiliates/my-points'],
+    queryKey: ['/api/affiliates/points-history'],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    enabled: !!affiliate, // Carrega apenas quando o usuário for um afiliado
   });
 
   // Buscar referências
@@ -104,8 +135,12 @@ export function useAffiliate() {
     isLoading: isLoadingReferrals,
     refetch: refetchReferrals 
   } = useQuery<AffiliateReferral[]>({ 
-    queryKey: ['/api/affiliates/my-referrals'],
+    queryKey: ['/api/affiliates/referrals'],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    enabled: !!affiliate, // Carrega apenas quando o usuário for um afiliado
   });
 
   // Buscar recompensas disponíveis
@@ -116,6 +151,10 @@ export function useAffiliate() {
   } = useQuery<AffiliateReward[]>({ 
     queryKey: ['/api/affiliates/rewards'],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    enabled: !!affiliate, // Carrega apenas quando o usuário for um afiliado
   });
 
   // Buscar materiais promocionais
@@ -126,13 +165,20 @@ export function useAffiliate() {
   } = useQuery<PromotionalMaterial[]>({ 
     queryKey: ['/api/affiliates/promotional-materials'],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    enabled: !!affiliate, // Carrega apenas quando o usuário for um afiliado
   });
 
   // Mutação para registrar uma referência
-  const registerReferral = useMutation({
+  const registerReferral = useMutation<any, Error, { referralCode: string, userId: number }>({
     mutationFn: async (data: { referralCode: string, userId: number }) => {
-      const response = await apiRequest('POST', '/api/affiliates/register-referral', data);
-      return response.json();
+      const response = await apiRequest('/api/affiliates/register-referral', {
+        method: 'POST',
+        data
+      });
+      return response;
     },
     onSuccess: () => {
       toast({
@@ -144,7 +190,7 @@ export function useAffiliate() {
       refetchPoints();
       refetchReferrals();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Erro ao registrar referência',
         description: error.message,
@@ -153,10 +199,13 @@ export function useAffiliate() {
   });
 
   // Mutação para resgatar uma recompensa
-  const redeemReward = useMutation({
+  const redeemReward = useMutation<{ code: string }, Error, number>({
     mutationFn: async (rewardId: number) => {
-      const response = await apiRequest('POST', '/api/affiliates/redeem-reward', { rewardId });
-      return response.json();
+      const response = await apiRequest('/api/affiliates/redeem-reward', {
+        method: 'POST',
+        data: { rewardId }
+      });
+      return response;
     },
     onSuccess: (data) => {
       toast({
@@ -168,7 +217,7 @@ export function useAffiliate() {
       refetchPoints();
       refetchRewards();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Erro ao resgatar recompensa',
         description: error.message,
@@ -178,11 +227,16 @@ export function useAffiliate() {
 
   // Função para refrescar todos os dados
   const refreshAll = () => {
+    // Sempre atualiza os dados do afiliado
     refetchAffiliate();
-    refetchPoints();
-    refetchReferrals();
-    refetchRewards();
-    refetchMaterials();
+    
+    // Só atualiza os outros dados se o usuário já for um afiliado
+    if (affiliate) {
+      refetchPoints();
+      refetchReferrals();
+      refetchRewards();
+      refetchMaterials();
+    }
   };
 
   return {
@@ -201,6 +255,7 @@ export function useAffiliate() {
     isLoadingMaterials,
     
     // Funções de mutação
+    registerAsAffiliate,
     registerReferral,
     redeemReward,
     
