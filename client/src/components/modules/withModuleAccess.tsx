@@ -39,6 +39,16 @@ interface WithModuleAccessProps {
 }
 
 // HOC para verificar o acesso ao módulo
+// Versão temporária do HOC que não verifica acesso ao módulo
+export const bypassModuleAccess = <P extends object>(
+  WrappedComponent: ComponentType<P>,
+  _props: WithModuleAccessProps // mantemos o parâmetro apenas para compatibilidade
+) => {
+  return function BypassModuleAccessWrapper(props: P) {
+    return <WrappedComponent {...props} />;
+  };
+};
+
 export const withModuleAccess = <P extends object>(
   WrappedComponent: ComponentType<P>,
   { moduleType, moduleName, moduleDescription, modulePrice }: WithModuleAccessProps
