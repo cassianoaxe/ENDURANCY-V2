@@ -214,6 +214,7 @@ import PlantioPage from "@/pages/organization/cultivation/plantio";
 import ColheitaPage from "@/pages/organization/cultivation/colheita";
 import AnalysisModule from "@/pages/organization/cultivation/analises";
 import PlantasPage from "@/pages/organization/cultivation/plantas";
+import TransferenciasPage from "@/pages/organization/cultivation/transferencias";
 import ConfigStrains from "@/pages/organization/cultivation/configuracao/strains";
 import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
 import ProductionModule from "@/pages/organization/production";
@@ -1111,6 +1112,10 @@ function AppContent() {
     
     if (currentPath === '/organization/cultivation/plantas') {
       return <PlantasPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/transferencias') {
+      return <TransferenciasPage />;
     }
     
     if (currentPath === '/organization/cultivation/configuracao/strains') {
