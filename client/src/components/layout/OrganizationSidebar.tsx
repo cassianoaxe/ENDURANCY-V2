@@ -354,6 +354,28 @@ export default function OrganizationSidebar() {
       icon: <Users size={18} />
     },
     {
+      title: "Programa de Afiliados",
+      path: "/organization/afiliados",
+      active: currentPath === "/organization/afiliados" || 
+              currentPath.startsWith("/organization/afiliados/"),
+      icon: <Share2 size={18} className="text-blue-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Afiliados",
+          path: "/organization/afiliados",
+          active: currentPath === "/organization/afiliados" && !currentPath.includes("/organization/afiliados/configuracoes"),
+          icon: <BarChart3 size={16} className="text-blue-500" />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/afiliados/configuracoes",
+          active: currentPath === "/organization/afiliados/configuracoes",
+          icon: <Settings size={16} className="text-blue-500" />
+        }
+      ]
+    },
+    {
       title: "Expedição",
       path: "/organization/expedicao",
       active: currentPath === "/organization/expedicao" || 
@@ -772,32 +794,6 @@ export default function OrganizationSidebar() {
   
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
-    {
-      title: "Programa de Afiliados",
-      path: "/organization/afiliados",
-      active: currentPath === "/organization/afiliados" || 
-              currentPath.startsWith("/organization/afiliados/"),
-      icon: <Share2 size={18} className="text-blue-500" />,
-      isSubmenu: true,
-      badge: {
-        text: "Premium",
-        variant: "premium"
-      },
-      subItems: [
-        {
-          title: "Dashboard Afiliados",
-          path: "/organization/afiliados",
-          active: currentPath === "/organization/afiliados" && !currentPath.includes("/organization/afiliados/configuracoes"),
-          icon: <BarChart3 size={16} className="text-blue-500" />
-        },
-        {
-          title: "Configurações",
-          path: "/organization/afiliados/configuracoes",
-          active: currentPath === "/organization/afiliados/configuracoes",
-          icon: <Settings size={16} className="text-blue-500" />
-        }
-      ]
-    },
     {
       title: "Inteligência Artificial",
       path: "/organization/ai",
