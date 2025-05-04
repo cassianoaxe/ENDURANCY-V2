@@ -316,8 +316,8 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
               height="100%" 
               className="max-w-full absolute inset-0 z-20"
             >
-              {/* Indicadores de região com percentuais */}
-              {mapConfig.showRegions && (
+              {/* Indicadores de região com percentuais - esconder quando o sidebar estiver aberto */}
+              {mapConfig.showRegions && !sidebarOpen && (
                 <g className="region-indicators">
                   {/* Norte */}
                   <g transform="translate(300, 180)">
@@ -486,55 +486,57 @@ const BrasilTVMapNew: React.FC<BrasilTVMapProps> = ({
               ))}
             </div>
             
-            {/* Distribuição por região */}
-            <div className="border-t border-gray-200 pt-2 mt-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium">Distribuição por Região</span>
-                <button 
-                  onClick={() => setMapConfig({...mapConfig, showRegions: !mapConfig.showRegions})}
-                  className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
-                >
-                  {mapConfig.showRegions ? 'Ocultar' : 'Mostrar'}
-                </button>
+            {/* Distribuição por região - ocultar quando o painel lateral está aberto */}
+            {!sidebarOpen && (
+              <div className="border-t border-gray-200 pt-2 mt-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium">Distribuição por Região</span>
+                  <button 
+                    onClick={() => setMapConfig({...mapConfig, showRegions: !mapConfig.showRegions})}
+                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+                  >
+                    {mapConfig.showRegions ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0c4a6e' }} />
+                      <span>Norte</span>
+                    </div>
+                    <span>{((enviosPorRegiao.norte / totalEnvios) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#9f1239' }} />
+                      <span>Nordeste</span>
+                    </div>
+                    <span>{((enviosPorRegiao.nordeste / totalEnvios) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3f6212' }} />
+                      <span>Centro-Oeste</span>
+                    </div>
+                    <span>{((enviosPorRegiao.centro_oeste / totalEnvios) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#7e22ce' }} />
+                      <span>Sudeste</span>
+                    </div>
+                    <span>{((enviosPorRegiao.sudeste / totalEnvios) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0e7490' }} />
+                      <span>Sul</span>
+                    </div>
+                    <span>{((enviosPorRegiao.sul / totalEnvios) * 100).toFixed(1)}%</span>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 gap-1 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0c4a6e' }} />
-                    <span>Norte</span>
-                  </div>
-                  <span>{((enviosPorRegiao.norte / totalEnvios) * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#9f1239' }} />
-                    <span>Nordeste</span>
-                  </div>
-                  <span>{((enviosPorRegiao.nordeste / totalEnvios) * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3f6212' }} />
-                    <span>Centro-Oeste</span>
-                  </div>
-                  <span>{((enviosPorRegiao.centro_oeste / totalEnvios) * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#7e22ce' }} />
-                    <span>Sudeste</span>
-                  </div>
-                  <span>{((enviosPorRegiao.sudeste / totalEnvios) * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0e7490' }} />
-                    <span>Sul</span>
-                  </div>
-                  <span>{((enviosPorRegiao.sul / totalEnvios) * 100).toFixed(1)}%</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </Card>
