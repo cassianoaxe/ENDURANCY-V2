@@ -58,9 +58,10 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         
         if (!response.ok) {
           // Se não estiver autenticado, redirecionar para o login
+          // REMOVER REDIRECIONAMENTO AUTOMÁTICO PARA EVITAR CICLO DE REDIRECIONAMENTO
           if (response.status === 401 || response.status === 400) {
-            console.log("Não autenticado ou erro de ID. Redirecionando para login.");
-            window.location.href = "/supplier/login";
+            console.log("Não autenticado ou erro de ID - NÃO redirecionando automáticamente.");
+            // Não redirecionar automaticamente - isso causa ciclo de redirecionamento
             return;
           }
           throw new Error(`Erro ao buscar dados: ${response.status} - ${response.statusText}`);
