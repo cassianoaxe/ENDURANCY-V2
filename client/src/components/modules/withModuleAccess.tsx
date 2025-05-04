@@ -75,13 +75,14 @@ export const withModuleAccess = <P extends object>(
       error: modulesError,
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
-      queryKey: ['/api/modules/organization'],
+      queryKey: ['/api/modules/organization', moduleType],
       queryFn: async () => {
         // Só busca os módulos se tiver a organização
         if (!organization?.id) {
           return [];
         }
-        const response = await fetch('/api/modules/organization');
+        // Adiciona o parâmetro de consulta para ajudar o backend a identificar o módulo específico
+        const response = await fetch(`/api/modules/organization?module=${moduleType}`);
         if (!response.ok) throw new Error(`Erro ao buscar módulos: ${response.statusText}`);
         return response.json();
       },
