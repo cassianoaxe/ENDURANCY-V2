@@ -833,6 +833,12 @@ export default function OrganizationSidebar() {
           isSubmenu: true,
           subItems: [
             {
+              title: "Visão Geral",
+              path: "/organization/cultivation/plantas",
+              active: currentPath === "/organization/cultivation/plantas",
+              icon: <LayoutDashboard size={16} />
+            },
+            {
               title: "Plantio",
               path: "/organization/cultivation/plantio",
               active: currentPath === "/organization/cultivation/plantio",
