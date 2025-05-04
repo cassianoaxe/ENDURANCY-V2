@@ -208,6 +208,10 @@ import SupplierFinance from "@/pages/supplier/SupplierFinance";
 import SupplierAnalytics from "@/pages/supplier/SupplierAnalytics";
 import SupplierSettings from "@/pages/supplier/SupplierSettings";
 
+// Importar páginas do CMarket (Marketplace de Fornecedores)
+import CMarketPage from "@/pages/supplier/cmarket/index";
+import AnnouncementDetailsPage from "@/pages/supplier/cmarket/announcement/[id]";
+
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
@@ -669,6 +673,10 @@ function AppContent() {
         {currentPath === '/supplier/finance' && <SupplierFinance />}
         {currentPath === '/supplier/analytics' && <SupplierAnalytics />}
         {currentPath === '/supplier/settings' && <SupplierSettings />}
+        
+        {/* Rotas do CMarket (Marketplace) */}
+        {currentPath === '/supplier/cmarket' && <CMarketPage />}
+        {currentPath.startsWith('/supplier/cmarket/announcement/') && <AnnouncementDetailsPage />}
       </SupplierLayout>
     );
   }

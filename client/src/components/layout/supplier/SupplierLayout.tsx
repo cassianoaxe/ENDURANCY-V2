@@ -26,7 +26,8 @@ import {
   HelpCircle,
   Menu,
   User,
-  Home
+  Home,
+  ShoppingBag
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +39,8 @@ interface SupplierLayoutProps {
 }
 
 export default function SupplierLayout({ children, activeTab = "overview" }: SupplierLayoutProps) {
-  // Removido setLocation do useLocation já que estamos usando window.location.href para navegação
+  // Obter o caminho atual para marcar o item de menu ativo
+  const currentPath = window.location.pathname;
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -98,6 +100,7 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
 
   const navigation = [
     { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
+    { name: "CMarket", href: "/supplier/cmarket", icon: ShoppingBag, current: activeTab === "cmarket" || currentPath.includes('cmarket') },
     { name: "Pedidos", href: "/supplier/orders", icon: ClipboardList, current: activeTab === "orders" },
     { name: "Produtos", href: "/supplier/products", icon: Package2, current: activeTab === "products" },
     { name: "Financeiro", href: "/supplier/finance", icon: Wallet, current: activeTab === "finance" },
