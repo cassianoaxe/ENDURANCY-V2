@@ -2969,6 +2969,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para obter módulos da organização do usuário atual
+  app.get("/api/modules/organization", authenticate, async (req, res) => {
+    try {
+      if (!req.session || !req.session.user || !req.session.user.organizationId) {
+        return res.status(401).json({ message: "Organização não disponível" });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      console.log(`Buscando módulos para organização ${organizationId} do usuário atual`);
+      
+      // Buscar módulos da organização
+      const orgModules = await db.select()
+        .from(organizationModules)
+        .where(eq(organizationModules.organizationId, organizationId));
+      
+      if (!orgModules.length) {
+        console.log("Nenhum módulo encontrado para esta organização");
+        return res.json([]);
+      }
+      
+      // Buscar informações detalhadas dos módulos
+      const moduleIds = orgModules.map(om => om.moduleId);
+      const modulesData = await db.select()
+        .from(modules)
+        .where(inArray(modules.id, moduleIds));
+      
+      // Combinar os dados
+      const result = orgModules.map(om => {
+        const moduleInfo = modulesData.find(m => m.id === om.moduleId);
+        return {
+          ...om,
+          moduleInfo: moduleInfo
+        };
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Erro ao buscar módulos da organização:", error);
+      res.status(500).json({ message: "Falha ao buscar módulos da organização" });
+    }
+  });
+  
   // Rota alternativa sem autenticação para obter dados de uma organização
   app.get("/api/organizations-direct/:id", async (req, res) => {
     try {
