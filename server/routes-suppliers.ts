@@ -758,21 +758,6 @@ router.get("/me", async (req, res) => {
       });
     }
 
-    // Garantir que supplierId seja um número
-    const supplierIdNum = Number(supplierId);
-    
-    // Verificar se a conversão gerou um número válido
-    if (isNaN(supplierIdNum)) {
-      console.log("ID do fornecedor inválido:", supplierId);
-      return res.status(400).json({ 
-        success: false,
-        error: "ID de fornecedor inválido", 
-        details: `O ID ${supplierId} não é um número válido` 
-      });
-    }
-    
-    console.log("Buscando fornecedor com ID (numérico):", supplierIdNum);
-    
     // Buscar fornecedor pelo ID
     const [supplier] = await db.select({
       id: supplierSchema.suppliers.id,
@@ -787,7 +772,7 @@ router.get("/me", async (req, res) => {
       description: supplierSchema.suppliers.description
     })
     .from(supplierSchema.suppliers)
-    .where(eq(supplierSchema.suppliers.id, supplierIdNum));
+    .where(eq(supplierSchema.suppliers.id, supplierId));
 
     if (!supplier) {
       console.log("Fornecedor não encontrado para o ID:", supplierId);
@@ -2173,59 +2158,6 @@ router.put("/orders/:id/tracking", async (req, res) => {
   } catch (error) {
     console.error("Erro ao adicionar rastreamento:", error);
     res.status(500).json({ error: "Erro ao adicionar rastreamento" });
-  }
-});
-
-// Rota para obter os dados do fornecedor atual
-router.get("/me", async (req, res) => {
-  try {
-    console.log("Rota /api/suppliers/me acessada");
-    console.log("Sessão:", req.session);
-
-    // Verificar se existe ID do fornecedor na sessão
-    if (!req.session || !req.session.supplierId) {
-      console.log("ID do fornecedor não encontrado na sessão");
-      return res.status(401).json({ error: "Não autenticado" });
-    }
-
-    const supplierId = req.session.supplierId;
-    console.log("ID do fornecedor da sessão:", supplierId);
-
-    // Buscar dados do fornecedor
-    const [supplier] = await db.select()
-      .from(supplierSchema.suppliers)
-      .where(eq(supplierSchema.suppliers.id, supplierId))
-      .limit(1);
-
-    if (!supplier) {
-      console.log("Fornecedor não encontrado no banco de dados");
-      return res.status(404).json({ error: "Fornecedor não encontrado" });
-    }
-
-    // Retornar dados do fornecedor (excluindo dados sensíveis)
-    res.json({
-      success: true,
-      data: {
-        id: supplier.id,
-        name: supplier.name,
-        tradingName: supplier.tradingName,
-        email: supplier.email,
-        phone: supplier.phone,
-        address: supplier.address,
-        city: supplier.city,
-        state: supplier.state,
-        zipCode: supplier.zipCode,
-        logo: supplier.logo,
-        status: supplier.status,
-        verified: supplier.verified,
-        rating: supplier.rating,
-        ratingCount: supplier.ratingCount,
-        createdAt: supplier.createdAt
-      }
-    });
-  } catch (error) {
-    console.error("Erro ao buscar dados do fornecedor:", error);
-    res.status(500).json({ error: "Erro ao buscar dados do fornecedor" });
   }
 });
 

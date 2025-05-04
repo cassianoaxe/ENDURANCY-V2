@@ -1294,12 +1294,6 @@ export default function OrganizationSidebar() {
           icon: <Truck size={16} />
         },
         {
-          title: "CMarket",
-          path: "/supplier/cmarket",
-          active: currentPath === "/supplier/cmarket" || currentPath.startsWith("/supplier/cmarket/"),
-          icon: <ShoppingBag size={16} className="text-yellow-500" />
-        },
-        {
           title: "Estoque",
           path: "/organization/compras/estoque",
           active: currentPath === "/organization/compras/estoque",

@@ -36,15 +36,13 @@ export default function SupplierLogin() {
         const userData = await apiRequest("/api/auth/me");
         if (userData && userData.id) {
           console.log("Usuário autenticado:", userData);
-          // Se o usuário já estiver autenticado como supplier, redirecionar para o CMarket
+          // Se o usuário já estiver autenticado como supplier, redirecionar para o dashboard
           if (userData.role === "supplier") {
             console.log("Verificando papel do usuário para redirecionamento correto:", userData.role);
-            console.log("Usuário precisa ser redirecionado para o CMarket");
-            console.log("Redirecionando para /supplier/cmarket");
+            console.log("Usuário precisa ser redirecionado para seu dashboard correto");
+            console.log("Redirecionando para /supplier/dashboard");
             console.log("Redirecionamento de login em andamento, não interferir");
-            
-            // Usar replace em vez de setLocation para evitar histórico
-            window.location.replace("/supplier/cmarket");
+            setLocation("/supplier/dashboard");
           }
         }
       } catch (error) {
@@ -54,7 +52,7 @@ export default function SupplierLogin() {
     };
 
     checkAuthStatus();
-  }, []);
+  }, [setLocation]);
 
   // Inicialização do formulário
   const form = useForm<FormValues>({
@@ -96,9 +94,8 @@ export default function SupplierLogin() {
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        // Redireciona para o CMarket (marketplace do fornecedor) usando replace para evitar histórico
-        window.location.replace("/supplier/cmarket");
-        return;
+        // Redireciona para o dashboard do fornecedor
+        setLocation("/supplier/dashboard");
       } else {
         throw new Error(result.error || "Erro ao fazer login");
       }

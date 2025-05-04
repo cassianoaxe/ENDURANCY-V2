@@ -26,8 +26,7 @@ import {
   HelpCircle,
   Menu,
   User,
-  Home,
-  ShoppingBag
+  Home
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -39,8 +38,7 @@ interface SupplierLayoutProps {
 }
 
 export default function SupplierLayout({ children, activeTab = "overview" }: SupplierLayoutProps) {
-  // Obter o caminho atual para marcar o item de menu ativo
-  const currentPath = window.location.pathname;
+  // Removido setLocation do useLocation já que estamos usando window.location.href para navegação
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -58,10 +56,9 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
         
         if (!response.ok) {
           // Se não estiver autenticado, redirecionar para o login
-          // REMOVER REDIRECIONAMENTO AUTOMÁTICO PARA EVITAR CICLO DE REDIRECIONAMENTO
-          if (response.status === 401 || response.status === 400) {
-            console.log("Não autenticado ou erro de ID - NÃO redirecionando automáticamente.");
-            // Não redirecionar automaticamente - isso causa ciclo de redirecionamento
+          if (response.status === 401) {
+            console.log("Não autenticado. Redirecionando para login.");
+            window.location.href = "/supplier/login";
             return;
           }
           throw new Error(`Erro ao buscar dados: ${response.status} - ${response.statusText}`);
@@ -101,7 +98,6 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
 
   const navigation = [
     { name: "Visão Geral", href: "/supplier/dashboard", icon: Home, current: activeTab === "overview" },
-    { name: "CMarket", href: "/supplier/cmarket", icon: ShoppingBag, current: activeTab === "cmarket" || currentPath.includes('cmarket') },
     { name: "Pedidos", href: "/supplier/orders", icon: ClipboardList, current: activeTab === "orders" },
     { name: "Produtos", href: "/supplier/products", icon: Package2, current: activeTab === "products" },
     { name: "Financeiro", href: "/supplier/finance", icon: Wallet, current: activeTab === "finance" },
