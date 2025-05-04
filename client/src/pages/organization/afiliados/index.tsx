@@ -19,7 +19,14 @@ import {
   BarChart3,
   Settings,
   User,
-  Award
+  Award,
+  Trophy,
+  FileDown,
+  ImageIcon,
+  Mail,
+  Facebook,
+  Instagram,
+  Smartphone
 } from 'lucide-react';
 
 const ProgramaAfiliados = () => {
@@ -47,6 +54,43 @@ const ProgramaAfiliados = () => {
             </Button>
           </div>
         </div>
+
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <CardTitle>Seu Nível de Afiliado</CardTitle>
+            <CardDescription>Continue indicando para alcançar o próximo nível e obter mais benefícios</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <div className="relative w-24 h-24 flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/30 rounded-full">
+                <Award className="h-12 w-12 text-primary" />
+                <div className="absolute -bottom-1 -right-1 bg-primary text-white text-xs font-medium rounded-full h-8 w-8 flex items-center justify-center">
+                  2
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold">Nível Prata</h3>
+                    <p className="text-sm text-muted-foreground">1.500 / 3.000 pontos para o próximo nível</p>
+                  </div>
+                  <Badge className="mt-1 md:mt-0" variant="outline">
+                    <span className="text-primary font-medium mr-1">+15%</span> de bonificação neste nível
+                  </Badge>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2">
+                  <div className="bg-primary h-2.5 rounded-full" style={{ width: '50%' }}></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Nível 1: Bronze</span>
+                  <span>Nível 2: Prata</span>
+                  <span>Nível 3: Ouro</span>
+                  <span>Nível 4: Diamante</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -87,14 +131,17 @@ const ProgramaAfiliados = () => {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pontos Retirados</CardTitle>
+              <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center">
-                <Wallet className="h-8 w-8 text-amber-500 mr-2" />
+                <BarChart3 className="h-8 w-8 text-purple-500 mr-2" />
                 <div>
-                  <p className="text-2xl font-bold">1.200</p>
-                  <p className="text-xs text-gray-500">Última retirada: 15/04/2025</p>
+                  <p className="text-2xl font-bold">68%</p>
+                  <div className="flex items-center text-xs text-green-600">
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    <span>+5% vs mês anterior</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -108,7 +155,7 @@ const ProgramaAfiliados = () => {
               <div className="flex items-center">
                 <Wallet className="h-8 w-8 text-green-500 mr-2" />
                 <div>
-                  <p className="text-2xl font-bold">1.250</p>
+                  <p className="text-2xl font-bold">R$ 125,00</p>
                   <Badge className="text-xs mt-1 bg-green-100 text-green-800">Disponível para resgate</Badge>
                 </div>
               </div>
