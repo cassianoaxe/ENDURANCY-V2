@@ -213,6 +213,9 @@ import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
 import ColheitaPage from "@/pages/organization/cultivation/colheita";
 import AnalysisModule from "@/pages/organization/cultivation/analises";
+import PlantasPage from "@/pages/organization/cultivation/plantas";
+import ConfigStrains from "@/pages/organization/cultivation/configuracao/strains";
+import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
@@ -1104,6 +1107,29 @@ function AppContent() {
     
     if (currentPath === '/organization/cultivation/analises') {
       return <AnalysisModule />;
+    }
+    
+    if (currentPath === '/organization/cultivation/plantas') {
+      return <PlantasPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao/strains') {
+      return <ConfigStrains />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao/tipos') {
+      return <ConfigTipos />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao') {
+      const ConfiguracaoCultivo = React.lazy(() => import('./pages/organization/cultivation/configuracao'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ConfiguracaoCultivo />
+        </Suspense>
+      );
     }
 
     if (currentPath === '/organization/production') {
