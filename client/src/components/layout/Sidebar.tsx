@@ -37,8 +37,13 @@ import {
   ReceiptText,
   GitBranch,
   Bot,
-  LucideIcon
+  LucideIcon,
+  LogOut,
+  User
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 // Interface para itens de menu e submenu
 interface MenuItem {
@@ -89,12 +94,17 @@ const menuItems: MenuItem[] = [
   { icon: Mail, label: "Templates de Email", path: "/email-templates" },
   { icon: Users, label: "Administradores", path: "/administrators" },
   { icon: Upload, label: "Importação de Dados", path: "/data-import" },
+  { icon: GitBranch, label: "Programa de Afiliados", path: "/afiliados" },
   { icon: Settings, label: "Configurações", path: "/settings" },
   { icon: Link, label: "Lista de URLs", path: "/routes-list" },
   { icon: BookOpen, label: "Documentação", path: "/documentation" }
 ];
 
 export default function Sidebar() {
+  // Obter contexto de autenticação
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+  
   // Get current path for active state
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
@@ -111,6 +121,26 @@ export default function Sidebar() {
   
   // Controla se a sidebar está colapsada/retraída
   const [collapsed, setCollapsed] = React.useState(false); // false = expandida por padrão
+  
+  // Função para realizar logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logout realizado com sucesso",
+        description: "Você saiu da sua conta",
+      });
+      // Redirecionamento após logout
+      window.location.href = '/login';
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      toast({
+        title: "Erro ao fazer logout",
+        description: "Tente novamente mais tarde",
+        variant: "destructive"
+      } as any);
+    }
+  };
 
   // Update current path when URL changes
   React.useEffect(() => {
@@ -283,7 +313,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${collapsed ? 'w-[70px]' : 'w-[260px]'} h-screen bg-white border-r fixed left-0 top-0 transition-all duration-300 overflow-auto`}>
+    <div className={`${collapsed ? 'w-[70px]' : 'w-[260px]'} h-screen bg-white border-r fixed left-0 top-0 transition-all duration-300 overflow-auto flex flex-col`}>
       <div className="p-4 border-b flex justify-between items-center">
         <a 
           href="/" 
@@ -308,9 +338,47 @@ export default function Sidebar() {
         </button>
       </div>
       
-      <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'}`}>
+      <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'} overflow-y-auto flex-grow`}>
         {menuItems.map((item) => renderMenuItem(item))}
       </nav>
+      
+      {/* Seção do perfil do usuário */}
+      {user && (
+        <div className="mt-auto border-t border-gray-200 p-4">
+          {!collapsed ? (
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>{user?.name ? user.name.substring(0, 2).toUpperCase() : "A"}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium truncate" style={{ maxWidth: "120px" }}>
+                    {user?.name || "Administrador"}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate" style={{ maxWidth: "120px" }}>
+                    {user?.email || ""}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="rounded-md p-1.5 bg-gray-100 text-gray-500 hover:bg-gray-200 focus:outline-none"
+                title="Sair"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="w-full flex justify-center rounded-md p-1.5 bg-gray-100 text-gray-500 hover:bg-gray-200 focus:outline-none"
+              title="Sair"
+            >
+              <LogOut size={16} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
