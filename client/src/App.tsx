@@ -216,6 +216,7 @@ import AnalysisModule from "@/pages/organization/cultivation/analises";
 import PlantasPage from "@/pages/organization/cultivation/plantas";
 import TransferenciasPage from "@/pages/organization/cultivation/transferencias";
 import EstoqueCultivoPage from "@/pages/organization/cultivation/estoque";
+import CalendarioCultivo from "@/pages/organization/cultivation/calendario";
 import ConfigStrains from "@/pages/organization/cultivation/configuracao/strains";
 import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
 import ProductionModule from "@/pages/organization/production";
@@ -1121,6 +1122,10 @@ function AppContent() {
     
     if (currentPath === '/organization/cultivation/estoque') {
       return <EstoqueCultivoPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/calendario') {
+      return <CalendarioCultivo />;
     }
     
     if (currentPath === '/organization/cultivation/configuracao/strains') {
