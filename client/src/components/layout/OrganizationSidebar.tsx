@@ -780,6 +780,14 @@ export default function OrganizationSidebar() {
       icon: <Puzzle size={18} />
     },
     
+    {
+      title: "Programa de Afiliados",
+      path: "/organization/afiliados",
+      active: currentPath === "/organization/afiliados" ||
+              currentPath.startsWith("/organization/afiliados/"),
+      icon: <Share2 size={18} />
+    },
+    
     // Adiciona o módulo de importação como módulo base para importadoras
     ...(isImportCompany ? importModules : [])
   ];
