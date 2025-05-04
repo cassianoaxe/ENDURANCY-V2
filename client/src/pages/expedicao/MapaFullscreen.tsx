@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import BrasilTVMap from '../../components/expedicao/BrasilTVMapNew';
 import ShipmentStatsDashboard from '../../components/expedicao/ShipmentStatsDashboard';
-import { Loader2, ArrowLeft, LayoutPanelLeft, X } from 'lucide-react';
+import { Loader2, ArrowLeft, LayoutPanelLeft, X, Menu } from 'lucide-react';
 
 const MapaFullscreen: React.FC = () => {
   const [location, setLocation] = useLocation();
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [isLoading, setIsLoading] = useState(true);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
   
   // Simular tempo de carregamento para transições suaves
   useEffect(() => {
@@ -16,6 +17,17 @@ const MapaFullscreen: React.FC = () => {
       setIsLoading(false);
     }, 800);
   }, []);
+  
+  // Fazer o texto de instruções desaparecer após 4 segundos
+  useEffect(() => {
+    if (showInstructions) {
+      const timer = setTimeout(() => {
+        setShowInstructions(false);
+      }, 4000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showInstructions]);
   
   // Função para navegação de volta que será chamada por várias fontes
   const navigateBack = () => {
@@ -110,10 +122,12 @@ const MapaFullscreen: React.FC = () => {
         <X className="h-6 w-6" />
       </button>
       
-      {/* Texto explicativo sobre como sair (especialmente para Apple) */}
-      <div className="fixed top-20 right-4 z-30 bg-white/80 p-3 rounded-lg shadow-md text-sm max-w-[180px] text-center">
-        <p className="font-medium">Para sair, clique no X vermelho ou pressione ESC</p>
-      </div>
+      {/* Texto explicativo sobre como sair (especialmente para Apple) - desaparece após 4 segundos */}
+      {showInstructions && (
+        <div className="fixed top-20 right-4 z-30 bg-white/80 p-3 rounded-lg shadow-md text-sm max-w-[180px] text-center animate-fade-in">
+          <p className="font-medium">Para sair, clique no X vermelho ou pressione ESC</p>
+        </div>
+      )}
 
       <div className={`fixed top-4 z-20 flex gap-2 bg-white/80 shadow-md rounded-full p-1 transition-all duration-300 ${
         showSidebar ? 'right-[calc(25%+16px)]' : 'right-20'
@@ -194,6 +208,17 @@ const MapaFullscreen: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Botão flutuante para abrir o painel lateral quando não há teclado disponível */}
+      <button
+        onClick={() => setShowSidebar(!showSidebar)}
+        className={`fixed bottom-20 left-4 z-20 h-12 w-12 rounded-full ${
+          showSidebar ? 'bg-primary text-white' : 'bg-white hover:bg-white/90 text-primary'
+        } flex items-center justify-center shadow-lg transition-all duration-300`}
+        title={showSidebar ? "Esconder painel lateral" : "Mostrar painel lateral"}
+      >
+        <Menu className="h-6 w-6" />
+      </button>
       
       <div className={`fixed bottom-4 z-10 p-3 text-sm text-gray-600 bg-white/90 rounded-lg shadow transition-all duration-300 ${
         showSidebar ? 'left-28' : 'left-4'
