@@ -1102,9 +1102,13 @@ router.get("/me", async (req, res) => {
     let supplierId = getValidSupplierId(req);
     
     if (!supplierId) {
-      // Se ainda não temos um ID, vamos tentar encontrar um nos logs
-      console.log("Não foi possível obter ID do fornecedor via função auxiliar, usando hardcoded ID=2");
-      supplierId = 2; // Sabemos que este fornecedor existe
+      // Se não temos um ID válido, retornar erro de autenticação
+      console.log("Não foi possível obter ID do fornecedor válido");
+      return res.status(401).json({
+        success: false,
+        error: "Não foi possível identificar o fornecedor",
+        message: "Por favor, faça login novamente"
+      });
     }
     
     // Agora que temos um ID de fornecedor, vamos buscá-lo no banco de dados
