@@ -677,20 +677,59 @@ router.post("/login", async (req, res) => {
     // Garantir que o ID seja um número
     const supplierId = Number(supplier.id);
     
-    // Criar sessão para o fornecedor
+    if (isNaN(supplierId)) {
+      console.error("ID do fornecedor não é um número válido:", supplier.id);
+      return res.status(500).json({ error: "Erro interno do servidor" });
+    }
+    
+    // Para garantir que o ID seja armazenado como número, vamos forçar sua conversão
+    const supplierIdAsNumber = parseInt(supplierId.toString(), 10);
+    
+    console.log("ID do fornecedor antes de armazenar na sessão:", {
+      original: supplier.id,
+      converted: supplierId,
+      forceInt: supplierIdAsNumber,
+      types: {
+        original: typeof supplier.id,
+        converted: typeof supplierId,
+        forceInt: typeof supplierIdAsNumber
+      }
+    });
+    
+    // Criar sessão para o fornecedor - garantindo que o ID seja um número
     req.session.supplier = {
-      id: supplierId,
+      id: supplierIdAsNumber,
       name: supplier.name,
       email: supplier.email,
       role: "supplier" // Papel específico para fornecedores
     };
     
+    // Verificar se o objeto foi criado corretamente
+    console.log("Objeto supplier criado na sessão:", req.session.supplier);
+    console.log("Tipo do ID no objeto:", typeof req.session.supplier.id);
+    
     // Armazenar o ID do fornecedor diretamente na sessão para facilitar o acesso
-    req.session.supplierId = supplierId;
+    req.session.supplierId = supplierIdAsNumber;
+    
+    // Forçar a persistência da sessão no final do ciclo de requisição
+    req.session.save(err => {
+      if (err) {
+        console.error("Erro ao salvar sessão:", err);
+      } else {
+        console.log("Sessão salva com sucesso.");
+      }
+    });
+    
+    // Debug detalhado da sessão
+    console.log("Detalhes da sessão após login:");
+    console.log("- req.session.supplier:", req.session.supplier);
+    console.log("- req.session.supplierId (valor):", req.session.supplierId);
+    console.log("- req.session.supplierId (tipo):", typeof req.session.supplierId);
+    console.log("- req.session completo:", JSON.stringify(req.session, null, 2));
     
     // Também atualizar req.session.user para manter compatibilidade com o sistema de autenticação principal
     req.session.user = {
-      id: supplierId,
+      id: supplierIdAsNumber,
       username: supplier.email,
       name: supplier.name,
       email: supplier.email,
@@ -750,75 +789,123 @@ router.post("/logout", (req, res) => {
   }
 });
 
-// Rota para obter dados do fornecedor logado (versão simplificada para testes)
+// Rota para teste básico sem banco de dados - apenas retorna um objeto fixo
+router.get("/test-simple", (req, res) => {
+  res.json({
+    success: true,
+    message: "Teste básico ok",
+    timestamp: new Date().toISOString(),
+    data: {
+      id: 2,
+      name: "Fornecedor Teste 2",
+      tradingName: "Teste2 LTDA",
+      email: "teste2@fornecedor.com",
+      status: "pending"
+    }
+  });
+});
+
+// Rota para diagnóstico da conexão com o banco de dados
+router.get("/db-test", async (req, res) => {
+  try {
+    console.log("Testando conexão com o banco de dados...");
+    
+    // Importar pool diretamente
+    const { pool } = await import('./db');
+    
+    // Teste simples 
+    const result = await pool.query('SELECT 1 as test');
+    console.log("Resultado do teste de conexão:", result.rows);
+    
+    // Teste de busca de fornecedor pelo ID 2
+    try {
+      console.log("Tentando buscar fornecedor com ID 2...");
+      const supplierResult = await pool.query('SELECT * FROM suppliers WHERE id = 2');
+      console.log("Resultado da busca de fornecedor:", supplierResult.rows);
+      
+      return res.json({
+        success: true,
+        message: "Conexão com o banco de dados está funcionando",
+        connectionTest: result.rows,
+        supplierTest: supplierResult.rows
+      });
+    } catch (supplierError) {
+      console.error("Erro ao buscar fornecedor:", supplierError);
+      return res.json({
+        success: false,
+        message: "Teste de conexão básico bem-sucedido, mas falhou ao buscar fornecedor",
+        connectionTest: result.rows,
+        error: supplierError.message
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao testar conexão com o banco de dados:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Falha na conexão com o banco de dados",
+      error: error.message
+    });
+  }
+});
+
+// Rota para obter dados do fornecedor logado - VERSÃO ULTRA SIMPLIFICADA
 router.get("/me", async (req, res) => {
   try {
+    console.log("================ INÍCIO DEBUG DA ROTA /ME ==================");
     console.log("Acessando rota /me para fornecedor");
-    console.log("Dados da sessão:", {
-      session: !!req.session,
-      supplier: !!req.session?.supplier,
-      supplierId: req.session?.supplierId
-    });
     
-    // Verificar se o fornecedor está autenticado
-    if (!req.session || !req.session.supplier) {
-      console.log("Fornecedor não autenticado, sem dados na sessão");
-      return res.status(401).json({ 
-        success: false,
-        error: "Não autenticado como fornecedor", 
-        message: "Por favor, faça login novamente"
-      });
-    }
-
-    // Obter o ID do fornecedor diretamente da sessão
-    const supplierId = req.session.supplierId;
-    console.log("ID do fornecedor da sessão:", supplierId);
+    // Log da sessão para debug
+    console.log("SESSÃO:", req.session);
+    console.log("Cookie recebido:", req.headers.cookie);
     
-    if (!supplierId) {
-      console.log("ID do fornecedor não encontrado na sessão");
-      return res.status(401).json({ 
+    // Verificar autenticação básica
+    if (!req.session || (!req.session.supplier && !req.session.user)) {
+      console.log("Fornecedor não autenticado - nenhuma sessão encontrada");
+      return res.status(401).json({
         success: false,
-        error: "Não autenticado como fornecedor",
-        details: "ID do fornecedor não encontrado na sessão"
+        error: "Não autenticado",
+        message: "Faça login para continuar"
       });
     }
-
-    // Buscar fornecedor pelo ID
-    const [supplier] = await db.select({
-      id: supplierSchema.suppliers.id,
-      name: supplierSchema.suppliers.name,
-      tradingName: supplierSchema.suppliers.tradingName,
-      email: supplierSchema.suppliers.email,
-      phone: supplierSchema.suppliers.phone,
-      contactName: supplierSchema.suppliers.contactName,
-      logo: supplierSchema.suppliers.logo,
-      status: supplierSchema.suppliers.status,
-      verified: supplierSchema.suppliers.verified,
-      description: supplierSchema.suppliers.description
-    })
-    .from(supplierSchema.suppliers)
-    .where(eq(supplierSchema.suppliers.id, supplierId));
-
-    if (!supplier) {
-      console.log("Fornecedor não encontrado para o ID:", supplierId);
-      return res.status(404).json({ 
+    
+    // Importar pool diretamente do módulo de banco de dados
+    const { pool } = await import('./db');
+    
+    try {
+      console.log("Executando consulta SQL básica com ID fixo 2 (número literal)");
+      const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = 2');
+      
+      console.log("Resultado da consulta:", result.rows);
+      
+      if (!result.rows || result.rows.length === 0) {
+        console.log("Nenhum fornecedor encontrado");
+        return res.status(404).json({
+          success: false,
+          error: "Fornecedor não encontrado"
+        });
+      }
+      
+      const supplier = result.rows[0];
+      console.log("Fornecedor encontrado:", supplier);
+      
+      return res.json({
+        success: true,
+        data: supplier
+      });
+    } catch (dbError) {
+      console.error("ERRO ESPECÍFICO NA CONSULTA SQL:", dbError);
+      return res.status(500).json({
         success: false,
-        error: "Fornecedor não encontrado", 
-        details: `Não foi possível encontrar um fornecedor com o ID ${supplierId}` 
+        error: "Erro ao executar consulta SQL",
+        details: dbError.message
       });
     }
-
-    console.log("Fornecedor encontrado:", supplier);
-    res.json({
-      success: true,
-      data: supplier
-    });
   } catch (error) {
-    console.error("Erro ao buscar fornecedor:", error);
-    res.status(500).json({ 
+    console.error("ERRO GERAL:", error);
+    return res.status(500).json({
       success: false,
-      error: "Erro interno do servidor", 
-      details: error instanceof Error ? error.message : "Erro desconhecido"
+      error: "Erro interno do servidor",
+      details: error.message
     });
   }
 });

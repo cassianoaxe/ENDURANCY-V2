@@ -31,8 +31,32 @@ export default function SupplierLogin() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log("Verificando status de autenticação...");
-        console.log("Tentativa 1/1 de verificar autenticação");
+        console.log("Verificando status de autenticação do fornecedor...");
+        
+        // Tentar primeiro o endpoint específico para fornecedores
+        try {
+          console.log("Tentando verificar autenticação com endpoint do fornecedor");
+          const response = await fetch("/api/suppliers/me", {
+            credentials: "include",
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "Pragma": "no-cache",
+              "Expires": "0"
+            }
+          });
+          
+          if (response.ok) {
+            const supplierData = await response.json();
+            console.log("Fornecedor autenticado:", supplierData);
+            setLocation("/supplier/dashboard");
+            return;
+          }
+        } catch (supplierCheckError) {
+          console.log("Endpoint de fornecedor não disponível:", supplierCheckError);
+        }
+        
+        // Verificação secundária com endpoint padrão
+        console.log("Tentando verificação secundária com endpoint padrão");
         const userData = await apiRequest("/api/auth/me");
         if (userData && userData.id) {
           console.log("Usuário autenticado:", userData);
