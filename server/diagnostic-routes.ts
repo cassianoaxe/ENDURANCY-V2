@@ -79,6 +79,32 @@ router.get('/session-check', (req, res) => {
   }
 });
 
+// Rota específica para verificar o tipo de autenticação
+router.get('/auth-type', (req, res) => {
+  console.log('Verificando tipo de autenticação');
+  
+  try {
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      hasSession: !!req.session,
+      sessionID: req.sessionID,
+      isRegularUser: !!req.session?.user,
+      isSupplier: !!req.session?.supplier,
+      supplierId: req.session?.supplierId,
+      userDetails: req.session?.user || null,
+      supplierDetails: req.session?.supplier || null
+    });
+  } catch (error) {
+    console.error('Erro ao verificar tipo de autenticação:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao verificar tipo de autenticação',
+      message: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
 // Rota para testar acesso aos fornecedores
 router.get('/supplier-check', async (req, res) => {
   console.log('Verificando acesso à tabela de fornecedores');
