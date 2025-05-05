@@ -414,6 +414,63 @@ function AppContent() {
       return;
     }
     
+    // Verificação prioritária para fornecedores - SEMPRE redirecioná-los para seu dashboard
+    
+    // Primeiro verificar se é login direto de fornecedor (flag do Login.tsx)
+    const directSupplierLogin = sessionStorage.getItem('direct_supplier_login');
+    
+    if (directSupplierLogin === 'true') {
+      console.log("Login direto detectado para fornecedor, redirecionando imediatamente");
+      sessionStorage.removeItem('direct_supplier_login');
+      
+      console.log("Redirecionando diretamente para o dashboard do fornecedor");
+      
+      // Criar overlay de segurança para evitar visualização indevida
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = '#ffffff';
+      overlay.style.zIndex = '99999';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.flexDirection = 'column';
+      document.body.appendChild(overlay);
+      
+      window.location.replace('/supplier/dashboard');
+      return; // Importante: interrompemos o fluxo aqui para evitar outros redirecionamentos
+    }
+    
+    // Verificação secundária baseada no papel do usuário
+    if (isAuthenticated && user && user.role === 'supplier') {
+      // Se não estamos em uma página do fornecedor, redirecionar imediatamente
+      if (!currentPath.startsWith('/supplier/')) {
+        console.log("ALERTA DE SEGURANÇA: Fornecedor fora da área do fornecedor. Redirecionando para /supplier/dashboard");
+        
+        // Criar overlay de segurança para evitar visualização indevida
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = '#ffffff';
+        overlay.style.zIndex = '99999';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.flexDirection = 'column';
+        document.body.appendChild(overlay);
+        
+        // Redirecionamento imediato
+        window.location.replace('/supplier/dashboard');
+        return; // Interromper o fluxo para evitar qualquer visualização indevida
+      }
+    }
+    
     // Verificar redirecionamento para dashboard de importadora
     if (isAuthenticated && user) {
       // Primeiro verificar se é login direto de importadora (nova flag)

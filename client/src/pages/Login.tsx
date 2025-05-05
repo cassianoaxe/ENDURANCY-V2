@@ -364,6 +364,10 @@ export default function Login() {
         } else if (userType === 'researcher') {
           redirectUrl = '/researcher/dashboard';
         } else if (userType === 'supplier') {
+          // Redirecionamento especial para fornecedores - usamos flag no sessionStorage para
+          // sinalizar ao App.tsx que deve verificar e redirecionar imediatamente, 
+          // evitando exibir qualquer parte do dashboard administrativo
+          sessionStorage.setItem('direct_supplier_login', 'true');
           redirectUrl = '/supplier/dashboard';
         } else {
           // Fallback seguro
