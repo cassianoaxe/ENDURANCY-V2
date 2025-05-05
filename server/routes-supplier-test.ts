@@ -1,6 +1,7 @@
 import express from 'express';
 import { db } from './db';
 import { sql } from 'drizzle-orm';
+import { getValidSupplierId } from './routes-suppliers';
 
 // Criar um novo router para testes
 const router = express.Router();
@@ -318,9 +319,21 @@ router.get("/test-auth-and-me", async (req, res) => {
       });
     });
     
+    // Obter ID do fornecedor da sessão usando a função importada
+    const validatedId = getValidSupplierId(req);
+    console.log(`ID do fornecedor validado: ${validatedId} (usando getValidSupplierId importado)`);
+    
+    if (!validatedId) {
+      return res.status(401).json({
+        success: false,
+        error: "ID do fornecedor inválido",
+        message: "Não foi possível validar o ID do fornecedor na sessão"
+      });
+    }
+    
     // Fazer uma solicitação para a rota /me para verificar se conseguimos obter os dados do fornecedor
     const { pool } = await import('./db');
-    const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = $1', [2]);
+    const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = $1', [validatedId]);
     
     if (!result.rows || result.rows.length === 0) {
       return res.status(404).json({
@@ -351,6 +364,29 @@ router.get("/test-auth-and-me", async (req, res) => {
   }
 });
 
+// Função local para validar ID do fornecedor (cópia da função em routes-suppliers.ts)
+function validateSupplierId(req: any): number | null {
+  // Obter o ID do fornecedor da sessão e garantir que é um número válido
+  const rawSupplierId = req.session?.supplierId || (req.session?.supplier ? req.session.supplier.id : null);
+  
+  if (rawSupplierId === undefined || rawSupplierId === null) {
+    console.log("ID do fornecedor não encontrado na sessão");
+    return null;
+  }
+  
+  // Converter para string primeiro e depois para número
+  const idStr = String(rawSupplierId);
+  const supplierId = parseInt(idStr, 10);
+  
+  // Verificar se o ID é válido
+  if (!supplierId || isNaN(supplierId)) {
+    console.log(`ID do fornecedor inválido: "${rawSupplierId}" (tipo: ${typeof rawSupplierId})`);
+    return null;
+  }
+  
+  return supplierId;
+}
+
 // Rota para testar a autenticação de um fornecedor específico
 router.get("/test-auth", async (req, res) => {
   try {
@@ -370,7 +406,7 @@ router.get("/test-auth", async (req, res) => {
       role: "supplier"
     };
     
-    // Adicionar também o ID diretamente na sessão
+    // Adicionar também o ID diretamente na sessão como número
     req.session.supplierId = 2;
     
     // Forçar salvamento da sessão
@@ -386,15 +422,51 @@ router.get("/test-auth", async (req, res) => {
       });
     });
     
-    res.json({
-      success: true,
-      message: "Autenticação de fornecedor simulada com sucesso",
-      sessionData: {
-        supplier: req.session.supplier,
-        supplierId: req.session.supplierId,
-        sessionID: req.sessionID
+    // Validar ID do fornecedor usando função importada
+    const validatedId = getValidSupplierId(req);
+    console.log(`ID do fornecedor validado: ${validatedId} (usando getValidSupplierId importado)`);
+    
+    if (!validatedId) {
+      return res.status(401).json({
+        success: false,
+        error: "ID do fornecedor inválido",
+        message: "Não foi possível validar o ID do fornecedor na sessão"
+      });
+    }
+    
+    // Buscar fornecedor por ID usando SQL direto para evitar problemas de conversão
+    try {
+      const { pool } = await import('./db');
+      const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [validatedId]);
+      
+      if (!result.rows || result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: "Fornecedor não encontrado",
+          message: `Não existe fornecedor com ID ${validatedId}`
+        });
       }
-    });
+      
+      const supplier = result.rows[0];
+      
+      res.json({
+        success: true,
+        message: "Autenticação de fornecedor simulada com sucesso",
+        sessionData: {
+          supplier: req.session.supplier,
+          supplierId: req.session.supplierId,
+          sessionID: req.sessionID
+        },
+        supplierData: supplier
+      });
+    } catch (dbError) {
+      console.error("Erro ao buscar fornecedor no banco:", dbError);
+      return res.status(500).json({
+        success: false,
+        error: "Erro ao acessar banco de dados",
+        message: dbError instanceof Error ? dbError.message : "Erro desconhecido"
+      });
+    }
   } catch (error) {
     console.error("Erro ao testar autenticação:", error);
     res.status(500).json({
