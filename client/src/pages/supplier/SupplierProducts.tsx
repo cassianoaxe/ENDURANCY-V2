@@ -103,9 +103,27 @@ export default function SupplierProducts() {
         url += `&search=${encodeURIComponent(searchQuery)}`;
       }
       
-      // Importante: Devemos especificar o método HTTP (GET) para a requisição funcionar
-      const response = await apiRequest('GET', url);
-      return response.json();
+      try {
+        // Usar o método GET de forma correta
+        console.log("Fazendo requisição GET para:", url);
+        // O formato correto é: apiRequest(url, { method: "GET" }) ou apiRequest(url) que usa GET por padrão
+        const response = await fetch(url, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Erro na busca de produtos:", error);
+        throw error;
+      }
     }
   });
   
@@ -139,10 +157,23 @@ export default function SupplierProducts() {
   // Mutation para adicionar produto
   const addProductMutation = useMutation({
     mutationFn: async (productData: FormData) => {
-      const response = await apiRequest('POST', '/api/suppliers/products', productData, {
-        isFormData: true
-      });
-      return response.json();
+      try {
+        console.log("Fazendo requisição POST para produtos do fornecedor");
+        const response = await fetch("/api/suppliers/products", {
+          method: "POST",
+          credentials: "include",
+          body: productData, // FormData não precisa ser JSON.stringify
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao adicionar produto:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers/my-products'] });
@@ -164,10 +195,23 @@ export default function SupplierProducts() {
   // Mutation para atualizar produto
   const updateProductMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: FormData }) => {
-      const response = await apiRequest('PUT', `/api/suppliers/products/${id}`, data, {
-        isFormData: true
-      });
-      return response.json();
+      try {
+        console.log("Fazendo requisição PUT para atualizar produto:", id);
+        const response = await fetch(`/api/suppliers/products/${id}`, {
+          method: "PUT",
+          credentials: "include",
+          body: data, // FormData não precisa ser JSON.stringify
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao atualizar produto:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers/my-products'] });
@@ -189,8 +233,25 @@ export default function SupplierProducts() {
   // Mutation para remover produto
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: number) => {
-      const response = await apiRequest('DELETE', `/api/suppliers/products/${productId}`);
-      return response.json();
+      try {
+        console.log("Fazendo requisição DELETE para produto:", productId);
+        const response = await fetch(`/api/suppliers/products/${productId}`, {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao excluir produto:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers/my-products'] });
@@ -212,8 +273,27 @@ export default function SupplierProducts() {
   // Mutation para alterar status do produto
   const updateProductStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number, status: string }) => {
-      const response = await apiRequest('PUT', `/api/suppliers/products/${id}`, { status });
-      return response.json();
+      try {
+        console.log("Fazendo requisição PUT para alterar status do produto:", id);
+        const response = await fetch(`/api/suppliers/products/${id}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({ status }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Erro ao alterar status do produto:", error);
+        throw error;
+      }
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers/my-products'] });
