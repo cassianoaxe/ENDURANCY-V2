@@ -90,7 +90,7 @@ declare module 'express-session' {
     user: {
       id: number;
       username: string;
-      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee' | 'pharmacist' | 'laboratory';
+      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee' | 'pharmacist' | 'laboratory' | 'supplier';
       name: string;
       email: string;
       organizationId: number | null;
