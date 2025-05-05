@@ -13,7 +13,7 @@ import { isEmpty } from "./utils";
 import bcrypt from "bcrypt";
 
 // Função auxiliar para obter e validar o ID do fornecedor da sessão
-function getValidSupplierId(req: Request): number | null {
+export function getValidSupplierId(req: Request): number | null {
   // Obter o ID do fornecedor da sessão e garantir que é um número válido
   const rawSupplierId = req.session?.supplierId || (req.session?.supplier ? req.session.supplier.id : null);
   const supplierId = parseInt(String(rawSupplierId), 10);
@@ -818,6 +818,77 @@ router.get("/test-simple", (req, res) => {
       status: "pending"
     }
   });
+});
+
+// Rota para teste de autenticação com função de validação do ID
+router.get("/test-auth", async (req, res) => {
+  try {
+    console.log("================ INÍCIO DEBUG DA ROTA /test-auth ==================");
+    console.log("Acessando rota /test-auth para fornecedor");
+    
+    // Log da sessão para debug
+    console.log("SESSÃO:", req.session);
+    console.log("Cookie recebido:", req.headers.cookie);
+    
+    // Verificar autenticação básica
+    if (!req.session || (!req.session.supplier && !req.session.user)) {
+      console.log("Fornecedor não autenticado - nenhuma sessão encontrada");
+      return res.status(401).json({
+        success: false,
+        error: "Não autenticado",
+        message: "Faça login para continuar"
+      });
+    }
+    
+    // Obter ID do fornecedor da sessão usando a função auxiliar
+    const supplierId = getValidSupplierId(req);
+    
+    if (!supplierId) {
+      console.log("ID do fornecedor inválido ou não encontrado na sessão");
+      return res.status(401).json({
+        success: false,
+        error: "Não autenticado",
+        message: "ID do fornecedor inválido na sessão"
+      });
+    }
+    
+    // Usar SQL direto para evitar problemas de conversão
+    const { pool } = await import('./db');
+    console.log(`Executando consulta SQL com ID ${supplierId} obtido da sessão`);
+    const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [supplierId]);
+    
+    console.log("Resultado da consulta:", result.rows);
+    
+    if (!result.rows || result.rows.length === 0) {
+      console.log("Nenhum fornecedor encontrado");
+      return res.status(404).json({
+        success: false,
+        error: "Fornecedor não encontrado",
+        message: `Não existe fornecedor com ID ${supplierId}`
+      });
+    }
+    
+    const supplier = result.rows[0];
+    
+    // Responder com sucesso
+    res.json({
+      success: true,
+      message: "Autenticação de fornecedor verificada com sucesso",
+      sessionData: {
+        supplier: req.session.supplier,
+        supplierId: req.session.supplierId,
+        sessionID: req.sessionID
+      },
+      supplierData: supplier
+    });
+  } catch (error) {
+    console.error("Erro ao testar autenticação:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao testar autenticação",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
 });
 
 // Rota para diagnóstico da conexão com o banco de dados
