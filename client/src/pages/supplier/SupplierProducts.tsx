@@ -103,6 +103,7 @@ export default function SupplierProducts() {
         url += `&search=${encodeURIComponent(searchQuery)}`;
       }
       
+      // Importante: Devemos especificar o método HTTP (GET) para a requisição funcionar
       const response = await apiRequest('GET', url);
       return response.json();
     }
