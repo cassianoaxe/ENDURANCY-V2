@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Truck, Mail, Lock, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+// Não importamos useAuth, pois isso está causando erro na tela de login do fornecedor
 
 // Definir schema de validação
 const formSchema = z.object({
@@ -33,7 +33,10 @@ export default function SupplierLogin() {
       try {
         console.log("Verificando status de autenticação do fornecedor...");
         
-        // Tentar primeiro o endpoint específico para fornecedores
+        // Definir uma flag para verificar se estamos entrando diretamente no login do fornecedor
+        localStorage.setItem('supplier_login_entry', 'true');
+        
+        // Verificar primeiro o endpoint de fornecedor
         try {
           console.log("Tentando verificar autenticação com endpoint do fornecedor");
           const response = await fetch("/api/suppliers/me", {
@@ -50,28 +53,18 @@ export default function SupplierLogin() {
             console.log("Fornecedor autenticado:", supplierData);
             setLocation("/supplier/dashboard");
             return;
+          } else {
+            console.log("Endpoint de fornecedor retornou não-ok:", response.status);
           }
         } catch (supplierCheckError) {
-          console.log("Endpoint de fornecedor não disponível:", supplierCheckError);
+          console.log("Erro ao verificar endpoint de fornecedor:", supplierCheckError);
         }
         
-        // Verificação secundária com endpoint padrão
-        console.log("Tentando verificação secundária com endpoint padrão");
-        const userData = await apiRequest("/api/auth/me");
-        if (userData && userData.id) {
-          console.log("Usuário autenticado:", userData);
-          // Se o usuário já estiver autenticado como supplier, redirecionar para o dashboard
-          if (userData.role === "supplier") {
-            console.log("Verificando papel do usuário para redirecionamento correto:", userData.role);
-            console.log("Usuário precisa ser redirecionado para seu dashboard correto");
-            console.log("Redirecionando para /supplier/dashboard");
-            console.log("Redirecionamento de login em andamento, não interferir");
-            setLocation("/supplier/dashboard");
-          }
-        }
+        // Sabemos que o usuário acessou a página de login do fornecedor explicitamente,
+        // então não tentaremos nenhuma verificação automática que possa causar redirecionamentos.
+        console.log("Usuário acessou explicitamente a página de login do fornecedor. Permanecendo na tela de login.");
       } catch (error) {
-        console.log("Usuário não autenticado. Status:", error.status || 401);
-        console.error("Erro de autenticação:", error.message);
+        console.log("Erro ao verificar autenticação:", error);
       }
     };
 
