@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,24 +23,86 @@ import {
   Settings,
   CreditCard,
   BellRing,
-  Clock
+  Clock,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 export default function SupplierDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [supplierInfo, setSupplierInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dados simulados para o dashboard
+  // Buscar dados reais do fornecedor
+  useEffect(() => {
+    const fetchSupplierData = async () => {
+      try {
+        setIsLoading(true);
+        // Tentativa usando o endpoint do fornecedor
+        const response = await fetch("/api/suppliers/me", {
+          credentials: "include",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Dados do fornecedor carregados:", result);
+          
+          if (result.success && result.data) {
+            setSupplierInfo(result.data);
+          } else {
+            console.error("Erro ao carregar dados do fornecedor:", result.error || "Resposta sem dados");
+            toast({
+              title: "Erro ao carregar dados",
+              description: "Não foi possível carregar seus dados de fornecedor.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          console.error("Erro na API:", response.status, response.statusText);
+          toast({
+            title: "Erro de autenticação",
+            description: "Sua sessão pode ter expirado. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+          // Redirecionar para login após um pequeno delay
+          setTimeout(() => {
+            setLocation("/supplier/login");
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados do fornecedor:", error);
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao servidor.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSupplierData();
+  }, [toast, setLocation]);
+
+  // Dados simulados para o dashboard enquanto não temos os endpoints completos
   const supplierData = {
-    name: "Fornecedor ABC Ltda",
-    avatar: "",
+    // Usar dados reais do fornecedor quando disponíveis
+    name: supplierInfo?.name || "Fornecedor",
+    avatar: supplierInfo?.logo || "",
     products: 24,
     pendingOrders: 5,
     completedOrders: 17,
     revenue: 15750.50,
     rating: 4.8,
-    accountStatus: "verified",
+    accountStatus: supplierInfo?.status || "pending",
     unreadNotifications: 3,
     unreadMessages: 2,
     recentOrders: [
@@ -113,6 +175,17 @@ export default function SupplierDashboard() {
     }
   ];
 
+  // Mostrar estado de carregamento
+  if (isLoading) {
+    return (
+      <div className="h-[80vh] w-full flex flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-red-600 mb-4" />
+        <h3 className="text-xl font-medium">Carregando dados do fornecedor...</h3>
+        <p className="text-muted-foreground mt-2">Aguarde um momento por favor.</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="pb-10">
       {/* Top Cards */}
