@@ -805,17 +805,48 @@ router.post("/register", upload.single("logo"), async (req, res) => {
 // Rota de login do fornecedor
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     
-    if (!email || !password) {
-      return res.status(400).json({ error: "E-mail e senha são obrigatórios" });
+    // Depuração para acompanhar o que está chegando
+    console.log("Dados recebidos:", req.body);
+    
+    // Para compatibilidade, aceitamos tanto username quanto email como campo de login
+    const userEmail = username || req.body.email;
+    
+    if (!userEmail || !password) {
+      return res.status(400).json({ 
+        success: false,
+        error: "Credenciais incompletas", 
+        message: "Email/username e senha são obrigatórios" 
+      });
     }
     
-    // Buscar fornecedor pelo e-mail
-    const [supplier] = await db.select()
-      .from(supplierSchema.suppliers)
-      .where(eq(supplierSchema.suppliers.email, email))
-      .limit(1);
+    console.log(`Tentativa de login de fornecedor com ${username ? 'username' : 'email'}: ${userEmail}`);
+    
+    // Buscar fornecedor pelo e-mail ou username
+    console.log("Consultando fornecedor no banco com email/username:", userEmail);
+    
+    // Consulta SQL que busca pelo email (fornecedores não têm coluna username)
+    const { pool } = await import('./db');
+    const result = await pool.query(`
+      SELECT * FROM suppliers 
+      WHERE email = $1 
+         OR name = $1
+      LIMIT 1
+    `, [userEmail]);
+    
+    console.log("Resultado da consulta:", result.rows);
+    
+    if (!result.rows || result.rows.length === 0) {
+      console.log("Nenhum fornecedor encontrado com esse email");
+      return res.status(401).json({ 
+        success: false,
+        error: "Credenciais inválidas", 
+        message: "Email ou senha incorretos"
+      });
+    }
+    
+    const supplier = result.rows[0];
     
     if (!supplier) {
       return res.status(401).json({ error: "Credenciais inválidas" });
@@ -2801,7 +2832,125 @@ router.put("/orders/:id/tracking", async (req, res) => {
 });
 
 export function registerSupplierRoutes(app: express.Express) {
-  // Adicionar uma rota de teste diretamente no app - ANTES de registrar o router
+  // 0. Rota /me para obter dados do fornecedor autenticado
+  app.get("/api/suppliers/me", (req, res) => {
+    console.log("Acessando rota /me para obter dados do fornecedor autenticado");
+    
+    // Verificar se o fornecedor está autenticado
+    if (!req.session.supplier && !(req.session.user?.role === 'supplier')) {
+      console.log("Fornecedor não autenticado - nenhuma sessão encontrada");
+      return res.status(401).json({
+        success: false,
+        error: "Não autenticado",
+        message: "Faça login para continuar"
+      });
+    }
+    
+    // Se chegou aqui, o fornecedor está autenticado
+    const supplierId = getValidSupplierId(req);
+    
+    if (!supplierId) {
+      console.log("ID do fornecedor inválido na sessão");
+      return res.status(401).json({
+        success: false,
+        error: "Sessão inválida",
+        message: "ID do fornecedor não encontrado na sessão"
+      });
+    }
+    
+    // Buscar dados atualizados do fornecedor no banco de dados
+    import('./db').then(module => {
+      const pool = module.pool;
+      pool.query('SELECT * FROM suppliers WHERE id = $1', [supplierId])
+        .then(result => {
+          if (result.rows && result.rows.length > 0) {
+            const supplier = result.rows[0];
+            // Retorna os dados sem expor informações sensíveis
+            res.json({
+              success: true,
+              data: {
+                id: supplier.id,
+                name: supplier.name,
+                tradingName: supplier.tradingName,
+                email: supplier.email,
+                status: supplier.status,
+                verified: supplier.verified,
+                logo: supplier.logo
+              }
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              error: "Fornecedor não encontrado",
+              message: "Não foi possível encontrar seus dados. Por favor, contate o suporte."
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Erro ao buscar dados do fornecedor:", error);
+          res.status(500).json({
+            success: false,
+            error: "Erro interno",
+            message: "Não foi possível recuperar os dados do fornecedor"
+          });
+        });
+    });
+  });
+  
+  // 1. Rota para diagnóstico de autenticação
+  app.get("/api/suppliers/test-auth", async (req, res) => {
+    console.log("Acessando rota /test-auth especial (fora do router)");
+    
+    try {
+      // Usar ID fixo para teste - ID 2 (que sabemos que existe)
+      const testSupplierId = 2;
+      
+      // Usar SQL direto sem importar dinamicamente
+      console.log(`Buscando fornecedor com ID fixo ${testSupplierId}`);
+      
+      const { pool } = await import('./db');
+      const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [testSupplierId]);
+      
+      console.log("Resultado da consulta:", result.rows);
+      
+      if (!result.rows || result.rows.length === 0) {
+        console.log("Nenhum fornecedor encontrado");
+        return res.status(404).json({
+          success: false,
+          error: "Fornecedor não encontrado",
+          message: `Não existe fornecedor com ID ${testSupplierId}`
+        });
+      }
+      
+      const supplier = result.rows[0];
+      
+      // Responder com sucesso
+      res.json({
+        success: true,
+        message: "Consulta de teste bem-sucedida",
+        supplierData: supplier
+      });
+    } catch (error) {
+      console.error("Erro no teste simplificado:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro no teste simplificado",
+        message: error instanceof Error ? error.message : "Erro desconhecido"
+      });
+    }
+  });
+  
+  // 2. Rota de teste simples
+  app.get("/api/suppliers/test-simple", (req, res) => {
+    console.log("Acessando rota /test-simple especial (fora do router)");
+    res.json({
+      success: true,
+      message: "Teste básico ok - rota independente",
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  // 3. Rota para teste básico
   app.get("/api/suppliers-test", (req, res) => {
     console.log("Acessando rota /api/suppliers-test diretamente no app");
     res.json({
@@ -2811,7 +2960,7 @@ export function registerSupplierRoutes(app: express.Express) {
     });
   });
 
-  // Registrar as demais rotas usando o router
+  // 4. Registrar as demais rotas usando o router
   app.use("/api/suppliers", router);
   console.log("Rotas do módulo de fornecedores registradas com sucesso");
 }
