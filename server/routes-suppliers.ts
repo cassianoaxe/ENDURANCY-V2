@@ -862,10 +862,23 @@ router.post("/login", async (req, res) => {
     }
     
     // Verificar senha
-    const passwordMatch = await bcrypt.compare(password, supplier.passwordHash);
+    if (!supplier.password_hash) {
+      console.error("Erro: Fornecedor não tem hash de senha");
+      return res.status(401).json({ error: "Erro ao validar credenciais" });
+    }
     
-    if (!passwordMatch) {
-      return res.status(401).json({ error: "Credenciais inválidas" });
+    try {
+      // Garantir que estamos usando o nome correto do campo (password_hash)
+      const passwordMatch = await bcrypt.compare(password, supplier.password_hash);
+      
+      console.log("Resultado da comparação de senha:", passwordMatch);
+      
+      if (!passwordMatch) {
+        return res.status(401).json({ error: "Credenciais inválidas" });
+      }
+    } catch (error) {
+      console.error("Erro ao comparar senhas:", error);
+      return res.status(500).json({ error: "Erro ao validar credenciais" });
     }
     
     // Garantir que o ID seja um número
@@ -922,15 +935,12 @@ router.post("/login", async (req, res) => {
     console.log("- req.session completo:", JSON.stringify(req.session, null, 2));
     
     // Também atualizar req.session.user para manter compatibilidade com o sistema de autenticação principal
-    req.session.user = {
-      id: supplierIdAsNumber,
-      username: supplier.email,
-      name: supplier.name,
-      email: supplier.email,
-      role: "supplier", // Importante: definir o papel como 'supplier'
-      organizationId: null,
-      createdAt: supplier.createdAt
-    };
+    // IMPORTANTE: NÃO devemos definir req.session.user para fornecedores, pois isso faz com que o sistema 
+    // identifique o usuário como um usuário comum e redirecione para o dashboard administrativo
+    // em vez do dashboard do fornecedor.
+    
+    // Manter apenas o objeto supplier na sessão para evitar conflitos com o sistema principal
+    // Isso garante que a autenticação de fornecedor seja independente da autenticação de usuário comum
     
     console.log("Sessão do fornecedor criada:", req.session.supplier);
     console.log("Sessão de usuário também criada para compatibilidade:", req.session.user);
