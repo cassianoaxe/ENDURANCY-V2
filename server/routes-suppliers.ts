@@ -677,7 +677,7 @@ router.post("/login", async (req, res) => {
     // Garantir que o ID seja um número
     const supplierId = Number(supplier.id);
     
-    // Criar sessão
+    // Criar sessão para o fornecedor
     req.session.supplier = {
       id: supplierId,
       name: supplier.name,
@@ -688,7 +688,19 @@ router.post("/login", async (req, res) => {
     // Armazenar o ID do fornecedor diretamente na sessão para facilitar o acesso
     req.session.supplierId = supplierId;
     
+    // Também atualizar req.session.user para manter compatibilidade com o sistema de autenticação principal
+    req.session.user = {
+      id: supplierId,
+      username: supplier.email,
+      name: supplier.name,
+      email: supplier.email,
+      role: "supplier", // Importante: definir o papel como 'supplier'
+      organizationId: null,
+      createdAt: supplier.createdAt
+    };
+    
     console.log("Sessão do fornecedor criada:", req.session.supplier);
+    console.log("Sessão de usuário também criada para compatibilidade:", req.session.user);
     console.log("ID do fornecedor armazenado na sessão:", req.session.supplierId, typeof req.session.supplierId);
     
     // Responder com dados do fornecedor
@@ -712,15 +724,28 @@ router.post("/login", async (req, res) => {
 
 // Rota para logout de fornecedor
 router.post("/logout", (req, res) => {
-  if (req.session.supplier) {
+  // Verificar se existe uma sessão de fornecedor ou usuário
+  if (req.session.supplier || req.session.user) {
+    // Logar informações para debug
+    console.log("Realizando logout de fornecedor:", {
+      hasSupplierSession: !!req.session.supplier,
+      hasUserSession: !!req.session.user,
+      supplierId: req.session.supplierId
+    });
+    
+    // Destruir toda a sessão
     req.session.destroy(err => {
       if (err) {
-        return res.status(500).json({ error: "Erro ao fazer logout" });
+        console.error("Erro ao destruir sessão durante logout:", err);
+        return res.status(500).json({ error: "Erro ao fazer logout", details: err.message });
       }
+      
+      // Limpar cookie de sessão
       res.clearCookie("connect.sid");
       res.json({ success: true, message: "Logout realizado com sucesso" });
     });
   } else {
+    console.log("Tentativa de logout sem sessão ativa");
     res.status(401).json({ error: "Nenhuma sessão ativa" });
   }
 });
