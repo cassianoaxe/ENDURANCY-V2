@@ -239,20 +239,31 @@ export function setupSupplierAuthRoutes(app: any) {
   // Logout específico para fornecedor
   app.post("/api/suppliers/logout", (req: Request, res: Response) => {
     if (req.session) {
-      // Limpar apenas os dados do fornecedor, mantendo usuário se existir
-      delete req.session.supplierId;
-      delete req.session.supplier;
-      
+      // Destruir completamente a sessão para garantir saída total
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Erro ao destruir sessão durante logout de fornecedor:", err);
+          return res.status(500).json({
+            success: false,
+            error: "Erro no servidor",
+            message: "Ocorreu um erro ao finalizar sua sessão"
+          });
+        }
+        
+        // Limpar o cookie da sessão
+        res.clearCookie('connect.sid', { path: '/' });
+        
+        return res.status(200).json({
+          success: true,
+          message: "Logout de fornecedor realizado com sucesso"
+        });
+      });
+    } else {
       return res.status(200).json({
         success: true,
-        message: "Logout de fornecedor realizado com sucesso"
+        message: "Não havia sessão de fornecedor para encerrar"
       });
     }
-    
-    return res.status(200).json({
-      success: true,
-      message: "Não havia sessão de fornecedor para encerrar"
-    });
   });
   
   console.log("Rotas de autenticação de fornecedor configuradas");
