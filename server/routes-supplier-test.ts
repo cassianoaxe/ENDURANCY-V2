@@ -185,6 +185,172 @@ router.get("/suppliers", async (req, res) => {
   }
 });
 
+// Rota para testar a autenticação seguida de acesso à rota original /api/suppliers/me
+router.get("/test-auth-and-original-me", async (req, res) => {
+  try {
+    if (!req.session) {
+      return res.status(401).json({
+        success: false,
+        error: "Sessão não iniciada",
+        message: "Não existe sessão ativa"
+      });
+    }
+    
+    // Configurar manualmente uma sessão de teste com o fornecedor ID 2 que sabemos que existe
+    req.session.supplier = {
+      id: 2, // Usar ID 2 que existe no banco
+      name: "Fornecedor Teste 2",
+      email: "teste2@fornecedor.com",
+      role: "supplier"
+    };
+    
+    // Adicionar também o ID diretamente na sessão
+    req.session.supplierId = 2;
+    
+    // Salvar a sessão
+    await new Promise<void>((resolve, reject) => {
+      req.session.save(err => {
+        if (err) {
+          console.error("Erro ao salvar sessão:", err);
+          reject(err);
+        } else {
+          console.log("Sessão salva com sucesso para teste");
+          resolve();
+        }
+      });
+    });
+    
+    // Fazer uma requisição HTTP para a rota original /api/suppliers/me
+    try {
+      const axios = await import('axios');
+      
+      console.log("Usando session ID:", req.sessionID);
+      console.log("Session completa:", req.session);
+      
+      const response = await axios.default.get('http://localhost:5000/api/suppliers/me', {
+        headers: {
+          Cookie: `connect.sid=${req.sessionID}`
+        }
+      });
+      
+      res.json({
+        success: true,
+        message: "Autenticação simulada e acesso à rota original /api/suppliers/me bem-sucedido",
+        sessionData: {
+          supplier: req.session.supplier,
+          supplierId: req.session.supplierId,
+          sessionID: req.sessionID
+        },
+        originalRouteResponse: response.data
+      });
+    } catch (apiError: any) {
+      console.error("Erro ao acessar rota original /api/suppliers/me:", apiError.message);
+      
+      // Capturar detalhes do erro para diagnóstico
+      let errorDetails = {
+        message: apiError.message
+      };
+      
+      // Capturar resposta do servidor se disponível
+      if (apiError.response) {
+        errorDetails = {
+          ...errorDetails,
+          status: apiError.response.status,
+          statusText: apiError.response.statusText,
+          data: apiError.response.data
+        };
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: "Erro ao acessar rota original /api/suppliers/me",
+        message: apiError.message,
+        details: errorDetails,
+        sessionData: {
+          supplier: req.session.supplier,
+          supplierId: req.session.supplierId,
+          sessionID: req.sessionID
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao testar autenticação + original /me:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao testar autenticação",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+});
+
+// Rota para testar a autenticação seguida de obtenção de dados do fornecedor
+router.get("/test-auth-and-me", async (req, res) => {
+  try {
+    if (!req.session) {
+      return res.status(401).json({
+        success: false,
+        error: "Sessão não iniciada",
+        message: "Não existe sessão ativa"
+      });
+    }
+    
+    // Configurar manualmente uma sessão de teste com o fornecedor ID 2 que sabemos que existe
+    req.session.supplier = {
+      id: 2, // Usar ID 2 que existe no banco
+      name: "Fornecedor Teste 2",
+      email: "teste2@fornecedor.com",
+      role: "supplier"
+    };
+    
+    // Adicionar também o ID diretamente na sessão
+    req.session.supplierId = 2;
+    
+    // Salvar a sessão
+    await new Promise<void>((resolve, reject) => {
+      req.session.save(err => {
+        if (err) {
+          console.error("Erro ao salvar sessão:", err);
+          reject(err);
+        } else {
+          console.log("Sessão salva com sucesso para teste");
+          resolve();
+        }
+      });
+    });
+    
+    // Fazer uma solicitação para a rota /me para verificar se conseguimos obter os dados do fornecedor
+    const { pool } = await import('./db');
+    const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = $1', [2]);
+    
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Fornecedor não encontrado na verificação"
+      });
+    }
+    
+    const supplier = result.rows[0];
+    
+    res.json({
+      success: true,
+      message: "Autenticação simulada e dados do fornecedor obtidos com sucesso",
+      sessionData: {
+        supplier: req.session.supplier,
+        supplierId: req.session.supplierId,
+        sessionID: req.sessionID
+      },
+      supplierData: supplier
+    });
+  } catch (error) {
+    console.error("Erro ao testar autenticação + /me:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao testar autenticação",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+});
+
 // Rota para testar a autenticação de um fornecedor específico
 router.get("/test-auth", async (req, res) => {
   try {

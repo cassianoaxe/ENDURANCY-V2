@@ -872,8 +872,20 @@ router.get("/me", async (req, res) => {
     const { pool } = await import('./db');
     
     try {
-      console.log("Executando consulta SQL básica com ID fixo 2 (número literal)");
-      const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = 2');
+      // Obter ID do fornecedor da sessão
+      const supplierId = req.session.supplierId || (req.session.supplier ? req.session.supplier.id : null);
+      
+      if (!supplierId) {
+        console.log("ID do fornecedor não encontrado na sessão");
+        return res.status(401).json({
+          success: false,
+          error: "Não autenticado",
+          message: "ID do fornecedor não encontrado na sessão"
+        });
+      }
+      
+      console.log(`Executando consulta SQL com ID ${supplierId} obtido da sessão`);
+      const result = await pool.query('SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = $1', [supplierId]);
       
       console.log("Resultado da consulta:", result.rows);
       
