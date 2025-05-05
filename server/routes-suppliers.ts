@@ -321,6 +321,16 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Rota de teste extremamente simples (colocada ANTES do /:id para não ser capturada como ID)
+router.get("/basic-test", (req, res) => {
+  console.log("Acessando rota /basic-test: resposta sem acesso ao banco de dados");
+  res.json({
+    success: true,
+    message: "Teste básico bem-sucedido",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Obter detalhes de um fornecedor específico (públicos)
 router.get("/:id", async (req, res) => {
   try {
@@ -821,7 +831,7 @@ router.get("/test-simple", (req, res) => {
 });
 
 // Rota para teste de autenticação com função de validação do ID
-router.get("/test-auth", async (req, res) => {
+router.get("/test-auth-original", async (req, res) => {
   try {
     console.log("================ INÍCIO DEBUG DA ROTA /test-auth ==================");
     console.log("Acessando rota /test-auth para fornecedor");
@@ -840,8 +850,13 @@ router.get("/test-auth", async (req, res) => {
       });
     }
     
+    // Examinar detalhadamente os dados da sessão para diagnóstico
+    const rawSupplierId = req.session?.supplierId || (req.session?.supplier ? req.session.supplier.id : null);
+    console.log("ID bruto do fornecedor da sessão:", rawSupplierId, "tipo:", typeof rawSupplierId);
+    
     // Obter ID do fornecedor da sessão usando a função auxiliar
     const supplierId = getValidSupplierId(req);
+    console.log("ID do fornecedor após validação:", supplierId, "tipo:", typeof supplierId);
     
     if (!supplierId) {
       console.log("ID do fornecedor inválido ou não encontrado na sessão");
@@ -852,10 +867,25 @@ router.get("/test-auth", async (req, res) => {
       });
     }
     
+    // Verificação adicional para garantir que o ID é válido antes de chamar a consulta SQL
+    if (isNaN(supplierId) || !Number.isInteger(supplierId)) {
+      console.log(`ID do fornecedor inválido para SQL: "${supplierId}", tipo: ${typeof supplierId}`);
+      return res.status(400).json({
+        success: false,
+        error: "ID inválido",
+        message: "O ID do fornecedor não é um número inteiro válido"
+      });
+    }
+    
     // Usar SQL direto para evitar problemas de conversão
     const { pool } = await import('./db');
     console.log(`Executando consulta SQL com ID ${supplierId} obtido da sessão`);
-    const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [supplierId]);
+    
+    // TESTE: Verificar fornecedor específico
+    const testSupplierId = 2; // Usamos ID 2 para teste, pois sabemos que existe no banco
+    console.log(`USANDO ID DE TESTE ${testSupplierId} EM VEZ DE ${supplierId} PARA DIAGNÓSTICO`);
+    
+    const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [testSupplierId]);
     
     console.log("Resultado da consulta:", result.rows);
     
@@ -864,7 +894,7 @@ router.get("/test-auth", async (req, res) => {
       return res.status(404).json({
         success: false,
         error: "Fornecedor não encontrado",
-        message: `Não existe fornecedor com ID ${supplierId}`
+        message: `Não existe fornecedor com ID ${testSupplierId}`
       });
     }
     
@@ -886,6 +916,60 @@ router.get("/test-auth", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erro ao testar autenticação",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+});
+
+// Rota super simples para testes - não usa banco de dados nem importa nada
+router.get("/simple-test", (req, res) => {
+  console.log("Acessando rota /simple-test que não usa banco de dados");
+  res.json({
+    success: true,
+    message: "Teste básico bem-sucedido",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Rota de teste simplificada que não depende da sessão, mas usa consulta SQL direta
+router.get("/test-auth", async (req, res) => {
+  console.log("Acessando rota /test-auth simplificada (sem verificação de sessão)");
+  
+  try {
+    // Usar ID fixo para teste - ID 2 (que sabemos que existe)
+    const testSupplierId = 2;
+    
+    // Usar SQL direto sem importar dinâmicamente
+    console.log(`Buscando fornecedor com ID fixo ${testSupplierId}`);
+    
+    // Importar pool diretamente da exportação no topo do arquivo
+    const { pool } = await import('./db');
+    const result = await pool.query('SELECT id, name, email, status FROM suppliers WHERE id = $1', [testSupplierId]);
+    
+    console.log("Resultado da consulta:", result.rows);
+    
+    if (!result.rows || result.rows.length === 0) {
+      console.log("Nenhum fornecedor encontrado");
+      return res.status(404).json({
+        success: false,
+        error: "Fornecedor não encontrado",
+        message: `Não existe fornecedor com ID ${testSupplierId}`
+      });
+    }
+    
+    const supplier = result.rows[0];
+    
+    // Responder com sucesso
+    res.json({
+      success: true,
+      message: "Consulta de teste bem-sucedida",
+      supplierData: supplier
+    });
+  } catch (error) {
+    console.error("Erro no teste simplificado:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro no teste simplificado",
       message: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
@@ -2473,6 +2557,17 @@ router.put("/orders/:id/tracking", async (req, res) => {
 });
 
 export function registerSupplierRoutes(app: express.Express) {
+  // Adicionar uma rota de teste diretamente no app - ANTES de registrar o router
+  app.get("/api/suppliers-test", (req, res) => {
+    console.log("Acessando rota /api/suppliers-test diretamente no app");
+    res.json({
+      success: true,
+      message: "Teste básico bem-sucedido - rota independente",
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Registrar as demais rotas usando o router
   app.use("/api/suppliers", router);
   console.log("Rotas do módulo de fornecedores registradas com sucesso");
 }

@@ -1138,6 +1138,21 @@ app.use((req, res, next) => {
     res.status(status).json(responseBody);
   });
 
+  // Registra as rotas de diagnóstico especiais (que devem ser montadas após todas as rotas da API)
+  // mas antes do Vite, para que não sejam capturadas pelo catch-all do Vite
+  const { registerDiagnosticRoutes } = await import('./diagnostic-routes');
+  registerDiagnosticRoutes(app);
+  
+  // Adiciona uma última rota para diagnóstico que certamente não será interceptada pelo Vite
+  app.get('/api-final-check', (req, res) => {
+    console.log('Acessando rota final de diagnóstico: /api-final-check');
+    res.json({
+      success: true,
+      message: 'API funcionando corretamente (verificação final)',
+      timestamp: new Date().toISOString()
+    });
+  });
+  
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
