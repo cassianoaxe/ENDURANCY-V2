@@ -969,6 +969,18 @@ export default function Login() {
                     Cadastre-se aqui
                   </a>
                 </div>
+                
+                <Separator className="w-full my-2" />
+                
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 mr-2">É um fornecedor?</span>
+                  <a 
+                    href="/supplier/login" 
+                    className="text-sm font-medium text-red-600 hover:underline flex items-center"
+                  >
+                    <Truck className="h-4 w-4 mr-1" /> Acesse o Portal do Fornecedor
+                  </a>
+                </div>
               </div>
             </CardFooter>
           </Card>
