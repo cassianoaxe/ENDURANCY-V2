@@ -44,37 +44,25 @@ export function getValidSupplierId(req: Request): number | null {
       }
     }
     
-    // Estratégia 3: Se usuário tem role 'supplier', verificar se há usuário relacionado a um fornecedor
+    // Estratégia 3: Se usuário tem role 'supplier', verificar se há um ID de fornecedor no objeto de usuário
     if (req.session?.user && req.session.user.role === 'supplier') {
       console.log("Estratégia 3: Usuário com role 'supplier' encontrado:", req.session.user);
       
-      // Se temos um supplierUserId ou supplierId no objeto de usuário
-      if (req.session.user.supplierId) {
+      // Verificar se o objeto do usuário tem uma propriedade supplierId
+      if (req.session.user.supplierId && typeof req.session.user.supplierId !== 'undefined') {
         const supplierId = Number(req.session.user.supplierId);
         if (!isNaN(supplierId) && supplierId > 0) {
-          console.log("ID válido da estratégia 3:", supplierId);
+          console.log("ID válido da estratégia 3 (supplierId):", supplierId);
           return supplierId;
         } else {
-          console.log("ID inválido da estratégia 3:", supplierId);
+          console.log("ID inválido da estratégia 3 (supplierId):", supplierId);
         }
       }
       
-      // Caso especial: Se temos um ID na sessão do usuário e sabemos que é um fornecedor
-      // Vamos usar o ID 2 que sabemos que existe (solução temporária)
-      if (req.session.user.id && req.session.user.role === 'supplier') {
-        console.log("Estratégia de fallback: Usando ID 2 como fornecedor conhecido");
-        return 2;
-      }
-    }
-    
-    // Estratégia 4 (último recurso): Verificar se há algum ID válido em algum lugar na sessão
-    if (req.session?.id) {
-      console.log("Estratégia 4: ID genérico encontrado na sessão:", req.session.id);
-      
-      if (typeof req.session.id === 'number' && req.session.id > 0) {
-        console.log("ID válido da estratégia 4:", req.session.id);
-        return req.session.id;
-      }
+      // Caso específico para primeiro login - não temos o fornecedor vinculado ainda
+      // Devolver um valor nulo para que a interface trate adequadamente
+      console.log("Usuário é fornecedor mas não tem ID de fornecedor vinculado");
+      return null;
     }
     
     console.log("Nenhum ID de fornecedor válido encontrado em nenhuma estratégia");
@@ -389,10 +377,102 @@ router.get("/basic-test", (req, res) => {
   });
 });
 
+// Obter dados do fornecedor autenticado
+router.get("/me", async (req, res) => {
+  console.log("Acessando rota /me para obter dados do fornecedor autenticado");
+  
+  // Verificar autenticação básica
+  if (!req.session || (!req.session.supplier && !req.session.user)) {
+    console.log("Fornecedor não autenticado - nenhuma sessão encontrada");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "Faça login para continuar"
+    });
+  }
+  
+  // Obter ID do fornecedor da sessão usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  console.log("ID do fornecedor após validação:", supplierId, "tipo:", typeof supplierId);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
+  
+  try {
+    // Buscar dados do fornecedor
+    const [supplier] = await db.select({
+      id: supplierSchema.suppliers.id,
+      name: supplierSchema.suppliers.name,
+      tradingName: supplierSchema.suppliers.tradingName,
+      email: supplierSchema.suppliers.email,
+      phone: supplierSchema.suppliers.phone,
+      address: supplierSchema.suppliers.address,
+      city: supplierSchema.suppliers.city,
+      state: supplierSchema.suppliers.state,
+      zipCode: supplierSchema.suppliers.zipCode,
+      logo: supplierSchema.suppliers.logo,
+      status: supplierSchema.suppliers.status,
+      verified: supplierSchema.suppliers.verified,
+      description: supplierSchema.suppliers.description,
+      socialMedia: supplierSchema.suppliers.socialMedia,
+      rating: supplierSchema.suppliers.rating,
+      ratingCount: supplierSchema.suppliers.ratingCount,
+      website: supplierSchema.suppliers.website,
+      createdAt: supplierSchema.suppliers.createdAt
+    })
+    .from(supplierSchema.suppliers)
+    .where(eq(supplierSchema.suppliers.id, supplierId))
+    .limit(1);
+    
+    if (!supplier) {
+      return res.status(404).json({ 
+        success: false,
+        error: "Fornecedor não encontrado" 
+      });
+    }
+    
+    // Buscar categorias do fornecedor
+    const categories = await db.select()
+      .from(supplierSchema.supplierCategories)
+      .where(eq(supplierSchema.supplierCategories.supplierId, supplierId));
+    
+    res.json({
+      success: true,
+      data: {
+        ...supplier,
+        categories
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar fornecedor (rota /me):", error);
+    res.status(500).json({ 
+      success: false,
+      error: "Erro ao buscar dados do fornecedor" 
+    });
+  }
+});
+
 // Obter detalhes de um fornecedor específico (públicos)
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validar ID do fornecedor
+    const parsedId = Number(id);
+    if (isNaN(parsedId) || !Number.isInteger(parsedId) || parsedId <= 0) {
+      console.log(`ID de fornecedor inválido na URL: "${id}"`);
+      return res.status(400).json({
+        success: false,
+        error: "ID Inválido",
+        message: "O ID do fornecedor não é um número válido"
+      });
+    }
     
     const [supplier] = await db.select({
       id: supplierSchema.suppliers.id,
@@ -415,7 +495,7 @@ router.get("/:id", async (req, res) => {
       createdAt: supplierSchema.suppliers.createdAt
     })
     .from(supplierSchema.suppliers)
-    .where(eq(supplierSchema.suppliers.id, parseInt(id)))
+    .where(eq(supplierSchema.suppliers.id, parsedId))
     .limit(1);
 
     if (!supplier) {
@@ -425,7 +505,7 @@ router.get("/:id", async (req, res) => {
     // Buscar categorias do fornecedor
     const categories = await db.select()
       .from(supplierSchema.supplierCategories)
-      .where(eq(supplierSchema.supplierCategories.supplierId, parseInt(id)));
+      .where(eq(supplierSchema.supplierCategories.supplierId, parsedId));
 
     res.json({
       success: true,
@@ -1114,6 +1194,17 @@ router.get("/me", async (req, res) => {
     // Agora que temos um ID de fornecedor, vamos buscá-lo no banco de dados
     console.log(`Buscando fornecedor com ID ${supplierId} no banco de dados`);
     
+    // Converter supplierId para número e validar
+    const supplierIdNum = Number(supplierId);
+    if (isNaN(supplierIdNum) || !Number.isInteger(supplierIdNum) || supplierIdNum <= 0) {
+      console.log(`ID de fornecedor inválido: "${supplierId}" (${typeof supplierId})`);
+      return res.status(400).json({
+        success: false,
+        error: "ID de fornecedor inválido",
+        message: "O ID do fornecedor não é um número válido"
+      });
+    }
+    
     try {
       // Use a conexão direta com o pool para garantir que não há problemas do ORM
       const { pool } = await import('./db');
@@ -1121,7 +1212,7 @@ router.get("/me", async (req, res) => {
       // Consulta SQL simples para evitar problemas com o ORM
       const result = await pool.query(
         'SELECT id, name, trading_name as "tradingName", email, phone, contact_name as "contactName", logo, status, verified, description FROM suppliers WHERE id = $1', 
-        [supplierId]
+        [supplierIdNum] // Usar o ID já convertido e validado
       );
       
       if (!result.rows || result.rows.length === 0) {
@@ -1216,6 +1307,18 @@ router.get("/my-products", async (req, res) => {
       message: "ID do fornecedor inválido na sessão"
     });
   }
+  
+  // Validar supplierId
+  const supplierIdNum = Number(supplierId);
+  if (isNaN(supplierIdNum) || !Number.isInteger(supplierIdNum) || supplierIdNum <= 0) {
+    console.log(`ID de fornecedor inválido: "${supplierId}" (${typeof supplierId})`);
+    return res.status(400).json({
+      success: false,
+      error: "ID de fornecedor inválido",
+      message: "O ID do fornecedor não é um número válido"
+    });
+  }
+  
   try {
     const { search, status, category, page = 1, limit = 20, sort = "newest" } = req.query;
     
@@ -1235,7 +1338,7 @@ router.get("/my-products", async (req, res) => {
       featuredImage: supplierSchema.products.featuredImage
     })
     .from(supplierSchema.products)
-    .where(eq(supplierSchema.products.supplierId, supplierId))
+    .where(eq(supplierSchema.products.supplierId, supplierIdNum))
     .limit(Number(limit))
     .offset((Number(page) - 1) * Number(limit));
 
@@ -1285,7 +1388,7 @@ router.get("/my-products", async (req, res) => {
     // Contar total para paginação
     const countQuery = db.select({ count: sql<number>`count(*)` })
       .from(supplierSchema.products)
-      .where(eq(supplierSchema.products.supplierId, supplierId));
+      .where(eq(supplierSchema.products.supplierId, supplierIdNum));
     
     // Aplicar os mesmos filtros à query de contagem
     if (search) {
@@ -1361,12 +1464,34 @@ router.get("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validar ID do produto
+    const productId = Number(id);
+    if (isNaN(productId) || !Number.isInteger(productId) || productId <= 0) {
+      console.log(`ID de produto inválido: "${id}"`);
+      return res.status(400).json({
+        success: false,
+        error: "ID de produto inválido",
+        message: "O ID do produto não é um número válido"
+      });
+    }
+    
+    // Validar supplierId
+    const supplierIdNum = Number(supplierId);
+    if (isNaN(supplierIdNum) || !Number.isInteger(supplierIdNum) || supplierIdNum <= 0) {
+      console.log(`ID de fornecedor inválido: "${supplierId}" (${typeof supplierId})`);
+      return res.status(400).json({
+        success: false,
+        error: "ID de fornecedor inválido",
+        message: "O ID do fornecedor não é um número válido"
+      });
+    }
+    
     const [product] = await db.select()
       .from(supplierSchema.products)
       .where(
         and(
-          eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, supplierId)
+          eq(supplierSchema.products.id, productId),
+          eq(supplierSchema.products.supplierId, supplierIdNum)
         )
       )
       .limit(1);
@@ -1385,12 +1510,12 @@ router.get("/products/:id", async (req, res) => {
       supplierSchema.supplierCategories,
       eq(supplierSchema.productCategories.categoryId, supplierSchema.supplierCategories.id)
     )
-    .where(eq(supplierSchema.productCategories.productId, parseInt(id)));
+    .where(eq(supplierSchema.productCategories.productId, productId));
 
     // Buscar imagens do produto
     const images = await db.select()
       .from(supplierSchema.productImages)
-      .where(eq(supplierSchema.productImages.productId, parseInt(id)))
+      .where(eq(supplierSchema.productImages.productId, productId))
       .orderBy(asc(supplierSchema.productImages.position));
 
     res.json({
@@ -1674,13 +1799,35 @@ router.delete("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validar ID do produto
+    const productId = Number(id);
+    if (isNaN(productId) || !Number.isInteger(productId) || productId <= 0) {
+      console.log(`ID de produto inválido: "${id}"`);
+      return res.status(400).json({
+        success: false,
+        error: "ID de produto inválido",
+        message: "O ID do produto não é um número válido"
+      });
+    }
+    
+    // Validar supplierId
+    const supplierIdNum = Number(supplierId);
+    if (isNaN(supplierIdNum) || !Number.isInteger(supplierIdNum) || supplierIdNum <= 0) {
+      console.log(`ID de fornecedor inválido: "${supplierId}" (${typeof supplierId})`);
+      return res.status(400).json({
+        success: false,
+        error: "ID de fornecedor inválido",
+        message: "O ID do fornecedor não é um número válido"
+      });
+    }
+    
     // Verificar se o produto existe e pertence ao fornecedor
     const [existingProduct] = await db.select()
       .from(supplierSchema.products)
       .where(
         and(
-          eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, supplierId)
+          eq(supplierSchema.products.id, productId),
+          eq(supplierSchema.products.supplierId, supplierIdNum)
         )
       )
       .limit(1);
@@ -1699,12 +1846,12 @@ router.delete("/products/:id", async (req, res) => {
 
     // Remover relacionamentos primeiro
     await db.delete(supplierSchema.productCategories)
-      .where(eq(supplierSchema.productCategories.productId, parseInt(id)));
+      .where(eq(supplierSchema.productCategories.productId, productId));
     
     // Buscar e remover imagens do produto
     const images = await db.select()
       .from(supplierSchema.productImages)
-      .where(eq(supplierSchema.productImages.productId, parseInt(id)));
+      .where(eq(supplierSchema.productImages.productId, productId));
     
     for (const image of images) {
       if (image.url && image.url.startsWith('/uploads/')) {
@@ -1716,14 +1863,14 @@ router.delete("/products/:id", async (req, res) => {
     }
     
     await db.delete(supplierSchema.productImages)
-      .where(eq(supplierSchema.productImages.productId, parseInt(id)));
+      .where(eq(supplierSchema.productImages.productId, productId));
     
     // Finalmente excluir o produto
     await db.delete(supplierSchema.products)
       .where(
         and(
-          eq(supplierSchema.products.id, parseInt(id)),
-          eq(supplierSchema.products.supplierId, supplierId)
+          eq(supplierSchema.products.id, productId),
+          eq(supplierSchema.products.supplierId, supplierIdNum)
         )
       );
 
