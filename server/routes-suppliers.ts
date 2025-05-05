@@ -12,6 +12,21 @@ import { z } from "zod";
 import { isEmpty } from "./utils";
 import bcrypt from "bcrypt";
 
+// Função auxiliar para obter e validar o ID do fornecedor da sessão
+function getValidSupplierId(req: Request): number | null {
+  // Obter o ID do fornecedor da sessão e garantir que é um número válido
+  const rawSupplierId = req.session?.supplierId || (req.session?.supplier ? req.session.supplier.id : null);
+  const supplierId = parseInt(String(rawSupplierId), 10);
+  
+  // Verificar se o ID é válido
+  if (!supplierId || isNaN(supplierId)) {
+    console.log(`ID do fornecedor inválido: ${rawSupplierId}`);
+    return null;
+  }
+  
+  return supplierId;
+}
+
 // Estendendo o tipo Request para incluir propriedades personalizadas
 declare global {
   namespace Express {
@@ -872,15 +887,15 @@ router.get("/me", async (req, res) => {
     const { pool } = await import('./db');
     
     try {
-      // Obter ID do fornecedor da sessão
-      const supplierId = req.session.supplierId || (req.session.supplier ? req.session.supplier.id : null);
+      // Obter ID do fornecedor da sessão usando a função auxiliar
+      const supplierId = getValidSupplierId(req);
       
       if (!supplierId) {
-        console.log("ID do fornecedor não encontrado na sessão");
+        console.log("ID do fornecedor inválido ou não encontrado na sessão");
         return res.status(401).json({
           success: false,
           error: "Não autenticado",
-          message: "ID do fornecedor não encontrado na sessão"
+          message: "ID do fornecedor inválido na sessão"
         });
       }
       
@@ -938,8 +953,17 @@ router.get("/my-products", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { search, status, category, page = 1, limit = 20, sort = "newest" } = req.query;
     
@@ -1071,8 +1095,17 @@ router.get("/products/:id", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     
@@ -1134,8 +1167,17 @@ router.post("/products", upload.single("featuredImage"), async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const data = req.body;
     
@@ -1237,8 +1279,17 @@ router.put("/products/:id", upload.single("featuredImage"), async (req, res) => 
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     const data = req.body;
@@ -1357,8 +1408,17 @@ router.delete("/products/:id", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     
@@ -1619,8 +1679,19 @@ router.get("/:id/products", async (req, res) => {
     });
   }
   
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
+  
   // Verificar se o ID do fornecedor na URL corresponde ao ID na sessão
-  const supplierId = req.session.supplierId;
   const requestedId = parseInt(req.params.id);
   
   if (supplierId !== requestedId) {
@@ -1801,8 +1872,17 @@ router.get("/orders", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { status, page = 1, limit = 20, supplierId } = req.query;
     
@@ -1892,8 +1972,17 @@ router.get("/orders/:id", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     
@@ -2097,8 +2186,17 @@ router.put("/orders/:id/status", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -2170,8 +2268,17 @@ router.post("/orders/:id/payment", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     const { paymentMethod, paymentData } = req.body;
@@ -2240,8 +2347,17 @@ router.put("/orders/:id/tracking", async (req, res) => {
     });
   }
   
-  // Obter o ID do fornecedor da sessão
-  const supplierId = req.session.supplierId;
+  // Obter ID do fornecedor usando a função auxiliar
+  const supplierId = getValidSupplierId(req);
+  
+  if (!supplierId) {
+    console.log("ID do fornecedor inválido ou não encontrado na sessão");
+    return res.status(401).json({
+      success: false,
+      error: "Não autenticado",
+      message: "ID do fornecedor inválido na sessão"
+    });
+  }
   try {
     const { id } = req.params;
     const { trackingNumber, trackingUrl, estimatedDeliveryDate } = req.body;
