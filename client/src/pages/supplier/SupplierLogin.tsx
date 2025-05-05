@@ -106,13 +106,19 @@ export default function SupplierLogin() {
       if (response.ok && result.success) {
         console.log("Login bem sucedido:", result.data);
         
+        // Sinalização importante: indica ao App.tsx que deve realizar o redirecionamento
+        // direto para o ambiente do fornecedor, sem passar pelo dashboard administrativo
+        sessionStorage.setItem('direct_supplier_login', 'true');
+        
         toast({
           title: "Login realizado com sucesso",
           description: "Bem-vindo ao Portal do Fornecedor",
         });
         
-        // Redireciona para o dashboard do fornecedor
-        setLocation("/supplier/dashboard");
+        // Forçar um redirecionamento completo do navegador em vez de usar rotas internas
+        // Isso garante que qualquer estado seja reiniciado corretamente
+        window.location.href = "/supplier/dashboard";
+        return; // Importante para interromper o fluxo aqui
       } else {
         throw new Error(result.error || "Erro ao fazer login");
       }

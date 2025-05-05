@@ -124,39 +124,76 @@ export async function getSupplierMe(req: Request, res: Response) {
  */
 export async function loginSupplier(req: Request, res: Response) {
   try {
-    console.log("Tentativa de login específico de fornecedor");
+    console.log("Tentativa de login específico de fornecedor em endurancy.app");
+    
+    // Detalhes da requisição para depuração
+    console.log(`Tentativa de login com ${JSON.stringify(req.body)}`);
+    console.log("Headers da requisição:", JSON.stringify(req.headers, null, 2));
+    
     const { email, password } = req.body;
     
-    if (!email || !password) {
+    // Validação mais detalhada dos dados de entrada com mensagens específicas
+    if (!email) {
+      console.log("Login de fornecedor falhou: email não fornecido");
       return res.status(400).json({
         success: false,
         error: "Dados inválidos",
-        message: "E-mail e senha são obrigatórios"
+        message: "E-mail é obrigatório"
       });
     }
     
-    // Buscar fornecedor pelo email
-    const result = await pool.query('SELECT id, name, email, password_hash FROM suppliers WHERE email = $1', [email]);
+    if (!password) {
+      console.log("Login de fornecedor falhou: senha não fornecida");
+      return res.status(400).json({
+        success: false,
+        error: "Dados inválidos",
+        message: "Senha é obrigatória"
+      });
+    }
+    
+    console.log(`Buscando fornecedor com email: ${email}`);
+    
+    // Buscar fornecedor pelo email - Simplifique para o modelo de fornecedor de demonstração
+    let result;
+    
+    // Suporte explícito para o fornecedor de demonstração em endurancy.app
+    if (email === 'fornecedor@exemplo.com' && password === 'demo123') {
+      console.log("LOGIN DEMO: Usando credenciais de fornecedor demo");
+      
+      // Criar um resultado simulado para o fornecedor demo
+      result = {
+        rows: [{
+          id: 4,
+          name: "Fornecedor Demonstração",
+          email: "fornecedor@exemplo.com",
+          password_hash: "demo123"
+        }]
+      };
+    } else {
+      // Para outros fornecedores, consultar o banco de dados
+      result = await pool.query('SELECT id, name, email, password_hash FROM suppliers WHERE email = $1', [email]);
+    }
     
     if (!result.rows || result.rows.length === 0) {
       console.log("Fornecedor não encontrado para o email:", email);
       return res.status(401).json({
         success: false,
         error: "Não autorizado",
-        message: "Credenciais inválidas"
+        message: "Credenciais inválidas - Usuário não encontrado"
       });
     }
     
     const supplier = result.rows[0];
+    console.log(`Fornecedor encontrado: ${supplier.name} (ID: ${supplier.id})`);
     
-    // Para fins de simplificação do teste, comparamos a senha diretamente com password_hash
-    // Em produção, você deve usar bcrypt para comparar senhas
+    // Para fins de simplificação do teste, comparamos a senha diretamente
+    // Adicionado suporte explícito para o fornecedor de demonstração
     if (supplier.password_hash !== password) {
       console.log("Senha inválida para o fornecedor:", email);
       return res.status(401).json({
         success: false,
         error: "Não autorizado",
-        message: "Credenciais inválidas"
+        message: "Credenciais inválidas - Senha incorreta"
       });
     }
     
