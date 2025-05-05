@@ -16,6 +16,7 @@ import { registerLaboratoryPortalRoutes } from "./routes/laboratory-portal-route
 import { registerLaboratoryRoutes } from "./routes/laboratory-routes";
 import { registerLaboratoryAuthRoutes } from "./routes/laboratory-auth-routes";
 import { registerSupplierRoutes } from "./routes-suppliers";
+import { registerSupplierTestRoutes } from "./routes-supplier-test";
 import expedicaoRoutes from "./routes/expedicao-routes";
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -1077,6 +1078,10 @@ app.use((req, res, next) => {
   
   // Registrar rotas do Portal de Fornecedores
   registerSupplierRoutes(app);
+  
+  // Registrar rotas de teste para fornecedores
+  registerSupplierTestRoutes(app);
+  console.log("Rotas de teste para fornecedores registradas com sucesso");
   
   // Registrar rotas de expedição
   app.use('/api/expedicao', expedicaoRoutes);
