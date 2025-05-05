@@ -282,6 +282,13 @@ export default function Login() {
           loginSuccess = true;
           console.log("Login realizado com sucesso na tentativa", attempt);
           
+          // Verificar se é login de fornecedor e redirecionar corretamente
+          if (loginType === 'supplier') {
+            console.log("Login de fornecedor detectado, redirecionando para /supplier/dashboard");
+            window.location.href = "/supplier/dashboard";
+            return; // Interromper fluxo para evitar redirecionamentos conflitantes
+          }
+          
         } catch (error: any) {
           lastError = error;
           console.error(`Tentativa ${attempt} falhou:`, error);

@@ -11,9 +11,10 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { isEmpty } from "./utils";
 import bcrypt from "bcrypt";
+import { bridgeSupplierAuth } from './auth-bridge';
 
 // Função auxiliar para obter e validar o ID do fornecedor da sessão
-export function getValidSupplierId(req: Request): number | null {
+export async function getValidSupplierId(req: Request): Promise<number | null> {
   try {
     console.log("------- DEBUG getValidSupplierId -------");
     
@@ -56,6 +57,43 @@ export function getValidSupplierId(req: Request): number | null {
           return supplierId;
         } else {
           console.log("ID inválido da estratégia 3 (supplierId):", supplierId);
+        }
+      }
+      
+      // NOVA ESTRATÉGIA 4: Verificar se o usuário autenticado via passport tem role 'supplier'
+      if (req.user && req.user.role === 'supplier') {
+        console.log("Estratégia 4: Usuário autenticado via passport com role 'supplier':", req.user);
+        
+        // Para usuários que fizeram login pela página principal, não teremos supplierId
+        // Vamos tentar encontrar um fornecedor pelo email
+        try {
+          const userEmail = req.user.email;
+          if (userEmail) {
+            console.log("Tentando localizar fornecedor pelo email:", userEmail);
+            
+            const [supplier] = await db.select({
+                id: supplierSchema.suppliers.id
+              })
+              .from(supplierSchema.suppliers)
+              .where(eq(supplierSchema.suppliers.email, userEmail))
+              .limit(1);
+            
+            if (supplier) {
+              console.log("Fornecedor localizado pelo email:", supplier);
+              
+              // Armazenar na sessão para futuras requisições
+              if (req.session) {
+                req.session.supplierId = supplier.id;
+                console.log("ID do fornecedor armazenado na sessão:", supplier.id);
+              }
+              
+              return supplier.id;
+            } else {
+              console.log("Nenhum fornecedor encontrado com este email:", userEmail);
+            }
+          }
+        } catch (dbError) {
+          console.error("Erro ao buscar fornecedor pelo email:", dbError);
         }
       }
       
@@ -2841,38 +2879,47 @@ router.put("/orders/:id/tracking", async (req, res) => {
   }
 });
 
+// Importar o arquivo de autenticação de fornecedor para melhorar a organização do código
+import { setupSupplierAuthRoutes } from './routes-supplier-auth';
+
 export function registerSupplierRoutes(app: express.Express) {
-  // 0. Rota /me para obter dados do fornecedor autenticado
-  app.get("/api/suppliers/me", (req, res) => {
-    console.log("Acessando rota /me para obter dados do fornecedor autenticado");
+  // 0. Configurar as rotas de autenticação do fornecedor a partir do arquivo específico
+  setupSupplierAuthRoutes(app);
+  
+  // Rota de teste para verificação de autenticação  
+  app.get("/api/suppliers/whoami", async (req, res) => {
+    console.log("Acessando rota /whoami para diagnóstico de autenticação");
     
-    // Verificar se o fornecedor está autenticado
-    if (!req.session.supplier && !(req.session.user?.role === 'supplier')) {
-      console.log("Fornecedor não autenticado - nenhuma sessão encontrada");
-      return res.status(401).json({
-        success: false,
-        error: "Não autenticado",
-        message: "Faça login para continuar"
-      });
-    }
-    
-    // Se chegou aqui, o fornecedor está autenticado
-    const supplierId = getValidSupplierId(req);
-    
-    if (!supplierId) {
-      console.log("ID do fornecedor inválido na sessão");
-      return res.status(401).json({
-        success: false,
-        error: "Sessão inválida",
-        message: "ID do fornecedor não encontrado na sessão"
-      });
-    }
-    
-    // Buscar dados atualizados do fornecedor no banco de dados
-    import('./db').then(module => {
-      const pool = module.pool;
-      pool.query('SELECT * FROM suppliers WHERE id = $1', [supplierId])
-        .then(result => {
+    try {
+      // Aplicar o middleware de ponte de autenticação primeiro 
+      await bridgeSupplierAuth(req, res, async () => {
+        // Verificar se o fornecedor está autenticado após tentativa de ponte
+        if (!req.session.supplier && !(req.session.user?.role === 'supplier') && !req.session?.supplierId) {
+          console.log("Fornecedor não autenticado na rota /whoami");
+          return res.status(401).json({
+            success: false,
+            error: "Não autenticado",
+            message: "Faça login para continuar"
+          });
+        }
+        
+        // Se chegou aqui, o fornecedor está autenticado
+        try {
+          const supplierId = await getValidSupplierId(req);
+          
+          if (!supplierId) {
+            console.log("ID do fornecedor inválido na sessão");
+            return res.status(401).json({
+              success: false,
+              error: "Sessão inválida",
+              message: "ID do fornecedor não encontrado na sessão"
+            });
+          }
+          
+          // Buscar dados atualizados do fornecedor no banco de dados
+          const { pool } = await import('./db');
+          const result = await pool.query('SELECT * FROM suppliers WHERE id = $1', [supplierId]);
+          
           if (result.rows && result.rows.length > 0) {
             const supplier = result.rows[0];
             // Retorna os dados sem expor informações sensíveis
@@ -2895,16 +2942,23 @@ export function registerSupplierRoutes(app: express.Express) {
               message: "Não foi possível encontrar seus dados. Por favor, contate o suporte."
             });
           }
-        })
-        .catch(error => {
+        } catch (error) {
           console.error("Erro ao buscar dados do fornecedor:", error);
           res.status(500).json({
             success: false,
             error: "Erro interno",
             message: "Não foi possível recuperar os dados do fornecedor"
           });
-        });
-    });
+        }
+      });
+    } catch (error) {
+      console.error("Erro na rota /whoami:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro no processamento",
+        message: "Erro ao processar autenticação"
+      });
+    }
   });
   
   // 1. Rota para diagnóstico de autenticação
