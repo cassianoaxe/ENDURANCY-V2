@@ -658,31 +658,61 @@ function AppContent() {
   // Rotas para o portal do fornecedor (requerem autenticação)
   if (currentPath.startsWith('/supplier/') && currentPath !== '/supplier/login' && 
       currentPath !== '/supplier/register' && currentPath !== '/supplier/register-success') {
-    if (!isAuthenticated) {
-      // Redirecionar para a página de login do fornecedor
-      window.location.href = "/supplier/login";
-      return null;
-    }
     
-    // Verificar se o usuário tem o papel adequado
-    if (userRole !== 'supplier') {
-      // Redirecionar para a página de login se não for um fornecedor
-      window.location.href = "/supplier/login";
-      return null;
-    }
+    // Vamos verificar a autenticação de fornecedor diretamente através da API
+    // ao invés de depender do contexto de autenticação regular
+    const SupplierRoute = () => {
+      const [isChecking, setIsChecking] = useState(true);
+      
+      useEffect(() => {
+        // Função para verificar a autenticação do fornecedor
+        const checkSupplierAuth = async () => {
+          try {
+            const response = await fetch('/api/suppliers/me', {
+              credentials: 'include'
+            });
+            
+            if (response.ok) {
+              // O usuário está logado como fornecedor, podemos continuar
+              setIsChecking(false);
+            } else {
+              // Não está autenticado como fornecedor, redireciona
+              console.log('Usuário não autenticado como fornecedor. Redirecionando para /supplier/login');
+              window.location.href = '/supplier/login';
+            }
+          } catch (error) {
+            console.error('Erro ao verificar autenticação:', error);
+            window.location.href = '/supplier/login';
+          }
+        };
+        
+        checkSupplierAuth();
+      }, []);
+      
+      if (isChecking) {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+            <span className="ml-2 text-red-800 font-medium">Verificando autenticação...</span>
+          </div>
+        );
+      }
+      
+      // Rotas protegidas do fornecedor
+      return (
+        <SupplierLayout>
+          {/* Centraliza todas as rotas do fornecedor em um único lugar para evitar duplicação */}
+          {currentPath === '/supplier/dashboard' && <SupplierDashboard />}
+          {currentPath === '/supplier/orders' && <SupplierOrders />}
+          {currentPath === '/supplier/products' && <SupplierProducts />}
+          {currentPath === '/supplier/finance' && <SupplierFinance />}
+          {currentPath === '/supplier/analytics' && <SupplierAnalytics />}
+          {currentPath === '/supplier/settings' && <SupplierSettings />}
+        </SupplierLayout>
+      );
+    };
     
-    // Rotas protegidas do fornecedor
-    return (
-      <SupplierLayout>
-        {/* Centraliza todas as rotas do fornecedor em um único lugar para evitar duplicação */}
-        {currentPath === '/supplier/dashboard' && <SupplierDashboard />}
-        {currentPath === '/supplier/orders' && <SupplierOrders />}
-        {currentPath === '/supplier/products' && <SupplierProducts />}
-        {currentPath === '/supplier/finance' && <SupplierFinance />}
-        {currentPath === '/supplier/analytics' && <SupplierAnalytics />}
-        {currentPath === '/supplier/settings' && <SupplierSettings />}
-      </SupplierLayout>
-    );
+    return <SupplierRoute />;
   }
 
   // Landing page sempre na raiz independente da autenticação
@@ -855,20 +885,66 @@ function AppContent() {
         currentPath === '/supplier/register' || 
         currentPath === '/supplier/register-success') {
       
-      // Wrapper para fornecer o contexto de autenticação para as rotas de fornecedor
-      const SupplierAuthRoute = () => {
-        // Determinar qual componente renderizar com base no caminho
-        const renderComponent = () => {
-          if (currentPath === '/supplier/login') return <SupplierLogin />;
-          if (currentPath === '/supplier/register') return <SupplierRegister />;
-          if (currentPath === '/supplier/register-success') return <SupplierRegisterSuccess />;
+      // Para garantir que temos um tratamento especial para a página de login do fornecedor
+      // que não dependa do contexto geral de autenticação
+      if (currentPath === '/supplier/login') {
+        // Verificar se já existe uma sessão de fornecedor primeiro
+        const SupplierLoginWrapper = () => {
+          const [isChecking, setIsChecking] = useState(true);
+          const [isSupplierAuthenticated, setIsSupplierAuthenticated] = useState(false);
+          
+          useEffect(() => {
+            // Verificar se já existe uma sessão de fornecedor
+            const checkSupplierSession = async () => {
+              try {
+                const response = await fetch('/api/suppliers/me', {
+                  credentials: 'include'
+                });
+                
+                if (response.ok) {
+                  // Já está autenticado como fornecedor
+                  setIsSupplierAuthenticated(true);
+                  // Vamos redirecionar para o dashboard em vez de mostrar a página de login
+                  window.location.href = '/supplier/dashboard';
+                } else {
+                  // Não está autenticado como fornecedor, mostra tela de login
+                  setIsSupplierAuthenticated(false);
+                }
+              } catch (error) {
+                console.error('Erro ao verificar sessão de fornecedor:', error);
+                setIsSupplierAuthenticated(false);
+              } finally {
+                setIsChecking(false);
+              }
+            };
+            
+            checkSupplierSession();
+          }, []);
+          
+          if (isChecking) {
+            return (
+              <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+                <span className="ml-2 text-red-800 font-medium">Verificando sessão...</span>
+              </div>
+            );
+          }
+          
+          // Se não estiver autenticado, mostrar a página de login
+          if (!isSupplierAuthenticated) {
+            return <SupplierLogin />;
+          }
+          
+          // Este retorno só ocorre se ocorrer algum problema no redirecionamento acima
           return null;
         };
         
-        return renderComponent();
-      };
+        return <SupplierLoginWrapper />;
+      }
       
-      return <SupplierAuthRoute />;
+      // Para outras páginas públicas do fornecedor
+      if (currentPath === '/supplier/register') return <SupplierRegister />;
+      if (currentPath === '/supplier/register-success') return <SupplierRegisterSuccess />;
     }
     
     // Removed direct access to supplier dashboard for non-authenticated users
