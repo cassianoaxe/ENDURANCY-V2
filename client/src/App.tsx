@@ -851,16 +851,24 @@ function AppContent() {
     }
     
     // Rotas do Portal do Fornecedor (público)
-    if (currentPath === '/supplier/login') {
-      return <SupplierLogin />;
-    }
-    
-    if (currentPath === '/supplier/register') {
-      return <SupplierRegister />;
-    }
-    
-    if (currentPath === '/supplier/register-success') {
-      return <SupplierRegisterSuccess />;
+    if (currentPath === '/supplier/login' || 
+        currentPath === '/supplier/register' || 
+        currentPath === '/supplier/register-success') {
+      
+      // Wrapper para fornecer o contexto de autenticação para as rotas de fornecedor
+      const SupplierAuthRoute = () => {
+        // Determinar qual componente renderizar com base no caminho
+        const renderComponent = () => {
+          if (currentPath === '/supplier/login') return <SupplierLogin />;
+          if (currentPath === '/supplier/register') return <SupplierRegister />;
+          if (currentPath === '/supplier/register-success') return <SupplierRegisterSuccess />;
+          return null;
+        };
+        
+        return renderComponent();
+      };
+      
+      return <SupplierAuthRoute />;
     }
     
     // Removed direct access to supplier dashboard for non-authenticated users
