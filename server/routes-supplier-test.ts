@@ -5,6 +5,15 @@ import { sql } from 'drizzle-orm';
 // Criar um novo router para testes
 const router = express.Router();
 
+// Interface simplificada para fornecedores
+interface Supplier {
+  id: number;
+  name: string;
+  email: string;
+  status?: string;
+  created_at?: Date;
+}
+
 // Rota para teste básico sem banco de dados - apenas retorna dados estáticos
 router.get("/hello", (req, res) => {
   res.json({
@@ -125,6 +134,106 @@ router.get("/supplier/:id", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erro ao buscar fornecedor",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+});
+
+// Rota para listar todos os fornecedores
+router.get("/suppliers", async (req, res) => {
+  try {
+    // Consulta direta via SQL para evitar problemas com ORM
+    const queryResult = await db.execute(
+      sql`SELECT id, name, email, status, created_at FROM suppliers ORDER BY id LIMIT 100`
+    );
+    
+    console.log('Resultado da consulta SQL para LISTAR fornecedores:', 
+      JSON.stringify({
+        rowCount: queryResult.rowCount,
+        rowsLength: queryResult.rows?.length || 0,
+        hasRows: Array.isArray(queryResult.rows)
+      }, null, 2)
+    );
+    
+    // Extrair e converter dados
+    const suppliers: Supplier[] = queryResult.rows?.map(row => ({
+      id: row.id as number,
+      name: row.name as string,
+      email: row.email as string,
+      status: row.status as string,
+      created_at: row.created_at ? new Date(row.created_at as string) : undefined
+    })) || [];
+    
+    res.json({
+      success: true,
+      message: "Lista de fornecedores obtida com sucesso",
+      count: suppliers.length,
+      data: suppliers,
+      queryInfo: {
+        rowCount: queryResult?.rowCount || 0,
+        hasRows: Array.isArray(queryResult?.rows),
+        rowsLength: queryResult?.rows?.length || 0
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao listar fornecedores:', error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao listar fornecedores",
+      message: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+});
+
+// Rota para testar a autenticação de um fornecedor específico
+router.get("/test-auth", async (req, res) => {
+  try {
+    if (!req.session) {
+      return res.status(401).json({
+        success: false,
+        error: "Sessão não iniciada",
+        message: "Não existe sessão ativa"
+      });
+    }
+    
+    // Configurar manualmente uma sessão de teste com o fornecedor ID 2 que sabemos que existe
+    req.session.supplier = {
+      id: 2, // Usar ID 2 que existe no banco
+      name: "Fornecedor Teste 2",
+      email: "teste2@fornecedor.com",
+      role: "supplier"
+    };
+    
+    // Adicionar também o ID diretamente na sessão
+    req.session.supplierId = 2;
+    
+    // Forçar salvamento da sessão
+    await new Promise<void>((resolve, reject) => {
+      req.session.save(err => {
+        if (err) {
+          console.error("Erro ao salvar sessão:", err);
+          reject(err);
+        } else {
+          console.log("Sessão salva com sucesso para teste");
+          resolve();
+        }
+      });
+    });
+    
+    res.json({
+      success: true,
+      message: "Autenticação de fornecedor simulada com sucesso",
+      sessionData: {
+        supplier: req.session.supplier,
+        supplierId: req.session.supplierId,
+        sessionID: req.sessionID
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao testar autenticação:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro ao testar autenticação",
       message: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
