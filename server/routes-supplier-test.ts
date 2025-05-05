@@ -478,6 +478,61 @@ router.get("/test-auth", async (req, res) => {
 });
 
 export function registerSupplierTestRoutes(app: express.Express) {
+  // ========== IMPORTANTE ==========
+  // Agora vamos registrar as rotas de teste ANTES da configuração do Vite
+  // Essas rotas serão adicionadas novamente no início do servidor
+  // depois que todas as rotas API forem registradas, mas ANTES da inicialização do Vite
+
+  // Registrando o router de teste padrão
   app.use("/api/supplier-test", router);
+  
+  // Adicionando uma rota de teste diretamente no app (sem passar pelo router)
+  app.get("/api-no-vite/test", (req, res) => {
+    console.log("Acessando rota de teste direta especial com prefixo anti-vite: /api-no-vite/test");
+    res.json({
+      success: true,
+      message: "Teste direto bem-sucedido! Rota não interceptada pelo Vite",
+      timestamp: new Date().toISOString(),
+      source: "direct-route"
+    });
+  });
+
+  // Rotas de teste com acesso ao banco de dados mas sem sessão (para isolamento)
+  app.get("/api-no-vite/db-test", async (req, res) => {
+    try {
+      console.log("Testando conexão com banco de dados sem uso de sessão");
+      
+      // Executar uma consulta simples que não depende de ID na sessão
+      const result = await db.execute(sql`SELECT 1 as test`);
+      
+      res.json({
+        success: true,
+        message: "Conexão com banco de dados bem-sucedida",
+        timestamp: new Date().toISOString(),
+        dbResult: result,
+        source: "db-test-route"
+      });
+    } catch (error) {
+      console.error("Erro ao testar conexão com banco de dados:", error);
+      res.status(500).json({
+        success: false,
+        error: "Erro ao testar conexão com banco de dados",
+        message: error instanceof Error ? error.message : "Erro desconhecido",
+        source: "db-test-route"
+      });
+    }
+  });
+
+  // Rota para testar o redirecionamento do Vite vs API handlers
+  app.get("/api-no-vite/route-order-test", (req, res) => {
+    res.json({
+      success: true,
+      message: "Teste de ordem das rotas bem-sucedido. Esta rota NÃO está sendo interceptada pelo Vite",
+      timestamp: new Date().toISOString(),
+      routePrefix: "/api-no-vite",
+      middlewareOrder: "Esta rota é processada antes dos middlewares do Vite"
+    });
+  });
+
   console.log("Rotas de teste para fornecedores registradas com sucesso");
 }
