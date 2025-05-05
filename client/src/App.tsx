@@ -472,6 +472,26 @@ function AppContent() {
       
       // Função para verificar se um usuário está na página errada e precisa ser redirecionado
       const needsRedirect = () => {
+        // Verificar se estamos em uma página de supplier 
+        const isSupplierPage = path.startsWith('/supplier/');
+        
+        // Se já estamos no fornecedor dashboard, não redirecionar mesmo que seja usuário supplier
+        if (isSupplierPage && user.role === 'supplier') {
+          console.log("Usuário já está no dashboard do fornecedor, não é necessário redirecionar");
+          return false;
+        }
+        
+        // APENAS realizar redirecionamento em páginas específicas
+        // Isso evita redirecionamentos indesejados
+        const allowRedirectPaths = ['/login', '/'];
+        const isAllowedToRedirect = allowRedirectPaths.includes(path);
+        
+        if (!isAllowedToRedirect) {
+          console.log("Não estamos em uma página que permite redirecionamento automático");
+          return false;
+        }
+        
+        // Redirecionamentos padrão (apenas nas páginas permitidas)
         if (path === '/login' || path === '/') return true;
         
         // Se um usuário org_admin estiver no dashboard geral, redirecionar
@@ -479,14 +499,6 @@ function AppContent() {
         
         // Se um usuário admin estiver no dashboard da organização, redirecionar
         if (user.role === 'admin' && path === '/organization/dashboard') return true;
-        
-        // Verifica se o usuário com papel específico está na rota correta
-        if (user.role === 'pharmacist' && !path.startsWith('/pharmacist/')) return true;
-        if (user.role === 'doctor' && !path.startsWith('/doctor/')) return true;
-        if (user.role === 'laboratory' && !path.startsWith('/laboratory/')) return true;
-        if (user.role === 'researcher' && !path.startsWith('/researcher/')) return true;
-        if (user.role === 'patient' && !path.startsWith('/patient/')) return true;
-        if (user.role === 'supplier' && !path.startsWith('/supplier/')) return true;
         
         return false;
       };
