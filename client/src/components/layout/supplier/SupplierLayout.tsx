@@ -249,53 +249,96 @@ export default function SupplierLayout({ children, activeTab = "overview" }: Sup
               </Button>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-9 w-9 rounded-full text-white ring-1 ring-white/20 hover:bg-red-700/20 hover:text-white">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
-                    <AvatarFallback className="bg-red-100 text-red-800 font-semibold text-sm">
-                      {userInfo.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleUnimplementedClick("Perfil")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleUnimplementedClick("Mensagens")}>
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  <span>Mensagens</span>
-                  {userInfo.unreadMessages > 0 && (
-                    <Badge className="ml-auto bg-amber-500">{userInfo.unreadMessages}</Badge>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleUnimplementedClick("Notificações")}>
-                  <Bell className="mr-2 h-4 w-4" />
-                  <span>Notificações</span>
-                  {userInfo.unreadNotifications > 0 && (
-                    <Badge className="ml-auto bg-amber-500">{userInfo.unreadNotifications}</Badge>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleUnimplementedClick("Configurações")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleUnimplementedClick("Ajuda")}>
-                  <HelpCircle className="mr-2 h-4 w-4" />
-                  <span>Ajuda & Suporte</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Menu do usuário implementado com abordagem mais simples para evitar problemas */}
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                className="h-9 w-9 rounded-full text-white ring-1 ring-white/20 hover:bg-red-700/20 hover:text-white"
+                onClick={() => {
+                  // Toggle do menu
+                  const userMenuEl = document.getElementById('supplierUserMenu');
+                  if (userMenuEl) {
+                    userMenuEl.classList.toggle('hidden');
+                  }
+                }}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
+                  <AvatarFallback className="bg-red-100 text-red-800 font-semibold text-sm">
+                    {userInfo.initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+              
+              {/* Menu de usuário personalizado */}
+              <div 
+                id="supplierUserMenu" 
+                className="absolute hidden right-0 mt-2 w-56 rounded-md shadow-lg bg-white border border-gray-200 z-50"
+              >
+                <div className="py-1 rounded-md bg-white">
+                  <div className="px-4 py-2 border-b">
+                    <p className="text-sm font-medium">Minha Conta</p>
+                    <p className="text-xs text-muted-foreground truncate">{userData?.name || "Fornecedor"}</p>
+                  </div>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleUnimplementedClick("Perfil")}
+                  >
+                    <User className="mr-2 h-4 w-4 text-gray-500" />
+                    <span>Perfil</span>
+                  </a>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleUnimplementedClick("Mensagens")}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4 text-gray-500" />
+                    <span>Mensagens</span>
+                    {userInfo.unreadMessages > 0 && (
+                      <Badge className="ml-auto bg-amber-500">{userInfo.unreadMessages}</Badge>
+                    )}
+                  </a>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleUnimplementedClick("Notificações")}
+                  >
+                    <Bell className="mr-2 h-4 w-4 text-gray-500" />
+                    <span>Notificações</span>
+                    {userInfo.unreadNotifications > 0 && (
+                      <Badge className="ml-auto bg-amber-500">{userInfo.unreadNotifications}</Badge>
+                    )}
+                  </a>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleUnimplementedClick("Configurações")}
+                  >
+                    <Settings className="mr-2 h-4 w-4 text-gray-500" />
+                    <span>Configurações</span>
+                  </a>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleUnimplementedClick("Ajuda")}
+                  >
+                    <HelpCircle className="mr-2 h-4 w-4 text-gray-500" />
+                    <span>Ajuda & Suporte</span>
+                  </a>
+                  
+                  <div className="border-t mt-1"></div>
+                  
+                  <a 
+                    className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
