@@ -1,7 +1,13 @@
-// Este componente foi removido pois o recurso de tour guiado ficou tecnologicamente defasado.
-// Componente vazio mantido para preservar as importações existentes.
+
+import React from 'react';
 
 interface TourGuideProps {
   tourId?: string;
   steps?: any[];
 }
+
+const TourGuide: React.FC<TourGuideProps> = ({ tourId, steps }) => {
+  return null; // Component temporariamente vazio
+};
+
+export default TourGuide;
