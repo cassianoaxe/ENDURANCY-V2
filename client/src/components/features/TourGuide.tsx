@@ -4,3 +4,4 @@
 interface TourGuideProps {
   tourId?: string;
   steps?: any[];
+}
