@@ -61,3 +61,4 @@ Interface para pacientes visualizarem suas prescrições, comprarem produtos apr
 ## Equipe de Desenvolvimento
 
 Para contribuir com este projeto, certifique-se de seguir as diretrizes de codificação e manter a documentação atualizada.
+
