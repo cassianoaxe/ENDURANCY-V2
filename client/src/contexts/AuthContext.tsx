@@ -23,7 +23,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user is already authenticated on mount
   useEffect(() => {
     let isMounted = true;
     
@@ -31,96 +30,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Verificando status de autenticação...");
         
-        // Tentar apenas 1 vez para evitar rate limiting
-        let attempts = 0;
-        const maxAttempts = 1;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 segundos de timeout
         
-        while (attempts < maxAttempts) {
-          attempts++;
-          console.log(`Tentativa ${attempts}/${maxAttempts} de verificar autenticação`);
-          
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
-            
-            const response = await fetch('/api/auth/me', {
-              credentials: 'include', // Incluir cookies na requisição
-              headers: {
-                'Accept': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              cache: 'no-cache', // Prevent browser caching
-              signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            // Verificar se a resposta contém HTML (possível redirecionamento)
-            const contentType = response.headers.get('content-type');
-            const isHtmlResponse = contentType && contentType.includes('text/html');
-            
-            if (isHtmlResponse) {
-              console.warn("Recebida resposta HTML ao invés de JSON. Possível redirecionamento ou erro de sessão");
-              
-              if (response.status === 429) {
-                // Rate limiting, aguardar e tentar novamente
-                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-                if (attempts < maxAttempts) {
-                  // Esperar tempo progressivo entre tentativas: 2s, 4s, 8s...
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                  continue;
-                }
-              }
-            }
-            
-            if (response.ok) {
-              const userData = await response.json();
-              console.log("Usuário autenticado:", userData);
-              if (isMounted) setUser(userData);
-              break; // Sair do loop em caso de sucesso
-            } else {
-              console.log("Usuário não autenticado. Status:", response.status);
-              
-              if (response.status === 429) {
-                // Rate limiting, aguardar e tentar novamente
-                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-                if (attempts < maxAttempts) {
-                  // Esperar tempo progressivo entre tentativas
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                  continue;
-                }
-              }
-              
-              let errorText = '';
-              try {
-                errorText = await response.text();
-              } catch (e) {
-                errorText = 'Não foi possível obter detalhes do erro';
-              }
-              console.log("Erro de autenticação:", errorText);
-              break; // Sair do loop se o erro não for 429
-            }
-          } catch (innerError: any) {
-            if (innerError.name === 'AbortError') {
-              console.error('Requisição abortada por timeout');
-              if (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                continue;
-              }
-            } else if (attempts < maxAttempts) {
-              console.warn(`Erro na tentativa ${attempts}, tentando novamente...`, innerError);
-              await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-              continue;
-            }
-            
-            console.error(`Todas as ${maxAttempts} tentativas falharam`, innerError);
-            throw innerError;
-          }
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-cache',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Usuário autenticado:", userData);
+          if (isMounted) setUser(userData);
+        } else {
+          console.log("Usuário não autenticado. Status:", response.status);
         }
       } catch (error) {
-        console.error('Failed to check authentication status', error);
+        console.error('Erro ao verificar autenticação:', error);
       } finally {
         if (isMounted) setIsLoading(false);
       }
