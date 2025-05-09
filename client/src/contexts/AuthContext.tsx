@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: number;
   username: string;
-  role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
+  role: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier';
   name: string;
   email: string;
   organizationId: number | null;
@@ -13,11 +13,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => Promise<void>;
+  login: (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier', orgCode?: string) => Promise<void>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -133,8 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
     };
   }, []);
-
-  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher', orgCode?: string) => {
+  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier', orgCode?: string) => {
     setIsLoading(true);
     try {
       // Construir o corpo da requisição com base nos parâmetros disponíveis
@@ -142,6 +141,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Verificar se a entrada parece um email
       const isEmail = username.includes('@');
+      // Verificar se estamos tentando login em uma empresa importadora
+      const isImportCompany = localStorage.getItem('userType') === 'import_company' || 
+        document.documentElement.classList.contains('importadora-theme') ||
+        username.toLowerCase().includes('importadora');
+
+      if (isImportCompany) {
+        console.log("Detectado tentativa de login como importadora");
+        // Definir flag diretamente para redirecionamento imediato
+        localStorage.setItem('userType', 'import_company');
+        // Definindo direct_import_company evita a passagem pelo dashboard geral
+        localStorage.setItem('direct_import_company', 'true');
+      }
       
       // Se parece um email, enviar como 'email', caso contrário como 'username'
       if (isEmail) {
@@ -264,7 +275,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Processa a resposta bem-sucedida
           const userData = await response.json();
           console.log("Login bem-sucedido. Dados do usuário:", userData);
+          
+          // Definir o estado do usuário
           setUser(userData);
+          
+          // Adicionar um cookie local para ajudar a manter o estado após o redirecionamento
+          document.cookie = `auth_redirect=true; path=/; max-age=60; SameSite=Lax`;
+          
+          // Vamos dar um tempo curto para o estado ser atualizado e o cookie ser definido
+          await new Promise(resolve => setTimeout(resolve, 100));
           
           // Redirecionar com base no papel do usuário
           // Usando window.location.href para redirecionamento mais confiável
@@ -300,34 +319,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      console.log("Iniciando logout");
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        },
-        credentials: 'include', // Importante para acessar e limpar cookies
-        cache: 'no-cache'
-      });
-      console.log("Logout completo no servidor");
-      setUser(null);
-      
-      // Sempre redirecionar para a página de login após logout
-      window.history.pushState({}, '', '/login');
-      // Dispatch a custom event to notify about path change
-      window.dispatchEvent(new Event('popstate'));
-      // Recarregar a página para garantir um estado limpo
-      window.location.reload();
-    } catch (error) {
+  const logout = () => {
+    console.log("Iniciando logout");
+    
+    // Primeiro, definir o usuário como null para atualizar a UI imediatamente
+    setUser(null);
+    
+    // Redirecionar para a página de login de forma simples e direta
+    window.location.href = '/login';
+    
+    // Fazer a chamada para logout no servidor após o redirecionamento já ter iniciado
+    // pois não precisamos esperar a resposta para fazer o redirecionamento
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      credentials: 'include', // Importante para acessar e limpar cookies
+      cache: 'no-cache'
+    }).catch(error => {
       console.error('Logout error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Método para verificar se o usuário está autenticado (útil para testes e debugging)

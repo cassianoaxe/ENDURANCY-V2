@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import TourGuide from '@/components/features/TourGuide';
+// Tour Guide removido pois ficou tecnologicamente defasado
 import { Calendar, Clock, FileText, Settings, User2, SquareUser, Stethoscope, HeartPulse, Pill } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -729,69 +729,7 @@ export default function PatientDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-      
-      {/* Tour Guide */}
-      <TourGuide
-        tourId="patient-dashboard-tour"
-        steps={[
-          {
-            selector: '.patient-stats',
-            title: 'Informações Importantes',
-            content: 'Aqui você encontra as informações mais importantes sobre suas próximas consultas, exames e medicamentos.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.upcoming-appointments',
-            title: 'Consultas Agendadas',
-            content: 'Visualize suas próximas consultas, com detalhes sobre médico, especialidade e local.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.new-appointment-button',
-            title: 'Agendar Consulta',
-            content: 'Clique aqui para agendar uma nova consulta com qualquer médico ou especialidade.',
-            buttonText: 'Próximo',
-            placementBeacon: 'bottom',
-          },
-          {
-            selector: '.pending-exams',
-            title: 'Exames Pendentes',
-            content: 'Veja os exames que foram solicitados pelos seus médicos e que precisam ser agendados.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.medications',
-            title: 'Seus Medicamentos',
-            content: 'Acompanhe seus medicamentos ativos, doses e horários de administração.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.appointment-history',
-            title: 'Histórico de Consultas',
-            content: 'Acesse o histórico completo de todas as suas consultas médicas anteriores.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.medical-record',
-            title: 'Seu Prontuário',
-            content: 'Visualize seu prontuário médico completo, com informações sobre condições, alergias e medicamentos.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.patient-settings',
-            title: 'Suas Informações',
-            content: 'Mantenha seus dados pessoais e de contato sempre atualizados.',
-            buttonText: 'Finalizar Tour',
-            placementBeacon: 'left',
-          },
-        ]}
-      />
+      {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );
 }

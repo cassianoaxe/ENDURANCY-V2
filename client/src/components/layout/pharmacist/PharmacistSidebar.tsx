@@ -105,7 +105,10 @@ export default function PharmacistSidebar() {
               <PillIcon className="h-6 w-6 text-green-600 mr-2" />
               <span className="font-semibold text-lg">Farmácia {organizationName ? organizationName : ''}</span>
             </div>
-            <span className="text-xs text-gray-500 ml-8">Endurancy</span>
+            <div className="flex items-center ml-8">
+              <span className="text-xs text-gray-500">Endurancy</span>
+              <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
           </div>
         )}
         {collapsed && (
@@ -169,7 +172,11 @@ export default function PharmacistSidebar() {
       <div className="p-4">
         {!collapsed && (
           <div className="text-xs text-center text-gray-500">
-            <p>Endurancy &copy; {new Date().getFullYear()}</p>
+            <div className="flex items-center justify-center">
+              <p>Endurancy</p>
+              <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+              <p className="ml-1">&copy; {new Date().getFullYear()}</p>
+            </div>
             <p>Versão 1.0</p>
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
+// Removendo import do OrganizationLayout para evitar a renderização duplicada
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,7 +141,6 @@ export default function NotificacoesPage() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <OrganizationLayout>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -375,6 +374,5 @@ export default function NotificacoesPage() {
           </div>
         </div>
       </div>
-    </OrganizationLayout>
   );
 }

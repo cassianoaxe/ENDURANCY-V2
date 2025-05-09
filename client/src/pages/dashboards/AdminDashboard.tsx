@@ -17,7 +17,7 @@ import {
   Cell
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
-import TourGuide from '@/components/features/TourGuide';
+// Tour Guide removido pois ficou tecnologicamente defasado
 import { User, CircleUser, Building2, Activity, Bell, BarChart4, Calendar, FileText, AlertTriangle, Package, Settings, Layers } from 'lucide-react';
 
 import { useQuery } from '@tanstack/react-query';
@@ -1005,47 +1005,7 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
       
-      {/* Tour Guide que é acionado automaticamente na primeira visita */}
-      <TourGuide
-        tourId="admin-dashboard-tour"
-        steps={[
-          {
-            selector: '.dashboard-stats',
-            title: 'Estatísticas Principais',
-            content: 'Aqui você pode ver um resumo dos principais números da plataforma, incluindo organizações, usuários e consultas.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.organizations-table',
-            title: 'Gerenciamento de Organizações',
-            content: 'Visualize e gerencie todas as organizações registradas na plataforma com seus respectivos status.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.add-organization-button',
-            title: 'Adicionar Organizações',
-            content: 'Clique aqui para adicionar manualmente uma nova organização ao sistema.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.sidebar-nav',
-            title: 'Menu de Navegação',
-            content: 'Use este menu para navegar entre as diferentes seções do sistema administrativo.',
-            buttonText: 'Próximo',
-            placementBeacon: 'right',
-          },
-          {
-            selector: '.user-profile',
-            title: 'Seu Perfil',
-            content: 'Acesse seu perfil, configurações e opção de logout através deste menu.',
-            buttonText: 'Finalizar Tour',
-            placementBeacon: 'bottom',
-          },
-        ]}
-      />
+      {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );
 }

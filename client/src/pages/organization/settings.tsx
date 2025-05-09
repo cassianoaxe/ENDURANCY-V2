@@ -277,13 +277,24 @@ export default function OrganizationSettings() {
 
           <TabsContent value="information">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Informações da Organização</CardTitle>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    // Modificar o redirecionamento para usar Link ou navegação programática em vez de window.location
+                    const organizationId = user?.organizationId || 1;
+                    window.location.href=`/organization/${organizationId}/profile`;
+                  }}
+                  size="sm"
+                >
+                  Editar Informações
+                </Button>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-sm text-gray-500">
                   Aqui você pode visualizar as informações básicas de sua organização.
-                  Para alterá-las, entre em contato com o suporte.
+                  Clique em "Editar Informações" para alterá-las na página de perfil.
                 </p>
                 
                 {isLoadingOrg ? (
@@ -413,8 +424,14 @@ export default function OrganizationSettings() {
           
           <TabsContent value="preferences">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Preferências</CardTitle>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                >
+                  Salvar Alterações
+                </Button>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6">
@@ -552,9 +569,6 @@ export default function OrganizationSettings() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-
-          
           <TabsContent value="users">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

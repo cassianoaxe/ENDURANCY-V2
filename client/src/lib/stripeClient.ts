@@ -13,6 +13,18 @@ export const fetchPlans = async (): Promise<Plan[]> => {
   }
 };
 
+export const fetchPublicPlans = async (): Promise<Plan[]> => {
+  try {
+    const response = await apiRequest('/api/public/plans', {
+      method: 'GET',
+    });
+    return response;
+  } catch (error) {
+    console.error('Erro ao buscar planos públicos:', error);
+    throw error;
+  }
+};
+
 export const createPaymentIntent = async (planId: number, organizationId: number): Promise<{ clientSecret: string }> => {
   try {
     const response = await apiRequest('/api/payments/create-intent', {

@@ -1,537 +1,221 @@
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
-import { 
-  BeakerIcon, 
-  HomeIcon, 
-  FlaskConicalIcon, 
-  ListFilterIcon, 
-  FileTextIcon, 
-  SettingsIcon,
-  UsersIcon,
-  LogOutIcon,
-  BellIcon,
-  ChevronRight
-} from "lucide-react";
-
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react';
+import { Bell, ChevronLeft, ChevronRight, Menu, Search, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
-import { Link } from "wouter";
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import LaboratorySidebar from './LaboratorySidebar';
+import { useToast } from '@/hooks/use-toast';
+import LaboratoryThemeProvider from '@/pages/laboratory-theme';
 
-const menuItems = [
-  {
-    icon: <HomeIcon className="mr-2 h-4 w-4" />,
-    label: "Dashboard",
-    path: "/laboratory/dashboard",
-  },
-  {
-    icon: <BeakerIcon className="mr-2 h-4 w-4" />,
-    label: "Amostras",
-    path: "/laboratory/samples",
-  },
-  {
-    icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
-    label: "Testes",
-    path: "/laboratory/tests",
-  },
-  {
-    icon: <SettingsIcon className="mr-2 h-4 w-4" />,
-    label: "Equipamentos",
-    path: "/laboratory/equipment",
-  },
-  {
-    icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
-    label: "HPLC",
-    path: "/laboratory/hplc",
-    submenu: [
-      {
-        icon: <HomeIcon className="mr-2 h-4 w-4" />,
-        label: "Dashboard",
-        path: "/laboratory/hplc/dashboard",
-      },
-      {
-        icon: <BeakerIcon className="mr-2 h-4 w-4" />,
-        label: "Equipamentos",
-        path: "/laboratory/hplc/equipments",
-      },
-      {
-        icon: <SettingsIcon className="mr-2 h-4 w-4" />,
-        label: "Manutenções",
-        path: "/laboratory/hplc/maintenances",
-      },
-      {
-        icon: <FlaskConicalIcon className="mr-2 h-4 w-4" />,
-        label: "Consumíveis",
-        path: "/laboratory/hplc/consumables", 
-      },
-      {
-        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-        label: "Corridas",
-        path: "/laboratory/hplc/runs",
-      },
-      {
-        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-        label: "Procedimentos",
-        path: "/laboratory/hplc/procedures",
-      },
-      {
-        icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-        label: "Validações",
-        path: "/laboratory/hplc/validations",
-      },
-      {
-        icon: <UsersIcon className="mr-2 h-4 w-4" />,
-        label: "Treinamentos",
-        path: "/laboratory/hplc/trainings",
-      },
-    ]
-  },
-  {
-    icon: <FileTextIcon className="mr-2 h-4 w-4" />,
-    label: "Relatórios",
-    path: "/laboratory/reports",
-  },
-  {
-    icon: <UsersIcon className="mr-2 h-4 w-4" />,
-    label: "Equipe",
-    path: "/laboratory/team",
-  },
-  {
-    icon: <SettingsIcon className="mr-2 h-4 w-4" />,
-    label: "Configurações",
-    path: "/laboratory/settings",
-  },
-];
+// Importar estilos específicos para o laboratório
+import '@/styles/laboratory.css';
 
-export default function LaboratoryLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+interface LaboratoryLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function LaboratoryLayout({ children }: LaboratoryLayoutProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
-  const [activeMenuItem, setActiveMenuItem] = React.useState("/laboratory/dashboard");
-  const [expandedMenu, setExpandedMenu] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    // Definir o item de menu ativo com base na URL atual
-    const path = window.location.pathname;
-    console.log('LaboratoryLayout: URL atual:', path);
-    setActiveMenuItem(path);
-    
-    // Adicionar listener para eventos de navegação
-    const handleNavigation = () => {
-      const newPath = window.location.pathname;
-      console.log('LaboratoryLayout: Atualização da navegação para:', newPath);
-      setActiveMenuItem(newPath);
-    };
-    
-    // Escutar eventos regulares de navegação
-    window.addEventListener('popstate', handleNavigation);
-    
-    // Escutar eventos personalizados de navegação
-    window.addEventListener('navigation', (e: any) => {
-      console.log('LaboratoryLayout: Evento de navegação customizado:', e.detail?.path);
-      if (e.detail?.path) {
-        setActiveMenuItem(e.detail.path);
-      }
-    });
-    
-    return () => {
-      window.removeEventListener('popstate', handleNavigation);
-      window.removeEventListener('navigation', handleNavigation as EventListener);
-    };
-  }, []);
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
 
-  const handleMenuItemClick = (path: string, hasSubmenu = false) => {
-    if (hasSubmenu) {
-      // Se o item tem submenu, expande/colapsa em vez de navegar
-      setExpandedMenu(expandedMenu === path ? null : path);
-      return;
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast({
+        title: 'Pesquisa iniciada',
+        description: `Buscando por "${searchQuery}"...`,
+      });
+      // Aqui você implementaria a pesquisa real
+      setSearchQuery('');
     }
-    
-    setActiveMenuItem(path);
-    setIsMobileMenuOpen(false);
   };
 
   const handleLogout = async () => {
     try {
-      await logout();
-      queryClient.clear();
-      toast({
-        title: "Logout realizado com sucesso",
-        description: "Você foi desconectado do portal do laboratório.",
-      });
-      // Redirecionar para a página de login
-      window.history.pushState({}, "", "/login");
-      window.dispatchEvent(new Event("popstate"));
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/laboratory-login';
     } catch (error) {
-      toast({
-        title: "Erro ao realizar logout",
-        description: "Ocorreu um erro ao desconectar. Por favor, tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Erro ao fazer logout:', error);
     }
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Navbar superior para dispositivos móveis */}
-      <header className="bg-white shadow-sm py-3 px-4 sticky top-0 z-10 lg:hidden">
-        <div className="flex justify-between items-center">
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <ListFilterIcon className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[80%] sm:w-[350px]">
-              <SheetHeader>
-                <SheetTitle>Portal do Laboratório</SheetTitle>
-                <SheetDescription>
-                  Gerencie amostras, resultados e relatórios
-                </SheetDescription>
-              </SheetHeader>
-              <div className="py-4">
-                <div className="flex items-center gap-4 py-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
-                    <AvatarFallback>
-                      {user?.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-medium">{user?.name}</h3>
-                    <p className="text-sm text-muted-foreground">{user?.email}</p>
-                  </div>
-                </div>
-                <Separator className="my-2" />
-                <nav className="flex flex-col gap-1 mt-4">
-                  {menuItems.map((item) => (
-                    <div key={item.path}>
-                      <a
-                        href={item.path}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          
-                          // Verificar se o item tem submenu
-                          if (item.submenu) {
-                            console.log(`Menu móvel com submenu: ${item.label}, expandindo/contraindo`);
-                            handleMenuItemClick(item.path, true);
-                            return;
-                          }
-                          
-                          console.log(`Menu móvel: Clicando no item ${item.label}, navegando para: ${item.path}`);
-                          handleMenuItemClick(item.path);
-                          
-                          // Navegação manual
-                          window.history.pushState({}, '', item.path);
-                          
-                          // Disparar eventos para garantir atualização de componentes
-                          window.dispatchEvent(new Event('popstate'));
-                          window.dispatchEvent(new CustomEvent('navigation', { 
-                            detail: { path: item.path } 
-                          }));
-                          
-                          // Forçar atualização do DOM
-                          document.body.classList.add('navigating');
-                          setTimeout(() => {
-                            document.body.classList.remove('navigating');
-                          }, 10);
-                        }}
-                      >
-                        <Button
-                          variant={activeMenuItem === item.path || (item.submenu && activeMenuItem.startsWith(item.path)) ? "default" : "ghost"}
-                          className="w-full justify-start"
-                        >
-                          {item.icon}
-                          {item.label}
-                          {item.submenu && (
-                            <ChevronRight className={`ml-auto h-4 w-4 shrink-0 transition-transform ${expandedMenu === item.path ? 'rotate-90' : ''}`} />
-                          )}
-                        </Button>
-                      </a>
-                      
-                      {/* Renderizar submenu mobile se existir e estiver expandido */}
-                      {item.submenu && expandedMenu === item.path && (
-                        <div className="pl-6 mt-1 space-y-1">
-                          {item.submenu.map((subItem) => (
-                            <a
-                              key={subItem.path}
-                              href={subItem.path}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log(`Clicando no subitem de menu mobile: ${subItem.label}, navegando para: ${subItem.path}`);
-                                setActiveMenuItem(subItem.path);
-                                setIsMobileMenuOpen(false);
-                                
-                                // Navegação manual
-                                window.history.pushState({}, '', subItem.path);
-                                
-                                // Disparar eventos para garantir atualização de componentes
-                                window.dispatchEvent(new Event('popstate'));
-                                window.dispatchEvent(new CustomEvent('navigation', { 
-                                  detail: { path: subItem.path } 
-                                }));
-                                
-                                // Forçar atualização do DOM
-                                document.body.classList.add('navigating');
-                                setTimeout(() => {
-                                  document.body.classList.remove('navigating');
-                                }, 10);
-                              }}
-                            >
-                              <Button
-                                variant={activeMenuItem === subItem.path ? "default" : "ghost"}
-                                size="sm"
-                                className="w-full justify-start"
-                              >
-                                {subItem.icon}
-                                {subItem.label}
-                              </Button>
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  <Separator className="my-2" />
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={handleLogout}
-                  >
-                    <LogOutIcon className="mr-2 h-4 w-4" />
-                    Sair
-                  </Button>
-                </nav>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <div className="flex items-center">
-            <BeakerIcon className="h-6 w-6 text-green-600 mr-2" />
-            <span className="font-semibold text-lg">LabSystem</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="relative">
-              <BellIcon className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                3
-              </Badge>
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 cursor-pointer">
-                  <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
-                  <AvatarFallback>
-                    {user?.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    console.log('Clicando em Configurações no dropdown, navegando para: /laboratory/settings');
-                    setActiveMenuItem('/laboratory/settings');
-                    
-                    // Navegação manual
-                    window.history.pushState({}, '', '/laboratory/settings');
-                    
-                    // Disparar eventos para garantir atualização de componentes
-                    window.dispatchEvent(new Event('popstate'));
-                    window.dispatchEvent(new CustomEvent('navigation', { 
-                      detail: { path: '/laboratory/settings' } 
-                    }));
-                    
-                    // Forçar atualização do DOM
-                    document.body.classList.add('navigating');
-                    setTimeout(() => {
-                      document.body.classList.remove('navigating');
-                    }, 10);
-                  }}
-                >
-                  <SettingsIcon className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500">
-                  <LogOutIcon className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+    <LaboratoryThemeProvider>
+      <div className="flex h-screen overflow-hidden bg-gray-50 laboratory-app">
+        {/* Sidebar */}
+        <div className={cn(
+          "h-full transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "w-[60px]" : "w-[240px]"
+        )}>
+          <LaboratorySidebar isCollapsed={sidebarCollapsed} />
         </div>
-      </header>
 
-      {/* Layout para desktop */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar para desktop */}
-        <aside className="hidden lg:flex lg:w-64 flex-col bg-white border-r border-gray-200">
-          <div className="p-4 border-b border-gray-200 flex items-center">
-            <BeakerIcon className="h-6 w-6 text-green-600 mr-2" />
-            <span className="font-semibold text-lg">Portal do Laboratório</span>
-          </div>
-          
-          <div className="flex flex-col p-4 border-b border-gray-200">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={user?.profilePhoto || ""} alt={user?.name} />
-                <AvatarFallback>
-                  {user?.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h3 className="font-medium">{user?.name}</h3>
-                <p className="text-sm text-muted-foreground truncate max-w-[150px]">
-                  {user?.email}
-                </p>
+        {/* Main content */}
+        <div className="flex flex-col flex-1 h-full overflow-hidden">
+          {/* Header */}
+          <header className="border-b bg-white px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="text-gray-500 hover:text-blue-600"
+              >
+                {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+              </Button>
+
+              <div className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu size={20} />
+                </Button>
               </div>
+
+              <form onSubmit={handleSearchSubmit} className="hidden md:flex relative">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Pesquisar..."
+                    className="h-9 rounded-md border border-input bg-transparent pl-8 pr-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </form>
             </div>
-          </div>
-          
-          {/* Menu de navegação */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {menuItems.map((item) => (
-              <div key={item.path}>
-                <a 
-                  href={item.path}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    
-                    // Verificar se o item tem submenu
-                    if (item.submenu) {
-                      console.log(`Menu com submenu: ${item.label}, expandindo/contraindo`);
-                      handleMenuItemClick(item.path, true);
-                      return;
-                    }
-                    
-                    console.log(`Clicando no item de menu: ${item.label}, navegando para: ${item.path}`);
-                    setActiveMenuItem(item.path);
-                    
-                    // Navegação manual
-                    window.history.pushState({}, '', item.path);
-                    
-                    // Disparar eventos para garantir atualização de componentes
-                    window.dispatchEvent(new Event('popstate'));
-                    window.dispatchEvent(new CustomEvent('navigation', { 
-                      detail: { path: item.path } 
-                    }));
-                    
-                    // Forçar atualização do DOM
-                    document.body.classList.add('navigating');
-                    setTimeout(() => {
-                      document.body.classList.remove('navigating');
-                    }, 10);
-                  }}
-                >
-                  <Button
-                    variant={activeMenuItem === item.path || (item.submenu && activeMenuItem.startsWith(item.path)) ? "default" : "ghost"}
-                    className="w-full justify-start"
-                  >
-                    {item.icon}
-                    {item.label}
-                    {item.submenu && (
-                      <ChevronRight className={`ml-auto h-4 w-4 shrink-0 transition-transform ${expandedMenu === item.path ? 'rotate-90' : ''}`} />
-                    )}
-                  </Button>
-                </a>
-                
-                {/* Renderizar submenu se existir e estiver expandido */}
-                {item.submenu && expandedMenu === item.path && (
-                  <div className="pl-6 mt-1 space-y-1">
-                    {item.submenu.map((subItem) => (
-                      <a
-                        key={subItem.path}
-                        href={subItem.path}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log(`Clicando no subitem de menu: ${subItem.label}, navegando para: ${subItem.path}`);
-                          setActiveMenuItem(subItem.path);
-                          
-                          // Navegação manual
-                          window.history.pushState({}, '', subItem.path);
-                          
-                          // Disparar eventos para garantir atualização de componentes
-                          window.dispatchEvent(new Event('popstate'));
-                          window.dispatchEvent(new CustomEvent('navigation', { 
-                            detail: { path: subItem.path } 
-                          }));
-                          
-                          // Forçar atualização do DOM
-                          document.body.classList.add('navigating');
-                          setTimeout(() => {
-                            document.body.classList.remove('navigating');
-                          }, 10);
-                        }}
-                      >
-                        <Button
-                          variant={activeMenuItem === subItem.path ? "default" : "ghost"}
-                          size="sm"
-                          className="w-full justify-start"
-                        >
-                          {subItem.icon}
-                          {subItem.label}
-                        </Button>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-          
-          {/* Botão de logout no final da sidebar */}
-          <div className="p-4 border-t border-gray-200">
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOutIcon className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
-          </div>
-        </aside>
 
-        {/* Conteúdo principal */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
-          {children}
-        </main>
+            <div className="flex items-center space-x-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell size={20} />
+                    <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <div className="max-h-[300px] overflow-auto p-2">
+                    <div className="flex items-start gap-4 rounded-lg p-2 hover:bg-gray-100">
+                      <div className="rounded-full bg-blue-100 p-2">
+                        <User size={16} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Nova solicitação de análise</p>
+                        <p className="text-xs text-gray-700">MedCanna enviou 3 amostras para análise</p>
+                        <p className="text-xs text-gray-700">10 minutos atrás</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-4 rounded-lg p-2 hover:bg-gray-100">
+                      <div className="rounded-full bg-yellow-100 p-2">
+                        <Bell size={16} className="text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Calibração requerida</p>
+                        <p className="text-xs text-gray-700">HPLC-01 precisa de calibração em 3 dias</p>
+                        <p className="text-xs text-gray-700">1 hora atrás</p>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Ver todas as notificações
+                    </Button>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src="/avatar-lab.png" alt="Avatar" />
+                      <AvatarFallback className="bg-blue-100 text-blue-800">LA</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => window.location.href = '/laboratory/configuracoes'}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configurações</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+
+          {/* Main content area */}
+          <main className="flex-1 overflow-auto bg-gray-50 text-gray-900">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </LaboratoryThemeProvider>
+  );
+}
+
+// Componentes adicionais para o layout
+function Settings(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function LogOut(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
   );
 }

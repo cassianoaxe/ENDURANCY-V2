@@ -28,6 +28,63 @@
   position: relative;
   z-index: 10;
 }
+/* Estilos para o ambiente de empresas importadoras */
+.import-company-theme {
+  --primary: 210 100% 50%;  /* Azul */
+  --primary-foreground: 0 0% 100%;
+  --ring: 210 100% 50%;
+}
+
+.import-company-theme .organization-sidebar {
+  border-right-color: rgba(0, 123, 255, 0.3);
+}
+
+.import-company-theme button {
+  --tw-ring-color: rgba(0, 123, 255, 0.5);
+}
+
+.import-company-theme button.btn-primary,
+.import-company-theme button[data-variant="default"] {
+  background-color: rgb(0, 123, 255);
+  color: white;
+}
+
+.import-company-theme .sidebar-menu-item:hover:not(.active) {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.import-company-theme .sidebar-menu-item.active {
+  background-color: rgba(0, 123, 255, 0.15);
+  border-left-color: rgb(0, 123, 255);
+}
+
+.import-company-theme h3,
+.import-company-theme h4 {
+  color: rgb(0, 87, 183);
+}
+
+.import-company-theme svg {
+  color: rgb(0, 123, 255);
+}
+
+.import-company-theme .app-logo {
+  filter: hue-rotate(120deg) saturate(1.5);
+}
+
+/* Modo escuro para tema importação */
+.dark.import-company-theme {
+  --primary: 210 100% 60%;
+  --ring: 210 100% 60%;
+}
+
+.dark.import-company-theme .organization-sidebar {
+  border-right-color: rgba(0, 123, 255, 0.5);
+}
+
+.dark.import-company-theme button.btn-primary,
+.dark.import-company-theme button[data-variant="default"] {
+  background-color: rgb(30, 144, 255);
+}
 
 @layer base {
   :root {

@@ -4,9 +4,21 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import * as patrimonioSchema from './schema-patrimonio';
 import * as pesquisaSchema from './schema-pesquisa';
+import * as socialSchema from './schema-social';
+import * as suppliersSchema from './schema-suppliers';
+
+// Re-export dos schemas do fornecedor para garantir que as tabelas sejam criadas
+// Renomeamos as exports para evitar conflitos de nome
+export const {
+  suppliers, supplierUsers, supplierCategories,
+  supplierDocuments, supplierOrganizationLinks,
+  products: supplierProducts, productImages, productCategories, 
+  productCategoryLinks, productVariants,
+  tenders, tenderProposals
+} = suppliersSchema;
 
 // Define a role enum para os diferentes tipos de usuário
-export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher']);
+export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher', 'supplier']);
 
 // Enum para o status de licença de farmacêutico
 export const pharmacistStatusEnum = pgEnum('pharmacist_status', ['active', 'inactive', 'suspended', 'pending']);

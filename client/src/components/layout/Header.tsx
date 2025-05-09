@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Sun, Moon, User, LogOut, Leaf, Home } from "lucide-react";
+import { Sun, Moon, User, LogOut, Leaf, Home, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsPopover from "@/components/features/NotificationsPopover";
@@ -25,7 +25,30 @@ export default function Header() {
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
     queryKey: ['/api/organizations', user?.organizationId],
-    enabled: !!user?.organizationId && isOrgPath,
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      try {
+        console.log("Header: carregando organização", user.organizationId, "com timestamp:", Date.now());
+        // Adicionar um parâmetro de consulta aleatório para evitar cache do navegador
+        const timestamp = Date.now();
+        const response = await fetch(`/api/organizations/${user.organizationId}?_=${timestamp}`, {
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Falha ao carregar organização');
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao buscar organização:', error);
+        return null;
+      }
+    },
+    enabled: !!user?.organizationId,
+    // Configurar para sempre buscar dados frescos
+    staleTime: 0, // Sempre considerar dados obsoletos
+    cacheTime: 0, // Não manter em cache
+    refetchInterval: 5000, // Recarregar a cada 5 segundos
+    refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
+    refetchOnMount: true, // Recarregar sempre que o componente montar
   });
 
   // Verificar se o tema é escuro ao carregar a página
@@ -64,31 +87,41 @@ export default function Header() {
 
   const getBreadcrumbs = () => {
     const parts = currentPath.split('/').filter(Boolean);
-    return ['Início', ...parts].map((part) => 
-      part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ')
-    );
+    
+    // Filtrar partes do caminho para ocultar IDs numéricos
+    return ['Início', ...parts].map((part, index) => {
+      // Verificar se a parte é um número (ID) e vir depois de "organization" 
+      if (/^\d+$/.test(part) && parts[index-1] === 'organization') {
+        // Ocultar completamente o ID no breadcrumb
+        return null;
+      }
+      
+      // Formatar o texto (primeira letra maiúscula e substituir hifens por espaços)
+      return part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
+    }).filter(Boolean); // Remover elementos nulos
   };
 
   // Determinar o caminho HOME com base no tipo de usuário
   const getHomePath = () => {
     if (!user) return '/';
     
-    switch (user.role) {
-      case 'admin':
-        return '/admin/dashboard';
-      case 'org_admin':
-        return '/organization/dashboard';
-      case 'doctor':
-        return '/doctor/dashboard';
-      case 'patient':
-        return '/patient/dashboard';
-      case 'manager':
-        return '/manager/dashboard';
-      case 'employee':
-        return '/employee/dashboard';
-      default:
-        return '/';
-    }
+    // Mapear papel do usuário para o caminho correspondente
+    const rolePaths: Record<string, string> = {
+      'admin': '/admin/dashboard',
+      'org_admin': '/organization/dashboard',
+      'association_admin': '/organization/dashboard',
+      'company_admin': '/organization/dashboard',
+      'doctor': '/doctor/dashboard',
+      'dentist': '/doctor/dashboard',
+      'vet': '/doctor/dashboard',
+      'patient': '/patient/dashboard',
+      'pharmacist': '/pharmacist/dashboard',
+      'laboratory': '/laboratory/dashboard',
+      'researcher': '/researcher/dashboard'
+    };
+    
+    // Usar o caminho mapeado ou o caminho padrão
+    return rolePaths[user.role] || '/';
   };
 
   return (
@@ -113,36 +146,25 @@ export default function Header() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          {isOrgPath && !isOrgLoading && organization?.logo ? (
-            <Avatar className="h-5 w-5 rounded-md mr-1">
-              <AvatarImage src={organization.logo} alt={organization.name || "Organização"} />
-              <AvatarFallback className="rounded-md bg-[#e6f7e6] dark:bg-[#1f3b1f]">
-                <Leaf className="h-3 w-3 text-green-600 dark:text-green-400" />
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <Leaf className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
-          )}
-          
-          {/* Breadcrumbs navegáveis */}
-          {getBreadcrumbs().map((crumb, index, array) => (
-            <div key={index} className="flex items-center">
-              {index === 0 ? (
-                <button 
-                  onClick={() => navigateTo(getHomePath())}
-                  className="hover:text-green-600 dark:hover:text-green-400 hover:underline cursor-pointer"
+          {/* Botão de atalho para Envio BI (MapaBI em tela cheia) */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mr-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800 font-medium flex items-center gap-1.5"
+                  onClick={() => window.location.href = '/expedicao/mapa-fullscreen'}
                 >
-                  {crumb}
-                </button>
-              ) : (
-                <span>{crumb}</span>
-              )}
-              {index < array.length - 1 && (
-                <span className="mx-2">/</span>
-              )}
-            </div>
-          ))}
+                  <BarChart className="h-4 w-4" />
+                  <span>Envio BI</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Envio BI</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="flex items-center gap-2">

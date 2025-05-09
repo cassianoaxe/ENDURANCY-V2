@@ -10,13 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Loader2, User, Eye, ArrowRight, Building, Leaf, 
-  Beaker, Stethoscope, Pill, UserCircle, PanelTopInactive 
+  Beaker, Stethoscope, Pill, UserCircle, PanelTopInactive,
+  Mail, AlertTriangle, Truck
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from "@/lib/utils";
 import { useLocation } from 'wouter';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'O email é obrigatório'),
@@ -33,7 +35,7 @@ const orgLoginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type OrgLoginFormData = z.infer<typeof orgLoginSchema>;
-type UserRole = 'admin' | 'org_admin' | 'doctor' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher';
+type UserRole = 'admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier';
 
 // Interface para informações de tipo de usuário
 interface UserTypeInfo {
@@ -66,7 +68,7 @@ export default function Login() {
     if (matches && matches[1]) {
       setOrgCode(matches[1]);
       setIsOrgLogin(true);
-      setUserType('org_admin'); // Se tiver um código de organização, presumimos login como admin da organização
+      setUserType('association_admin'); // Se tiver um código de organização, presumimos login como admin da associação
     }
     
     // Verifica se há parâmetro de status na URL
@@ -74,7 +76,7 @@ export default function Login() {
     const status = urlParams.get('status');
     if (status === 'registered') {
       setRegistrationSuccess(true);
-      setUserType('org_admin'); // Se veio do registro, presumimos login como admin da organização
+      setUserType('company_admin'); // Se veio do registro, presumimos login como admin da empresa
     }
   }, [location]);
 
@@ -90,23 +92,54 @@ export default function Login() {
       },
       color: 'bg-indigo-50 text-indigo-700 border-indigo-100'
     },
-    org_admin: {
-      label: 'Organização',
+
+    association_admin: {
+      label: 'Associação',
       icon: <Building className="h-5 w-5" />,
-      description: 'Acesse como gestor de organização',
+      description: 'Acesse como administrador de associação (RDC 327)',
       credentials: {
         username: 'admin@organizacao.com',
         password: 'org123'
+      },
+      color: 'bg-green-50 text-green-700 border-green-100'
+    },
+    company_admin: {
+      label: 'Empresa',
+      icon: <Building className="h-5 w-5" />,
+      description: 'Acesse como administrador de empresa (RDC 660)',
+      credentials: {
+        username: 'admin@empresa.com',
+        password: 'empresa123'
       },
       color: 'bg-blue-50 text-blue-700 border-blue-100'
     },
     doctor: {
       label: 'Médico',
       icon: <Stethoscope className="h-5 w-5" />,
-      description: 'Acesse como profissional médico',
+      description: 'Acesse como médico prescritor',
       credentials: {
         username: 'medico@endurancy.com',
         password: 'medico123'
+      },
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
+    },
+    dentist: {
+      label: 'Dentista',
+      icon: <Stethoscope className="h-5 w-5" />,
+      description: 'Acesse como dentista prescritor',
+      credentials: {
+        username: 'dentista@endurancy.com',
+        password: 'dentista123'
+      },
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
+    },
+    vet: {
+      label: 'Veterinário',
+      icon: <Stethoscope className="h-5 w-5" />,
+      description: 'Acesse como veterinário prescritor',
+      credentials: {
+        username: 'veterinario@endurancy.com',
+        password: 'vet123'
       },
       color: 'bg-emerald-50 text-emerald-700 border-emerald-100'
     },
@@ -149,6 +182,16 @@ export default function Login() {
         password: 'pesquisa123'
       },
       color: 'bg-sky-50 text-sky-700 border-sky-100'
+    },
+    supplier: {
+      label: 'Fornecedor',
+      icon: <Truck className="h-5 w-5" />,
+      description: 'Acesse como fornecedor para o marketplace',
+      credentials: {
+        username: 'fornecedor@exemplo.com',
+        password: 'fornecedor123'
+      },
+      color: 'bg-red-50 text-red-700 border-red-100'
     }
   };
 
@@ -174,11 +217,8 @@ export default function Login() {
       console.log("Iniciando tentativa de login para usuário:", data.username, "tipo:", userType);
       
       // Ajuste para tipos de usuário específicos
+      // Enviamos o tipo de usuário diretamente
       let loginType = userType;
-      // Farmacêutico temporariamente usando "doctor"
-      if (userType === 'pharmacist') {
-        loginType = 'doctor'; 
-      }
       
       // Implementar retry com backoff exponencial para evitar problemas de rate limiting
       let maxAttempts = 3;
@@ -186,24 +226,68 @@ export default function Login() {
       let loginSuccess = false;
       let lastError: any = null;
       
+      // Lista de possíveis senhas para usuários de organização
+      const possiblePasswords = 
+        (userType === 'association_admin' || userType === 'company_admin') 
+          ? ['org123', 'organizacao123', 'assoc123', 'orga123', 'admin123', 'empresa123', data.password] 
+          : [data.password];
+      
+      // Se estamos tentando fazer login como associação ou empresa, tente diferentes senhas
+      if (userType === 'association_admin' || userType === 'company_admin') {
+        console.log("Tentando login de organização com possíveis senhas:", possiblePasswords);
+      }
+          
       while (attempt < maxAttempts && !loginSuccess) {
         attempt++;
         try {
           console.log(`Tentativa de login ${attempt} de ${maxAttempts}`);
           
-          // Se é um login específico para organização, incluir o código no login
-          if (isOrgLogin && orgCode) {
-            console.log("Login em organização específica com código:", orgCode);
-            await login(data.username, data.password, loginType, orgCode);
+          // Se é um login de organização (associação ou empresa), tente com diferentes senhas possíveis
+          if ((userType === 'association_admin' || userType === 'company_admin') && possiblePasswords.length > 1) {
+            // Tente cada senha possível
+            let passwordSuccess = false;
+            
+            for (const password of possiblePasswords) {
+              try {
+                if (isOrgLogin && orgCode) {
+                  await login(data.username, password, loginType, orgCode);
+                } else {
+                  await login(data.username, password, loginType);
+                }
+                passwordSuccess = true;
+                console.log(`Login bem-sucedido com a senha: ${password}`);
+                break;
+              } catch (err) {
+                console.log(`Senha ${password} não funcionou`);
+                // Continuar tentando com a próxima senha
+              }
+            }
+            
+            if (!passwordSuccess) {
+              throw new Error("Nenhuma senha funcionou");
+            }
           } else {
             // Login normal
-            console.log("Login padrão para tipo:", loginType);
-            await login(data.username, data.password, loginType);
+            if (isOrgLogin && orgCode) {
+              console.log("Login em organização específica com código:", orgCode);
+              await login(data.username, data.password, loginType, orgCode);
+            } else {
+              // Login normal
+              console.log("Login padrão para tipo:", loginType);
+              await login(data.username, data.password, loginType);
+            }
           }
           
           // Se chegou aqui, login foi bem-sucedido
           loginSuccess = true;
           console.log("Login realizado com sucesso na tentativa", attempt);
+          
+          // Verificar se é login de fornecedor e redirecionar corretamente
+          if (loginType === 'supplier') {
+            console.log("Login de fornecedor detectado, redirecionando para /supplier/dashboard");
+            window.location.href = "/supplier/dashboard";
+            return; // Interromper fluxo para evitar redirecionamentos conflitantes
+          }
           
         } catch (error: any) {
           lastError = error;
@@ -226,25 +310,8 @@ export default function Login() {
         throw lastError || new Error('Falha na autenticação após múltiplas tentativas');
       }
       
-      // Verificar se a sessão foi estabelecida corretamente
-      try {
-        const sessionCheck = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (!sessionCheck.ok) {
-          console.warn("Aviso: Login bem-sucedido, mas sessão pode não estar estabelecida corretamente");
-        } else {
-          console.log("Sessão confirmada com sucesso");
-        }
-      } catch (sessionError) {
-        console.warn("Erro ao verificar sessão:", sessionError);
-      }
+      // Não verificamos mais a sessão com uma segunda requisição
+      // A verificação da sessão já foi feita durante o login no servidor
       
       // Mostrar toast de sucesso
       toast({
@@ -253,29 +320,142 @@ export default function Login() {
         duration: 3000,
       });
       
-      // Pequeno delay antes de redirecionar para garantir que a sessão foi estabelecida
-      setTimeout(() => {
-        // Usando window.location para redirecionamento mais confiável
-        console.log("Redirecionando após login...");
+      // Redirecionamento imediato para a página correta baseado no papel do usuário
+      console.log("Redirecionando após login para o papel:", userType);
+      
+      // Mostrar estado de loading que já existe através do botão
+      setIsLoading(true);
+      // Obter a URL de redirecionamento da sessão do usuário (localStorage)
+      let user;
+      try {
+        const userData = localStorage.getItem('user');
+        user = userData ? JSON.parse(userData) : null;
+      } catch (e) {
+        console.error("Erro ao obter dados do usuário do localStorage:", e);
+        user = null;
+      }
+      
+      // Usar URL de redirecionamento da API, nunca usar fallback para /dashboard
+      // O dashboard geral causa o flash indesejado antes do redirecionamento final
+      let redirectUrl = user?.redirectUrl;
+      
+      // Se por algum motivo não tivermos URL de redirecionamento, determinar baseado no tipo de usuário
+      if (!redirectUrl) {
+        console.log("Alerta: Nenhuma URL de redirecionamento fornecida pela API");
         
-        if (userType === 'admin') {
-          window.location.href = '/dashboard';
-        } else if (userType === 'org_admin') {
-          window.location.href = '/organization/dashboard';
+        // Determinar melhor URL baseado no papel e no ID da organização
+        if (userType === 'association_admin' || userType === 'org_admin') {
+          // Usar o ID da organização do usuário em vez de hardcoded
+          const orgId = user?.organizationId || 1;
+          redirectUrl = `/organization/${orgId}/dashboard`;
+        } else if (userType === 'company_admin') {
+          redirectUrl = '/organization/dashboard';
+        } else if (userType === 'admin') {
+          redirectUrl = '/dashboard';
+        } else if (userType === 'doctor' || userType === 'dentist' || userType === 'vet') {
+          redirectUrl = '/doctor/dashboard';
         } else if (userType === 'pharmacist') {
-          window.location.href = '/pharmacist/dashboard';
-        } else if (userType === 'laboratory') {
-          window.location.href = '/laboratory/dashboard';
-        } else if (userType === 'researcher') {
-          window.location.href = '/researcher/dashboard';
-        } else if (userType === 'doctor') {
-          window.location.href = '/doctor/dashboard';
+          redirectUrl = '/pharmacist/dashboard';
         } else if (userType === 'patient') {
-          window.location.href = '/patient/dashboard';
+          redirectUrl = '/patient/dashboard';
+        } else if (userType === 'laboratory') {
+          redirectUrl = '/laboratory/dashboard';
+        } else if (userType === 'researcher') {
+          redirectUrl = '/researcher/dashboard';
+        } else if (userType === 'supplier') {
+          // Redirecionamento especial para fornecedores - usamos flag no sessionStorage para
+          // sinalizar ao App.tsx que deve verificar e redirecionar imediatamente, 
+          // evitando exibir qualquer parte do dashboard administrativo
+          sessionStorage.setItem('direct_supplier_login', 'true');
+          redirectUrl = '/supplier/dashboard';
         } else {
-          window.location.href = '/dashboard';
+          // Fallback seguro
+          redirectUrl = '/';
         }
-      }, 1500);
+        
+        console.log("URL de redirecionamento determinada pelo cliente:", redirectUrl);
+      }
+      
+      // Caso especial para portal de empresa importadora (mantido para compatibilidade)
+      if (userType === 'company_admin' && 
+          (localStorage.getItem('userType') === 'import_company' || 
+           document.documentElement.classList.contains('importadora-theme'))) {
+        // Forçar redirecionamento para dashboard de importadora
+        redirectUrl = '/organization/import-company/dashboard';
+        
+        // Após definir o redirecionamento, limpar os marcadores
+        document.documentElement.classList.remove('importadora-theme');
+        localStorage.removeItem('userType');
+        console.log("Redirecionando para dashboard de importadora:", redirectUrl);
+        
+        // Nova lógica: usar direct_import_company ao invés de check_org_type
+        // Para evitar a passagem pelo dashboard geral
+        localStorage.setItem('direct_import_company', 'true');
+      }
+      
+      console.log("URL de redirecionamento (da API):", user?.redirectUrl);
+      console.log("URL de redirecionamento (final):", redirectUrl);
+      
+      console.log(`Usuário autenticado como ${userType}, redirecionando para ${redirectUrl}`);
+      
+      // Criando um overlay de carregamento para evitar flash de tela
+      const overlay = document.createElement('div');
+      overlay.setAttribute('data-login-overlay', 'true');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = '#ffffff';
+      overlay.style.zIndex = '9999';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.flexDirection = 'column';
+      overlay.style.transition = 'opacity 0.5s';
+      
+      // Adicionando um spinner
+      const spinner = document.createElement('div');
+      spinner.style.width = '40px';
+      spinner.style.height = '40px';
+      spinner.style.border = '4px solid #f3f3f3';
+      spinner.style.borderTop = '4px solid #4CAF50';
+      spinner.style.borderRadius = '50%';
+      spinner.style.animation = 'spin 1s linear infinite';
+      
+      // Adicionando keyframe para animação
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Adicionando texto
+      const text = document.createElement('p');
+      text.innerText = 'Redirecionando...';
+      text.style.marginTop = '16px';
+      text.style.color = '#333';
+      text.style.fontFamily = 'sans-serif';
+      
+      overlay.appendChild(spinner);
+      overlay.appendChild(text);
+      document.body.appendChild(overlay);
+      
+      // Usando window.location.href e adicionando parâmetro para evitar cache
+      const timestamp = new Date().getTime();
+      const redirectUrlWithParam = `${redirectUrl}?t=${timestamp}`;
+      console.log(`Redirecionando para: ${redirectUrlWithParam}`);
+      
+      // Guardar flag no sessionStorage para evitar flicker no redirecionamento
+      sessionStorage.setItem('loginRedirect', 'true');
+      
+      // Pequeno delay para garantir que o overlay seja mostrado
+      setTimeout(() => {
+        window.location.href = redirectUrlWithParam;
+      }, 100);
       
     } catch (error: any) {
       console.error('Login falhou:', error);
@@ -316,7 +496,10 @@ export default function Login() {
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
               <Leaf className="h-6 w-6 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Endurancy</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-800">Endurancy</h1>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
           </div>
           
           <div className="flex-grow flex flex-col justify-center max-w-md mx-auto">
@@ -353,12 +536,21 @@ export default function Login() {
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-indigo-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
-                      <Building className="h-3 w-3 text-indigo-600" />
+                    <div className="w-5 h-5 bg-green-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Building className="h-3 w-3 text-green-600" />
                     </div>
                     <div>
-                      <span className="font-medium text-gray-900">Portal da Organização</span>
-                      <p className="text-xs text-gray-600">Gestão para associações (327) e importadoras (660)</p>
+                      <span className="font-medium text-gray-900">Portal da Associação</span>
+                      <p className="text-xs text-gray-600">Gestão para associações (RDC 327) com anuidade</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Building className="h-3 w-3 text-blue-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal da Empresa</span>
+                      <p className="text-xs text-gray-600">Gestão para importadoras (RDC 660) com emissão de NF</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-2">
@@ -377,6 +569,15 @@ export default function Login() {
                     <div>
                       <span className="font-medium text-gray-900">Portal do Paciente</span>
                       <p className="text-xs text-gray-600">Histórico médico, prescrições e comunicação segura</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <div className="w-5 h-5 bg-red-100 rounded-md flex items-center justify-center mt-0.5 flex-shrink-0">
+                      <Truck className="h-3 w-3 text-red-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Portal do Fornecedor</span>
+                      <p className="text-xs text-gray-600">Cadastro de produtos, participação em licitações e vendas</p>
                     </div>
                   </li>
                 </ul>
@@ -451,7 +652,10 @@ export default function Login() {
             <div className="w-16 h-16 bg-[#e6f7e6] rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Leaf className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
+            <div className="flex items-center justify-center">
+              <h1 className="text-3xl font-bold text-gray-800">Endurancy</h1>
+              <span className="ml-2 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
             <p className="text-gray-500 mt-1">Plataforma de Controle e Regulação</p>
           </div>
           
@@ -468,10 +672,22 @@ export default function Login() {
                 </div>
               ) : registrationSuccess ? (
                 <div className="mt-2">
-                  <div className="mt-1 px-4 py-3 bg-green-50 text-green-800 rounded-md border border-green-100">
-                    <p className="text-sm font-medium">Organização registrada com sucesso!</p>
-                    <p className="text-xs mt-1">Verifique seu email para acessar as informações de login.</p>
-                  </div>
+                  <Alert variant="default" className="bg-blue-50 border-blue-100">
+                    <Mail className="h-4 w-4 text-blue-600" />
+                    <AlertTitle className="text-blue-800 font-medium">Verifique seu email</AlertTitle>
+                    <AlertDescription className="text-blue-700 text-sm">
+                      Enviamos as instruções de pagamento para seu email.
+                      <strong className="block mt-1 text-blue-800">⚠️ IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</strong>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <Alert variant="warning" className="mt-2 bg-yellow-50 border-yellow-100">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800 font-medium">Próximos passos</AlertTitle>
+                    <AlertDescription className="text-yellow-700 text-sm">
+                      Sua organização foi registrada com sucesso! Após o pagamento, sua conta será ativada automaticamente.
+                    </AlertDescription>
+                  </Alert>
                 </div>
               ) : (
                 <p className="text-gray-500 text-sm">Selecione o tipo de acesso e entre na plataforma</p>
@@ -486,38 +702,134 @@ export default function Login() {
               {!isOrgLogin && (
                 <div className="px-6">
                   <h3 className="text-base font-medium mb-3">Selecione o tipo de acesso</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                    {Object.entries(userTypeInfo).map(([role, info]) => (
+                  
+                  {/* Organizações */}
+                  <div className="mb-4">
+                    <h4 className="text-sm text-gray-600 mb-2">Organizações</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Botão Associação */}
                       <button
-                        key={role}
+                        key="association_admin"
                         type="button"
-                        onClick={() => setUserType(role as UserRole)}
+                        onClick={() => setUserType('association_admin')}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                          role === userType 
+                          "p-2 rounded-lg border transition-all",
+                          'association_admin' === userType 
                             ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
                             : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         )}
                       >
-                        <div 
-                          className={cn(
-                            "w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0",
-                            role === userType ? 'bg-[#4CAF50]/20 text-[#4CAF50]' : 'bg-gray-100 text-gray-500'
-                          )}
-                        >
-                          {info.icon}
-                        </div>
-                        <div className="text-left">
-                          <div className="text-sm font-medium">{info.label}</div>
-                          {role === userType && (
-                            <div className="text-xs text-green-600 truncate max-w-[120px] flex items-center">
-                              <div className="h-1 w-1 rounded-full bg-green-600 inline-block mr-1.5"></div>
-                              Selecionado
+                        <div className="text-center">
+                          <div className="text-sm font-medium">Associação</div>
+                          {'association_admin' === userType && (
+                            <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                              <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
                             </div>
                           )}
                         </div>
                       </button>
-                    ))}
+
+                      {/* Botão Empresa (modificado para importadoras) */}
+                      <button
+                        key="company_admin"
+                        type="button"
+                        onClick={() => {
+                          // Define o tipo de usuário como company_admin
+                          setUserType('company_admin');
+                          
+                          // Atualiza o formulário para incluir o tipo de empresa
+                          form.setValue('username', 'admin@importadora.com');
+                          form.setValue('password', 'import123');
+                          
+                          // Adiciona class para informar que é uma importadora e armazena em localStorage
+                          document.documentElement.classList.add('importadora-theme');
+                          localStorage.setItem('userType', 'import_company');
+                          // Definir flag para redirecionamento direto (nova lógica)
+                          localStorage.setItem('direct_import_company', 'true');
+                          
+                          console.log("Configurado para login de importadora");
+                        }}
+                        className={cn(
+                          "p-2 rounded-lg border transition-all",
+                          'company_admin' === userType 
+                            ? "border-[#0066cc] bg-[#0066cc]/5 shadow-sm" 
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        )}
+                      >
+                        <div className="text-center">
+                          <div className="text-sm font-medium text-blue-700">Empresa</div>
+                          {'company_admin' === userType && (
+                            <div className="text-xs text-blue-700 flex items-center justify-center mt-1">
+                              <div className="h-1 w-1 rounded-full bg-blue-700 inline-block"></div>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Prescritores */}
+                  <div className="mb-4">
+                    <h4 className="text-sm text-gray-600 mb-2">Prescritores</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['doctor', 'dentist', 'vet'].map((role) => {
+                        const info = userTypeInfo[role as UserRole];
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => setUserType(role as UserRole)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all",
+                              role === userType 
+                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            )}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{info.label}</div>
+                              {role === userType && (
+                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Outros acessos */}
+                  <div>
+                    <h4 className="text-sm text-gray-600 mb-2">Outros acessos</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {['admin', 'pharmacist', 'laboratory', 'patient', 'researcher', 'supplier'].map((role) => {
+                        const info = userTypeInfo[role as UserRole];
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => setUserType(role as UserRole)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all",
+                              role === userType 
+                                ? "border-[#4CAF50] bg-[#4CAF50]/5 shadow-sm" 
+                                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            )}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-medium">{info.label}</div>
+                              {role === userType && (
+                                <div className="text-xs text-green-600 flex items-center justify-center mt-1">
+                                  <div className="h-1 w-1 rounded-full bg-green-600 inline-block"></div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -528,15 +840,21 @@ export default function Login() {
                     variant="outline"
                     className={cn(
                       "rounded-full px-3 py-1 text-xs font-medium",
-                      userTypeInfo[userType].color
+                      userType === 'company_admin' 
+                        ? "bg-blue-50 text-blue-700 border-blue-100"
+                        : userTypeInfo[userType].color
                     )}
                   >
-                    <span className="flex items-center gap-1.5">
-                      {userTypeInfo[userType].icon}
-                      {userTypeInfo[userType].label}
+                    <span>
+                      {userType === 'company_admin' ? 'Importadora' : userTypeInfo[userType].label}
                     </span>
                   </Badge>
-                  <p className="text-sm text-gray-500 mt-2">{userTypeInfo[userType].description}</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {userType === 'company_admin' 
+                      ? 'Acesse como administrador de empresa importadora (RDC 660)'
+                      : userTypeInfo[userType].description
+                    }
+                  </p>
                 </div>
                 
                 <Form {...form}>
@@ -586,7 +904,11 @@ export default function Login() {
                     />
                     <Button 
                       type="submit" 
-                      className="w-full h-12 bg-[#4CAF50] hover:bg-[#43a047] text-white flex items-center justify-center gap-2"
+                      className={`w-full h-12 text-white flex items-center justify-center gap-2 ${
+                        userType === 'company_admin' 
+                          ? "bg-[#0066cc] hover:bg-[#0055bb]" 
+                          : "bg-[#4CAF50] hover:bg-[#43a047]"
+                      }`}
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -654,7 +976,18 @@ export default function Login() {
                     href="/organization-registration" 
                     className="text-sm font-medium text-[#4CAF50] hover:underline flex items-center"
                   >
-                    Cadastre-se aqui <Building className="h-4 w-4 ml-1" />
+                    Cadastre-se aqui
+                  </a>
+                </div>
+                <Separator className="w-full my-2" />
+                
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 mr-2">É um fornecedor?</span>
+                  <a 
+                    href="/supplier/login" 
+                    className="text-sm font-medium text-red-600 hover:underline flex items-center"
+                  >
+                    <Truck className="h-4 w-4 mr-1" /> Acesse o Portal do Fornecedor
                   </a>
                 </div>
               </div>

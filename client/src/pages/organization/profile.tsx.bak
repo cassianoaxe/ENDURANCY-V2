@@ -1,0 +1,1710 @@
+import React, { useState, useRef } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  Loader2, Upload, User, Building, Mail, Phone, Info, 
+  CreditCard, Tag, Package, Users, Check, AlertTriangle, 
+  Calendar, Puzzle, PlusCircle, UserPlus, Star, ArrowRight,
+  X, SendHorizonal, Shield
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import OrganizationLayout from "@/components/layout/OrganizationLayout";
+
+interface Organization {
+  id: number;
+  name: string;
+  legalName?: string;
+  cnpj?: string;
+  email?: string;
+  phoneNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  website?: string;
+  logo?: string;
+  description?: string;
+  foundedAt?: string;
+  planId?: number | null;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface User {
+  id: number;
+  username: string;
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  profilePhoto?: string;
+  role?: string;
+  organizationId?: number | null;
+}
+
+interface Plan {
+  id: number;
+  name: string;
+  tier: string;
+  price: number;
+  description: string;
+  maxRegistrations: number;
+  billingCycle: string;
+  features: string[];
+  isPopular: boolean;
+  isActive: boolean;
+}
+
+interface Module {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  icon_name: string;
+  status: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+interface ModulePlan {
+  id: number;
+  module_id: number;
+  name: string;
+  description: string;
+  price: number;
+  billing_cycle: string;
+  features: string[];
+  max_users: number;
+  is_popular: boolean;
+  is_active: boolean;
+}
+
+interface UserGroup {
+  id: number;
+  name: string;
+  description: string;
+  organizationId: number;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+interface UserInvitation {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  groupId: number | null;
+  organizationId: number;
+  expiresAt: string;
+  createdBy: number;
+  createdAt: string;
+  groupName?: string;
+}
+
+interface OrganizationModule {
+  id: number;
+  organizationId: number;
+  moduleId: number;
+  modulePlanId: number | null;
+  status: string;
+  startDate: string;
+  endDate: string | null;
+}
+
+export default function OrganizationProfile() {
+  const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("profile");
+  const { toast } = useToast();
+  const { user, isLoading: isUserLoading } = useAuth();
+  
+  // States for plan and modules management
+  const [isAddingModule, setIsAddingModule] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [isUpgradingPlan, setIsUpgradingPlan] = useState(false);
+  const [isConfirmingPlanChange, setIsConfirmingPlanChange] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  
+  // States for user invitations
+  const [isInviting, setIsInviting] = useState(false);
+  const [inviteData, setInviteData] = useState({
+    email: "",
+    role: "org_admin", // Fixo como administrador da organização (primeiro usuário)
+    groupId: "nenhum",
+  });
+  
+  // Handle plan upgrade
+  const handleUpgradePlan = async () => {
+    if (!selectedPlan) {
+      toast({
+        title: "Selecione um plano",
+        description: "Por favor, selecione um plano para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    upgradePlanMutation.mutate(selectedPlan);
+  };
+  
+  // Handle add module
+  const handleAddModule = async () => {
+    if (!selectedModule) {
+      toast({
+        title: "Selecione um módulo",
+        description: "Por favor, selecione um módulo para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Find appropriate plan for the module
+    const modulePlan = modulePlans.find(plan => 
+      plan.module_id === selectedModule && plan.name === "Básico"
+    );
+    
+    addModuleMutation.mutate({ 
+      moduleId: selectedModule, 
+      modulePlanId: modulePlan?.id || null
+    });
+  };
+  
+  // Handle invite user
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inviteData.email) {
+      toast({
+        title: "Email necessário",
+        description: "Por favor, insira um email válido",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createInvitationMutation.mutate({
+      email: inviteData.email,
+      role: inviteData.role,
+      groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId
+    });
+  };
+  
+  // Handle delete invitation
+  const handleDeleteInvitation = async (invitationId: number) => {
+    try {
+      await apiRequest("DELETE", `/api/user-invitations/${invitationId}`, {});
+      
+      toast({
+        title: "Convite excluído",
+        description: "O convite foi excluído com sucesso",
+      });
+      
+      // Refresh invitations data
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir convite",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao excluir o convite",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle resend invitation
+  const handleResendInvitation = async (invitationId: number) => {
+    try {
+      await apiRequest("POST", `/api/user-invitations/${invitationId}/resend`, {});
+      
+      toast({
+        title: "Convite reenviado",
+        description: "O convite foi reenviado com sucesso",
+      });
+      
+      // Refresh invitations data
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+    } catch (error) {
+      toast({
+        title: "Erro ao reenviar convite",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao reenviar o convite",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Toggle module activation
+  const handleToggleModule = async (orgModuleId: number, currentStatus: boolean) => {
+    try {
+      await apiRequest("PUT", `/api/organization-modules/${orgModuleId}/toggle`, {
+        isActive: !currentStatus
+      });
+      
+      toast({
+        title: `Módulo ${currentStatus ? "desativado" : "ativado"}`,
+        description: `O módulo foi ${currentStatus ? "desativado" : "ativado"} com sucesso`,
+      });
+      
+      // Refresh organization modules data
+      queryClient.invalidateQueries({ queryKey: ['/api/organization-modules', organizationId] });
+    } catch (error) {
+      toast({
+        title: `Erro ao ${currentStatus ? "desativar" : "ativar"} módulo`,
+        description: error instanceof Error ? error.message : `Ocorreu um erro ao ${currentStatus ? "desativar" : "ativar"} o módulo`,
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Use user from auth context
+  const organizationId = user?.organizationId;
+  
+  // Fetch available plans
+  const { data: plans = [], isLoading: isLoadingPlans } = useQuery<Plan[]>({
+    queryKey: ['/api/plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/plans');
+      if (!response.ok) throw new Error('Falha ao carregar planos');
+      return response.json();
+    }
+  });
+  
+  // Fetch modules
+  const { data: modules = [], isLoading: isLoadingModules } = useQuery<Module[]>({
+    queryKey: ['/api/modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/modules');
+      if (!response.ok) throw new Error('Falha ao carregar módulos');
+      return response.json();
+    }
+  });
+  
+  // Fetch organization's active modules
+  const { data: orgModules = [], isLoading: isLoadingOrgModules } = useQuery<OrganizationModule[]>({
+    queryKey: ['/api/organization-modules', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/organization-modules/${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar módulos da organização');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Fetch module plans
+  const { data: modulePlans = [], isLoading: isLoadingModulePlans } = useQuery<ModulePlan[]>({
+    queryKey: ['/api/module-plans'],
+    queryFn: async () => {
+      const response = await fetch('/api/module-plans');
+      if (!response.ok) throw new Error('Falha ao carregar planos dos módulos');
+      return response.json();
+    }
+  });
+  
+  // Fetch user groups
+  const { data: userGroups = [], isLoading: isLoadingGroups } = useQuery<UserGroup[]>({
+    queryKey: ['/api/user-groups', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/user-groups?organizationId=${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar grupos de usuários');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Fetch user invitations
+  const { data: userInvitations = [], isLoading: isLoadingInvitations } = useQuery<UserInvitation[]>({
+    queryKey: ['/api/user-invitations', organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      const response = await fetch(`/api/user-invitations?organizationId=${organizationId}`);
+      if (!response.ok) throw new Error('Falha ao carregar convites de usuários');
+      return response.json();
+    },
+    enabled: !!organizationId
+  });
+  
+  // Upgrade plan mutation
+  const upgradePlanMutation = useMutation({
+    mutationFn: async (planId: number) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/subscriptions/create", {
+        planId,
+        organizationId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Plano atualizado com sucesso",
+        description: "O plano da sua organização foi atualizado",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organizations', organizationId] });
+      setIsUpgradingPlan(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar plano",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Add module mutation
+  const addModuleMutation = useMutation({
+    mutationFn: async ({ moduleId, modulePlanId }: { moduleId: number, modulePlanId: number | null }) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/organization-modules", {
+        organizationId,
+        moduleId,
+        modulePlanId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Módulo adicionado com sucesso",
+        description: "O módulo foi adicionado à sua organização",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/organization-modules', organizationId] });
+      setIsAddingModule(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao adicionar módulo",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Create invitation mutation
+  const createInvitationMutation = useMutation({
+    mutationFn: async (data: { email: string, role: string, groupId: string | null }) => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      await apiRequest("POST", "/api/user-invitations", {
+        email: data.email,
+        role: data.role,
+        groupId: data.groupId && data.groupId !== "nenhum" ? parseInt(data.groupId) : null,
+        organizationId
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Convite enviado com sucesso",
+        description: "Um email foi enviado para o usuário com instruções para acesso",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-invitations', organizationId] });
+      setIsInviting(false);
+      setInviteData({
+        email: "",
+        role: "org_admin", // Sempre mantém o papel como administrador
+        groupId: "nenhum",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao enviar convite",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Usar diretamente o user do contexto de autenticação
+  
+
+  const { data: organization, isLoading: isOrgLoading, error } = useQuery<Organization>({
+    queryKey: ["/api/organizations", organizationId],
+    queryFn: async () => {
+      if (!organizationId) throw new Error("ID da organização não disponível");
+      if (!user) throw new Error("Usuário não autenticado");
+      
+      try {
+        // apiRequest aceita URL e objeto de opções (opcional)
+        const data = await apiRequest(`/api/organizations/${organizationId}`);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar organização:", error);
+        throw error;
+      }
+    },
+    enabled: !!organizationId && !!user,
+    retry: 1, // Only retry once to avoid excessive requests on authentication issues
+  });
+
+  const [profileForm, setProfileForm] = useState<Partial<Organization>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  React.useEffect(() => {
+    if (organization) {
+      setProfileForm({
+        name: organization.name,
+        legalName: organization.legalName || "",
+        cnpj: organization.cnpj || "",
+        email: organization.email || "",
+        phoneNumber: organization.phoneNumber || "",
+        address: organization.address || "",
+        city: organization.city || "",
+        state: organization.state || "",
+        zipCode: organization.zipCode || "",
+        website: organization.website || "",
+        description: organization.description || ""
+      });
+    }
+  }, [organization]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setProfileForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Função para obter CSRF token para requisições seguras
+  const getCsrfToken = async (): Promise<string | null> => {
+    try {
+      // Obter um novo token do servidor
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        console.error("Erro ao obter CSRF token:", response.status);
+        return null;
+      }
+      
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error("Erro ao obter token CSRF:", error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Verificar organizationId e fazer certas correções
+    // Usar o ID da organização do usuário em vez do URL, que pode estar incorreto
+    const correctOrgId = user?.organizationId || organizationId;
+    
+    if (!correctOrgId || !user) {
+      toast({
+        title: "Erro",
+        description: "ID da organização ou informações do usuário não disponíveis",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      console.log("Enviando atualização para organização:", correctOrgId);
+      console.log("Dados a serem enviados:", profileForm);
+      
+      // Usar a API do sistema (apiRequest) que já tem toda a lógica
+      const updatedOrg = await apiRequest(`/api/organizations/${correctOrgId}`, { 
+        method: "PUT", 
+        data: profileForm 
+      });
+      
+      console.log("Organização atualizada:", updatedOrg);
+      
+      // Atualizar o cache
+      queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
+      
+      // Atualizar o organizationId no header (se necessário)
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Notificar sucesso e atualizar o estado do formulário
+      toast({
+        title: "Sucesso!",
+        description: "Os dados da organização foram atualizados.",
+        variant: "default",
+      });
+      
+      // Fechar o modo de edição
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Erro ao atualizar organização:", error);
+      
+      // Se for erro de CSRF, tentar novamente uma vez com token manual
+      if (error instanceof Error && error.message.includes("csrf")) {
+        try {
+          console.log("Tentando novamente com obtenção manual de CSRF token");
+          
+          // Obter manualmente um CSRF token
+          const csrfToken = await getCsrfToken();
+          
+          if (!csrfToken) {
+            throw new Error("Não foi possível obter token CSRF");
+          }
+          
+          // Fazer a requisição manualmente
+          const response = await fetch(`/api/organizations/${correctOrgId}`, {
+            method: "PUT",
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'CSRF-Token': csrfToken
+            },
+            credentials: 'include',
+            body: JSON.stringify(profileForm)
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
+          }
+          
+          const updatedOrg = await response.json();
+          
+          // Atualizar o cache
+          queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
+          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+          
+          toast({
+            title: "Sucesso!",
+            description: "Os dados da organização foram atualizados com retry.",
+            variant: "default",
+          });
+          
+          setIsEditing(false);
+        } catch (retryError) {
+          console.error("Erro na segunda tentativa:", retryError);
+          toast({
+            title: "Erro na segunda tentativa",
+            description: retryError instanceof Error ? retryError.message : "Erro ao atualizar dados da organização",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: error instanceof Error ? error.message : "Erro ao atualizar dados da organização",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const uploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !organizationId || !user) return;
+    
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('logo', file);
+    
+    try {
+      // Using fetch directly because FormData requires special handling
+      const response = await fetch(
+        `/api/organizations/${organizationId}/logo`,
+        { 
+          method: "POST", 
+          body: formData,
+          credentials: 'include', // Include session cookies
+          cache: 'no-cache',
+          // Don't set Content-Type to allow the browser to set the boundary for FormData
+        }
+      );
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Falha ao fazer upload do logo: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      
+      // Atualizar o cache
+      queryClient.setQueryData(["/api/organizations", organizationId], (oldData: Organization | undefined) => {
+        if (!oldData) return;
+        return { ...oldData, logo: result.logoUrl };
+      });
+      
+      // Atualize também o cache do usuário se necessário
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      toast({
+        title: "Sucesso!",
+        description: "Logo da organização atualizado.",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao fazer upload do logo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isUserLoading || isOrgLoading) {
+    return (
+      <OrganizationLayout>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </OrganizationLayout>
+    );
+  }
+
+  if (error || !organization) {
+    return (
+      <OrganizationLayout>
+        <div className="flex flex-col items-center justify-center h-full">
+          <h1 className="text-2xl font-bold text-red-500">Erro ao carregar dados</h1>
+          <p className="text-gray-500">{error instanceof Error ? error.message : "Erro desconhecido"}</p>
+        </div>
+      </OrganizationLayout>
+    );
+  }
+
+  return (
+    <OrganizationLayout>
+      <div className="container max-w-6xl mx-auto py-4">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Sidebar */}
+          <div className="w-full md:w-1/4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative group">
+                    <Avatar className="h-32 w-32 border-4 border-white shadow-md">
+                      <AvatarImage src={organization.logo || ""} alt={organization.name} />
+                      <AvatarFallback className="text-4xl bg-green-100 text-green-700">
+                        {organization.name?.charAt(0).toUpperCase() || "O"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <label
+                      htmlFor="logo-upload"
+                      className="absolute bottom-0 right-0 bg-primary text-white rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors"
+                    >
+                      <Upload className="h-4 w-4" />
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={uploadLogo}
+                      />
+                    </label>
+                  </div>
+                  <h2 className="text-xl font-bold text-center">{organization.name}</h2>
+                  {organization.cnpj && (
+                    <p className="text-sm text-gray-500 text-center">CNPJ: {organization.cnpj}</p>
+                  )}
+                  <div className="w-full border-t pt-4 mt-2">
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 py-1">
+                      <Mail className="h-4 w-4" />
+                      <span>{organization.email || "Email não informado"}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 py-1">
+                      <Phone className="h-4 w-4" />
+                      <span>{organization.phoneNumber || "Telefone não informado"}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 py-1">
+                      <Building className="h-4 w-4" />
+                      <span>{organization.address ? `${organization.address}, ${organization.city}/${organization.state}` : "Endereço não informado"}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content */}
+          <div className="w-full md:w-3/4">
+            <Tabs defaultValue="profile" onValueChange={setActiveTab} value={activeTab}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="profile">Informações da Organização</TabsTrigger>
+                <TabsTrigger value="plan">Plano e Assinatura</TabsTrigger>
+                <TabsTrigger value="modules">Módulos</TabsTrigger>
+                <TabsTrigger value="users">Usuários e Convites</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="profile">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Dados da Organização</CardTitle>
+                      <CardDescription>
+                        {isEditing ? 'Atualize as informações sobre sua organização' : 'Informações sobre sua organização'}
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant={isEditing ? "outline" : "default"}
+                      onClick={() => setIsEditing(!isEditing)}
+                    >
+                      {isEditing ? "Cancelar" : "Editar"}
+                    </Button>
+                  </CardHeader>
+                  <form onSubmit={handleSubmit}>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Nome da Organização</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            value={profileForm.name || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="legalName">Razão Social</Label>
+                          <Input
+                            id="legalName"
+                            name="legalName"
+                            value={profileForm.legalName || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cnpj">CNPJ</Label>
+                          <Input
+                            id="cnpj"
+                            name="cnpj"
+                            value={profileForm.cnpj || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={profileForm.email || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="phoneNumber">Telefone</Label>
+                          <Input
+                            id="phoneNumber"
+                            name="phoneNumber"
+                            value={profileForm.phoneNumber || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="website">Website</Label>
+                          <Input
+                            id="website"
+                            name="website"
+                            value={profileForm.website || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Endereço</Label>
+                          <Input
+                            id="address"
+                            name="address"
+                            value={profileForm.address || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="city">Cidade</Label>
+                          <Input
+                            id="city"
+                            name="city"
+                            value={profileForm.city || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="state">Estado</Label>
+                          <Input
+                            id="state"
+                            name="state"
+                            value={profileForm.state || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="zipCode">CEP</Label>
+                          <Input
+                            id="zipCode"
+                            name="zipCode"
+                            value={profileForm.zipCode || ""}
+                            onChange={handleInputChange}
+                            disabled={!isEditing}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Descrição</Label>
+                        <Textarea
+                          id="description"
+                          name="description"
+                          value={profileForm.description || ""}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                          rows={4}
+                        />
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      {isEditing && (
+                        <Button 
+                          type="submit" 
+                          className="w-full md:w-auto"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Salvando...
+                            </>
+                          ) : 'Salvar Alterações'}
+                        </Button>
+                      )}
+                    </CardFooter>
+                  </form>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="plan">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Plano e Assinatura</CardTitle>
+                    <CardDescription>
+                      Gerencie o plano e a assinatura da sua organização
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {isLoadingPlans ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <>
+                        {/* Link para página detalhada Meu Plano */}
+                        <div className="mb-4 flex justify-end">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => window.location.href = "/organization/meu-plano"}
+                            className="flex items-center gap-2"
+                          >
+                            <Puzzle className="h-4 w-4" />
+                            <span>Ir para Meu Plano</span>
+                            <ArrowRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </div>
+                        
+                        {/* Current Plan */}
+                        <div className="mb-6 bg-muted rounded-lg p-4">
+                          <h3 className="text-lg font-medium mb-2">Plano Atual</h3>
+                          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                              {organization.planId ? (
+                                <>
+                                  {plans.find(p => p.id === organization.planId) ? (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+                                          {plans.find(p => p.id === organization.planId)?.tier}
+                                        </Badge>
+                                        <h4 className="text-xl font-bold">{plans.find(p => p.id === organization.planId)?.name}</h4>
+                                      </div>
+                                      <p className="text-gray-500 mt-2">{plans.find(p => p.id === organization.planId)?.description}</p>
+                                      <div className="mt-2 flex items-center text-primary">
+                                        <Check className="h-4 w-4 mr-2" />
+                                        <span>Até {plans.find(p => p.id === organization.planId)?.maxRegistrations} cadastros</span>
+                                      </div>
+                                      {plans.find(p => p.id === organization.planId)?.features?.map((feature, index) => (
+                                        <div key={index} className="mt-1 flex items-center text-primary">
+                                          <Check className="h-4 w-4 mr-2" />
+                                          <span>{feature}</span>
+                                        </div>
+                                      ))}
+                                    </>
+                                  ) : (
+                                    <p>Plano (ID: {organization.planId}) não encontrado</p>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+                                    Trial
+                                  </Badge>
+                                  <p className="text-gray-500">Você está usando a versão de avaliação gratuita</p>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsUpgradingPlan(true)}
+                              className="shrink-0"
+                            >
+                              Mudar de Plano
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Subscription Details */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">Detalhes da Assinatura</h3>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CreditCard className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Informações de pagamento</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  {organization.planId ? (
+                                    <>Próxima cobrança em: 15/05/2025</>
+                                  ) : (
+                                    <>Nenhum método de pagamento cadastrado</>
+                                  )}
+                                </p>
+                                <Button 
+                                  variant="link" 
+                                  className="px-0 h-auto text-sm mt-2" 
+                                  onClick={() => setActiveTab("billing")}
+                                >
+                                  Gerenciar pagamento
+                                </Button>
+                              </Card>
+                              
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Tag className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Uso atual</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  <span className="font-medium">250 / {organization.planId ? plans.find(p => p.id === organization.planId)?.maxRegistrations : "1,000"}</span> cadastros utilizados
+                                </p>
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                  <div 
+                                    className="bg-primary h-2.5 rounded-full" 
+                                    style={{ width: `${organization.planId ? (250 / plans.find(p => p.id === organization.planId)?.maxRegistrations! * 100) : 25}%` }}
+                                  ></div>
+                                </div>
+                                <Button 
+                                  variant="link" 
+                                  className="px-0 h-auto text-sm mt-2" 
+                                  onClick={() => setActiveTab("usage")}
+                                >
+                                  Ver detalhes de uso
+                                </Button>
+                              </Card>
+                              
+                              <Card className="p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Calendar className="h-5 w-5 text-primary" />
+                                  <h4 className="font-medium">Ciclo de assinatura</h4>
+                                </div>
+                                <p className="text-sm text-gray-500">
+                                  {organization.planId ? (
+                                    <>
+                                      Cobrança {plans.find(p => p.id === organization.planId)?.billingCycle || "mensal"}<br />
+                                      Ativa desde: 15/04/2025
+                                    </>
+                                  ) : (
+                                    <>
+                                      Período de avaliação<br />
+                                      Restante: 10 dias
+                                    </>
+                                  )}
+                                </p>
+                              </Card>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Plan selection dialog */}
+                        <Dialog open={isUpgradingPlan} onOpenChange={setIsUpgradingPlan}>
+                          <DialogContent className="sm:max-w-[900px]">
+                            <DialogHeader>
+                              <DialogTitle>Escolha seu plano</DialogTitle>
+                              <DialogDescription>
+                                Selecione o plano que melhor se adapta às necessidades da sua organização.
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <ScrollArea className="h-[400px] pr-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                                {plans.map((plan) => (
+                                  <Card 
+                                    key={plan.id} 
+                                    className={`flex flex-col border-2 transition-all hover:shadow-md ${selectedPlan === plan.id ? 'border-primary' : 'border-gray-200'}`}
+                                  >
+                                    <CardHeader className="pb-2">
+                                      {plan.isPopular && (
+                                        <Badge className="w-fit mb-2">Mais Popular</Badge>
+                                      )}
+                                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                                      <CardDescription className="flex items-baseline gap-1">
+                                        <span className="text-2xl font-bold">R${plan.price}</span>
+                                        <span className="text-sm font-normal">/{plan.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
+                                      </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow">
+                                      <p className="text-sm mb-4">{plan.description}</p>
+                                      <ul className="space-y-2">
+                                        <li className="flex items-center gap-2 text-sm">
+                                          <Check className="h-4 w-4 text-primary" />
+                                          Até {plan.maxRegistrations} cadastros
+                                        </li>
+                                        {plan.features.map((feature, index) => (
+                                          <li key={index} className="flex items-center gap-2 text-sm">
+                                            <Check className="h-4 w-4 text-primary" />
+                                            {feature}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </CardContent>
+                                    <CardFooter>
+                                      <Button 
+                                        variant={selectedPlan === plan.id ? "default" : "outline"} 
+                                        className="w-full" 
+                                        onClick={() => setSelectedPlan(plan.id)}
+                                      >
+                                        {selectedPlan === plan.id ? 'Selecionado' : 'Selecionar'}
+                                      </Button>
+                                    </CardFooter>
+                                  </Card>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                            
+                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4 mt-4">
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Info className="h-4 w-4 mr-2" />
+                                <span>Você pode alterar seu plano a qualquer momento</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button variant="outline" onClick={() => setIsUpgradingPlan(false)}>
+                                  Cancelar
+                                </Button>
+                                <Button 
+                                  disabled={!selectedPlan} 
+                                  onClick={() => {
+                                    if (selectedPlan) {
+                                      setIsUpgradingPlan(false);
+                                      setIsConfirmingPlanChange(true);
+                                    }
+                                  }}
+                                >
+                                  Continuar
+                                </Button>
+                              </div>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {/* Plan change confirmation dialog */}
+                        <Dialog open={isConfirmingPlanChange} onOpenChange={setIsConfirmingPlanChange}>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirmar mudança de plano</DialogTitle>
+                              <DialogDescription>
+                                Revise os detalhes e confirme a mudança de plano.
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            {selectedPlan && (
+                              <div className="space-y-4 my-4">
+                                <div className="flex justify-between items-center p-4 border rounded-lg bg-muted/50">
+                                  <div>
+                                    <p className="font-medium">Plano atual</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {organization.planId 
+                                        ? plans.find(p => p.id === organization.planId)?.name || "Plano desconhecido"
+                                        : "Plano trial"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium">
+                                      {organization.planId 
+                                        ? `R$${plans.find(p => p.id === organization.planId)?.price || 0}`
+                                        : "R$0"}
+                                      <span className="text-sm font-normal">/mês</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex justify-center my-2">
+                                  <ArrowRight className="text-primary" />
+                                </div>
+                                
+                                <div className="flex justify-between items-center p-4 border rounded-lg bg-primary/5 border-primary/20">
+                                  <div>
+                                    <p className="font-medium">Novo plano</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {plans.find(p => p.id === selectedPlan)?.name || "Plano desconhecido"}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-medium">
+                                      R${plans.find(p => p.id === selectedPlan)?.price || 0}
+                                      <span className="text-sm font-normal">/mês</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {organization.planId && selectedPlan && (
+                                  <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200 flex items-start gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                                    <div>
+                                      <p className="font-medium text-yellow-700">Alteração no valor</p>
+                                      <p className="text-sm text-yellow-600">
+                                        {(plans.find(p => p.id === selectedPlan)?.price || 0) > 
+                                         (plans.find(p => p.id === organization.planId)?.price || 0)
+                                          ? "Você será cobrado proporcionalmente pela diferença entre os planos."
+                                          : "O valor excedente do plano anterior será creditado em sua próxima fatura."}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-start space-x-2 pt-2">
+                                  <Checkbox 
+                                    id="terms" 
+                                    checked={termsAccepted}
+                                    onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                                  />
+                                  <div className="grid gap-1.5 leading-none">
+                                    <label
+                                      htmlFor="terms"
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                      Aceito os termos e condições
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                      Concordo com os termos de serviço e políticas de mudança de plano da Endurancy.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            <DialogFooter className="flex flex-col sm:flex-row sm:justify-between gap-4">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => {
+                                  setIsConfirmingPlanChange(false);
+                                  setIsUpgradingPlan(true);
+                                }}
+                              >
+                                Voltar
+                              </Button>
+                              <Button 
+                                disabled={!termsAccepted || upgradePlanMutation.isPending} 
+                                onClick={() => selectedPlan && upgradePlanMutation.mutate(selectedPlan)}
+                              >
+                                {upgradePlanMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processando...
+                                  </>
+                                ) : (
+                                  'Confirmar mudança de plano'
+                                )}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="modules">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <div>
+                        <CardTitle>Módulos Disponíveis</CardTitle>
+                        <CardDescription>
+                          Gerencie os módulos adicionais para sua organização
+                        </CardDescription>
+                      </div>
+                      <Button onClick={() => setIsAddingModule(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Adicionar Módulo
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingModules || isLoadingOrgModules ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {modules.map(module => {
+                          const isActive = orgModules.some(m => m.moduleId === module.id);
+                          const orgModule = orgModules.find(m => m.moduleId === module.id);
+                          
+                          return (
+                            <Card key={module.id} className={`transition-all ${isActive ? 'border-2 border-green-200' : ''}`}>
+                              <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-2 rounded-md bg-primary/10">
+                                      <Puzzle className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <CardTitle className="text-base">{module.name}</CardTitle>
+                                  </div>
+                                  {isActive && (
+                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                                      Ativo
+                                    </Badge>
+                                  )}
+                                </div>
+                                <CardDescription className="mt-2">
+                                  {module.description}
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                {isActive && orgModule ? (
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Plano:</span>
+                                      <span className="font-medium">
+                                        {orgModule.modulePlanId 
+                                          ? modulePlans.find(p => p.id === orgModule.modulePlanId)?.name || "Plano Básico" 
+                                          : "Plano Básico"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Início:</span>
+                                      <span className="font-medium">{new Date(orgModule.startDate).toLocaleDateString('pt-BR')}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-500">Status:</span>
+                                      <span className="font-medium">{orgModule.status}</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-gray-500">Este módulo não está ativo na sua organização.</p>
+                                )}
+                              </CardContent>
+                              <CardFooter>
+                                {isActive ? (
+                                  <div className="flex w-full gap-2">
+                                    <Button variant="outline" className="flex-1" onClick={() => {}}>
+                                      Configurar
+                                    </Button>
+                                    <Button variant="secondary" className="flex-1" onClick={() => {}}>
+                                      Gerenciar Plano
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button 
+                                    className="w-full" 
+                                    onClick={() => {
+                                      setSelectedModule(module.id);
+                                      setIsAddingModule(true);
+                                    }}
+                                  >
+                                    Adicionar Módulo
+                                  </Button>
+                                )}
+                              </CardFooter>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Add Module Dialog */}
+                <Dialog open={isAddingModule} onOpenChange={setIsAddingModule}>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>Adicionar Novo Módulo</DialogTitle>
+                      <DialogDescription>
+                        Selecione o módulo e o plano que deseja adicionar à sua organização.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="module">Módulo</Label>
+                        <Select
+                          value={selectedModule?.toString() || ""}
+                          onValueChange={(value) => setSelectedModule(parseInt(value))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um módulo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {modules
+                              .filter(m => !orgModules.some(om => om.moduleId === m.id))
+                              .map(module => (
+                                <SelectItem key={module.id} value={module.id.toString()}>
+                                  {module.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedModule && (
+                        <div className="space-y-2">
+                          <Label>Planos disponíveis</Label>
+                          <div className="grid grid-cols-1 gap-4">
+                            {modulePlans
+                              .filter(plan => plan.module_id === selectedModule)
+                              .map(plan => (
+                                <Card key={plan.id} className="border p-4">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="font-medium">{plan.name}</h4>
+                                      <p className="text-sm text-gray-500">{plan.description}</p>
+                                      <div className="mt-2">
+                                        <span className="text-lg font-bold">R${plan.price}</span>
+                                        <span className="text-sm text-gray-500">/{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}</span>
+                                      </div>
+                                      <ul className="mt-2 space-y-1">
+                                        {plan.features.slice(0, 3).map((feature, idx) => (
+                                          <li key={idx} className="flex items-center text-sm">
+                                            <Check className="h-4 w-4 mr-2 text-primary" />
+                                            {feature}
+                                          </li>
+                                        ))}
+                                        {plan.features.length > 3 && (
+                                          <li className="text-sm text-gray-500">+{plan.features.length - 3} recursos</li>
+                                        )}
+                                      </ul>
+                                    </div>
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={() => addModuleMutation.mutate({
+                                        moduleId: selectedModule, 
+                                        modulePlanId: plan.id
+                                      })}
+                                      disabled={addModuleMutation.isPending}
+                                    >
+                                      {addModuleMutation.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <>Selecionar</>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </Card>
+                              ))}
+                              
+                            {/* Free basic plan option */}
+                            <Card className="border p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium">Plano Básico</h4>
+                                  <p className="text-sm text-gray-500">Versão básica com funcionalidades limitadas</p>
+                                  <div className="mt-2">
+                                    <span className="text-lg font-bold">Grátis</span>
+                                    <span className="text-sm text-gray-500">/mês</span>
+                                  </div>
+                                  <ul className="mt-2 space-y-1">
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Acesso básico ao módulo
+                                    </li>
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Funcionalidades limitadas
+                                    </li>
+                                    <li className="flex items-center text-sm">
+                                      <Check className="h-4 w-4 mr-2 text-primary" />
+                                      Até 100 registros por mês
+                                    </li>
+                                  </ul>
+                                </div>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => addModuleMutation.mutate({
+                                    moduleId: selectedModule, 
+                                    modulePlanId: null
+                                  })}
+                                  disabled={addModuleMutation.isPending}
+                                >
+                                  {addModuleMutation.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <>Selecionar</>
+                                  )}
+                                </Button>
+                              </div>
+                            </Card>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddingModule(false)}>
+                        Cancelar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </TabsContent>
+
+              <TabsContent value="users">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                      <div>
+                        <CardTitle>Usuários e Convites</CardTitle>
+                        <CardDescription>
+                          Gerencie os usuários e convites da sua organização
+                        </CardDescription>
+                      </div>
+                      <Button onClick={() => setIsInviting(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Convidar Usuário
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingInvitations ? (
+                      <div className="flex justify-center p-6">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {/* Active Invitations */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Convites Pendentes</h3>
+                          {userInvitations.filter(inv => inv.status === 'pending').length === 0 ? (
+                            <p className="text-gray-500">Não há convites pendentes.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    <th className="py-3 text-left font-medium">Email</th>
+                                    <th className="py-3 text-left font-medium">Função</th>
+                                    <th className="py-3 text-left font-medium">Grupo</th>
+                                    <th className="py-3 text-left font-medium">Status</th>
+                                    <th className="py-3 text-left font-medium">Enviado em</th>
+                                    <th className="py-3 text-left font-medium">Expira em</th>
+                                    <th className="py-3 text-left font-medium">Ações</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {userInvitations.filter(inv => inv.status === 'pending').map(invitation => (
+                                    <tr key={invitation.id} className="border-b hover:bg-muted/50">
+                                      <td className="py-3">{invitation.email}</td>
+                                      <td className="py-3">
+                                        <Badge variant="outline" className="font-normal">
+                                          {invitation.role === 'org_admin' ? 'Administrador' : 
+                                           invitation.role === 'doctor' ? 'Médico' : 
+                                           invitation.role === 'manager' ? 'Gestor' : 'Usuário'}
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">{invitation.groupName || 'Sem grupo'}</td>
+                                      <td className="py-3">
+                                        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200">
+                                          Pendente
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">{new Date(invitation.createdAt).toLocaleDateString('pt-BR')}</td>
+                                      <td className="py-3">{new Date(invitation.expiresAt).toLocaleDateString('pt-BR')}</td>
+                                      <td className="py-3">
+                                        <div className="flex gap-2">
+                                          <Button variant="ghost" size="sm">
+                                            Reenviar
+                                          </Button>
+                                          <Button variant="ghost" size="sm" className="text-red-500">
+                                            Cancelar
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Historical Invitations */}
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Histórico de Convites</h3>
+                          {userInvitations.filter(inv => inv.status !== 'pending').length === 0 ? (
+                            <p className="text-gray-500">Não há convites finalizados.</p>
+                          ) : (
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    <th className="py-3 text-left font-medium">Email</th>
+                                    <th className="py-3 text-left font-medium">Função</th>
+                                    <th className="py-3 text-left font-medium">Status</th>
+                                    <th className="py-3 text-left font-medium">Enviado em</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {userInvitations.filter(inv => inv.status !== 'pending').map(invitation => (
+                                    <tr key={invitation.id} className="border-b hover:bg-muted/50">
+                                      <td className="py-3">{invitation.email}</td>
+                                      <td className="py-3">
+                                        <Badge variant="outline" className="font-normal">
+                                          {invitation.role === 'org_admin' ? 'Administrador' : 
+                                           invitation.role === 'doctor' ? 'Médico' : 
+                                           invitation.role === 'manager' ? 'Gestor' : 'Usuário'}
+                                        </Badge>
+                                      </td>
+                                      <td className="py-3">
+                                        {invitation.status === 'accepted' ? (
+                                          <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                                            Aceito
+                                          </Badge>
+                                        ) : (
+                                          <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200">
+                                            Expirado
+                                          </Badge>
+                                        )}
+                                      </td>
+                                      <td className="py-3">{new Date(invitation.createdAt).toLocaleDateString('pt-BR')}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                {/* Invite User Dialog */}
+                <Dialog open={isInviting} onOpenChange={setIsInviting}>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Convidar Novo Usuário</DialogTitle>
+                      <DialogDescription>
+                        Envie um convite por email para adicionar novos usuários à sua organização.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="usuario@exemplo.com"
+                          value={inviteData.email}
+                          onChange={(e) => setInviteData({...inviteData, email: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Função</Label>
+                        <Select
+                          value="org_admin"
+                          disabled={true}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma função" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="org_admin">Administrador da Organização</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">O primeiro usuário deve ser um administrador da organização</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="group">Grupo (opcional)</Label>
+                        <Select
+                          value={inviteData.groupId}
+                          onValueChange={(value) => setInviteData({...inviteData, groupId: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um grupo (opcional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="nenhum">Sem grupo</SelectItem>
+                            {userGroups.map(group => (
+                              <SelectItem key={group.id} value={group.id.toString()}>
+                                {group.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Switch id="welcome-message" />
+                        <Label htmlFor="welcome-message">Enviar mensagem de boas-vindas personalizada</Label>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsInviting(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        onClick={() => createInvitationMutation.mutate({
+                          email: inviteData.email,
+                          role: "org_admin", // Sempre administrador da organização
+                          groupId: inviteData.groupId === "nenhum" ? null : inviteData.groupId
+                        })}
+                        disabled={!inviteData.email || createInvitationMutation.isPending}
+                      >
+                        {createInvitationMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          'Enviar Convite'
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </TabsContent>
+
+
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    </OrganizationLayout>
+  );
+}

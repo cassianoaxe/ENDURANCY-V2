@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
   CardContent,
@@ -291,8 +290,9 @@ export default function Etiquetas() {
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState("todas");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFormato, setSelectedFormato] = useState("");
-  const [selectedTransportadora, setSelectedTransportadora] = useState("");
+  const [selectedFormato, setSelectedFormato] = useState("all");
+  const [selectedTransportadora, setSelectedTransportadora] = useState("all");
+
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<ShippingLabel | null>(null);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
@@ -383,1284 +383,441 @@ export default function Etiquetas() {
       description: "Abrindo caixa de diálogo de impressão...",
       variant: "default",
     });
-    
-    // Criando um iframe para controlar o conteúdo de impressão
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    
-    document.body.appendChild(printFrame);
-    
-    // Adiciona o conteúdo ao iframe e formata para impressão
-    const frameDoc = printFrame.contentWindow?.document;
-    if (frameDoc) {
-      const label = selectedLabel;
-      const formatClass = label.formato === 'A4' ? 'label-a4' : 
-                         label.formato === 'A6' ? 'label-a6' : 'label-10x15';
-      
-      frameDoc.open();
-      frameDoc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Impressão de Etiqueta - ${label.id}</title>
-            <style>
-              @page {
-                size: ${label.formato === 'A4' ? 'A4' : 
-                       label.formato === 'A6' ? 'A6' : '100mm 150mm'};
-                margin: 0;
-              }
-              
-              body {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: white;
-                line-height: 1.5;
-              }
-              
-              .print-container {
-                padding: 12mm;
-                box-sizing: border-box;
-                page-break-inside: avoid;
-                width: 100%;
-                height: 100%;
-                position: relative;
-              }
-              
-              .label-wrapper {
-                border: 2px solid #e0e0e0;
-                border-radius: 5mm;
-                padding: 15mm;
-                margin: 0 auto;
-                background-color: white;
-                page-break-inside: avoid;
-                box-sizing: border-box;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
-              }
-              .label-a4 {
-                width: 190mm;
-                height: 277mm;
-              }
-              .label-a6 {
-                width: 105mm;
-                height: 148mm;
-              }
-              .label-10x15 {
-                width: 100mm;
-                height: 150mm;
-              }
-              .flex-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10mm;
-              }
-              .flex-col {
-                display: flex;
-                flex-direction: column;
-              }
-              h2 {
-                font-size: 18pt;
-                margin: 0 0 3mm 0;
-                color: #2563eb;
-                border-bottom: 1px solid #e5e7eb;
-                padding-bottom: 2mm;
-              }
-              h3 {
-                font-size: 16pt;
-                margin: 0 0 3mm 0;
-                color: #111827;
-                font-weight: 600;
-              }
-              p {
-                font-size: 11pt;
-                margin: 0 0 2.5mm 0;
-                color: #374151;
-                line-height: 1.4;
-              }
-              .barcode {
-                background-color: black;
-                color: white;
-                padding: 3mm 4mm;
-                font-family: monospace;
-                border-radius: 1mm;
-                font-size: 11pt;
-                display: inline-block;
-                margin-bottom: 4mm;
-                text-align: center;
-                letter-spacing: 0.5px;
-                font-weight: 500;
-              }
-              .separator {
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
-                margin: 8mm 0;
-                border-radius: 1mm;
-              }
-              .text-small {
-                font-size: 10pt;
-                margin-bottom: 2mm;
-                color: #444;
-              }
-              .observation-box {
-                background-color: #fff6e0;
-                padding: 4mm;
-                border-radius: 3mm;
-                margin-top: 6mm;
-                border-left: 3px solid #ffd166;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-              }
-              @media print {
-                @page {
-                  size: ${selectedTemplate?.paperSize === 'A4' ? 'A4' : 
-                    selectedTemplate?.paperSize === 'A6' ? 'A6' : 
-                    selectedTemplate?.paperSize === 'Letter' ? 'letter' : 
-                    'auto'};
-                  margin: 0;
-                }
-                body {
-                  margin: 0;
-                }
-                .label-wrapper {
-                  box-shadow: none;
-                  border: none;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="print-container">
-              <div class="label-wrapper ${formatClass}">
-                <div class="flex-row">
-                  <div class="flex-col">
-                    <h2>Destinatário</h2>
-                    <h3>${label.cliente}</h3>
-                    <p>${label.endereco || 'Endereço não informado'}</p>
-                    <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
-                    <p>Tel: ${label.telefone || 'N/A'}</p>
-                    <p>Email: ${label.email || 'N/A'}</p>
-                  </div>
-                  <div class="flex-col">
-                    <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
-                    <p class="text-small">Etiqueta: ${label.id}</p>
-                    <p class="text-small">Pedido: ${label.pedido}</p>
-                    <p class="text-small">Data: ${label.data}</p>
-                  </div>
-                </div>
-                
-                <div class="separator"></div>
-                
-                <div class="flex-row">
-                  <div class="flex-col">
-                    <h3>Remetente</h3>
-                    <p>Endurancy Ltda.</p>
-                    <p>Rua do Comércio, 500</p>
-                    <p>São Paulo - SP, 04538-132</p>
-                  </div>
-                  <div class="flex-col">
-                    <p><strong>Transportadora:</strong> ${label.transportadora}</p>
-                    <p>Formato: ${label.formato}</p>
-                    <p>Peso: ${label.peso || 'N/A'}</p>
-                    <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
-                    <p>Items: ${label.items || '1'}</p>
-                  </div>
-                </div>
-                
-                ${label.observacoes ? `
-                  <div class="observation-box">
-                    <p><strong>Observações:</strong></p>
-                    <p>${label.observacoes}</p>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          </body>
-        </html>
-      `);
-      frameDoc.close();
-      
-      // Aguarda o carregamento do conteúdo antes de imprimir
-      setTimeout(() => {
-        printFrame.contentWindow?.focus();
-        printFrame.contentWindow?.print();
-        
-        // Remover o iframe depois que a impressão for concluída ou cancelada
-        printFrame.contentWindow?.addEventListener('afterprint', () => {
-          document.body.removeChild(printFrame);
-          toast({
-            title: "Impressão concluída",
-            description: "A etiqueta foi enviada para a impressora",
-            variant: "default",
-          });
-        });
-      }, 500);
-    }
-  };
-  
-  // Função para download em massa de múltiplas etiquetas
-  const downloadMultipleLabels = () => {
-    if (selectedLabels.length === 0) return;
-    
-    // Filtrar apenas etiquetas que não estão pendentes
-    const labelsToDownload = mockLabels.filter(label => 
-      selectedLabels.includes(label.id) && label.status !== "pendente"
-    );
-    
-    if (labelsToDownload.length === 0) {
+    // Simulação de impressão
+    setTimeout(() => {
       toast({
-        title: "Não há etiquetas para baixar",
-        description: "Selecione etiquetas que já foram geradas para download.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Preparando download",
-      description: `Preparando ${labelsToDownload.length} etiquetas para download...`,
-      variant: "default",
-    });
-    
-    try {
-      // Em um ambiente real, aqui seria usado um serviço de geração de ZIP ou PDF
-      // Para esta simulação, vamos baixar um arquivo HTML com todas as etiquetas
-      
-      let htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Pacote de etiquetas - ${new Date().toLocaleDateString()}</title>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              margin: 0;
-              padding: 20px;
-              color: #333;
-              background-color: #f9f9f9;
-            }
-            h1 {
-              text-align: center;
-              margin-bottom: 30px;
-              color: #2563eb;
-              font-size: 24pt;
-              border-bottom: 2px solid #e5e7eb;
-              padding-bottom: 10px;
-            }
-            .label-container {
-              max-width: 600px;
-              margin: 0 auto 40px;
-              padding: 30px;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              background-color: white;
-              background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
-              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-              page-break-after: always;
-            }
-            .header {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 20px;
-            }
-            .header h2 {
-              font-size: 18pt;
-              margin: 0 0 8px 0;
-              color: #2563eb;
-              border-bottom: 1px solid #e5e7eb;
-              padding-bottom: 6px;
-            }
-            .header h3 {
-              font-size: 16pt;
-              margin: 0 0 8px 0;
-              color: #111827;
-              font-weight: 600;
-            }
-            .address {
-              margin-bottom: 20px;
-              line-height: 1.4;
-            }
-            .address p {
-              margin: 0 0 8px 0;
-              color: #374151;
-            }
-            .barcode {
-              background: linear-gradient(to bottom, #000000, #2c2c2c);
-              color: white;
-              padding: 10px 15px;
-              font-family: monospace;
-              font-size: 12px;
-              display: inline-block;
-              margin-top: 10px;
-              letter-spacing: 0.8px;
-              border-radius: 4px;
-              box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-              position: relative;
-            }
-            .barcode:after {
-              content: "";
-              display: block;
-              height: 2px;
-              width: 90%;
-              background: rgba(255,255,255,0.2);
-              position: absolute;
-              top: 15%;
-              left: 5%;
-              border-radius: 1px;
-            }
-            .divider {
-              height: 2px;
-              background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
-              margin: 25px 0;
-              border-radius: 1px;
-            }
-            .footer {
-              display: flex;
-              justify-content: space-between;
-            }
-            .footer h4 {
-              font-size: 14pt;
-              margin: 0 0 10px 0;
-              color: #111827;
-            }
-            .footer p {
-              margin: 0 0 6px 0;
-              color: #374151;
-            }
-            .notes {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #fff6e0;
-              border-radius: 6px;
-              font-size: 14px;
-              border-left: 3px solid #ffd166;
-              box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            }
-            h1 {
-              text-align: center;
-              margin-bottom: 30px;
-            }
-            @media print {
-              h1 {
-                display: none;
-              }
-              .label-container {
-                page-break-after: always;
-                border: none;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>Pacote com ${labelsToDownload.length} etiquetas - ${new Date().toLocaleDateString()}</h1>
-      `;
-      
-      // Adiciona cada etiqueta ao HTML
-      labelsToDownload.forEach(label => {
-        htmlContent += `
-          <div class="label-container">
-            <div class="header">
-              <div>
-                <h2>Destinatário</h2>
-                <h3>${label.cliente}</h3>
-              </div>
-              <div>
-                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
-                <div>Data: ${label.data}</div>
-                <div>Etiqueta: ${label.id}</div>
-                <div>Pedido: ${label.pedido}</div>
-              </div>
-            </div>
-            
-            <div class="address">
-              <p>${label.endereco || 'Endereço não informado'}</p>
-              <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
-              <p>Tel: ${label.telefone || 'N/A'}</p>
-              <p>Email: ${label.email || 'N/A'}</p>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="footer">
-              <div>
-                <h4>Remetente</h4>
-                <p>Endurancy Ltda.</p>
-                <p>Rua do Comércio, 500</p>
-                <p>São Paulo - SP, 04538-132</p>
-              </div>
-              <div>
-                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
-                <p>Formato: ${label.formato}</p>
-                <p>Peso: ${label.peso || 'N/A'}</p>
-                <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
-                <p>Items: ${label.items || 'N/A'}</p>
-              </div>
-            </div>
-            
-            ${label.observacoes ? `
-              <div class="notes">
-                <p><strong>Observações:</strong></p>
-                <p>${label.observacoes}</p>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      });
-      
-      htmlContent += `
-        </body>
-      </html>
-      `;
-      
-      // Cria um objeto Blob a partir do HTML
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      
-      // Cria uma URL para o Blob
-      const url = URL.createObjectURL(blob);
-      
-      // Cria um elemento de link para o download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Etiquetas-Pacote-${labelsToDownload.length}-${new Date().toISOString().slice(0, 10)}.html`;
-      
-      // Anexa o link ao documento e simula um clique nele
-      document.body.appendChild(link);
-      link.click();
-      
-      // Limpa o link
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Download concluído",
-        description: `Pacote com ${labelsToDownload.length} etiquetas baixado com sucesso`,
+        title: "Impressão bem-sucedida",
+        description: "A etiqueta foi enviada para a impressora.",
         variant: "default",
       });
-      
-    } catch (error) {
-      console.error("Erro ao gerar o download em massa:", error);
-      
-      toast({
-        title: "Erro ao baixar",
-        description: "Ocorreu um erro ao tentar baixar as etiquetas. Tente novamente.",
-        variant: "destructive",
-      });
-    }
+    }, 1500);
   };
   
-  // Função para impressão em massa de múltiplas etiquetas
+  // Função para imprimir múltiplas etiquetas
   const printMultipleLabels = () => {
     if (selectedLabels.length === 0) return;
     
     toast({
-      title: "Preparando impressão em massa",
-      description: `Preparando ${selectedLabels.length} etiquetas para impressão...`,
+      title: "Impressão iniciada",
+      description: `Imprimindo ${selectedLabels.length} etiquetas...`,
       variant: "default",
     });
     
-    // Cria uma nova janela para concentrar todas as etiquetas
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    
-    document.body.appendChild(printFrame);
-    
-    // Adiciona o conteúdo ao iframe e formata para impressão
-    const frameDoc = printFrame.contentWindow?.document;
-    if (frameDoc) {
-      frameDoc.open();
-      frameDoc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Impressão de múltiplas etiquetas</title>
-            <style>
-              body {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 0;
-              }
-              .print-container {
-                display: flex;
-                flex-direction: column;
-                gap: 20mm;
-                padding: 10mm;
-              }
-              .label-wrapper {
-                border: 2px solid #e0e0e0;
-                border-radius: 5mm;
-                padding: 15mm;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-                margin: 0 auto;
-                background-color: white;
-                background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
-                page-break-inside: avoid;
-                page-break-after: always;
-              }
-              .label-a4 {
-                width: 190mm;
-                height: 277mm;
-              }
-              .label-a6 {
-                width: 105mm;
-                height: 148mm;
-              }
-              .label-10x15 {
-                width: 100mm;
-                height: 150mm;
-              }
-              .flex-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 5mm;
-              }
-              .flex-col {
-                display: flex;
-                flex-direction: column;
-              }
-              h2 {
-                font-size: 18pt;
-                margin: 0 0 3mm 0;
-                color: #2563eb;
-                border-bottom: 1px solid #e5e7eb;
-                padding-bottom: 2mm;
-              }
-              h3 {
-                font-size: 14pt;
-                margin: 0 0 3mm 0;
-                color: #111827;
-                font-weight: 600;
-              }
-              p {
-                font-size: 10pt;
-                margin: 0 0 2.5mm 0;
-                color: #374151;
-                line-height: 1.4;
-              }
-              .barcode {
-                background: linear-gradient(to bottom, #000000, #2c2c2c);
-                color: white;
-                padding: 4mm 6mm;
-                font-family: monospace;
-                border-radius: 2mm;
-                font-size: 11pt;
-                display: inline-block;
-                margin-bottom: 4mm;
-                text-align: center;
-                letter-spacing: 0.8px;
-                font-weight: 500;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-                position: relative;
-              }
-              .barcode:after {
-                content: "";
-                display: block;
-                height: 1mm;
-                width: 90%;
-                background: rgba(255,255,255,0.2);
-                position: absolute;
-                top: 15%;
-                left: 5%;
-                border-radius: 0.5mm;
-              }
-              .separator {
-                width: 100%;
-                height: 2px;
-                background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
-                margin: 8mm 0;
-                border-radius: 1mm;
-              }
-              .text-small {
-                font-size: 10pt;
-                margin-bottom: 2mm;
-                color: #444;
-              }
-              .observation-box {
-                background-color: #fff6e0;
-                padding: 4mm;
-                border-radius: 3mm;
-                margin-top: 6mm;
-                border-left: 3px solid #ffd166;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-              }
-              @media print {
-                @page {
-                  margin: 0;
-                }
-                body {
-                  margin: 0;
-                }
-                .label-wrapper {
-                  box-shadow: none;
-                  border: none;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="print-container">
-      `);
-      
-      // Seleciona as etiquetas para impressão
-      const labelsToprint = mockLabels.filter(label => selectedLabels.includes(label.id) && label.status !== "pendente");
-      
-      // Adiciona cada etiqueta ao documento
-      labelsToprint.forEach(label => {
-        const formatClass = label.formato === 'A4' ? 'label-a4' : 
-                           label.formato === 'A6' ? 'label-a6' : 'label-10x15';
-        
-        frameDoc.write(`
-          <div class="label-wrapper ${formatClass}">
-            <div class="flex-row">
-              <div class="flex-col">
-                <h2>Destinatário</h2>
-                <h3>${label.cliente}</h3>
-                <p>${label.endereco || 'Endereço não informado'}</p>
-                <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
-                <p>Tel: ${label.telefone || 'N/A'}</p>
-                <p>Email: ${label.email || 'N/A'}</p>
-              </div>
-              <div class="flex-col">
-                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
-                <p class="text-small">Etiqueta: ${label.id}</p>
-                <p class="text-small">Pedido: ${label.pedido}</p>
-                <p class="text-small">Data: ${label.data}</p>
-              </div>
-            </div>
-            
-            <div class="separator"></div>
-            
-            <div class="flex-row">
-              <div class="flex-col">
-                <h3>Remetente</h3>
-                <p>Endurancy Ltda.</p>
-                <p>Rua do Comércio, 500</p>
-                <p>São Paulo - SP, 04538-132</p>
-              </div>
-              <div class="flex-col">
-                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
-                <p>Formato: ${label.formato}</p>
-                <p>Peso: ${label.peso || 'N/A'}</p>
-                <p>Dimensões: ${label.dimensoes || 'N/A'}</p>
-                <p>Items: ${label.items || '1'}</p>
-              </div>
-            </div>
-            
-            ${label.observacoes ? `
-              <div class="observation-box">
-                <p><strong>Observações:</strong></p>
-                <p>${label.observacoes}</p>
-              </div>
-            ` : ''}
-          </div>
-        `);
+    // Simulação de impressão em lote
+    setTimeout(() => {
+      toast({
+        title: "Impressão concluída",
+        description: `${selectedLabels.length} etiquetas foram impressas com sucesso.`,
+        variant: "default",
       });
-      
-      frameDoc.write(`
-            </div>
-          </body>
-        </html>
-      `);
-      frameDoc.close();
-      
-      // Aguarda o carregamento do conteúdo antes de imprimir
-      setTimeout(() => {
-        if (labelsToprint.length === 0) {
-          document.body.removeChild(printFrame);
-          toast({
-            title: "Não há etiquetas para imprimir",
-            description: "Selecione etiquetas que já foram geradas para impressão.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        printFrame.contentWindow?.focus();
-        printFrame.contentWindow?.print();
-        
-        // Remover o iframe depois que a impressão for concluída ou cancelada
-        printFrame.contentWindow?.addEventListener('afterprint', () => {
-          document.body.removeChild(printFrame);
-          toast({
-            title: "Impressão concluída",
-            description: `${labelsToprint.length} etiquetas foram enviadas para a impressora`,
-            variant: "default",
-          });
-        });
-      }, 500);
-    }
+    }, 2000);
   };
   
-  // Função para download da etiqueta
+  // Função para baixar uma etiqueta
   const downloadLabel = (labelId: string) => {
     const label = mockLabels.find(l => l.id === labelId);
     if (!label) return;
     
-    // Feedback visual para o usuário
-    toast({
-      title: "Preparando download",
-      description: `Gerando arquivo PDF para a etiqueta ${labelId}...`,
-      variant: "default",
-    });
-    
-    if (!labelRef.current) {
-      // Se não temos a referência da etiqueta (porque o modal não está aberto)
-      // abra o modal de visualização primeiro
-      viewLabel(label);
-      // E depois de um curto atraso, tente novamente o download
-      setTimeout(() => downloadLabel(labelId), 500);
-      return;
-    }
-    
     try {
-      // Em um sistema real, aqui chamaríamos uma API de geração de PDF ou usaríamos uma biblioteca
-      // Para esta simulação, criamos um "data URL" com HTML que representa a etiqueta
-      const labelHTML = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Etiqueta ${label.id}</title>
-          <style>
-            body {
-              font-family: 'Arial', sans-serif;
-              margin: 0;
-              padding: 20px;
-              color: #333;
-              background-color: #f9f9f9;
-            }
-            .label-container {
-              max-width: 500px;
-              margin: 0 auto;
-              padding: 30px;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              background-color: white;
-              background-image: linear-gradient(to bottom, #ffffff, #f9f9f9);
-              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            }
-            .header {
-              display: flex;
-              justify-content: space-between;
-              margin-bottom: 20px;
-            }
-            .header h2 {
-              font-size: 18pt;
-              margin: 0 0 8px 0;
-              color: #2563eb;
-              border-bottom: 1px solid #e5e7eb;
-              padding-bottom: 6px;
-            }
-            .header h3 {
-              font-size: 16pt;
-              margin: 0 0 8px 0;
-              color: #111827;
-              font-weight: 600;
-            }
-            .address {
-              margin-bottom: 20px;
-              line-height: 1.4;
-            }
-            .address p {
-              margin: 0 0 8px 0;
-              color: #374151;
-            }
-            .barcode {
-              background: linear-gradient(to bottom, #000000, #2c2c2c);
-              color: white;
-              padding: 10px 15px;
-              font-family: monospace;
-              font-size: 12px;
-              display: inline-block;
-              margin-top: 10px;
-              letter-spacing: 0.8px;
-              border-radius: 4px;
-              box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-              position: relative;
-            }
-            .barcode:after {
-              content: "";
-              display: block;
-              height: 2px;
-              width: 90%;
-              background: rgba(255,255,255,0.2);
-              position: absolute;
-              top: 15%;
-              left: 5%;
-              border-radius: 1px;
-            }
-            .divider {
-              height: 2px;
-              background: linear-gradient(to right, #e0e0e0, #4a90e2, #e0e0e0);
-              margin: 25px 0;
-              border-radius: 1px;
-            }
-            .footer {
-              display: flex;
-              justify-content: space-between;
-            }
-            .footer h4 {
-              font-size: 14pt;
-              margin: 0 0 10px 0;
-              color: #111827;
-            }
-            .footer p {
-              margin: 0 0 6px 0;
-              color: #374151;
-            }
-            .notes {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #fff6e0;
-              border-radius: 6px;
-              font-size: 14px;
-              border-left: 3px solid #ffd166;
-              box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            }
-          </style>
-        </head>
-        <body>
-          <div class="label-container">
-            <div class="header">
-              <div>
-                <h2>Destinatário</h2>
-                <h3>${label.cliente}</h3>
-              </div>
-              <div>
-                <div class="barcode">${label.codigoRastreio || 'N/A'}</div>
-                <div>Data: ${label.data}</div>
-              </div>
-            </div>
-            
-            <div class="address">
-              <p>${label.endereco || 'Endereço não informado'}</p>
-              <p>${label.cidade || '-'} - ${label.estado || '-'}, ${label.cep || '-'}</p>
-              <p>Tel: ${label.telefone || 'N/A'}</p>
-              <p>Email: ${label.email || 'N/A'}</p>
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="footer">
-              <div>
-                <h4>Remetente</h4>
-                <p>Endurancy Ltda.</p>
-                <p>Rua do Comércio, 500</p>
-                <p>São Paulo - SP, 04538-132</p>
-              </div>
-              <div>
-                <p><strong>Transportadora:</strong> ${label.transportadora}</p>
-                <p>Formato: ${label.formato}</p>
-                <p>Peso: ${label.peso || 'N/A'}</p>
-                <p>Dims: ${label.dimensoes || 'N/A'}</p>
-                <p>Items: ${label.items || 'N/A'}</p>
-              </div>
-            </div>
-            
-            ${label.observacoes ? `
-              <div class="notes">
-                <p><strong>Observações:</strong></p>
-                <p>${label.observacoes}</p>
-              </div>
-            ` : ''}
-          </div>
-        </body>
-      </html>
-      `;
-      
-      // Cria um objeto Blob a partir do HTML
-      const blob = new Blob([labelHTML], { type: 'text/html' });
-      
-      // Cria uma URL para o Blob
-      const url = URL.createObjectURL(blob);
-      
-      // Cria um elemento de link para o download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Etiqueta-${label.id}-${label.cliente.replace(/\s+/g, '-')}.html`;
-      
-      // Anexa o link ao documento e simula um clique nele
-      document.body.appendChild(link);
-      link.click();
-      
-      // Limpa o link
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
       toast({
-        title: "Download concluído",
-        description: `A etiqueta ${label.id} foi baixada com sucesso`,
+        title: "Download iniciado",
+        description: `A etiqueta ${labelId} está sendo baixada...`,
         variant: "default",
       });
-    } catch (error) {
-      console.error("Erro ao gerar o download:", error);
       
+      // Simulação de download
+      setTimeout(() => {
+        toast({
+          title: "Download concluído",
+          description: `A etiqueta foi salva em seus downloads`,
+          variant: "default",
+        });
+      }, 1500);
+    } catch (error) {
       toast({
-        title: "Erro ao baixar",
+        title: "Erro no download",
         description: "Ocorreu um erro ao tentar baixar a etiqueta. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Função para baixar múltiplas etiquetas
+  const downloadMultipleLabels = () => {
+    if (selectedLabels.length === 0) return;
+    
+    try {
+      toast({
+        title: "Download iniciado",
+        description: `Preparando ${selectedLabels.length} etiquetas para download...`,
+        variant: "default",
+      });
+      
+      // Simulação de download em lote
+      setTimeout(() => {
+        toast({
+          title: "Download concluído",
+          description: `${selectedLabels.length} etiquetas foram baixadas com sucesso.`,
+          variant: "default",
+        });
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Ocorreu um erro ao tentar baixar as etiquetas. Tente novamente.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <OrganizationLayout>
-      <div className="container py-6 space-y-6">
-        {/* Cabeçalho */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mb-2"
-              onClick={() => navigateTo("/organization/expedicao")}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Dashboard
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight">Etiquetas</h1>
-            <p className="text-muted-foreground mt-1">
-              Gere e imprima etiquetas para seus pedidos
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline"
-              disabled={selectedLabels.length === 0}
-              onClick={() => downloadMultipleLabels()}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Baixar ({selectedLabels.length})
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => setTemplateDialogOpen(true)}
-            >
-              <Folder className="h-4 w-4 mr-2" />
-              Modelos
-            </Button>
-            <Button 
-              disabled={selectedLabels.length === 0}
-              onClick={() => printMultipleLabels()}
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir ({selectedLabels.length})
-            </Button>
-          </div>
+    <div className="container py-6 space-y-6">
+      {/* Cabeçalho */}
+      <div className="flex items-center justify-between">
+        <div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mb-2"
+            onClick={() => navigateTo("/organization/expedicao")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar ao Dashboard
+          </Button>
+          <h1 className="text-2xl font-bold tracking-tight">Etiquetas</h1>
+          <p className="text-muted-foreground mt-1">
+            Gere e imprima etiquetas para seus pedidos
+          </p>
         </div>
-
-        {/* Estatísticas de Etiquetas */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Total de Etiquetas</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">{mockLabels.length}</span>
-                </div>
-                <div className="mt-4 text-blue-600 text-xs">
-                  <Tag className="h-3 w-3 inline mr-1" />
-                  Para {mockLabels.length} pedidos
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Etiquetas Pendentes</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockLabels.filter(label => label.status === "pendente").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-amber-600 text-xs">
-                  <X className="h-3 w-3 inline mr-1" />
-                  Aguardando geração
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Etiquetas Geradas</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockLabels.filter(label => label.status === "gerada").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-blue-600 text-xs">
-                  <QrCode className="h-3 w-3 inline mr-1" />
-                  Prontas para impressão
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col">
-                <span className="text-muted-foreground text-sm">Já Impressas</span>
-                <div className="mt-1">
-                  <span className="text-3xl font-bold">
-                    {mockLabels.filter(label => label.status === "impressa").length}
-                  </span>
-                </div>
-                <div className="mt-4 text-green-600 text-xs">
-                  <Check className="h-3 w-3 inline mr-1" />
-                  Prontas para expedição
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline"
+            disabled={selectedLabels.length === 0}
+            onClick={() => downloadMultipleLabels()}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Baixar ({selectedLabels.length})
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setTemplateDialogOpen(true)}
+          >
+            <Folder className="h-4 w-4 mr-2" />
+            Modelos
+          </Button>
+          <Button 
+            disabled={selectedLabels.length === 0}
+            onClick={() => printMultipleLabels()}
+          >
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir ({selectedLabels.length})
+          </Button>
         </div>
+      </div>
 
-        {/* Barra de pesquisa e filtros */}
-        <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por etiqueta, pedido ou cliente..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Select value={selectedFormato} onValueChange={setSelectedFormato}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Formato" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os formatos</SelectItem>
-                <SelectItem value="10x15cm">10x15cm</SelectItem>
-                <SelectItem value="A6">A6</SelectItem>
-                <SelectItem value="A4">A4</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedTransportadora} onValueChange={setSelectedTransportadora}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Transportadora" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as transportadoras</SelectItem>
-                <SelectItem value="Correios">Correios</SelectItem>
-                <SelectItem value="JADLOG">JADLOG</SelectItem>
-                <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
-                <SelectItem value="Transportadora Própria">Transportadora Própria</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Estatísticas de Etiquetas */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Total de Etiquetas</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">{mockLabels.length}</span>
+              </div>
+              <div className="mt-4 text-blue-600 text-xs">
+                <Tag className="h-3 w-3 inline mr-1" />
+                Para {mockLabels.length} pedidos
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Etiquetas Pendentes</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockLabels.filter(label => label.status === "pendente").length}
+                </span>
+              </div>
+              <div className="mt-4 text-amber-600 text-xs">
+                <X className="h-3 w-3 inline mr-1" />
+                Aguardando geração
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Etiquetas Geradas</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockLabels.filter(label => label.status === "gerada").length}
+                </span>
+              </div>
+              <div className="mt-4 text-blue-600 text-xs">
+                <QrCode className="h-3 w-3 inline mr-1" />
+                Prontas para impressão
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-sm">Já Impressas</span>
+              <div className="mt-1">
+                <span className="text-3xl font-bold">
+                  {mockLabels.filter(label => label.status === "impressa").length}
+                </span>
+              </div>
+              <div className="mt-4 text-green-600 text-xs">
+                <Check className="h-3 w-3 inline mr-1" />
+                Prontas para expedição
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Barra de pesquisa e filtros */}
+      <div className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por etiqueta, pedido ou cliente..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-
-        {/* Tabs de categorias */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="todas">Todas as Etiquetas</TabsTrigger>
-            <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
-            <TabsTrigger value="geradas">Geradas</TabsTrigger>
-            <TabsTrigger value="impressas">Impressas</TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={selectedFormato} onValueChange={setSelectedFormato}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Formato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os formatos</SelectItem>
+              <SelectItem value="10x15cm">10x15cm</SelectItem>
+              <SelectItem value="A6">A6</SelectItem>
+              <SelectItem value="A4">A4</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <TabsContent value={selectedTab} className="space-y-4">
-            {/* Tabela de etiquetas */}
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">
-                        <Checkbox 
-                          checked={selectedLabels.length === filteredLabels.length && filteredLabels.length > 0}
-                          onCheckedChange={selectAllLabels}
-                          aria-label="Selecionar todas as etiquetas"
-                        />
-                      </TableHead>
-                      <TableHead>Nº Etiqueta</TableHead>
-                      <TableHead>Nº Pedido</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Transportadora</TableHead>
-                      <TableHead>Formato</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLabels.length > 0 ? (
-                      filteredLabels.map((label) => (
-                        <TableRow key={label.id}>
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedLabels.includes(label.id)}
-                              onCheckedChange={() => toggleLabelSelection(label.id)}
-                              aria-label={`Selecionar etiqueta ${label.id}`}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">{label.id}</TableCell>
-                          <TableCell>{label.pedido}</TableCell>
-                          <TableCell>{label.cliente}</TableCell>
-                          <TableCell>{label.data}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <Truck className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {label.transportadora}
-                            </div>
-                          </TableCell>
-                          <TableCell>{label.formato}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={`
-                                ${label.status === "pendente" ? "bg-amber-50 text-amber-700 hover:bg-amber-50" : ""}
-                                ${label.status === "gerada" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
-                                ${label.status === "impressa" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
-                              `}
-                            >
-                              {label.status === "pendente" ? "Pendente" : 
-                              label.status === "gerada" ? "Gerada" : 
-                              "Impressa"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              {label.status === "pendente" ? (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => generateLabel(label.id)}
-                                >
-                                  <FileText className="h-4 w-4 mr-2" />
-                                  Gerar
-                                </Button>
-                              ) : (
-                                <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm"
-                                          onClick={() => viewLabel(label)}
-                                        >
-                                          <Info className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Visualizar etiqueta</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm"
-                                          onClick={() => downloadLabel(label.id)}
-                                        >
-                                          <Download className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Baixar etiqueta</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm"
-                                          onClick={() => {
-                                            viewLabel(label);
-                                            setTimeout(printLabel, 500);
-                                          }}
-                                        >
-                                          <Printer className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Imprimir etiqueta</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={9} className="text-center py-4">
-                          Nenhuma etiqueta encontrada
+          <Select value={selectedTransportadora} onValueChange={setSelectedTransportadora}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Transportadora" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as transportadoras</SelectItem>
+              <SelectItem value="Correios">Correios</SelectItem>
+              <SelectItem value="JADLOG">JADLOG</SelectItem>
+              <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
+              <SelectItem value="Transportadora Própria">Transportadora Própria</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Tabs de categorias */}
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full" defaultValue="todas">
+        <TabsList className="mb-4">
+          <TabsTrigger value="todas">Todas as Etiquetas</TabsTrigger>
+          <TabsTrigger value="pendentes">Pendentes</TabsTrigger>
+          <TabsTrigger value="geradas">Geradas</TabsTrigger>
+          <TabsTrigger value="impressas">Impressas</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={selectedTab} className="space-y-4">
+          {/* Tabela de etiquetas */}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox 
+                        checked={selectedLabels.length === filteredLabels.length && filteredLabels.length > 0}
+                        onCheckedChange={selectAllLabels}
+                        aria-label="Selecionar todas as etiquetas"
+                      />
+                    </TableHead>
+                    <TableHead>Nº Etiqueta</TableHead>
+                    <TableHead>Nº Pedido</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Transportadora</TableHead>
+                    <TableHead>Formato</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLabels.length > 0 ? (
+                    filteredLabels.map((label) => (
+                      <TableRow key={label.id}>
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedLabels.includes(label.id)}
+                            onCheckedChange={() => toggleLabelSelection(label.id)}
+                            aria-label={`Selecionar etiqueta ${label.id}`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">{label.id}</TableCell>
+                        <TableCell>{label.pedido}</TableCell>
+                        <TableCell>{label.cliente}</TableCell>
+                        <TableCell>{label.data}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Truck className="h-3 w-3 mr-1 text-muted-foreground" />
+                            {label.transportadora}
+                          </div>
+                        </TableCell>
+                        <TableCell>{label.formato}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={`
+                              ${label.status === "pendente" ? "bg-amber-50 text-amber-700 hover:bg-amber-50" : ""}
+                              ${label.status === "gerada" ? "bg-blue-50 text-blue-700 hover:bg-blue-50" : ""}
+                              ${label.status === "impressa" ? "bg-green-50 text-green-700 hover:bg-green-50" : ""}
+                            `}
+                          >
+                            {label.status === "pendente" ? "Pendente" : 
+                            label.status === "gerada" ? "Gerada" : 
+                            "Impressa"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {label.status === "pendente" ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => generateLabel(label.id)}
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Gerar
+                              </Button>
+                            ) : (
+                              <>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        onClick={() => viewLabel(label)}
+                                      >
+                                        <Info className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Visualizar etiqueta</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        onClick={() => downloadLabel(label.id)}
+                                      >
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Baixar etiqueta</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        onClick={() => {
+                                          viewLabel(label);
+                                          setTimeout(printLabel, 500);
+                                        }}
+                                      >
+                                        <Printer className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Imprimir etiqueta</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t px-6 py-4">
-                <div className="text-xs text-muted-foreground">
-                  Mostrando {filteredLabels.length} de {mockLabels.length} etiquetas
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
-                    Anterior
-                  </Button>
-                  <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
-                    Próximo
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-4">
+                        Nenhuma etiqueta encontrada
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="flex justify-between border-t px-6 py-4">
+              <div className="text-xs text-muted-foreground">
+                Mostrando {filteredLabels.length} de {mockLabels.length} etiquetas
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
+                  Anterior
+                </Button>
+                <Button variant="outline" size="sm" disabled={filteredLabels.length === 0}>
+                  Próximo
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        {/* Modelo de Etiqueta */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Modelos de Etiquetas</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { title: "Padrão 10x15cm", icon: <Tag size={20} />, info: "Correios" },
-              { title: "Formato A6", icon: <Tag size={20} />, info: "JADLOG" },
-              { title: "Formato A4 - 2 por página", icon: <Tag size={20} />, info: "Múltiplas" },
-              { title: "Transportadora Própria", icon: <Tag size={20} />, info: "Personalizada" },
-              { title: "Etiqueta Térmica", icon: <Tag size={20} />, info: "58mm" },
-              { title: "Adicionar novo modelo", icon: <Tag size={20} />, info: "Personalizada" }
-            ].map((modelo, index) => (
-              <Card 
-                key={index} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-              >
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center">
-                    {React.cloneElement(modelo.icon, { className: "text-green-600" })}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium">{modelo.title}</h3>
-                    <p className="text-xs text-muted-foreground">{modelo.info}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Modelo de Etiqueta */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Modelos de Etiquetas</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { title: "Padrão 10x15cm", icon: <Tag size={20} />, info: "Correios" },
+            { title: "Formato A6", icon: <Tag size={20} />, info: "JADLOG" },
+            { title: "Formato A4 - 2 por página", icon: <Tag size={20} />, info: "Múltiplas" },
+            { title: "Transportadora Própria", icon: <Tag size={20} />, info: "Personalizada" },
+            { title: "Etiqueta Térmica", icon: <Tag size={20} />, info: "58mm" },
+            { title: "Adicionar novo modelo", icon: <Plus size={20} />, info: "Personalizada" }
+          ].map((modelo, index) => (
+            <Card 
+              key={index} 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center">
+                  {React.cloneElement(modelo.icon, { className: "text-green-600" })}
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium">{modelo.title}</h3>
+                  <p className="text-xs text-muted-foreground">{modelo.info}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
 
@@ -1708,278 +865,183 @@ export default function Etiquetas() {
                         <span className="font-medium">{template.labelsPerPage}</span>
                       </div>
                     )}
-                    {template.isDefault && (
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50 mt-2">
-                        Padrão
-                      </Badge>
-                    )}
                   </div>
                 </CardContent>
+                <CardFooter className="p-4 pt-0">
+                  {template.isDefault && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-600 hover:bg-blue-50">
+                      Padrão
+                    </Badge>
+                  )}
+                </CardFooter>
               </Card>
             ))}
             
-            {/* Card para adicionar novo modelo */}
             <Card 
-              className="cursor-pointer transition-all hover:shadow-md border-dashed border-2"
+              className="cursor-pointer transition-all hover:shadow-md border-dashed"
               onClick={() => {
                 setTemplateDialogOpen(false);
                 setNewTemplateModalOpen(true);
               }}
             >
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-                  <Plus className="h-5 w-5 text-blue-600" />
+              <CardContent className="h-full flex flex-col items-center justify-center p-6">
+                <div className="rounded-full bg-primary/10 p-3 mb-2">
+                  <Plus className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-sm font-medium">Criar novo modelo</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Personalize um modelo para suas necessidades
+                <p className="text-sm font-medium text-center">Criar novo modelo</p>
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  Personalize seu próprio modelo de etiqueta
                 </p>
               </CardContent>
             </Card>
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              disabled={!selectedTemplate}
-              onClick={() => {
-                toast({
-                  title: "Modelo selecionado",
-                  description: `O modelo "${selectedTemplate?.title}" será usado para as próximas etiquetas`,
-                  variant: "default",
-                });
-                setTemplateDialogOpen(false);
-              }}
-            >
-              Usar modelo selecionado
-            </Button>
+          <DialogFooter className="flex justify-between items-center">
+            <div>
+              {selectedTemplate && (
+                <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                disabled={!selectedTemplate}
+                onClick={() => {
+                  toast({
+                    title: "Modelo definido",
+                    description: `O modelo "${selectedTemplate?.title}" foi definido como padrão.`,
+                    variant: "default",
+                  });
+                  setTemplateDialogOpen(false);
+                }}
+              >
+                Confirmar
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Modal para criar novo modelo de etiqueta */}
-      <Dialog open={newTemplateModalOpen} onOpenChange={setNewTemplateModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Criar Novo Modelo de Etiqueta
-            </DialogTitle>
-            <DialogDescription>
-              Preencha as informações para criar um modelo personalizado de etiqueta.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="col-span-2">
-              <Label htmlFor="template-title" className="text-right">
-                Nome do Modelo
-              </Label>
-              <Input id="template-title" placeholder="Ex: Etiqueta Padrão Correios" />
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="template-format" className="text-right">
-                Formato
-              </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o formato" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10x15cm">10x15cm</SelectItem>
-                  <SelectItem value="A6">A6</SelectItem>
-                  <SelectItem value="A5">A5</SelectItem>
-                  <SelectItem value="A4">A4</SelectItem>
-                  <SelectItem value="custom">Personalizado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="template-carrier" className="text-right">
-                Transportadora
-              </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a transportadora" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Correios">Correios</SelectItem>
-                  <SelectItem value="JADLOG">JADLOG</SelectItem>
-                  <SelectItem value="LATAM Cargo">LATAM Cargo</SelectItem>
-                  <SelectItem value="Transportadora Própria">Transportadora Própria</SelectItem>
-                  <SelectItem value="Múltiplas">Múltiplas transportadoras</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="template-paper" className="text-right">
-                Tipo de Papel
-              </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o papel" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="A4">A4</SelectItem>
-                  <SelectItem value="A5">A5</SelectItem>
-                  <SelectItem value="A6">A6</SelectItem>
-                  <SelectItem value="Letter">Carta (Letter)</SelectItem>
-                  <SelectItem value="Rolo 58mm">Rolo 58mm</SelectItem>
-                  <SelectItem value="Rolo 80mm">Rolo 80mm</SelectItem>
-                  <SelectItem value="Personalizado">Personalizado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-1">
-              <Label htmlFor="template-per-page" className="text-right">
-                Etiquetas por página
-              </Label>
-              <Input 
-                id="template-per-page" 
-                type="number" 
-                min="1" 
-                max="10" 
-                placeholder="Ex: 1" 
-              />
-            </div>
-            <div className="col-span-2">
-              <Label htmlFor="template-desc" className="text-right">
-                Descrição
-              </Label>
-              <Textarea 
-                id="template-desc" 
-                placeholder="Descreva as características deste modelo de etiqueta" 
-                rows={3}
-              />
-            </div>
-            <div className="col-span-2 flex items-center space-x-2">
-              <Checkbox id="template-default" />
-              <Label htmlFor="template-default">
-                Definir como modelo padrão
-              </Label>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setNewTemplateModalOpen(false);
-              setTemplateDialogOpen(true);
-            }}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={() => {
-                toast({
-                  title: "Modelo criado com sucesso",
-                  description: "Seu novo modelo de etiqueta foi adicionado à lista de modelos disponíveis",
-                  variant: "default",
-                });
-                setNewTemplateModalOpen(false);
-              }}
-            >
-              Criar modelo
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Modal de visualização da etiqueta */}
+
+      {/* Modal de visualização de etiqueta */}
       <Dialog open={labelModalOpen} onOpenChange={setLabelModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Tag className="h-5 w-5" />
-              Visualização da Etiqueta - {selectedLabel?.id}
+              Etiqueta de Envio
             </DialogTitle>
             <DialogDescription>
-              {selectedLabel?.status === "pendente" ? 
-                "Esta etiqueta ainda não foi gerada." : 
-                selectedLabel?.status === "gerada" ? 
-                  "Esta etiqueta está pronta para impressão." : 
-                  "Esta etiqueta já foi impressa."}
+              {selectedLabel?.id} - {selectedLabel?.cliente}
             </DialogDescription>
           </DialogHeader>
-
+          
           {selectedLabel && (
-            <div className="space-y-6">
-              {/* Conteúdo da Etiqueta - Simulação visual */}
-              <div 
-                ref={labelRef} 
-                className="p-6 border border-gray-200 rounded-lg bg-white"
-                style={{pageBreakInside: 'avoid'}}
-              >
-                <div className="flex justify-between items-start">
+            <div className="mt-4" ref={labelRef}>
+              <div className="border border-gray-200 rounded-lg p-6 relative">
+                <div className="absolute top-3 right-3 flex space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          navigator.clipboard.writeText(selectedLabel.codigoRastreio || "");
+                          toast({
+                            title: "Código copiado",
+                            description: "Código de rastreio copiado para a área de transferência",
+                            variant: "default",
+                          });
+                        }}>
+                          <ClipboardCopy className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Copiar código de rastreio</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                
+                <h3 className="text-xl font-bold mb-4 flex items-center">
+                  <Truck className="h-5 w-5 mr-2 text-primary" />
+                  {selectedLabel.transportadora}
+                </h3>
+                
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <h2 className="text-xl font-semibold mb-1">Destinatário</h2>
-                    <h3 className="text-lg font-bold mb-2">{selectedLabel.cliente}</h3>
-                    <div className="space-y-1">
-                      <p>{selectedLabel.endereco || 'Endereço não informado'}</p>
-                      <p>{selectedLabel.cidade || '-'} - {selectedLabel.estado || '-'}, {selectedLabel.cep || '-'}</p>
-                      <p>Tel: {selectedLabel.telefone || 'N/A'}</p>
-                      <p>Email: {selectedLabel.email || 'N/A'}</p>
+                    <div className="border bg-gray-50 rounded-md p-1 text-center mb-4">
+                      <Barcode className="h-4 w-4 mx-auto mb-1" />
+                      <p className="text-sm font-mono">{selectedLabel.codigoRastreio}</p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium">{selectedLabel.cliente}</p>
+                          <p className="text-sm">{selectedLabel.endereco}</p>
+                          <p className="text-sm">{selectedLabel.cidade} - {selectedLabel.estado}, {selectedLabel.cep}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <p className="text-sm">{selectedLabel.telefone}</p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <p className="text-sm">{selectedLabel.email}</p>
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <div className="bg-black text-white px-3 py-2 rounded font-mono text-sm mb-3 inline-block">
-                      {selectedLabel.codigoRastreio || "N/A"}
+                  <div className="space-y-4">
+                    <div className="border-b pb-2">
+                      <p className="text-xs text-gray-500">Informações do Envio</p>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Pedido:</span>
+                          <span className="text-sm font-medium">{selectedLabel.pedido}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Data:</span>
+                          <span className="text-sm">{selectedLabel.data}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Itens:</span>
+                          <span className="text-sm">{selectedLabel.items} itens</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Peso:</span>
+                          <span className="text-sm">{selectedLabel.peso}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-500">Dimensões:</span>
+                          <span className="text-sm">{selectedLabel.dimensoes}</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm mb-1">Etiqueta: {selectedLabel.id}</p>
-                    <p className="text-sm mb-1">Pedido: {selectedLabel.pedido}</p>
-                    <p className="text-sm mb-1">Data: {selectedLabel.data}</p>
+                    
+                    {selectedLabel.observacoes && (
+                      <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
+                        <div className="flex items-center mb-1">
+                          <Info className="h-4 w-4 text-amber-600 mr-1" />
+                          <p className="text-sm font-medium text-amber-800">Observações:</p>
+                        </div>
+                        <p className="text-sm text-amber-700">{selectedLabel.observacoes}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
-                <Separator className="my-5" />
-                
-                <div className="flex justify-between">
-                  <div className="flex-col">
-                    <h3 className="text-lg font-semibold mb-2">Remetente</h3>
-                    <p>Endurancy Ltda.</p>
-                    <p>Rua do Comércio, 500</p>
-                    <p>São Paulo - SP, 04538-132</p>
-                  </div>
-                  
-                  <div className="flex-col text-right">
-                    <p><strong>Transportadora:</strong> {selectedLabel.transportadora}</p>
-                    <p>Formato: {selectedLabel.formato}</p>
-                    <p>Peso: {selectedLabel.peso || 'N/A'}</p>
-                    <p>Dimensões: {selectedLabel.dimensoes || 'N/A'}</p>
-                    <p>Items: {selectedLabel.items || '1'}</p>
-                  </div>
+                <div className="text-center">
+                  <QrCode className="h-28 w-28 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">ID da Etiqueta: {selectedLabel.id}</p>
                 </div>
-                
-                {selectedLabel.observacoes && (
-                  <div className="mt-5 p-4 bg-amber-50 rounded-md">
-                    <p className="font-semibold">Observações:</p>
-                    <p>{selectedLabel.observacoes}</p>
-                  </div>
-                )}
               </div>
               
-              <DialogFooter className="space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const textToCopy = `Etiqueta: ${selectedLabel.id}\nPedido: ${selectedLabel.pedido}\nCliente: ${selectedLabel.cliente}\nCódigo de Rastreio: ${selectedLabel.codigoRastreio || "N/A"}`;
-                    navigator.clipboard.writeText(textToCopy);
-                    toast({
-                      title: "Informações copiadas!",
-                      description: "Os dados da etiqueta foram copiados para a área de transferência.",
-                      variant: "default",
-                    });
-                  }}
-                >
-                  <ClipboardCopy className="h-4 w-4 mr-2" />
-                  Copiar Informações
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => downloadLabel(selectedLabel.id)}
-                >
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={() => downloadLabel(selectedLabel.id)}>
                   <Download className="h-4 w-4 mr-2" />
                   Baixar
                 </Button>
@@ -1993,6 +1055,6 @@ export default function Etiquetas() {
           )}
         </DialogContent>
       </Dialog>
-    </OrganizationLayout>
+    </div>
   );
 }

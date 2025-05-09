@@ -435,9 +435,8 @@ export default function OrganizationProfile() {
       if (!user) throw new Error("Usuário não autenticado");
       
       try {
-        // Use apiRequest instead of fetch directly to ensure cookies are properly sent
-        const response = await apiRequest("GET", `/api/organizations/${organizationId}`);
-        const data = await response.json();
+        // apiRequest aceita URL e objeto de opções (opcional)
+        const data = await apiRequest(`/api/organizations/${organizationId}`);
         return data;
       } catch (error) {
         console.error("Erro ao buscar organização:", error);
@@ -450,6 +449,7 @@ export default function OrganizationProfile() {
 
   const [profileForm, setProfileForm] = useState<Partial<Organization>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   React.useEffect(() => {
     if (organization) {
@@ -473,35 +473,153 @@ export default function OrganizationProfile() {
     const { name, value } = e.target;
     setProfileForm(prev => ({ ...prev, [name]: value }));
   };
+  // Função para obter CSRF token para requisições seguras
+  const getCsrfToken = async (): Promise<string | null> => {
+    try {
+      // Obter um novo token do servidor
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        console.error("Erro ao obter CSRF token:", response.status);
+        return null;
+      }
+      
+      const data = await response.json();
+      return data.csrfToken;
+    } catch (error) {
+      console.error("Erro ao obter token CSRF:", error);
+      return null;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!organizationId || !user) return;
+    
+    // Verificar organizationId e fazer certas correções
+    // Usar o ID da organização do usuário em vez do URL, que pode estar incorreto
+    const correctOrgId = user?.organizationId || organizationId;
+    
+    if (!correctOrgId || !user) {
+      toast({
+        title: "Erro",
+        description: "ID da organização ou informações do usuário não disponíveis",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     try {
-      const response = await apiRequest(
-        "PUT", 
-        `/api/organizations/${organizationId}`, 
-        profileForm
-      );
+      console.log("Enviando atualização para organização:", correctOrgId);
+      console.log("Dados a serem enviados:", profileForm);
       
-      const updatedOrg = await response.json();
+      // Usar a API do sistema (apiRequest) que já tem toda a lógica
+      const updatedOrg = await apiRequest(`/api/organizations/${correctOrgId}`, { 
+        method: "PUT", 
+        data: profileForm 
+      });
       
-      // Atualizar o cache
-      queryClient.setQueryData(["/api/organizations", organizationId], updatedOrg);
+      console.log("Organização atualizada:", updatedOrg);
       
+      // Atualizar o cache imediatamente
+      queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
+      
+      // Invalidar todas as consultas que podem conter dados da organização
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Forçar todos os componentes que usam dados da organização a recarregar
+      setTimeout(() => {
+        // Forçar uma atualização global após um pequeno atraso
+        queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+        
+        console.log("Forçando recarga de dados da organização após salvamento");
+      }, 500);
+      
+      // Notificar sucesso e atualizar o estado do formulário
       toast({
         title: "Sucesso!",
         description: "Os dados da organização foram atualizados.",
         variant: "default",
       });
+      // Fechar o modo de edição
+      setIsEditing(false);
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao atualizar dados da organização",
-        variant: "destructive",
-      });
+      console.error("Erro ao atualizar organização:", error);
+      
+      // Se for erro de CSRF, tentar novamente uma vez com token manual
+      if (error instanceof Error && error.message.includes("csrf")) {
+        try {
+          console.log("Tentando novamente com obtenção manual de CSRF token");
+          
+          // Obter manualmente um CSRF token
+          const csrfToken = await getCsrfToken();
+          
+          if (!csrfToken) {
+            throw new Error("Não foi possível obter token CSRF");
+          }
+          
+          // Fazer a requisição manualmente
+          const response = await fetch(`/api/organizations/${correctOrgId}`, {
+            method: "PUT",
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'CSRF-Token': csrfToken
+            },
+            credentials: 'include',
+            body: JSON.stringify(profileForm)
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erro ${response.status}: ${errorText || response.statusText}`);
+          }
+          
+          const updatedOrg = await response.json();
+          
+          // Atualizar o cache com o mesmo padrão usado no primeiro caso
+          queryClient.setQueryData(["/api/organizations", correctOrgId], updatedOrg);
+          
+          // Invalidar todas as consultas que podem conter dados da organização
+          queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+          
+          // Forçar todos os componentes que usam dados da organização a recarregar
+          setTimeout(() => {
+            // Forçar uma atualização global após um pequeno atraso
+            queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+            queryClient.refetchQueries({ queryKey: ["/api/user"] });
+            
+            console.log("Forçando recarga de dados da organização após retry");
+          }, 500);
+          
+          toast({
+            title: "Sucesso!",
+            description: "Os dados da organização foram atualizados com retry.",
+            variant: "default",
+          });
+          
+          setIsEditing(false);
+        } catch (retryError) {
+          console.error("Erro na segunda tentativa:", retryError);
+          toast({
+            title: "Erro na segunda tentativa",
+            description: retryError instanceof Error ? retryError.message : "Erro ao atualizar dados da organização",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: error instanceof Error ? error.message : "Erro ao atualizar dados da organização",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -539,10 +657,18 @@ export default function OrganizationProfile() {
         if (!oldData) return;
         return { ...oldData, logo: result.logoUrl };
       });
-      
-      // Atualize também o cache do usuário se necessário
+      // Invalidar todas as consultas que podem conter dados da organização
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
+      // Forçar todos os componentes que usam dados da organização a recarregar
+      setTimeout(() => {
+        // Forçar uma atualização global após um pequeno atraso
+        queryClient.refetchQueries({ queryKey: ["/api/organizations"] });
+        queryClient.refetchQueries({ queryKey: ["/api/user"] });
+        
+        console.log("Forçando recarga de dados da organização após atualização de logo");
+      }, 500);
       toast({
         title: "Sucesso!",
         description: "Logo da organização atualizado.",
@@ -643,11 +769,20 @@ export default function OrganizationProfile() {
 
               <TabsContent value="profile">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Dados da Organização</CardTitle>
-                    <CardDescription>
-                      Atualize as informações sobre sua organização
-                    </CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Dados da Organização</CardTitle>
+                      <CardDescription>
+                        {isEditing ? 'Atualize as informações sobre sua organização' : 'Informações sobre sua organização'}
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant={isEditing ? "outline" : "default"}
+                      onClick={() => setIsEditing(!isEditing)}
+                    >
+                      {isEditing ? "Cancelar" : "Editar"}
+                    </Button>
                   </CardHeader>
                   <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
@@ -659,6 +794,7 @@ export default function OrganizationProfile() {
                             name="name"
                             value={profileForm.name || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                             required
                           />
                         </div>
@@ -669,6 +805,7 @@ export default function OrganizationProfile() {
                             name="legalName"
                             value={profileForm.legalName || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -678,6 +815,7 @@ export default function OrganizationProfile() {
                             name="cnpj"
                             value={profileForm.cnpj || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -688,6 +826,7 @@ export default function OrganizationProfile() {
                             type="email"
                             value={profileForm.email || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -697,6 +836,7 @@ export default function OrganizationProfile() {
                             name="phoneNumber"
                             value={profileForm.phoneNumber || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -706,6 +846,7 @@ export default function OrganizationProfile() {
                             name="website"
                             value={profileForm.website || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -715,6 +856,7 @@ export default function OrganizationProfile() {
                             name="address"
                             value={profileForm.address || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -724,6 +866,7 @@ export default function OrganizationProfile() {
                             name="city"
                             value={profileForm.city || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -733,6 +876,7 @@ export default function OrganizationProfile() {
                             name="state"
                             value={profileForm.state || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                         <div className="space-y-2">
@@ -742,6 +886,7 @@ export default function OrganizationProfile() {
                             name="zipCode"
                             value={profileForm.zipCode || ""}
                             onChange={handleInputChange}
+                            disabled={!isEditing}
                           />
                         </div>
                       </div>
@@ -752,23 +897,26 @@ export default function OrganizationProfile() {
                           name="description"
                           value={profileForm.description || ""}
                           onChange={handleInputChange}
+                          disabled={!isEditing}
                           rows={4}
                         />
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button 
-                        type="submit" 
-                        className="w-full md:w-auto"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Salvando...
-                          </>
-                        ) : 'Salvar Alterações'}
-                      </Button>
+                      {isEditing && (
+                        <Button 
+                          type="submit" 
+                          className="w-full md:w-auto"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Salvando...
+                            </>
+                          ) : 'Salvar Alterações'}
+                        </Button>
+                      )}
                     </CardFooter>
                   </form>
                 </Card>

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Bell, Home, LogOut, Package, FileText, CreditCard, ShoppingCart, User, Settings, LifeBuoy } from 'lucide-react';
+import { Bell, Home, LogOut, Package, FileText, CreditCard, ShoppingCart, User, Settings, LifeBuoy, GitBranch } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,7 +52,7 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
         title: "Erro ao realizar logout",
         description: "Ocorreu um erro ao tentar sair. Tente novamente.",
         variant: "destructive"
-      });
+      } as any);
     }
   };
   
@@ -124,6 +124,14 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
                     Pagamentos
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start"
+                    onClick={() => navigateTo('/patient/afiliados')}
+                  >
+                    <GitBranch className="mr-2 h-4 w-4" />
+                    Programa de Afiliados
                   </Button>
                   <Separator />
                   <Button 
@@ -204,6 +212,13 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
             >
               Pagamentos
             </Button>
+            <Button
+              variant="ghost"
+              className="text-sm font-medium transition-colors"
+              onClick={() => navigateTo('/patient/afiliados')}
+            >
+              Afiliados
+            </Button>
           </nav>
           
           <div className="flex items-center gap-4">
@@ -245,6 +260,12 @@ const PatientLayout: React.FC<PatientLayoutProps> = ({ children }) => {
                     className="block px-4 py-2 text-sm hover:bg-accent cursor-pointer"
                   >
                     Configurações
+                  </a>
+                  <a 
+                    href="/patient/afiliados" 
+                    className="block px-4 py-2 text-sm hover:bg-accent cursor-pointer"
+                  >
+                    Programa de Afiliados
                   </a>
                   
                   <div className="border-t mt-1"></div>

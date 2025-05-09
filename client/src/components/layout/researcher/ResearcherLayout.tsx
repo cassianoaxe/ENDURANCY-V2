@@ -57,7 +57,11 @@ export default function ResearcherLayout({ children }: ResearcherLayoutProps) {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Portal do Pesquisador</h2>
-            <p className="text-xs text-gray-500">Endurancy Scientific Research</p>
+            <div className="flex items-center">
+              <p className="text-xs text-gray-500">Endurancy</p>
+              <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+              <p className="text-xs text-gray-500 ml-1">Scientific Research</p>
+            </div>
           </div>
         </div>
       </div>

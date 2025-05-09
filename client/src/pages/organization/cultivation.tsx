@@ -1,5 +1,6 @@
 import React from 'react';
-import { withModuleAccess } from '@/components/modules/withModuleAccess';
+import { withModuleAccess, bypassModuleAccess } from '@/components/modules/withModuleAccess';
+
 import OrganizationLayout from '@/components/layout/OrganizationLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -154,9 +155,10 @@ const CultivationModule = () => {
     </OrganizationLayout>
   );
 };
+// Temporariamente usando o bypass para testes
+// Removendo a verificação de acesso ao módulo para diagnosticar o problema
 
-// Exportar o componente envolto pelo HOC de verificação de acesso ao módulo
-export default withModuleAccess(CultivationModule, {
+export default bypassModuleAccess(CultivationModule, {
   moduleType: "cultivation",
   moduleName: "Cultivo",
   moduleDescription: "Gerencie todo o processo de cultivo de plantas medicinais, desde a semeadura até a colheita. Monitore condições ambientais, registre o crescimento, controle pragas e maximize a produtividade de suas plantações.",

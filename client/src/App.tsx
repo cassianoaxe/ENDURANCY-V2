@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { Loader2, ArrowLeft, Beaker, ChevronRight, BarChart, Users, FilePlus, Building } from "lucide-react";
+
+import { Loader2, ArrowLeft, Beaker, ChevronRight, BarChart, Users, FilePlus, Building, Map } from "lucide-react";
+
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
@@ -12,13 +14,63 @@ import PharmacistLayout from "@/components/layout/pharmacist/PharmacistLayout";
 import LaboratoryLayout from "@/components/layout/laboratory/LaboratoryLayout";
 import HplcLayout from "@/components/layout/laboratory/HplcLayout";
 import ResearcherLayout from "@/components/layout/researcher/ResearcherLayout";
+import SupplierLayout from "@/components/layout/supplier/SupplierLayout";
+
+// Módulo de importação
+import ImportCompanyDashboard from "@/pages/organization/import-company/Dashboard";
+import NewImportRequest from "@/pages/organization/import-company/NewImportRequest";
+import ImportDetails from "@/pages/organization/import-company/ImportDetails";
+
+// Módulo Social
+import SocialDashboard from "@/pages/organization/social/index";
+import SocialBeneficiarios from "@/pages/organization/social/beneficiarios/index";
+import NovoBeneficiario from "@/pages/organization/social/beneficiarios/novo";
+import SocialDoacoes from "@/pages/organization/social/doacoes/index";
+import SocialDespesas from "@/pages/organization/social/despesas/index";
+import SocialCampanhas from "@/pages/organization/social/campanhas/index";
+import SocialVoluntarios from "@/pages/organization/social/voluntarios/index";
+import SocialConfiguracoes from "@/pages/organization/social/configuracoes/index";
+
+// Novos imports do módulo de Carteirinha
+import MembershipCardsPage from "@/pages/organization/carteirinha/membership-cards";
+import MembershipCardNewPage from "@/pages/organization/carteirinha/new-card";
+import MembershipCardSettingsPage from "@/pages/organization/carteirinha/settings";
+import PartnersPage from "@/pages/organization/carteirinha/partners";
+import PartnerNewPage from "@/pages/organization/carteirinha/new-partner";
+import PartnerBenefitNewPage from "@/pages/organization/carteirinha/new-partner-benefit";
 import LaboratoryDashboard from "@/pages/laboratory/Dashboard";
 import LaboratorySamples from "@/pages/laboratory/Samples";
+import LaboratoryAmostras from "@/pages/laboratory/Amostras";
+import LaboratoryResultados from "@/pages/laboratory/Resultados";
+import LaboratoryConfiguracoes from "@/pages/laboratory/Configuracoes";
+import LaboratoryFinanceiro from "@/pages/laboratory/Financeiro";
+import LaboratoryPortalDeAmostras from "@/pages/laboratory/portaldeamostras";
+import LaboratoryRegulatorio from "@/pages/laboratory/regulatorio";
+import RDC16_2014 from "@/pages/laboratory/regulatorio/rdc-16-2014";
+import RDC658_2022 from "@/pages/laboratory/regulatorio/rdc-658-2022";
+import RegulatorioDashboard from "@/pages/laboratory/regulatorio/dashboard";
+import Certificacoes from "@/pages/laboratory/regulatorio/certificacoes";
+import Documentacao from "@/pages/laboratory/regulatorio/documentacao";
+import Desenvolvimento from "@/pages/laboratory/regulatorio/desenvolvimento";
+import Metodos from "@/pages/laboratory/regulatorio/metodos";
+import { 
+  FinanceiroFaturas,
+  FinanceiroPagamentos,
+  FinanceiroRelatorios,
+  FinanceiroLinks
+} from "@/pages/laboratory/financeiro/FinanceiroModule";
+
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";
 import LaboratoryTeam from "@/pages/laboratory/Team";
 import LaboratorySettings from "@/pages/laboratory/Settings";
+
+import LaboratoryLogin from "@/pages/laboratory-login";
+import Clientes from "@/pages/laboratory/Clientes";
+import Equipamentos from "@/pages/laboratory/Equipamentos";
+import TestAnalysis from "@/pages/laboratory/TestAnalysis";
+
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
@@ -79,6 +131,9 @@ import PaymentTest from "@/pages/PaymentTest";
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
 
+import ConfirmacaoRegistro from "@/pages/ConfirmacaoRegistro";
+
+
 // Importar páginas do módulo Financeiro
 import DashboardFinanceiro from "@/pages/organization/financeiro/index";
 import ContasAPagar from "@/pages/organization/financeiro/contas-a-pagar";
@@ -100,6 +155,13 @@ import NotificacoesComunicacao from "@/pages/organization/comunicacao/notificaco
 import ArquivosComunicacao from "@/pages/organization/comunicacao/arquivos";
 import CredenciaisComunicacao from "@/pages/organization/comunicacao/credenciais";
 
+
+// Importar páginas do módulo de IA
+import AIModulePage from "@/pages/organization/ai/index";
+import AIAssistantPage from "@/pages/organization/ai/assistant";
+import AISettingsPage from "@/pages/organization/ai/settings";
+
+
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
 import PatientLogin from "@/pages/PatientLogin";
@@ -110,6 +172,10 @@ import PatientDashboardPage from "@/pages/patient/Dashboard";
 import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
+
+import NewLandingPage from "@/pages/NewLandingPage";
+import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
+
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
@@ -142,11 +208,35 @@ import OrganizationSettings from "@/pages/organization/settings";
 import Cadastros from "@/pages/organization/Cadastros";
 import DataImport from "@/pages/DataImport";
 
+
+// Importar páginas do Portal do Fornecedor
+import SupplierLogin from "@/pages/supplier/SupplierLogin";
+import SupplierRegister from "@/pages/supplier/SupplierRegister";
+import SupplierRegisterSuccess from "@/pages/supplier/SupplierRegisterSuccess";
+import SupplierDashboard from "@/pages/supplier/SupplierDashboard";
+import SupplierOrders from "@/pages/supplier/SupplierOrders";
+import SupplierProducts from "@/pages/supplier/SupplierProducts";
+import SupplierFinance from "@/pages/supplier/SupplierFinance";
+import SupplierAnalytics from "@/pages/supplier/SupplierAnalytics";
+import SupplierSettings from "@/pages/supplier/SupplierSettings";
+
+
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
 import ColheitaPage from "@/pages/organization/cultivation/colheita";
 import AnalysisModule from "@/pages/organization/cultivation/analises";
+
+import PlantasPage from "@/pages/organization/cultivation/plantas";
+import TransferenciasPage from "@/pages/organization/cultivation/transferencias";
+import EstoqueCultivoPage from "@/pages/organization/cultivation/estoque";
+import CalendarioCultivo from "@/pages/organization/cultivation/calendario-cultivo";
+import ConfigStrains from "@/pages/organization/cultivation/configuracao/strains";
+import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
+import MonitoramentoPage from "@/pages/organization/cultivation/monitoramento";
+import QualidadePage from "@/pages/organization/cultivation/qualidade";
+import GenericaPage from "@/pages/organization/cultivation/genetica";
+
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
@@ -171,6 +261,7 @@ import DoctorManagementDoctors from "@/pages/organization/doctor-management/doct
 import DoctorManagementAppointments from "@/pages/organization/doctor-management/appointments";
 import DoctorManagementStatistics from "@/pages/organization/doctor-management/statistics";
 import DoctorManagementDocuments from "@/pages/organization/doctor-management/documents";
+import DoctorManagementPrescriptions from "@/pages/organization/doctor-management/prescriptions";
 import DoctorManagementAffiliation from "@/pages/organization/doctor-management/afiliacao";
 import FarmaciaModule from "@/pages/organization/farmacia";
 
@@ -191,6 +282,16 @@ import DashboardTarefas from "@/pages/organization/tarefas";
 import QuadroKanban from "@/pages/organization/tarefas/quadro";
 import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
 import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
+
+
+// Importações do Portal do Fornecedor (módulo de compras da organização)
+import SupplierPortalDashboard from "@/pages/organization/suppliers";
+import SupplierRegistration from "@/pages/organization/suppliers/register";
+import OrgSupplierProducts from "@/pages/organization/suppliers/products";
+import OrgSupplierTenders from "@/pages/organization/suppliers/tenders";
+import OrgSupplierOrders from "@/pages/organization/suppliers/orders";
+import OrgSupplierCart from "@/pages/organization/suppliers/cart";
+
 
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
@@ -245,6 +346,11 @@ import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
 
+
+// Import affiliate program pages
+import ProgramaAfiliados from "@/pages/organization/afiliados";
+import ConfiguracoesAfiliados from "@/pages/organization/afiliados/configuracoes";
+
 // Import integrations
 import Integracoes from "@/pages/integracoes";
 // Import specific integrations
@@ -270,6 +376,14 @@ import IntegracaoNFe from "@/pages/organization/integracoes/nfe";
 import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
+
+
+// As importações para o módulo de Importação (RDC 660) já foram feitas anteriormente no arquivo
+
+// Import Mapa BI para o módulo de Expedição
+import MapaBi from "@/pages/expedicao/MapaBi";
+import MapaFullscreen from "@/pages/expedicao/MapaFullscreen";
+import JornadaEnvio from "@/pages/expedicao/JornadaEnvio";
 
 // Simple AppContent component with no external routing library
 function AppContent() {
@@ -305,11 +419,215 @@ function AppContent() {
       window.removeEventListener('navigation', handleCustomNavigation);
     };
   }, []);
+  
+  // Efeito específico para redirecionar com base no papel do usuário
+  // Este efeito é executado apenas uma vez após a autenticação ser verificada
+  useEffect(() => {
+    if (isLoading) return; // Não fazer nada enquanto estiver carregando
+    
+    // Verificar se há um redirecionamento de login em andamento
+    const loginRedirect = sessionStorage.getItem('loginRedirect');
+    if (loginRedirect === 'true') {
+      // Se estamos em processo de redirecionamento de login, não interferir
+      console.log("Redirecionamento de login em andamento, não interferir");
+      return;
+    }
+    
+    // Verificação prioritária para fornecedores - SEMPRE redirecioná-los para seu dashboard
+    
+    // Primeiro verificar se é login direto de fornecedor (flag do Login.tsx)
+    const directSupplierLogin = sessionStorage.getItem('direct_supplier_login');
+    
+    if (directSupplierLogin === 'true') {
+      console.log("Login direto detectado para fornecedor, redirecionando imediatamente");
+      sessionStorage.removeItem('direct_supplier_login');
+      
+      console.log("Redirecionando diretamente para o dashboard do fornecedor");
+      
+      // Criar overlay de segurança para evitar visualização indevida
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = '#ffffff';
+      overlay.style.zIndex = '99999';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.flexDirection = 'column';
+      document.body.appendChild(overlay);
+      
+      window.location.replace('/supplier/dashboard');
+      return; // Importante: interrompemos o fluxo aqui para evitar outros redirecionamentos
+    }
+    
+    // Verificação secundária baseada no papel do usuário
+    if (isAuthenticated && user && user.role === 'supplier') {
+      // Se não estamos em uma página do fornecedor, redirecionar imediatamente
+      if (!currentPath.startsWith('/supplier/')) {
+        console.log("ALERTA DE SEGURANÇA: Fornecedor fora da área do fornecedor. Redirecionando para /supplier/dashboard");
+        
+        // Criar overlay de segurança para evitar visualização indevida
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = '#ffffff';
+        overlay.style.zIndex = '99999';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.flexDirection = 'column';
+        document.body.appendChild(overlay);
+        
+        // Redirecionamento imediato
+        window.location.replace('/supplier/dashboard');
+        return; // Interromper o fluxo para evitar qualquer visualização indevida
+      }
+    }
+    
+    // Verificar redirecionamento para dashboard de importadora
+    if (isAuthenticated && user) {
+      // Primeiro verificar se é login direto de importadora (nova flag)
+      const directImportCompany = localStorage.getItem('direct_import_company');
+      
+      if (directImportCompany === 'true') {
+        console.log("Login direto detectado para importadora, redirecionando imediatamente");
+        localStorage.removeItem('direct_import_company');
+        
+        if (currentPath !== '/organization/import-company/dashboard') {
+          console.log("Redirecionando diretamente para o dashboard de importadora");
+          window.location.replace('/organization/import-company/dashboard');
+          return; // Importante: interrompemos o fluxo aqui para evitar outros redirecionamentos
+        }
+      }
+      
+      // Verificação padrão para usuários já na tela de dashboard geral
+      const checkOrgType = localStorage.getItem('check_org_type');
+      
+      if (checkOrgType === 'true' && currentPath === '/organization/dashboard') {
+        console.log("Verificando se é uma organização importadora...");
+        
+        // Buscar detalhes da organização
+        if (user.organizationId) {
+          fetch(`/api/organizations/${user.organizationId}`, {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(orgData => {
+            console.log("Tipo de organização:", orgData.type);
+            
+            // Se é uma importadora, redirecionar
+            if (orgData.type === 'import_company') {
+              console.log("Redirecionando para dashboard de importadora");
+              localStorage.removeItem('check_org_type');
+              window.location.replace('/organization/import-company/dashboard');
+            } else {
+              // Limpar o flag
+              localStorage.removeItem('check_org_type');
+            }
+          })
+          .catch(error => {
+            console.error("Erro ao verificar o tipo de organização:", error);
+            localStorage.removeItem('check_org_type');
+          });
+        }
+      }
+    }
+    
+    if (isAuthenticated && user) {
+      console.log("Verificando papel do usuário para redirecionamento correto:", user.role);
+      const path = window.location.pathname;
+      
+      // Função para verificar se um usuário está na página errada e precisa ser redirecionado
+      const needsRedirect = () => {
+        // Verificar se estamos em uma página de supplier 
+        const isSupplierPage = path.startsWith('/supplier/');
+        
+        // Se já estamos no fornecedor dashboard, não redirecionar mesmo que seja usuário supplier
+        if (isSupplierPage && user.role === 'supplier') {
+          console.log("Usuário já está no dashboard do fornecedor, não é necessário redirecionar");
+          return false;
+        }
+        
+        // APENAS realizar redirecionamento em páginas específicas
+        // Isso evita redirecionamentos indesejados
+        const allowRedirectPaths = ['/login', '/'];
+        const isAllowedToRedirect = allowRedirectPaths.includes(path);
+        
+        if (!isAllowedToRedirect) {
+          console.log("Não estamos em uma página que permite redirecionamento automático");
+          return false;
+        }
+        
+        // Redirecionamentos padrão (apenas nas páginas permitidas)
+        if (path === '/login' || path === '/') return true;
+        
+        // Se um usuário org_admin estiver no dashboard geral, redirecionar
+        if (user.role === 'org_admin' && path === '/dashboard') return true;
+        
+        // Se um usuário admin estiver no dashboard da organização, redirecionar
+        if (user.role === 'admin' && path === '/organization/dashboard') return true;
+        
+        return false;
+      };
+      
+      if (needsRedirect()) {
+        console.log("Usuário precisa ser redirecionado para seu dashboard correto");
+        
+        // Prevenção contra redirecionamentos duplicados - registrar que estamos iniciando um
+        sessionStorage.setItem('loginRedirect', 'true');
+        
+        // Mostrar um estado visual de loading durante a transição
+        document.body.style.opacity = '0.5';
+        document.body.style.transition = 'opacity 0.3s';
+        
+        // Definir URL de redirecionamento com base no tipo de usuário
+        let redirectUrl = '/dashboard';
+        
+        if (user.role === 'org_admin') {
+          redirectUrl = '/organization/dashboard';
+        } else if (user.role === 'pharmacist') {
+          redirectUrl = '/pharmacist/dashboard';
+        } else if (user.role === 'laboratory') {
+          redirectUrl = '/laboratory/dashboard';
+        } else if (user.role === 'researcher') {
+          redirectUrl = '/researcher/dashboard';
+        } else if (user.role === 'doctor') {
+          redirectUrl = '/doctor/dashboard';
+        } else if (user.role === 'patient') {
+          redirectUrl = '/patient/dashboard';
+        } else if (user.role === 'supplier') {
+          redirectUrl = '/supplier/dashboard';
+        }
+        
+        console.log(`Redirecionando para ${redirectUrl}`);
+        
+        // Adicionar pequeno delay para dar tempo à animação de fade
+        setTimeout(() => {
+          try {
+            // Usar location.replace para evitar adicionar ao histórico
+            window.location.replace(redirectUrl);
+          } catch (error) {
+            console.error("Erro ao redirecionar:", error);
+            window.location.href = redirectUrl;
+          }
+        }, 150);
+      }
+    }
+  }, [isLoading, isAuthenticated, user]);
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi', '/landing/afiliados'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -323,11 +641,33 @@ function AppContent() {
   // Removido o redirecionamento automático para dashboard a partir da raiz
   // A rota raiz sempre vai mostrar a landing page independente do status de autenticação
 
+  // Verificar se estamos em processo de redirecionamento de login
+  useEffect(() => {
+    const loginRedirect = sessionStorage.getItem('loginRedirect');
+    if (loginRedirect === 'true') {
+      // Restaurar a opacidade da página se necessário
+      document.body.style.opacity = '1';
+    
+      // Limpar flag após uso
+      sessionStorage.removeItem('loginRedirect');
+      
+      // Remover overlay de carregamento se existir
+      const existingOverlay = document.querySelector('div[data-login-overlay="true"]');
+      if (existingOverlay) {
+        existingOverlay.style.opacity = '0';
+        setTimeout(() => {
+          existingOverlay.remove();
+        }, 500);
+      }
+    }
+  }, []);
+
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-gray-500">Carregando...</p>
       </div>
     );
   }
@@ -356,6 +696,28 @@ function AppContent() {
     return <PaymentConfirmacao />;
   }
   
+  // Rota para o mapa em tela cheia (não precisa de autenticação)
+  if (currentPath === '/expedicao/mapa-fullscreen') {
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>}>
+        <MapaFullscreen />
+      </Suspense>
+    );
+  }
+  
+  // Rota para o Mapa BI (não precisa de autenticação)
+  if (currentPath === '/expedicao/mapa-bi') {
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>}>
+        <MapaBi />
+      </Suspense>
+    );
+  }
+
   // Verificar se é uma rota para confirmar pagamento por email
   const paymentConfirmarMatch = currentPath.match(/^\/pagamento\/confirmar\/([^\/]+)$/);
   if (paymentConfirmarMatch) {
@@ -367,6 +729,66 @@ function AppContent() {
   // Rota para a página de geração de links de pagamento
   if (currentPath === '/pagamento/confirmar') {
     return <PaymentConfirmar />;
+  }
+
+  // Rotas para o portal do fornecedor (requerem autenticação)
+  if (currentPath.startsWith('/supplier/') && currentPath !== '/supplier/login' && 
+      currentPath !== '/supplier/register' && currentPath !== '/supplier/register-success') {
+    
+    // Vamos verificar a autenticação de fornecedor diretamente através da API
+    // ao invés de depender do contexto de autenticação regular
+    const SupplierRoute = () => {
+      const [isChecking, setIsChecking] = useState(true);
+      
+      useEffect(() => {
+        // Função para verificar a autenticação do fornecedor
+        const checkSupplierAuth = async () => {
+          try {
+            const response = await fetch('/api/suppliers/me', {
+              credentials: 'include'
+            });
+            
+            if (response.ok) {
+              // O usuário está logado como fornecedor, podemos continuar
+              setIsChecking(false);
+            } else {
+              // Não está autenticado como fornecedor, redireciona
+              console.log('Usuário não autenticado como fornecedor. Redirecionando para /supplier/login');
+              window.location.href = '/supplier/login';
+            }
+          } catch (error) {
+            console.error('Erro ao verificar autenticação:', error);
+            window.location.href = '/supplier/login';
+          }
+        };
+        
+        checkSupplierAuth();
+      }, []);
+      
+      if (isChecking) {
+        return (
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+            <span className="ml-2 text-red-800 font-medium">Verificando autenticação...</span>
+          </div>
+        );
+      }
+      
+      // Rotas protegidas do fornecedor
+      return (
+        <SupplierLayout>
+          {/* Centraliza todas as rotas do fornecedor em um único lugar para evitar duplicação */}
+          {currentPath === '/supplier/dashboard' && <SupplierDashboard />}
+          {currentPath === '/supplier/orders' && <SupplierOrders />}
+          {currentPath === '/supplier/products' && <SupplierProducts />}
+          {currentPath === '/supplier/finance' && <SupplierFinance />}
+          {currentPath === '/supplier/analytics' && <SupplierAnalytics />}
+          {currentPath === '/supplier/settings' && <SupplierSettings />}
+        </SupplierLayout>
+      );
+    };
+    
+    return <SupplierRoute />;
   }
 
   // Landing page sempre na raiz independente da autenticação
@@ -383,11 +805,68 @@ function AppContent() {
           logout();
         }
       }, [isAuthenticated, logout]);
-      
-      return <LandingPage />;
+      return <NewLandingPage />;
     };
     
     return <LandingPageWithLogout />;
+  }
+
+  // Rotas específicas para o Portal do Laboratório de Análises
+  if (currentPath === '/laboratorio' || currentPath === '/laboratory') {
+    return <LaboratoryLandingPage />;
+  }
+  
+  // Página de login do Laboratório
+  if (currentPath === '/laboratory-login') {
+    return <LaboratoryLogin />;
+  }
+  
+  // Rotas para o portal do laboratório (requerem autenticação)
+  if (currentPath.startsWith('/laboratory/')) {
+    if (!isAuthenticated) {
+      // Redirecionar para a página de landing do laboratório
+      window.location.href = "/laboratory";
+      return null;
+    }
+    
+    // Verificar se o usuário tem o papel adequado
+    if (userRole !== 'laboratory') {
+      // Redirecionar para a página de landing se não for um usuário de laboratório
+      window.location.href = "/laboratory";
+      return null;
+    }
+    
+    // Rotas protegidas do laboratório
+    return (
+      <LaboratoryLayout>
+        {/* Centraliza todas as rotas do laboratório em um único lugar para evitar duplicação */}
+        {currentPath === '/laboratory/dashboard' && <LaboratoryDashboard />}
+        {currentPath === '/laboratory/amostras' && <LaboratoryAmostras />}
+        {currentPath === '/laboratory/resultados' && <LaboratoryResultados />}
+        {currentPath === '/laboratory/configuracoes' && <LaboratoryConfiguracoes />}
+        {currentPath === '/laboratory/financeiro' && <LaboratoryFinanceiro />}
+        {currentPath === '/laboratory/financeiro/faturas' && <FinanceiroFaturas />}
+        {currentPath === '/laboratory/financeiro/pagamentos' && <FinanceiroPagamentos />}
+        {currentPath === '/laboratory/financeiro/relatorios' && <FinanceiroRelatorios />}
+        {currentPath === '/laboratory/financeiro/links' && <FinanceiroLinks />}
+        {currentPath === '/laboratory/portaldeamostras' && <LaboratoryPortalDeAmostras />}
+        {currentPath === '/laboratory/regulatorio' && <LaboratoryRegulatorio />}
+        {currentPath === '/laboratory/regulatorio/dashboard' && <RegulatorioDashboard />}
+        {currentPath === '/laboratory/regulatorio/certificacoes' && <Certificacoes />}
+        {currentPath === '/laboratory/regulatorio/documentacao' && <Documentacao />}
+        {currentPath === '/laboratory/regulatorio/desenvolvimento' && <Desenvolvimento />}
+        {currentPath === '/laboratory/regulatorio/metodos' && <Metodos />}
+        {currentPath === '/laboratory/settings' && <LaboratorySettings />}
+        {currentPath === '/laboratory/samples' && <LaboratorySamples />}
+        {currentPath === '/laboratory/reports' && <LaboratoryReports />}
+        {currentPath === '/laboratory/team' && <LaboratoryTeam />}
+        {currentPath === '/laboratory/clientes' && <Clientes />}
+        {currentPath === '/laboratory/equipamentos' && <Equipamentos />}
+        {currentPath === '/laboratory/test-analysis' && <TestAnalysis />}
+        {currentPath.startsWith('/laboratory/samples/') && <SampleDetail />}
+        {currentPath.startsWith('/laboratory/tests/') && <TestDetail />}
+      </LaboratoryLayout>
+    );
   }
   
   // If not authenticated, handle public pages
@@ -436,6 +915,11 @@ function AppContent() {
       return <OrganizationRegistration />;
     }
     
+    // Organization registration confirmation page (público)
+    if (currentPath === '/registro-confirmado') {
+      return <ConfirmacaoRegistro />;
+    }
+    
     // Cadastro de médicos (com ID da organização)
     const doctorRegMatch = currentPath.match(/^\/cadastrodemedicos\/([^\/]+)$/);
     if (doctorRegMatch) {
@@ -458,7 +942,86 @@ function AppContent() {
     if (currentPath === '/transparencia-test') {
       return <TransparenciaTest />;
     }
+    // Página de landing do programa de afiliados
+    if (currentPath === '/landing/afiliados') {
+      const LandingAfiliados = React.lazy(() => import('./pages/landing/afiliados'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <LandingAfiliados />
+        </Suspense>
+      );
+    }
     
+    // Rotas do Portal do Fornecedor (público)
+    if (currentPath === '/supplier/login' || 
+        currentPath === '/supplier/register' || 
+        currentPath === '/supplier/register-success') {
+      
+      // Para garantir que temos um tratamento especial para a página de login do fornecedor
+      // que não dependa do contexto geral de autenticação
+      if (currentPath === '/supplier/login') {
+        // Verificar se já existe uma sessão de fornecedor primeiro
+        const SupplierLoginWrapper = () => {
+          const [isChecking, setIsChecking] = useState(true);
+          const [isSupplierAuthenticated, setIsSupplierAuthenticated] = useState(false);
+          
+          useEffect(() => {
+            // Verificar se já existe uma sessão de fornecedor
+            const checkSupplierSession = async () => {
+              try {
+                const response = await fetch('/api/suppliers/me', {
+                  credentials: 'include'
+                });
+                
+                if (response.ok) {
+                  // Já está autenticado como fornecedor
+                  setIsSupplierAuthenticated(true);
+                  // Vamos redirecionar para o dashboard em vez de mostrar a página de login
+                  window.location.href = '/supplier/dashboard';
+                } else {
+                  // Não está autenticado como fornecedor, mostra tela de login
+                  setIsSupplierAuthenticated(false);
+                }
+              } catch (error) {
+                console.error('Erro ao verificar sessão de fornecedor:', error);
+                setIsSupplierAuthenticated(false);
+              } finally {
+                setIsChecking(false);
+              }
+            };
+            
+            checkSupplierSession();
+          }, []);
+          
+          if (isChecking) {
+            return (
+              <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+                <span className="ml-2 text-red-800 font-medium">Verificando sessão...</span>
+              </div>
+            );
+          }
+          
+          // Se não estiver autenticado, mostrar a página de login
+          if (!isSupplierAuthenticated) {
+            return <SupplierLogin />;
+          }
+          
+          // Este retorno só ocorre se ocorrer algum problema no redirecionamento acima
+          return null;
+        };
+        
+        return <SupplierLoginWrapper />;
+      }
+      
+      // Para outras páginas públicas do fornecedor
+      if (currentPath === '/supplier/register') return <SupplierRegister />;
+      if (currentPath === '/supplier/register-success') return <SupplierRegisterSuccess />;
+    }
+    
+    // Removed direct access to supplier dashboard for non-authenticated users
     // Página esqueceu a senha (público)
     if (currentPath === '/forgot-password') {
       // Aqui você pode substituir isso pelo seu componente real de recuperação de senha
@@ -601,14 +1164,25 @@ function AppContent() {
     }
   }
   
-  // Role-specific dashboards
+  // Rota de dashboard principal com bloqueio para org_admin (eles NUNCA devem ver essa tela)
   if (currentPath === '/dashboard') {
     let DashboardComponent = Dashboard;
     
-    if (userRole === 'admin') {
+    // Redirecionamento imediato para usuarios org_admin para seu dashboard
+    if (userRole === 'org_admin') {
+      console.log("Usuário org_admin detectado na rota /dashboard, redirecionando");
+      // Redirecionamento direto sem animações ou overlays
+      window.location.replace('/organization/dashboard');
+      
+      // Elemento simples de carregamento como fallback
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      );
+    } 
+    else if (userRole === 'admin') {
       DashboardComponent = AdminDashboard;
-    } else if (userRole === 'org_admin') {
-      DashboardComponent = OrgAdminDashboard;
     } else if (userRole === 'doctor') {
       DashboardComponent = DoctorDashboard;
     } else if (userRole === 'patient') {
@@ -624,6 +1198,14 @@ function AppContent() {
   
   // Handle organization-specific routes
   if (currentPath.startsWith('/organization/')) {
+    // Verificar se é uma rota de dashboard específica da organização (com ID)
+    const orgDashboardMatch = currentPath.match(/^\/organization\/(\d+)\/dashboard$/);
+    if (orgDashboardMatch) {
+      console.log("Renderizando dashboard de organização específica com ID:", orgDashboardMatch[1]);
+      return <OrganizationLayout>
+        <OrganizationDashboard key={Date.now()} />
+      </OrganizationLayout>;
+    }
     // Permitir acesso público ao portal de transparência mesmo sem login
     const transparenciaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
     if (transparenciaMatch) {
@@ -678,16 +1260,21 @@ function AppContent() {
       return <Production />;
     }
     
-    if (currentPath === '/organization/profile') {
+    // Padrão para perfil da organização: /organization/profile ou /organization/{orgId}/profile
+    if (currentPath === '/organization/profile' || 
+        currentPath.match(/^\/organization\/\d+\/profile$/)) {
       return <OrganizationProfile />;
     }
 
     if (currentPath === '/organization/meu-plano') {
       return <MeuPlano />;
     }
-    
+    // Redirect settings to profile - consolidate functionality
     if (currentPath === '/organization/settings' || currentPath === '/organization/settings/integracoes') {
-      return <OrganizationSettings />;
+      // Redirect to profile page which now handles all organization settings
+      console.log("Redirecionando de configurações para perfil da organização");
+      setLocation('/organization/profile');
+      return null;
     }
     
     if (currentPath === '/organization/cadastros') {
@@ -709,6 +1296,53 @@ function AppContent() {
     
     if (currentPath === '/organization/cultivation/analises') {
       return <AnalysisModule />;
+    }
+    
+    if (currentPath === '/organization/cultivation/plantas') {
+      return <PlantasPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/transferencias') {
+      return <TransferenciasPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/estoque') {
+      return <EstoqueCultivoPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/calendario') {
+      return <CalendarioCultivo />;
+    }
+    
+    if (currentPath === '/organization/cultivation/monitoramento') {
+      return <MonitoramentoPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/qualidade') {
+      return <QualidadePage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/genetica') {
+      return <GenericaPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao/strains') {
+      return <ConfigStrains />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao/tipos') {
+      return <ConfigTipos />;
+    }
+    
+    if (currentPath === '/organization/cultivation/configuracao') {
+      const ConfiguracaoCultivo = React.lazy(() => import('./pages/organization/cultivation/configuracao'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ConfiguracaoCultivo />
+        </Suspense>
+      );
     }
 
     if (currentPath === '/organization/production') {
@@ -775,6 +1409,18 @@ function AppContent() {
       return <CatalogoProdutosPage />;
     }
 
+    // Módulo de Inteligência Artificial
+    if (currentPath === '/organization/ai') {
+      return <AIModulePage />;
+    }
+    
+    if (currentPath === '/organization/ai/assistant') {
+      return <AIAssistantPage />;
+    }
+    
+    if (currentPath === '/organization/ai/settings') {
+      return <AISettingsPage />;
+    }
     // Módulo Jurídico
     if (currentPath === '/organization/juridico') {
       return <OrganizationLayout>
@@ -929,10 +1575,105 @@ function AppContent() {
       </OrganizationLayout>;
     }
 
+    // Rotas do módulo de Carteirinha
+    if (currentPath === '/organization/carteirinha/membership-cards') {
+      return <OrganizationLayout>
+        <MembershipCardsPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/membership-cards/new') {
+      return <OrganizationLayout>
+        <MembershipCardNewPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/settings') {
+      return <OrganizationLayout>
+        <MembershipCardSettingsPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/partners') {
+      return <OrganizationLayout>
+        <PartnersPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/carteirinha/partners/new') {
+      return <OrganizationLayout>
+        <PartnerNewPage />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath.match(/^\/organization\/carteirinha\/partners\/[\d]+\/benefit\/new$/)) {
+      return <OrganizationLayout>
+        <PartnerBenefitNewPage />
+      </OrganizationLayout>;
+    }
+
     // Rotas do módulo de Patrimônio
     if (currentPath === '/organization/patrimonio') {
       return <OrganizationLayout>
         <PatrimonioIndex />
+      </OrganizationLayout>;
+    }
+
+    // Rotas do módulo Social
+    if (currentPath === '/organization/social') {
+      return <OrganizationLayout>
+        <SocialDashboard />
+      </OrganizationLayout>;
+    }
+    
+    // Rotas do módulo de Afiliados
+    if (currentPath === '/organization/afiliados') {
+      return <ProgramaAfiliados />;
+    }
+    
+    if (currentPath === '/organization/afiliados/configuracoes') {
+      return <ConfiguracoesAfiliados />;
+    }
+
+    if (currentPath === '/organization/social/beneficiarios') {
+      return <OrganizationLayout>
+        <SocialBeneficiarios />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/social/beneficiarios/novo') {
+      return <OrganizationLayout>
+        <NovoBeneficiario />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/doacoes') {
+      return <OrganizationLayout>
+        <SocialDoacoes />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/despesas') {
+      return <OrganizationLayout>
+        <SocialDespesas />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/campanhas') {
+      return <OrganizationLayout>
+        <SocialCampanhas />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/voluntarios') {
+      return <OrganizationLayout>
+        <SocialVoluntarios />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/configuracoes') {
+      return <OrganizationLayout>
+        <SocialConfiguracoes />
       </OrganizationLayout>;
     }
 
@@ -989,8 +1730,8 @@ function AppContent() {
         <div className="container mx-auto py-8">
           <h1 className="text-2xl font-bold mb-4">Detalhes do Ativo</h1>
           <p className="text-muted-foreground">Página em desenvolvimento</p>
-          <Button asChild className="mt-4">
-            <a href="/organization/patrimonio">Voltar para Patrimônio</a>
+          <Button className="mt-4">
+            <a href="/organization/patrimonio" className="flex items-center">Voltar para Patrimônio</a>
           </Button>
         </div>
       </OrganizationLayout>;
@@ -1064,6 +1805,43 @@ function AppContent() {
         <ConfiguracoesTarefas />
       </OrganizationLayout>;
     }
+    
+    // Rotas do Portal do Fornecedor
+    if (currentPath === '/organization/suppliers') {
+      return <OrganizationLayout>
+        <SupplierPortalDashboard />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/register') {
+      return <OrganizationLayout>
+        <SupplierRegistration />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/products') {
+      return <OrganizationLayout>
+        <OrgSupplierProducts />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/tenders') {
+      return <OrganizationLayout>
+        <OrgSupplierTenders />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/orders') {
+      return <OrganizationLayout>
+        <OrgSupplierOrders />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/suppliers/cart') {
+      return <OrganizationLayout>
+        <OrgSupplierCart />
+      </OrganizationLayout>;
+    }
 
     if (currentPath === '/organization/expedicao') {
       return <OrganizationLayout>
@@ -1096,6 +1874,30 @@ function AppContent() {
       </OrganizationLayout>;
     }
     
+    if (currentPath === '/organization/expedicao/mapa-bi') {
+      const MapaBi = React.lazy(() => import('./pages/expedicao/MapaBi'));
+      return (
+        <OrganizationLayout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <MapaBi />
+          </Suspense>
+        </OrganizationLayout>
+      );
+    }
+    
+    if (currentPath === '/organization/expedicao/jornada-envio') {
+      const JornadaEnvio = React.lazy(() => import('./pages/expedicao/JornadaEnvio'));
+      return (
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <JornadaEnvio />
+        </Suspense>
+      );
+    }
+    
     if (currentPath === '/organization/expedicao/juncao') {
       return <OrganizationLayout>
         <JuncaoPedidos />
@@ -1119,6 +1921,8 @@ function AppContent() {
         <EstoqueExpedicao />
       </OrganizationLayout>;
     }
+    
+    // Mapa BI está definido acima
 
     if (currentPath === '/organization/gerenciar-pacientes') {
       return <GerenciarPacientes />;
@@ -1253,6 +2057,17 @@ function AppContent() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>}>
           <ComplyPayAssinaturas />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+  
+    if (currentPath === '/organization/complypay/afiliados') {
+      const ComplyPayAfiliados = React.lazy(() => import('./pages/organization/complypay/afiliados'));
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <ComplyPayAfiliados />
         </Suspense>
       </OrganizationLayout>;
     }
@@ -1396,6 +2211,120 @@ function AppContent() {
         </Suspense>
       </OrganizationLayout>;
     }
+    // Rotas do módulo de Importação
+    if (currentPath === '/organization/import-company' || currentPath === '/organization/import-company/dashboard') {
+      return <OrganizationLayout>
+        <ImportCompanyDashboard />
+      </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/import-company/new-request' || currentPath === '/organization/import-company/novo-pedido') {
+      return <OrganizationLayout>
+        <NewImportRequest />
+      </OrganizationLayout>;
+    }
+    
+    // Importar componente de visualização filtrada para as páginas de status específicos
+    const FilterView = React.lazy(() => import('./pages/organization/import-company/FilterView'));
+    
+    // Rota para pedidos em análise
+    if (currentPath === '/organization/import-company/pedidos-analise') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="em_analise" 
+            title="Pedidos em Análise" 
+            description="Pedidos que estão em fase de análise interna antes de serem enviados para a ANVISA"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos enviados para ANVISA
+    if (currentPath === '/organization/import-company/anvisa') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="enviado_anvisa" 
+            title="Enviados para ANVISA" 
+            description="Pedidos que já foram enviados para análise da ANVISA e aguardam aprovação"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos aprovados
+    if (currentPath === '/organization/import-company/aprovados') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="aprovado" 
+            title="Pedidos Aprovados" 
+            description="Pedidos que foram aprovados pela ANVISA e estão prontos para a próxima etapa"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos rejeitados
+    if (currentPath === '/organization/import-company/rejeitados') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="rejeitado" 
+            title="Pedidos Rejeitados" 
+            description="Pedidos que foram rejeitados pela ANVISA e precisam ser revisados"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos em trânsito
+    if (currentPath === '/organization/import-company/transito') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="em_transito" 
+            title="Pedidos em Trânsito" 
+            description="Pedidos que já foram despachados do exterior e estão a caminho do Brasil"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para pedidos entregues
+    if (currentPath === '/organization/import-company/entregues') {
+      return <OrganizationLayout>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>}>
+          <FilterView 
+            status="entregue" 
+            title="Pedidos Entregues" 
+            description="Pedidos que foram entregues com sucesso aos pacientes"
+          />
+        </Suspense>
+      </OrganizationLayout>;
+    }
+    
+    // Rota para detalhes de importação com ID dinâmico
+    const importDetailMatch = currentPath.match(/^\/organization\/import-company\/(\d+)$/);
+    if (importDetailMatch) {
+      const importId = importDetailMatch[1];
+      return <OrganizationLayout>
+        <ImportDetails />
+      </OrganizationLayout>;
+    }
     
     // Rotas para compatibilidade com a estrutura antiga - redirecionamentos
     if (currentPath === '/organization/pedidos') {
@@ -1482,6 +2411,10 @@ function AppContent() {
 
     if (currentPath === '/organization/doctor-management/afiliacao') {
       return <DoctorManagementAffiliation />;
+    }
+
+    if (currentPath === '/organization/doctor-management/prescriptions') {
+      return <DoctorManagementPrescriptions />;
     }
 
     if (currentPath === '/organization/farmacia') {
@@ -1602,8 +2535,9 @@ function AppContent() {
               <p className="text-muted-foreground text-center mb-6">
                 Esta funcionalidade do portal do farmacêutico está sendo implementada e estará disponível em breve.
               </p>
-              <Button asChild>
-                <a href="/pharmacist">Voltar para o Dashboard</a>
+              <Button>
+                <a href="/pharmacist" className="flex items-center">Voltar para o Dashboard</a>
+
               </Button>
             </div>
           </PharmacistLayout>
@@ -1850,86 +2784,8 @@ function AppContent() {
         </Layout>
       );
     }
-    
-    // Rotas específicas do laboratório
-    if (currentPath === '/laboratory/dashboard') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryDashboard />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/samples') {
-      return (
-        <LaboratoryLayout>
-          <LaboratorySamples />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/reports') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryReports />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/team') {
-      return (
-        <LaboratoryLayout>
-          <LaboratoryTeam />
-        </LaboratoryLayout>
-      );
-    }
-    
-    if (currentPath === '/laboratory/settings') {
-      return (
-        <LaboratoryLayout>
-          <LaboratorySettings />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes da amostra
-    const sampleDetailMatch = currentPath.match(/^\/laboratory\/samples\/(\d+)$/);
-    if (sampleDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <SampleDetail />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes do teste
-    const testDetailMatch = currentPath.match(/^\/laboratory\/tests\/(\d+)$/);
-    if (testDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <TestDetail />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Rotas do módulo de Equipamentos
-    if (currentPath === '/laboratory/equipment') {
-      return (
-        <LaboratoryLayout>
-          <LabEquipments />
-        </LaboratoryLayout>
-      );
-    }
-    
-    // Detalhes do equipamento
-    const equipmentDetailMatch = currentPath.match(/^\/laboratory\/equipment\/(\d+)$/);
-    if (equipmentDetailMatch) {
-      return (
-        <LaboratoryLayout>
-          <EquipmentDetail />
-        </LaboratoryLayout>
-      );
-    }
+    // NOTA: Todas as rotas do laboratório agora são gerenciadas na seção principal 
+    // no início do arquivo para evitar problemas de duplicação de layouts.
     
     // Rotas do módulo HPLC
     console.log(`App.tsx: Rota atual: ${currentPath}`);
@@ -2651,6 +3507,16 @@ function AppContent() {
       case '/payment-test': Component = PaymentTest; break;
       case '/admin/dashboard': Component = AdminDashboard; break;
       case '/super-admin/dashboard': Component = AdminDashboard; break;
+      case '/super-admin/afiliados': 
+        const SuperAdminAfiliados = React.lazy(() => import('./pages/super-admin/afiliados'));
+        Component = () => (
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <SuperAdminAfiliados />
+          </Suspense>
+        );
+        break;
       
       // Rotas de integracoes
       case '/integracoes': Component = Integracoes; break;

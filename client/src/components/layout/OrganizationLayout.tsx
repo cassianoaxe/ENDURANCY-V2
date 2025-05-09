@@ -3,6 +3,8 @@ import { Loader2 } from "lucide-react";
 import OrganizationSidebar from "./OrganizationSidebar";
 import Header from "./Header";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import CopilotProvider from "./CopilotProvider";
+
 
 interface OrganizationLayoutProps {
   children: React.ReactNode;
@@ -38,15 +40,17 @@ export default function OrganizationLayout({ children }: OrganizationLayoutProps
 
   return (
     <ThemeProvider>
-      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
-        <OrganizationSidebar />
-        <div className="flex-1 flex flex-col">
-          <Header />
-          <main className="flex-1 p-6 pt-4 overflow-auto mt-16">
-            {children}
-          </main>
+      <CopilotProvider>
+        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-100">
+          <OrganizationSidebar />
+          <div className="flex-1 flex flex-col">
+            <Header />
+            <main className="flex-1 p-6 pt-4 overflow-auto mt-16">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
+      </CopilotProvider>
     </ThemeProvider>
   );
 }

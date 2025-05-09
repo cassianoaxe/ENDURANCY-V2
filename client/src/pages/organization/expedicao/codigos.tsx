@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import OrganizationLayout from "@/components/layout/OrganizationLayout";
 import {
   Card,
   CardContent,
@@ -174,7 +173,6 @@ export default function CodigosExpedicao() {
   };
 
   return (
-    <OrganizationLayout>
       <div className="container py-6 space-y-6">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between">
@@ -271,7 +269,7 @@ export default function CodigosExpedicao() {
         </div>
 
         {/* Tabs de leitura */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" defaultValue="scanner">
           <TabsList className="mb-4">
             <TabsTrigger value="scanner">Scanner</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
@@ -597,6 +595,5 @@ export default function CodigosExpedicao() {
           </TabsContent>
         </Tabs>
       </div>
-    </OrganizationLayout>
   );
 }

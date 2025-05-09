@@ -13,7 +13,8 @@ import {
   ArrowUp, ArrowDown, ArrowRightLeft, LineChart,
   
   // Ícones de compras, produtos e logística
-  Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, Truck,
+  Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, ShoppingBag, Truck,
+
   
   // Ícones de documentos
   Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen, FilePlus,
@@ -26,7 +27,9 @@ import {
   
   // Ícones médicos
   Pill, HeartPulse, Stethoscope, TestTube, Microscope,
-  
+  // Ícones para carteirinha
+  UserSquare, Store,
+
   // Ícones de indústria e negócios
   Factory, ShieldCheck, Building, Building2, Landmark, Scale, Briefcase,
   
@@ -35,6 +38,8 @@ import {
   
   // Ícones de UI
   Settings, LogOut, HelpCircle, Loader2, Check, Ban, X, Receipt,
+  // Ícones de tecnologia
+  Cpu, 
   
   // Ícones de natureza
   Leaf, Brain, Beaker, Droplet, FlaskConical,
@@ -45,11 +50,13 @@ import {
   // Ícones diversos
   Sparkles, BadgeHelp, Tag, RefreshCw, Network, Home, Map,
   Shapes, Target, GraduationCap, Video, Radio, Headphones, Phone,
-  BadgePercent, Printer, QrCode, Box, Trash2, Puzzle, Bot, 
+  BadgePercent, Printer, Box, Trash2, Puzzle, Bot, 
   Plane, Mailbox, Share2, Scissors, ScrollText, Library, Layers, HeartHandshake,
+  Globe, FileCheck, AlertTriangle, FileUp,
   
   // Aliases
-  CreditCard as CreditCardIcon
+  CreditCard as CreditCardIcon,
+  QrCode
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -58,6 +65,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarMenuItem } from "./SidebarMenuItem";
 
 export default function OrganizationSidebar() {
+  // Classe CSS para o tema da organização
+  const sidebarClassNames = cn(
+    "organization-sidebar fixed top-0 bottom-0 left-0 z-40 w-64 h-screen transition-transform bg-white border-r border-gray-200 dark:bg-gray-900 dark:border-gray-800 overflow-hidden flex flex-col",
+  );
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -122,8 +133,53 @@ export default function OrganizationSidebar() {
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery({
     queryKey: ['/api/organizations', user?.organizationId],
+    queryFn: async () => {
+      if (!user?.organizationId) return null;
+      try {
+        console.log("Sidebar: carregando organização", user.organizationId, "com timestamp:", Date.now());
+        // Adicionar um parâmetro de consulta aleatório para evitar cache do navegador
+        const timestamp = Date.now();
+        const response = await fetch(`/api/organizations/${user.organizationId}?_=${timestamp}`, {
+          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Falha ao carregar organização');
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao buscar organização:', error);
+        return null;
+      }
+    },
     enabled: !!user?.organizationId,
+    // Configurar para sempre buscar dados frescos
+    staleTime: 0, // Sempre considerar dados obsoletos
+    cacheTime: 0, // Não manter em cache
+    refetchInterval: 5000, // Recarregar a cada 5 segundos
+    refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
+    refetchOnMount: true, // Recarregar sempre que o componente montar
   });
+  
+  // Verifica se a organização é do tipo importadora
+  const isImportCompany = organization?.type === 'import_company' || 
+                          currentPath.includes('/organization/import-company');
+                          
+  // Aplicar classe CSS com base no tipo de organização
+  useEffect(() => {
+    const sidebarElement = document.querySelector('.organization-sidebar');
+    if (sidebarElement) {
+      if (isImportCompany) {
+        sidebarElement.classList.add('import-company-theme');
+        document.documentElement.classList.add('import-company-theme');
+      } else {
+        sidebarElement.classList.remove('import-company-theme');
+        document.documentElement.classList.remove('import-company-theme');
+      }
+    }
+    
+    return () => {
+      document.documentElement.classList.remove('import-company-theme');
+    };
+  }, [isImportCompany, currentPath]);
 
   // Function to navigate to a path, ensuring session is maintained
   const navigateTo = (path: string, keepSubmenuOpen = false) => {
@@ -202,6 +258,72 @@ export default function OrganizationSidebar() {
     localStorage.setItem('expandedSubmenu', menuTitle);
   };
   
+  // Todos os módulos específicos para diferentes papéis
+  const medicalModules: any[] = [];
+  const pharmacyModules: any[] = [];
+  
+  // Módulo específico de Importação
+  const importModules = [
+    {
+      title: "Importação",
+      path: "/organization/import-company",
+      active: currentPath === "/organization/import-company" || 
+              currentPath.startsWith("/organization/import-company/"),
+      icon: <Globe size={18} className="text-blue-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Importação",
+          path: "/organization/import-company",
+          active: currentPath === "/organization/import-company" && !currentPath.includes("/organization/import-company/"),
+          icon: <LayoutDashboard size={16} className="text-blue-500" />
+        },
+        {
+          title: "Novo Pedido",
+          path: "/organization/import-company/novo-pedido",
+          active: currentPath === "/organization/import-company/novo-pedido",
+          icon: <FilePlus size={16} className="text-blue-500" />
+        },
+        {
+          title: "Pedidos em Análise",
+          path: "/organization/import-company/pedidos-analise",
+          active: currentPath === "/organization/import-company/pedidos-analise",
+          icon: <FileSearch size={16} className="text-blue-500" />
+        },
+        {
+          title: "Enviados para ANVISA",
+          path: "/organization/import-company/anvisa",
+          active: currentPath === "/organization/import-company/anvisa",
+          icon: <FileUp size={16} className="text-blue-500" />
+        },
+        {
+          title: "Aprovados",
+          path: "/organization/import-company/aprovados",
+          active: currentPath === "/organization/import-company/aprovados",
+          icon: <FileCheck size={16} className="text-blue-500" />
+        },
+        {
+          title: "Rejeitados",
+          path: "/organization/import-company/rejeitados",
+          active: currentPath === "/organization/import-company/rejeitados",
+          icon: <AlertTriangle size={16} className="text-blue-500" />
+        },
+        {
+          title: "Em Trânsito",
+          path: "/organization/import-company/transito",
+          active: currentPath === "/organization/import-company/transito",
+          icon: <Plane size={16} className="text-blue-500" />
+        },
+        {
+          title: "Entregues",
+          path: "/organization/import-company/entregues",
+          active: currentPath === "/organization/import-company/entregues",
+          icon: <Check size={16} className="text-blue-500" />
+        }
+      ]
+    }
+  ];
+  
   // Módulos obrigatórios (incluídos no freemium e em todos os planos)
   const freeModules = [
     {
@@ -229,6 +351,163 @@ export default function OrganizationSidebar() {
       active: currentPath === "/organization/cadastros" || 
               currentPath === "/organization/gerenciar-pacientes",
       icon: <Users size={18} />
+    },
+    {
+      title: "Programa de Afiliados",
+      path: "/organization/afiliados",
+      active: currentPath === "/organization/afiliados" || 
+              currentPath.startsWith("/organization/afiliados/"),
+      icon: <Share2 size={18} className="text-blue-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Afiliados",
+          path: "/organization/afiliados",
+          active: currentPath === "/organization/afiliados" && !currentPath.includes("/organization/afiliados/configuracoes"),
+          icon: <BarChart3 size={16} className="text-blue-500" />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/afiliados/configuracoes",
+          active: currentPath === "/organization/afiliados/configuracoes",
+          icon: <Settings size={16} className="text-blue-500" />
+        }
+      ]
+    },
+    {
+      title: "Expedição",
+      path: "/organization/expedicao",
+      active: currentPath === "/organization/expedicao" || 
+              currentPath === "/organization/expedition" || 
+              currentPath === "/organization/producao" ||
+              currentPath.startsWith("/organization/expedicao/"),
+      icon: <Truck size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Expedição",
+          path: "/organization/expedicao",
+          active: currentPath === "/organization/expedicao" && !currentPath.includes("/organization/expedicao/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Preparação de Envios",
+          path: "/organization/expedicao/pedidos",
+          active: currentPath === "/organization/expedicao/pedidos",
+          icon: <ClipboardList size={16} />
+        },
+        {
+          title: "Etiquetas",
+          path: "/organization/expedicao/etiquetas",
+          active: currentPath === "/organization/expedicao/etiquetas",
+          icon: <Printer size={16} />
+        },
+        {
+          title: "Leitura de Códigos",
+          path: "/organization/expedicao/codigos",
+          active: currentPath === "/organization/expedicao/codigos",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Documentação",
+          path: "/organization/expedicao/documentacao",
+          active: currentPath === "/organization/expedicao/documentacao",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Mapa BI",
+          path: "/organization/expedicao/mapa-bi",
+          active: currentPath === "/organization/expedicao/mapa-bi",
+          icon: <BarChart3 size={16} />
+        }
+      ]
+    },
+    {
+      title: "Módulo Social",
+      path: "/organization/social",
+      active: currentPath === "/organization/social" || 
+              currentPath.startsWith("/organization/social/"),
+      icon: <HeartHandshake size={18} className="text-red-500" />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard Social",
+          path: "/organization/social",
+          active: currentPath === "/organization/social",
+          icon: <LayoutDashboard size={16} className="text-red-500" />
+        },
+        {
+          title: "Beneficiários",
+          path: "/organization/social/beneficiarios",
+          active: currentPath === "/organization/social/beneficiarios",
+          icon: <Users2 size={16} className="text-red-500" />
+        },
+        {
+          title: "Doações",
+          path: "/organization/social/doacoes",
+          active: currentPath === "/organization/social/doacoes",
+          icon: <HandCoins size={16} className="text-red-500" />
+        },
+        {
+          title: "Despesas",
+          path: "/organization/social/despesas",
+          active: currentPath === "/organization/social/despesas",
+          icon: <Receipt size={16} className="text-red-500" />
+        },
+        {
+          title: "Campanhas",
+          path: "/organization/social/campanhas",
+          active: currentPath === "/organization/social/campanhas",
+          icon: <Target size={16} className="text-red-500" />
+        },
+        {
+          title: "Voluntários",
+          path: "/organization/social/voluntarios",
+          active: currentPath === "/organization/social/voluntarios",
+          icon: <Users size={16} className="text-red-500" />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/social/configuracoes",
+          active: currentPath === "/organization/social/configuracoes",
+          icon: <Settings size={16} className="text-red-500" />
+        }
+      ]
+    },
+    
+    {
+      title: "Inteligência Artificial",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai" || 
+              currentPath.startsWith("/organization/ai/"),
+      icon: <Cpu size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard IA",
+          path: "/organization/ai",
+          active: currentPath === "/organization/ai" && !currentPath.includes("/organization/ai/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Assistente",
+          path: "/organization/ai/assistant",
+          active: currentPath === "/organization/ai/assistant",
+          icon: <MessageSquare size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/ai/analysis",
+          active: currentPath === "/organization/ai/analysis",
+          icon: <BarChart3 size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/ai/settings",
+          active: currentPath === "/organization/ai/settings",
+          icon: <Settings size={16} />
+        }
+      ]
     },
 
     {
@@ -404,55 +683,6 @@ export default function OrganizationSidebar() {
       ]
     },
     {
-      title: "Expedição",
-      path: "/organization/expedicao",
-      active: currentPath === "/organization/expedicao" || 
-              currentPath === "/organization/expedition" || 
-              currentPath === "/organization/producao" ||
-              currentPath.startsWith("/organization/expedicao/"),
-      icon: <Truck size={18} />,
-      isSubmenu: true,
-      subItems: [
-        {
-          title: "Dashboard Expedição",
-          path: "/organization/expedicao",
-          active: currentPath === "/organization/expedicao" && !currentPath.includes("/organization/expedicao/"),
-          icon: <LayoutDashboard size={16} />
-        },
-        {
-          title: "Preparação de Envios",
-          path: "/organization/expedicao/pedidos",
-          active: currentPath === "/organization/expedicao/pedidos",
-          icon: <ClipboardList size={16} />
-        },
-        {
-          title: "Etiquetas",
-          path: "/organization/expedicao/etiquetas",
-          active: currentPath === "/organization/expedicao/etiquetas",
-          icon: <Printer size={16} />
-        },
-        {
-          title: "Leitura de Códigos",
-          path: "/organization/expedicao/codigos",
-          active: currentPath === "/organization/expedicao/codigos",
-          icon: <FileText size={16} />
-        },
-        {
-          title: "Documentação",
-          path: "/organization/expedicao/documentacao",
-          active: currentPath === "/organization/expedicao/documentacao",
-          icon: <FileText size={16} />
-        }
-      ]
-    },
-    {
-      title: "ChatGPT AI",
-      path: "/organization/ai",
-      active: currentPath === "/organization/ai",
-      icon: <Bot size={18} />
-    },
-    
-    {
       title: "Comunicação",
       path: "/organization/comunicacao",
       active: currentPath === "/organization/comunicacao" || 
@@ -500,33 +730,103 @@ export default function OrganizationSidebar() {
     },
     
     {
+      title: "Carteirinha",
+      path: "/organization/carteirinha/membership-cards",
+      active: currentPath === "/organization/carteirinha/membership-cards" || 
+              currentPath.startsWith("/organization/carteirinha/membership-cards/") ||
+              currentPath.startsWith("/organization/carteirinha/partners"),
+      icon: <CreditCardIcon size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Carteirinhas",
+          path: "/organization/carteirinha/membership-cards",
+          active: currentPath === "/organization/carteirinha/membership-cards" && !currentPath.includes("/organization/carteirinha/membership-cards/"),
+          icon: <CreditCardIcon size={16} />
+        },
+        {
+          title: "Nova Carteirinha",
+          path: "/organization/carteirinha/membership-cards/new",
+          active: currentPath === "/organization/carteirinha/membership-cards/new",
+          icon: <UserSquare size={16} />
+        },
+        {
+          title: "Parceiros",
+          path: "/organization/carteirinha/partners",
+          active: currentPath === "/organization/carteirinha/partners" && !currentPath.includes("/organization/carteirinha/partners/"),
+          icon: <Store size={16} />
+        },
+        {
+          title: "Novo Parceiro",
+          path: "/organization/carteirinha/partners/new",
+          active: currentPath === "/organization/carteirinha/partners/new",
+          icon: <UserPlus size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/carteirinha/settings",
+          active: currentPath === "/organization/carteirinha/settings",
+          icon: <Settings size={16} />
+        }
+      ]
+    },
+    
+    {
       title: "Integrações",
       path: "/organization/integracoes",
       active: currentPath === "/organization/integracoes" || 
               currentPath.startsWith("/organization/integracoes/"),
       icon: <Puzzle size={18} />
-    }
+    },
+    
+
+    
+    // Adiciona o módulo de importação como módulo base para importadoras
+    ...(isImportCompany ? importModules : [])
   ];
   
-  // Configurações da organização
+  // Configurações da organização - Agora apenas usando a página de perfil
   const configModule = {
-    title: "Configurações",
-    path: "/organization/settings",
-    active: currentPath === "/organization/settings" || currentPath.startsWith("/organization/settings"),
-    icon: <Settings size={18} />,
-    isSubmenu: true,
-    subItems: [
-      {
-        title: "Geral",
-        path: "/organization/settings",
-        active: currentPath === "/organization/settings" && !currentPath.includes("/settings/"),
-        icon: <Settings size={16} />
-      }
-    ]
+    title: "Perfil da Organização",
+    path: "/organization/profile",
+    active: currentPath === "/organization/profile",
+    icon: <User size={18} />
   };
   
   // Módulos pagos (disponíveis conforme o plano ou add-ons)
   const premiumModules = [
+    {
+      title: "Inteligência Artificial",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai" || 
+              currentPath.startsWith("/organization/ai/"),
+      icon: <Sparkles size={18} />,
+      isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
+      subItems: [
+        {
+          title: "Dashboard IA",
+          path: "/organization/ai",
+          active: currentPath === "/organization/ai" && !currentPath.includes("/organization/ai/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Assistente IA",
+          path: "/organization/ai/assistant",
+          active: currentPath === "/organization/ai/assistant",
+          icon: <Bot size={16} />
+        },
+        {
+          title: "Configurações IA",
+          path: "/organization/ai/settings",
+          active: currentPath === "/organization/ai/settings",
+          icon: <Settings size={16} />
+        }
+      ]
+    },
     {
       title: "Cultivo",
       path: "/organization/cultivation",
@@ -534,6 +834,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/cultivation/"),
       icon: <Leaf size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Cultivo",
@@ -543,22 +847,90 @@ export default function OrganizationSidebar() {
           icon: <LayoutDashboard size={16} />
         },
         {
-          title: "Plantio",
-          path: "/organization/cultivation/plantio",
-          active: currentPath === "/organization/cultivation/plantio",
-          icon: <Leaf size={16} />
+          title: "Plantas",
+          path: "/organization/cultivation/plantas",
+          active: currentPath === "/organization/cultivation/plantas" ||
+                  currentPath === "/organization/cultivation/plantio" ||
+                  currentPath === "/organization/cultivation/colheita",
+          icon: <Leaf size={16} />,
+          isSubmenu: true,
+          subItems: [
+            {
+              title: "Visão Geral",
+              path: "/organization/cultivation/plantas",
+              active: currentPath === "/organization/cultivation/plantas",
+              icon: <LayoutDashboard size={16} />
+            },
+            {
+              title: "Plantio",
+              path: "/organization/cultivation/plantio",
+              active: currentPath === "/organization/cultivation/plantio",
+              icon: <Leaf size={16} />
+            },
+            {
+              title: "Mudança de Fase",
+              path: "/organization/cultivation/mudanca-fase",
+              active: currentPath === "/organization/cultivation/mudanca-fase",
+              icon: <RefreshCw size={16} />
+            },
+            {
+              title: "Cadastro de Lotes",
+              path: "/organization/cultivation/lotes",
+              active: currentPath === "/organization/cultivation/lotes",
+              icon: <Tag size={16} />
+            },
+            {
+              title: "Colheita",
+              path: "/organization/cultivation/colheita",
+              active: currentPath === "/organization/cultivation/colheita",
+              icon: <Scissors size={16} />
+            }
+          ]
         },
         {
-          title: "Colheita",
-          path: "/organization/cultivation/colheita",
-          active: currentPath === "/organization/cultivation/colheita",
-          icon: <Scissors size={16} />
+          title: "Transferências",
+          path: "/organization/cultivation/transferencias",
+          active: currentPath === "/organization/cultivation/transferencias",
+          icon: <ArrowRightLeft size={16} />
         },
         {
-          title: "Análises",
-          path: "/organization/cultivation/analises",
-          active: currentPath === "/organization/cultivation/analises",
-          icon: <LineChart size={16} />
+          title: "Estoque",
+          path: "/organization/cultivation/estoque",
+          active: currentPath === "/organization/cultivation/estoque",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Testes",
+          path: "/organization/cultivation/testes",
+          active: currentPath === "/organization/cultivation/testes",
+          icon: <FlaskConical size={16} />
+        },
+        {
+          title: "Estufas",
+          path: "/organization/cultivation/estufas",
+          active: currentPath === "/organization/cultivation/estufas",
+          icon: <Building2 size={16} />
+        },
+        {
+          title: "Configuração",
+          path: "/organization/cultivation/configuracao",
+          active: currentPath === "/organization/cultivation/configuracao",
+          icon: <Settings size={16} />,
+          isSubmenu: true,
+          subItems: [
+            {
+              title: "Strains",
+              path: "/organization/cultivation/configuracao/strains",
+              active: currentPath === "/organization/cultivation/configuracao/strains",
+              icon: <Beaker size={16} />
+            },
+            {
+              title: "Tipos",
+              path: "/organization/cultivation/configuracao/tipos",
+              active: currentPath === "/organization/cultivation/configuracao/tipos",
+              icon: <Shapes size={16} />
+            }
+          ]
         }
       ]
     },
@@ -568,6 +940,10 @@ export default function OrganizationSidebar() {
       active: currentPath === "/organization/transparencia/gerenciar" ||
               currentPath.startsWith("/organization/transparencia/"),
       icon: <FileSearch size={18} />,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      }
     },
     {
       title: "Tarefas",
@@ -576,6 +952,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/tarefas/"),
       icon: <FileClock size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Tarefas",
@@ -603,12 +983,6 @@ export default function OrganizationSidebar() {
         }
       ]
     },
-    {/* Módulo de Patrimônio removido daqui e integrado no módulo de Compras e Estoque */},
-    /* 
-      Menu Compras e Estoque removido daqui para evitar duplicação.
-      Já existe no array 'enterpriseModules' para evitar a duplicação
-      que causava o problema de menu duplo.
-    */
     {
       title: "RH",
       path: "/organization/rh",
@@ -616,6 +990,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/rh/"),
       icon: <Users size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard RH",
@@ -650,6 +1028,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/juridico/"),
       icon: <Scale size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Jurídico",
@@ -684,6 +1066,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/farmacia/"),
       icon: <Pill size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Farmácia",
@@ -724,6 +1110,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/producao-industrial/"),
       icon: <Factory size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Premium",
+        variant: "premium"
+      },
       subItems: [
         {
           title: "Dashboard Produção",
@@ -817,12 +1207,66 @@ export default function OrganizationSidebar() {
   // Módulos Enterprise (disponíveis apenas no plano Enterprise)
   const enterpriseModules = [
     {
+      title: "Portal do Fornecedor",
+      path: "/organization/suppliers",
+      active: currentPath === "/organization/suppliers" || 
+              currentPath.startsWith("/organization/suppliers/"),
+      icon: <Store size={18} className="text-red-500" />,
+      isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
+      subItems: [
+        {
+          title: "Dashboard",
+          path: "/organization/suppliers",
+          active: currentPath === "/organization/suppliers" && !currentPath.includes("/organization/suppliers/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Cadastrar Fornecedor",
+          path: "/organization/suppliers/register",
+          active: currentPath === "/organization/suppliers/register",
+          icon: <UserPlus size={16} />
+        },
+        {
+          title: "Catálogo de Produtos",
+          path: "/organization/suppliers/products",
+          active: currentPath === "/organization/suppliers/products",
+          icon: <ShoppingCart size={16} />
+        },
+        {
+          title: "Licitações",
+          path: "/organization/suppliers/tenders",
+          active: currentPath === "/organization/suppliers/tenders",
+          icon: <FileText size={16} />
+        },
+        {
+          title: "Pedidos",
+          path: "/organization/suppliers/orders",
+          active: currentPath === "/organization/suppliers/orders",
+          icon: <Package size={16} />
+        },
+        {
+          title: "Carrinho de Compras",
+          path: "/organization/suppliers/cart",
+          active: currentPath === "/organization/suppliers/cart",
+          icon: <ShoppingBag size={16} className="text-red-500" />
+        },
+      ]
+    },
+    {
       title: "Compras e Estoque",
       path: "/organization/compras",
       active: currentPath === "/organization/compras" || 
               currentPath.startsWith("/organization/compras/"),
       icon: <ShoppingCart size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Compras",
@@ -869,6 +1313,10 @@ export default function OrganizationSidebar() {
       active: currentPath.startsWith("/organization/patrimonio"),
       icon: <Building2 size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard",
@@ -909,6 +1357,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/medical-portal/"),
       icon: <HeartPulse size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Médico",
@@ -949,6 +1401,10 @@ export default function OrganizationSidebar() {
               currentPath.startsWith("/organization/doctor-management/"),
       icon: <Stethoscope size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard",
@@ -1001,12 +1457,50 @@ export default function OrganizationSidebar() {
       ]
     },
     {
+      title: "Inteligência Artificial",
+      path: "/organization/ai",
+      active: currentPath === "/organization/ai" || 
+              currentPath.startsWith("/organization/ai/"),
+      icon: <Cpu size={18} />,
+      isSubmenu: true,
+      subItems: [
+        {
+          title: "Dashboard IA",
+          path: "/organization/ai",
+          active: currentPath === "/organization/ai" && !currentPath.includes("/organization/ai/"),
+          icon: <LayoutDashboard size={16} />
+        },
+        {
+          title: "Assistente",
+          path: "/organization/ai/assistant",
+          active: currentPath === "/organization/ai/assistant",
+          icon: <MessageSquare size={16} />
+        },
+        {
+          title: "Análises",
+          path: "/organization/ai/analysis",
+          active: currentPath === "/organization/ai/analysis",
+          icon: <BarChart3 size={16} />
+        },
+        {
+          title: "Configurações",
+          path: "/organization/ai/settings",
+          active: currentPath === "/organization/ai/settings",
+          icon: <Settings size={16} />
+        }
+      ]
+    },
+    {
       title: "Pesquisa Científica",
       path: "/organization/pesquisa",
       active: currentPath === "/organization/pesquisa" || 
               currentPath.startsWith("/organization/pesquisa/"),
       icon: <FlaskConical size={18} />,
       isSubmenu: true,
+      badge: {
+        text: "Enterprise",
+        variant: "enterprise"
+      },
       subItems: [
         {
           title: "Dashboard Pesquisa",
@@ -1046,12 +1540,36 @@ export default function OrganizationSidebar() {
     }
   ];
   
-  // Módulos vazios para retrocompatibilidade
-  const doctorManagementModules = [];
-  const medicalModules = [];
+  // Definir arrays vazios para módulos que não foram declarados ainda
+  const financialModules = [];
+  const communicationModules = [];
+  const purchaseStockModules = [];
+  const hrModules = [];
+  const legalModules = [];
+  const salesModules = [];
+  const patrimonioModules = [];
+  const taskModules = [];
   
-  // Módulos do portal da farmácia (movido para módulos premium)
-  const pharmacyModules = [];
+  // Todos os módulos pagos disponíveis
+  const paidModules = [
+    ...premiumModules,
+    ...enterpriseModules,
+    ...importModules,
+    ...pharmacyModules
+  ];
+  
+  // Filtragem de módulos baseada no tipo de organização
+  const filteredPaidModules = paidModules.filter(module => {
+    if (isImportCompany && module && module.title) {
+      // Remove módulos não relevantes para importadoras
+      return !module.title.includes("Cultivo") && 
+             !module.title.includes("Produção Industrial") && 
+             !module.title.includes("Transparência") &&
+             !module.title.includes("Portal") &&
+             !module.title.includes("Anuidade");
+    }
+    return true;
+  });
   
   return (
     <div className={cn(
@@ -1072,10 +1590,21 @@ export default function OrganizationSidebar() {
                     className="h-8 w-8 rounded mr-2"
                   />
                 ) : (
-                  <Building className="h-6 w-6 text-primary mr-2" />
+                  <Leaf className="h-6 w-6 text-green-600 dark:text-green-400 mr-2" />
                 )}
                 <span className="text-sm font-semibold truncate" style={{ maxWidth: "150px" }}>
-                  {organization?.name || "Endurancy"}
+                  {organization?.name || user?.organizationId ? (
+                    // Se temos a organização ou seu ID, mostramos o nome ou "Minha Organização"
+                    <span>{organization?.name || (
+                      // Para o caso de hempmeds com ID 32
+                      user?.organizationId === 32 ? 'hempmeds' : 'Minha Organização'
+                    )}</span>
+                  ) : (
+                    <div className="flex items-center">
+                      <span>Endurancy</span>
+                      <span className="ml-1 px-1 py-0.5 text-[0.6rem] font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+                    </div>
+                  )}
                 </span>
               </>
             )}
@@ -1089,11 +1618,10 @@ export default function OrganizationSidebar() {
                 </span>
               </div>
             ) : (
-              <Building className="h-6 w-6 text-primary" />
+              <Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
             )}
           </div>
         )}
-        
         <button 
           onClick={() => setCollapsed(!collapsed)} 
           className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
@@ -1170,19 +1698,29 @@ export default function OrganizationSidebar() {
               Módulos Premium
             </h3>
           )}
+          {/* Módulo de importação movido para módulos base */}
           
-          {premiumModules.map((item, index) => (
-            <SidebarMenuItem
-              key={`premium-${index}`}
-              item={item}
-              expandedMenu={expandedMenu}
-              toggleSubmenu={toggleSubmenu}
-              closeSubmenu={closeSubmenu}
-              navigateTo={navigateTo}
-              openSubmenu={openSubmenu}
-              collapsed={collapsed}
-            />
-          ))}
+          {/* Módulos premium filtrados - remove módulos não relevantes para importadoras */}
+          {premiumModules
+            .filter(item => !isImportCompany || 
+              (item && item.title && 
+               !item.title.includes("Cultivo") && 
+               !item.title.includes("Produção Industrial") && 
+               !item.title.includes("Transparência") && 
+               !item.title.includes("Portal") &&
+               !item.title.includes("Anuidade")))
+            .map((item, index) => (
+              <SidebarMenuItem
+                key={`premium-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
         </div>
         
         {/* Seção de módulos enterprise */}
@@ -1192,19 +1730,27 @@ export default function OrganizationSidebar() {
               Módulos Enterprise
             </h3>
           )}
-          
-          {enterpriseModules.map((item, index) => (
-            <SidebarMenuItem
-              key={`enterprise-${index}`}
-              item={item}
-              expandedMenu={expandedMenu}
-              toggleSubmenu={toggleSubmenu}
-              closeSubmenu={closeSubmenu}
-              navigateTo={navigateTo}
-              openSubmenu={openSubmenu}
-              collapsed={collapsed}
-            />
-          ))}
+          {/* Módulos enterprise filtrados - remove módulos não relevantes para importadoras */}
+          {enterpriseModules
+            .filter(item => !isImportCompany || 
+              (item && item.title && 
+               !item.title.includes("Cultivo") && 
+               !item.title.includes("Produção Industrial") && 
+               !item.title.includes("Transparência") &&
+               !item.title.includes("Portal") &&
+               !item.title.includes("Anuidade")))
+            .map((item, index) => (
+              <SidebarMenuItem
+                key={`enterprise-${index}`}
+                item={item}
+                expandedMenu={expandedMenu}
+                toggleSubmenu={toggleSubmenu}
+                closeSubmenu={closeSubmenu}
+                navigateTo={navigateTo}
+                openSubmenu={openSubmenu}
+                collapsed={collapsed}
+              />
+            ))}
         </div>
         
         {/* Configurações */}

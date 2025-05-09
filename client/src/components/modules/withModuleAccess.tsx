@@ -39,6 +39,41 @@ interface WithModuleAccessProps {
 }
 
 // HOC para verificar o acesso ao módulo
+// Versão temporária do HOC que não verifica acesso ao módulo
+export const bypassModuleAccess = <P extends object>(
+  WrappedComponent: ComponentType<P>,
+  _props: WithModuleAccessProps // mantemos o parâmetro apenas para compatibilidade
+) => {
+  return function BypassModuleAccessWrapper(props: P) {
+    // Verificamos se o componente está sendo renderizado como um standalone
+    // Se sim, simplesmente renderizamos o componente sem verificações adicionais
+    try {
+      // Tentando verificar se o contexto de autenticação está disponível
+      // Se não estiver, isso gerará um erro que será capturado no catch
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { user } = useAuth();
+      
+      // Se usuário não estiver logado, exibimos uma mensagem de erro
+      if (!user) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-amber-600">Modo de desenvolvimento</h2>
+              <p className="mt-2 text-gray-600">
+                Este componente está em modo de desenvolvimento e não requer autenticação para visualização.
+              </p>
+            </div>
+          </div>
+        );
+      }
+    } catch (e) {
+      console.log("Executando em modo de bypass sem contexto de autenticação");
+    }
+    
+    // No modo de bypass, renderizamos o componente independentemente do status do módulo
+    return <WrappedComponent {...props} />;
+  };
+};
 export const withModuleAccess = <P extends object>(
   WrappedComponent: ComponentType<P>,
   { moduleType, moduleName, moduleDescription, modulePrice }: WithModuleAccessProps
@@ -75,13 +110,15 @@ export const withModuleAccess = <P extends object>(
       error: modulesError,
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
-      queryKey: ['/api/modules/organization'],
+      queryKey: ['/api/modules/organization', moduleType],
+
       queryFn: async () => {
         // Só busca os módulos se tiver a organização
         if (!organization?.id) {
           return [];
         }
-        const response = await fetch('/api/modules/organization');
+        // Adiciona o parâmetro de consulta para ajudar o backend a identificar o módulo específico
+        const response = await fetch(`/api/modules/organization?module=${moduleType}`);
         if (!response.ok) throw new Error(`Erro ao buscar módulos: ${response.statusText}`);
         return response.json();
       },

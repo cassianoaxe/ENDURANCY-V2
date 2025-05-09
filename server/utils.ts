@@ -1,6 +1,19 @@
 import { ZodError } from "zod";
 
 /**
+ * Verifica se um valor está vazio
+ * @param value Valor a ser verificado
+ * @returns boolean indicando se o valor está vazio
+ */
+export function isEmpty(value: any): boolean {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim() === '';
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return false;
+}
+
+/**
  * Converte os erros do Zod para mensagens legíveis
  * @param error Objeto de erro do Zod
  * @returns Um objeto com as mensagens de erro em formato legível

@@ -60,19 +60,52 @@ export async function createAndSendPaymentLink(params: {
     
     // Enviar email com o link de pagamento
     const emailContent = `
-      <h2>Link para Pagamento - Endurancy</h2>
-      <p>Olá, ${params.adminName}!</p>
-      <p>Recebemos seu cadastro para a organização <strong>${params.organizationName}</strong> no plano <strong>${plan.name}</strong>.</p>
-      <p>Para ativar sua conta, clique no link abaixo para completar o pagamento:</p>
-      <p style="margin: 20px 0;">
-        <a href="${paymentUrl}" style="background-color: #10b981; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Finalizar Pagamento
-        </a>
-      </p>
-      <p><strong>Valor mensal:</strong> R$ ${plan.price.toFixed(2).replace('.', ',')}</p>
-      <p>Este link é válido por 24 horas. Após esse período, será necessário gerar um novo link de pagamento.</p>
-      <p>Se você não solicitou esta conta, por favor ignore este email.</p>
-      <p>Atenciosamente,<br>Equipe Endurancy</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e4; border-radius: 5px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="https://endurancy25.replit.app/assets/logo.svg" alt="Endurancy Logo" style="max-width: 150px;">
+        </div>
+        
+        <h2 style="color: #2e7d32; text-align: center;">Confirmação de Pagamento</h2>
+        
+        <!-- Alerta SPAM bem visível no topo -->
+        <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
+          <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
+            <span style="font-size: 22px; margin-right: 8px;">⚠️</span>
+            <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
+          </p>
+        </div>
+        
+        <p>Olá, <strong>${params.adminName}</strong>!</p>
+        
+        <p>Recebemos seu cadastro para a organização <strong>${params.organizationName}</strong> no plano <strong>${plan.name}</strong>.</p>
+        
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #333;">Detalhes do Plano:</h3>
+          <p><strong>Organização:</strong> ${params.organizationName}</p>
+          <p><strong>Plano:</strong> ${plan.name}</p>
+          <p><strong>Valor mensal:</strong> R$ ${plan.price.toFixed(2).replace('.', ',')}</p>
+        </div>
+        
+        <p>Para ativar sua conta, clique no botão abaixo para completar o pagamento:</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${paymentUrl}" style="background-color: #2e7d32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Finalizar Pagamento</a>
+        </div>
+        
+        <p style="color: #d32f2f; font-size: 14px; background-color: #ffebee; padding: 10px; border-radius: 4px;">
+          <strong>Importante:</strong> Este link é válido por apenas 24 horas. Após esse período, será necessário solicitar um novo link.
+        </p>
+        
+        <p>Ou copie e cole o link diretamente no seu navegador:</p>
+        <p style="word-break: break-all; background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px;">${paymentUrl}</p>
+        
+        <p>Se você não solicitou esta conta, por favor ignore este email ou entre em contato com nosso suporte.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e4e4e4; color: #777; font-size: 12px; text-align: center;">
+          <p>Este é um email automático, por favor não responda.</p>
+          <p>© ${new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+        </div>
+      </div>
     `;
     
     await sendMail({
@@ -166,12 +199,15 @@ export async function processPaymentFromToken(token: string, paymentType: string
     
     // Gerar um ID de transação interno
     const transactionId = `TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    // Verificar o status atual da organização
+    const currentStatus = organization.status;
+    console.log(`Processando pagamento - Organização ${organization.id} - Status atual: ${currentStatus}`);
     
-    // Atualizar o plano da organização
+    // Atualizar o plano da organização e alterar status para 'active'
     await db.update(organizations)
       .set({ 
         planId: plan.id,
-        status: 'active',
+        status: 'active', // Alterando de 'pending' para 'active' após confirmação de pagamento
         planTier: plan.tier,
         planHistory: [
           ...(organization.planHistory || []),
@@ -179,11 +215,13 @@ export async function processPaymentFromToken(token: string, paymentType: string
             date: new Date().toISOString(),
             planId: plan.id,
             planName: plan.name,
-            action: 'upgraded',
+            action: currentStatus === 'pending' ? 'activated' : 'upgraded',
             price: plan.price,
             previousPlanId: organization.planId,
             paymentMethod: paymentType,
-            transactionId: transactionId
+            transactionId: transactionId,
+            statusBefore: currentStatus,
+            statusAfter: 'active'
           }
         ]
       })

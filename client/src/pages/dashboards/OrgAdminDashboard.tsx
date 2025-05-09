@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/contexts/AuthContext';
-import TourGuide from '@/components/features/TourGuide';
+// Tour Guide removido pois ficou tecnologicamente defasado
 import { 
   Users, FileText, Package, FileCheck, ShoppingBag, BarChart, 
   ChevronUp, ArrowUpRight, CirclePlus, Wallet, LineChart
@@ -650,55 +650,7 @@ export default function OrgAdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-      
-      {/* Tour Guide */}
-      <TourGuide
-        tourId="org-admin-dashboard-tour"
-        steps={[
-          {
-            selector: '.overview-patients',
-            title: 'Total de Pacientes',
-            content: 'Veja quantos pacientes estão registrados em sua organização.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.overview-products',
-            title: 'Produtos Ativos',
-            content: 'Acompanhe todos os produtos disponíveis na sua organização.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.overview-prescriptions',
-            title: 'Prescrições Pendentes',
-            content: 'Visualize as prescrições que estão pendentes de aprovação.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.overview-sales',
-            title: 'Faturamento Mensal',
-            content: 'Acompanhe o faturamento mensal da sua organização.',
-            buttonText: 'Próximo',
-            placementBeacon: 'top',
-          },
-          {
-            selector: '.overview-sales-chart',
-            title: 'Gráfico de Vendas',
-            content: 'Visualize o histórico de vendas mensais.',
-            buttonText: 'Próximo',
-            placementBeacon: 'left',
-          },
-          {
-            selector: '.overview-product-dist',
-            title: 'Distribuição de Produtos',
-            content: 'Veja a distribuição de vendas por tipo de produto.',
-            buttonText: 'Finalizar Tour',
-            placementBeacon: 'right',
-          },
-        ]}
-      />
+      {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );
 }

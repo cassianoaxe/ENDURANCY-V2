@@ -6,7 +6,7 @@ import { EcosystemGraphV2 } from "@/components/ecosystem-graph-v2";
 import { 
   Leaf, ShieldCheck, Users, BookOpen, Pill, 
   ArrowRight, CheckCircle, Medal, Globe, 
-  Building, Lock, HeartPulse
+  Building, Lock, HeartPulse, Info
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -17,7 +17,10 @@ const LandingPage = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
             <Leaf className="h-8 w-8 text-green-600" />
-            <span className="ml-2 text-xl font-bold text-green-800">Endurancy</span>
+            <div className="ml-2 flex items-center">
+              <span className="text-xl font-bold text-green-800">Endurancy</span>
+              <span className="ml-1.5 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Beta</span>
+            </div>
           </div>
           <nav className="hidden md:flex space-x-8">
             <a href="#plataforma" className="text-green-700 hover:text-green-500 font-medium">Plataforma</a>
@@ -287,12 +290,55 @@ const LandingPage = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-green-800 mb-4">Planos Flexíveis</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-3">
               Escolha o plano ideal para o tamanho e as necessidades do seu negócio.
             </p>
+            <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+              <span className="mr-2 font-medium">OFERTA BETA:</span> 
+              <span>Acesso gratuito a todos os recursos por 1 ano</span>
+            </div>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-10">
+            {/* Plano Grátis */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden border-2 border-dashed border-green-300">
+              <div className="p-6 border-b border-green-100 bg-green-50/50">
+                <h3 className="text-xl font-semibold text-green-800 mb-2">Grátis</h3>
+                <div className="flex items-end gap-1 mb-4">
+                  <span className="text-4xl font-bold text-green-700">R$0</span>
+                  <span className="text-gray-500 mb-1">/mês</span>
+                </div>
+                <p className="text-gray-600">Experimente nossa plataforma.</p>
+              </div>
+              <div className="p-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Módulos Base</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>1 usuário</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Módulo ComplyPay</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Suporte comunitário</span>
+                  </li>
+                </ul>
+                <Button 
+                  className="w-full mt-6 bg-green-600 hover:bg-green-700"
+                  onClick={() => window.location.href = "/organization-registration"}
+                >
+                  Começar Agora
+                </Button>
+              </div>
+            </div>
+            
+            {/* Plano Seed */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6 border-b border-green-100">
                 <h3 className="text-xl font-semibold text-green-800 mb-2">Seed</h3>
@@ -306,11 +352,15 @@ const LandingPage = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>1 módulo à sua escolha</span>
+                    <span>2 módulos à sua escolha</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
                     <span>Até 3 usuários</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Módulo ComplyPay</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
@@ -325,7 +375,7 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            
+            {/* Plano Grow */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden relative transform scale-105 z-10">
               <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold py-1 px-3 rounded-bl-lg">
                 MAIS POPULAR
@@ -342,11 +392,15 @@ const LandingPage = () => {
                 <ul className="space-y-3">
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span>3 módulos à sua escolha</span>
+                    <span>5 módulos à sua escolha</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
                     <span>Até 10 usuários</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Módulo ComplyPay</span>
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
@@ -365,7 +419,7 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            
+            {/* Plano Enterprise */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6 border-b border-green-100">
                 <h3 className="text-xl font-semibold text-green-800 mb-2">Enterprise</h3>
@@ -387,6 +441,10 @@ const LandingPage = () => {
                   </li>
                   <li className="flex items-start">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Módulo ComplyPay</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
                     <span>Suporte 24/7</span>
                   </li>
                   <li className="flex items-start">
@@ -400,6 +458,25 @@ const LandingPage = () => {
                 >
                   Contate Vendas
                 </Button>
+              </div>
+            </div>
+          </div>
+          {/* Mensagem informativa sobre o período beta */}
+          <div className="bg-white p-6 rounded-lg shadow-md border border-blue-100">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Info className="h-6 w-6 text-blue-700" />
+              </div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">Plataforma em fase Beta</h4>
+                <p className="text-gray-600 mb-3">
+                  Durante o período Beta, todos os usuários terão acesso gratuito a todos os recursos 
+                  da plataforma por um período de 12 meses, independentemente do plano escolhido.
+                </p>
+                <p className="text-gray-600">
+                  Após o período Beta, você poderá escolher o plano que melhor se adapta às suas necessidades, 
+                  mantendo todas as funcionalidades e dados já existentes na plataforma.
+                </p>
               </div>
             </div>
           </div>
@@ -438,7 +515,10 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center mb-4">
                 <Leaf className="h-6 w-6 text-green-300" />
-                <span className="ml-2 text-xl font-bold text-white">Endurancy</span>
+                <div className="ml-2 flex items-center">
+                  <span className="text-xl font-bold text-white">Endurancy</span>
+                  <span className="ml-1.5 px-1.5 py-0.5 text-xs font-medium bg-white/20 text-white rounded">Beta</span>
+                </div>
               </div>
               <p className="text-green-300 mb-4">
                 Plataforma completa para o setor medicinal cannabidiol.
@@ -477,7 +557,7 @@ const LandingPage = () => {
           </div>
           
           <div className="border-t border-green-800 mt-12 pt-6 text-center text-green-400">
-            <p>&copy; {new Date().getFullYear()} Endurancy. Todos os direitos reservados.</p>
+            <p>&copy; {new Date().getFullYear()} Endurancy <span className="inline-block px-1 py-0.5 text-[0.6rem] font-medium bg-green-200 text-green-800 rounded">Beta</span>. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

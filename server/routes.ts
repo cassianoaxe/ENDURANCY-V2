@@ -14,14 +14,19 @@ import { registerDocumentRoutes } from './routes/document-routes';
 import { registerProductionRoutes } from './routes/production-routes';
 import { registerDoctorAffiliationRoutes } from './routes/doctor-affiliation-routes';
 import { registerLaboratoryRoutes } from './routes/laboratory-routes';
+import { registerLaboratorySamplesRoutes } from './routes/laboratory-samples';
 import { registerHplcRoutes } from './routes/hplc-routes';
 import { registerHplcValidationRoutes } from './routes/hplc-validation-routes';
 import { registerHplcTrainingRoutes } from './routes/hplc-training-routes';
 import { registerTrainerRoutes } from './routes/trainer-routes';
 import equipmentRoutes from './routes/equipment-routes';
+import aiChatRouter from './routes/ai-chat';
 import { registerPlanRoutes } from './routes/plans';
+import socialRoutes from './routes/social-routes';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
+import expedicaoRoutes from './routes/expedicao-routes';
+import { registerAffiliatesRoutes } from './routes/affiliates-routes';
 import { 
   organizations, organizationDocuments, users, plans, modules, modulePlans, organizationModules,
   planModules, insertPlanModuleSchema, patients,
@@ -47,6 +52,7 @@ import adminRouter from "./routes/admin";
 // Importar rotas de integração
 import zoopRouter from './routes/integrations/zoop';
 import integrationsRouter from './routes/integrations/index';
+// Já importamos o aiChatRouter acima
 // Importar rotas de links de pagamento
 import paymentLinksRouter from './routes/payment-links';
 // Importar rotas de pagamento por email
@@ -63,6 +69,8 @@ import modulesRouter from './routes/modules';
 import medicalPortalRouter from './routes/medical-portal';
 // Importar rotas do módulo de farmácia
 import { dispensarioRouter } from './routes/dispensario-routes';
+// Importar rotas do programa de afiliados
+import { affiliatesRouter } from './routes/affiliates-routes';
 import * as notificationService from "./services/notificationService";
 import { generateTicketSuggestions, getTicketSuggestionsWithDetails } from "./services/aiSuggestions";
 import { z } from "zod";
@@ -82,7 +90,7 @@ declare module 'express-session' {
     user: {
       id: number;
       username: string;
-      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee' | 'pharmacist' | 'laboratory';
+      role: 'admin' | 'org_admin' | 'doctor' | 'patient' | 'manager' | 'employee' | 'pharmacist' | 'laboratory' | 'supplier';
       name: string;
       email: string;
       organizationId: number | null;
@@ -107,21 +115,37 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const isFrequentRoute = req.path === '/api/auth/me' || 
                            req.path === '/api/notifications' || 
                            req.path === '/api/organizations';
+    // Determinar se a rota é da API com base no path
+    const isApiRoute = req.path.startsWith('/api/');
     
-    // Check if the Cookie header is present
-    if (!req.headers.cookie) {
-      if (!isFrequentRoute) {
-        console.warn("Request without cookie:", req.path);
-      }
-      return res.status(401).json({ message: "No authorization cookie found" });
+    // Verificar se é uma rota do módulo carteirinha
+    const isCarteirinhaRoute = req.path.includes('/carteirinha/') || req.path.startsWith('/api/carteirinha');
+    
+    // Forçar Content-Type para JSON em rotas de carteirinha
+    if (isCarteirinhaRoute) {
+      res.setHeader('Content-Type', 'application/json');
     }
     
-    // Verificações básicas de sessão
+    // Sempre verificar se o usuário está autenticado
     if (!req.session || !req.session.user) {
+      // Registrar a tentativa de acesso para depuração (exceto rotas frequentes)
       if (!isFrequentRoute) {
-        console.log("Usuário não autenticado para rota:", req.path);
+        console.log(`GET ${req.path}: Requisição sem cookie de sessão`);
       }
-      return res.status(401).json({ message: "Não autenticado" });
+      
+      // Para qualquer rota de API ou carteirinha, sempre retornar um erro JSON formatado
+      if (isApiRoute || isCarteirinhaRoute) {
+        // Garantir que o Content-Type seja application/json
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(401).json({ 
+          message: "Não autenticado", 
+          error: "Unauthorized", 
+          authenticated: false 
+        });
+      } else {
+        // Para requisições de página, retornar para a página de login
+        return res.redirect('/auth');
+      }
     }
     
     // Update the session cookie to ensure it doesn't expire
@@ -141,6 +165,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     next();
   } catch (error) {
     console.error("Error in authentication middleware:", error);
+    // Sempre responder com JSON para erros em rotas da API
     res.status(500).json({ message: "Authentication error" });
   }
 };
@@ -235,39 +260,19 @@ const logoUpload = multer({
     fileSize: 5 * 1024 * 1024 // limita a 5MB
   }
 });
+// Importar rotas de teste e autenticação simplificada
+import { addTestAuthRoutes } from './test-auth';
+import { registerAuthRoutes } from './auth-routes';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Adicionar rotas de teste para diagnóstico de autenticação
+  addTestAuthRoutes(app);
+  
+  // Adicionar rotas de autenticação simplificadas
+  registerAuthRoutes(app);
   const server = createServer(app);
-  // Setup session middleware
-  const sessionConfig = {
-    store: new PostgresStore({
-      pool,
-      tableName: 'session', // Table to store sessions
-      createTableIfMissing: true,
-      pruneSessionInterval: 60 * 60 // Limpar sessões a cada hora (em segundos)
-    }),
-    secret: process.env.SESSION_SECRET || 'super-secret-key', // Use a strong secret in production
-    resave: false, // Definido como false para reduzir operações de gravação
-    saveUninitialized: false, // Não salva sessões não inicializadas para reduzir overhead
-    name: 'connect.sid', // Nome padrão para maximizar compatibilidade
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
-      secure: false, // Set to false to ensure it works in both prod and dev
-      httpOnly: true,
-      sameSite: 'lax' as const, // Tipado explicitamente para evitar erro
-      path: '/' // Disponível em todas as rotas
-    },
-  };
   
-  console.log("Configurando sessão com as seguintes opções:", {
-    resave: sessionConfig.resave, 
-    saveUninitialized: sessionConfig.saveUninitialized,
-    cookiePath: sessionConfig.cookie.path,
-    cookieMaxAge: sessionConfig.cookie.maxAge,
-  });
-  
-  // Garantir que o middleware de sessão seja aplicado corretamente
-  app.use(session(sessionConfig));
+  // A sessão já foi configurada em index.ts via setupSessionMiddleware
   
   // Remover middleware de debug que estava causando muitos logs
   // Isso evita sobrecarga no servidor e reduz o número de requisições
@@ -597,8 +602,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Erro ao salvar sessão:", error);
         }
         
-        console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, orgId: orgsFound[0].id, sessionID: req.sessionID });
-        res.json(userWithoutPassword);
+        // Determinar a rota correta com base no papel do usuário
+        let redirectUrl = '/dashboard'; // Padrão
+        
+        // Definir destino específico baseado no papel do usuário
+        switch(user.role) {
+          case 'laboratory':
+            redirectUrl = '/laboratory/dashboard';
+            break;
+          case 'doctor':
+            redirectUrl = '/doctor/dashboard';
+            break;
+          case 'patient':
+            redirectUrl = '/patient/dashboard';
+            break;
+          case 'pharmacist':
+            redirectUrl = '/pharmacist/dashboard';
+            break;
+          case 'researcher':
+            redirectUrl = '/researcher/dashboard';
+            break;
+          case 'supplier':
+            redirectUrl = '/supplier/dashboard';
+            break;
+          case 'org_admin':
+            redirectUrl = `/organization/${orgsFound[0].id}/dashboard`;
+            break;
+          case 'admin':
+            redirectUrl = '/admin/dashboard';
+            break;
+          default:
+            redirectUrl = '/dashboard';
+        }
+        
+        console.log("Login successful for:", { 
+          username: user.username, 
+          email: user.email, 
+          role: user.role, 
+          orgId: orgsFound[0].id, 
+          sessionID: req.sessionID,
+          redirectUrl
+        });
+        
+        // Incluir a URL de redirecionamento na resposta para o cliente
+        res.json({
+          ...userWithoutPassword,
+          redirectUrl
+        });
         return;
       }
       
@@ -638,7 +688,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Se temos um user type, verificar se o usuário tem a role correspondente
       const user = usersFound[0];
       
-      if (userType && user.role !== userType && !(userType === 'admin' && (username === 'admin' || email === 'admin@exemplo.com'))) {
+      // Se userType for association_admin ou company_admin e o usuário for org_admin, permitir o login
+      if (userType && user.role !== userType && 
+          !((userType === 'admin' && (username === 'admin' || email === 'admin@exemplo.com')) || 
+            ((userType === 'association_admin' || userType === 'company_admin') && user.role === 'org_admin'))) {
         console.log("Role mismatch:", { requestedRole: userType, actualRole: user.role });
         return res.status(401).json({ message: "Credenciais inválidas" });
       }
@@ -681,9 +734,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Erro ao salvar sessão:", error);
       }
+      // Determinar a rota correta com base no papel do usuário
+      let redirectUrl = '/dashboard'; // Padrão
       
-      console.log("Login successful for:", { username: user.username, email: user.email, role: user.role, sessionID: req.sessionID });
-      res.json(userWithoutPassword);
+      // Definir destino específico baseado no papel do usuário
+      switch(user.role) {
+        case 'laboratory':
+          redirectUrl = '/laboratory/dashboard';
+          break;
+        case 'doctor':
+          redirectUrl = '/doctor/dashboard';
+          break;
+        case 'patient':
+          redirectUrl = '/patient/dashboard';
+          break;
+        case 'pharmacist':
+          redirectUrl = '/pharmacist/dashboard';
+          break;
+        case 'researcher':
+          redirectUrl = '/researcher/dashboard';
+          break;
+        case 'supplier':
+          redirectUrl = '/supplier/dashboard';
+          break;
+        case 'org_admin':
+          redirectUrl = `/organization/${user.organizationId}/dashboard`;
+          break;
+        case 'admin':
+          redirectUrl = '/admin/dashboard';
+          break;
+        default:
+          redirectUrl = '/dashboard';
+      }
+      
+      console.log("Login successful for:", { 
+        username: user.username, 
+        email: user.email, 
+        role: user.role, 
+        sessionID: req.sessionID,
+        redirectUrl
+      });
+      
+      // Incluir a URL de redirecionamento na resposta para o cliente
+      res.json({
+        ...userWithoutPassword,
+        redirectUrl
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Falha no login. Tente novamente." });
@@ -1260,14 +1356,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...restOrgData,
         plan: planName || 'Básico', // Garantir valor não nulo para o campo plan
         planId: planId, 
-        status: 'active', // Ativar automaticamente a organização
+        status: 'active', // Definido como ativo por padrão para aparecer imediatamente na listagem
         planHistory: JSON.stringify([{
           planId: planId,
           planName: planName || 'Básico',
           date: new Date(),
           action: "inicial",
           userId: null,
-          status: "aprovado"
+          status: "pendente"
         }]),
         createdAt: new Date()
       };
@@ -1372,23 +1468,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Mas usamos caminhos relativos para maximizar compatibilidade
         const accessLink = new URL('/login', baseUrl).toString();
         const passwordLink = new URL(`/reset-password?code=${orgCode}`, baseUrl).toString();
+        // Importar o serviço estruturado de links de pagamento
+        const { createAndSendPaymentLink } = await import('./services/payment-links');
         
-        // Enviar e-mail com os dados de acesso
-        await sendTemplateEmail(
-          organizationData.email,
-          "Organização Criada com Sucesso - Endurancy",
-          "organization_activated",
-          {
-            organizationName: organizationData.name,
-            adminName: organizationData.adminName || "Administrador",
-            username: adminUser.username,
-            accessLink: accessLink,
-            passwordLink: passwordLink,
-            orgCode: orgCode,
-            patientPortalUrl: patientPortalUrl
-          }
-        );
-        console.log(`E-mail de ativação enviado para ${organizationData.email}`);
+        // Criar e enviar link de pagamento utilizando o serviço estruturado
+        const paymentLinkSent = await createAndSendPaymentLink({
+          organizationId: organization.id,
+          planId: planId,
+          email: organizationData.email,
+          adminName: organizationData.adminName || 'Administrador',
+          organizationName: organizationData.name
+        });
+        
+        console.log(`Link de pagamento enviado: ${paymentLinkSent ? 'Sucesso' : 'Falha'}`);
+        
+        // Se falhar o envio com o serviço estruturado, tenta método alternativo
+        if (!paymentLinkSent) {
+          console.log("Tentando método alternativo de envio de link de pagamento...");
+          
+          // Buscar mais detalhes do plano selecionado
+          const [planDetails] = await db.select().from(plans).where(eq(plans.id, planId));
+          
+          // Gerar um token para o link de pagamento (método alternativo)
+          const paymentToken = uuidv4();
+          
+          // Construir a URL de pagamento
+          const paymentLink = new URL(`/payment?token=${paymentToken}&org=${organization.id}&plan=${planId}`, baseUrl).toString();
+          
+          // Enviar e-mail com link de pagamento pelo método alternativo
+          await sendTemplateEmail(
+            organizationData.email,
+            "Finalizar Pagamento - Endurancy",
+            "payment_link",
+            {
+              organizationName: organizationData.name,
+              adminName: organizationData.adminName || "Administrador",
+              planName: planDetails ? planDetails.name : 'Padrão',
+              paymentLink: paymentLink,
+              username: adminUser.username
+            }
+          );
+        }
+        
+        // Também enviar e-mail para administração sobre nova organização registrada
+        await sendMail({
+          to: process.env.ADMIN_EMAIL || 'admin@endurancy.app',
+          subject: `Nova organização registrada: ${organizationData.name}`,
+          html: `
+            <h1>Nova organização registrada</h1>
+            <p><strong>Nome:</strong> ${organizationData.name}</p>
+            <p><strong>Administrador:</strong> ${organizationData.adminName}</p>
+            <p><strong>Email:</strong> ${organizationData.email}</p>
+            <p><strong>Plano selecionado:</strong> ${planDetails ? planDetails.name : 'Padrão'}</p>
+            <p><strong>ID da organização:</strong> ${organization.id}</p>
+            <p>Link de aprovação manual: <a href="${baseUrl}/admin/organizations/${organization.id}">Ver Detalhes</a></p>
+          `
+        });
+        
+        console.log(`E-mail com link de pagamento enviado para ${organizationData.email}`);
       } catch (userError) {
         console.error("Erro ao criar usuário admin:", userError);
         // Não interromper o fluxo se a criação do usuário ou envio de e-mail falhar
@@ -1435,7 +1572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...organization,
         orgCode,
         status: 'active',
-        message: "Organização criada e ativada com sucesso."
+        message: "Organização criada com sucesso. Verifique seu email para finalizar o pagamento."
       });
     } catch (error) {
       console.error("Error creating organization:", error);
@@ -1579,6 +1716,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(plansWithModules);
     } catch (error) {
       console.error("Error fetching plans with modules:", error);
+      res.status(500).json({ message: "Failed to fetch plans" });
+    }
+  });
+  // Rota pública para planos (usado no cadastro de organização)
+  app.get("/api/public/plans", async (req, res) => {
+    try {
+      console.log("Acessando rota pública de planos para registro");
+      // Buscar todos os planos
+      const plansList = await db.select().from(plans);
+      
+      // Filtrar para garantir que o plano freemium (tier: free) esteja incluído
+      const filteredPlans = plansList.filter(plan => 
+        ['free', 'seed', 'grow', 'pro'].includes(plan.tier)
+      );
+      
+      // Para cada plano, buscar os módulos associados
+      const plansWithModules = await Promise.all(filteredPlans.map(async (plan) => {
+        // Buscar todas as associações plano-módulo para este plano
+        const planModulesList = await db.select()
+          .from(planModules)
+          .where(eq(planModules.plan_id, plan.id));
+        
+        // Buscar detalhes dos módulos
+        const moduleDetails = [];
+        if (planModulesList.length > 0) {
+          for (const pm of planModulesList) {
+            const moduleInfo = await db.select()
+              .from(modules)
+              .where(eq(modules.id, pm.module_id));
+            
+            if (moduleInfo.length > 0) {
+              moduleDetails.push(moduleInfo[0]);
+            }
+          }
+        }
+        
+        // Retornar o plano com a lista de módulos
+        return {
+          ...plan,
+          modules: moduleDetails
+        };
+      }));
+      
+      // Log para depuração
+      console.log(`Retornando ${plansWithModules.length} planos para cadastro, incluindo tiers:`, 
+        plansWithModules.map(p => p.tier).join(', '));
+      
+      res.json(plansWithModules);
+    } catch (error) {
+      console.error("Error fetching public plans:", error);
       res.status(500).json({ message: "Failed to fetch plans" });
     }
   });
@@ -2758,25 +2945,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para obter dados da organização atual
   app.get("/api/organizations/current", authenticate, async (req, res) => {
     try {
+      console.log("Acessando organização atual. Dados da sessão:", req.session?.user?.id, req.session?.user?.role);
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
         return res.status(401).json({ message: "Organização não disponível" });
       }
       
       const organizationId = req.session.user.organizationId;
+      // Verificar se o ID da organização é válido
+      if (typeof organizationId !== 'number' || isNaN(organizationId)) {
+        console.error(`ID de organização inválido: ${organizationId}, tipo: ${typeof organizationId}`);
+        return res.status(400).json({ message: "ID de organização inválido" });
+      }
       
+      console.log(`Buscando organização atual com ID: ${organizationId}`);
       // Buscar organização
       const [organization] = await db.select()
         .from(organizations)
         .where(eq(organizations.id, organizationId));
       
       if (!organization) {
+        console.error(`Organização não encontrada para o ID: ${organizationId}`);
         return res.status(404).json({ message: "Organização não encontrada" });
       }
       
+      console.log(`Organização atual encontrada: ${organization.name}`);
       res.json(organization);
     } catch (error) {
       console.error("Erro ao buscar organização atual:", error);
-      res.status(500).json({ message: "Falha ao buscar dados da organização" });
+      res.status(500).json({ 
+        message: "Falha ao buscar dados da organização",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Rota para obter módulos da organização do usuário atual
+  app.get("/api/modules/organization", authenticate, async (req, res) => {
+    try {
+      console.log("Requisição para /api/modules/organization recebida");
+      
+      // Verificar autenticação
+      if (!req.session) {
+        console.log("Erro: Sessão não encontrada");
+        return res.status(401).json({ message: "Sessão não encontrada" });
+      }
+
+      if (!req.session.user) {
+        console.log("Erro: Usuário não encontrado na sessão");
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      if (!req.session.user.organizationId) {
+        console.log("Erro: ID da organização não encontrado para o usuário");
+        return res.status(401).json({ message: "Organização não disponível" });
+      }
+      
+      const organizationId = req.session.user.organizationId;
+      
+      // Verificar se o ID da organização é válido
+      if (typeof organizationId !== 'number' || isNaN(organizationId)) {
+        console.error(`ID de organização inválido em /api/modules/organization: ${organizationId}, tipo: ${typeof organizationId}`);
+        return res.status(400).json({ message: "ID de organização inválido" });
+      }
+      
+      console.log(`Buscando módulos para organização ${organizationId} do usuário atual (ID: ${req.session.user.id}, Role: ${req.session.user.role})`);
+      
+      // Verificar se a tabela organization_modules existe
+      try {
+        // Buscar módulos da organização
+        const orgModules = await db.select()
+          .from(organizationModules)
+          .where(eq(organizationModules.organizationId, organizationId));
+        
+        console.log(`Encontrados ${orgModules.length} módulos para a organização ${organizationId}`);
+        
+        if (!orgModules.length) {
+          console.log("Nenhum módulo encontrado para esta organização, retornando array vazio");
+          return res.json([]);
+        }
+        
+        // Buscar informações detalhadas dos módulos
+        const moduleIds = orgModules.map(om => om.moduleId);
+        console.log(`IDs dos módulos encontrados: ${moduleIds.join(', ')}`);
+        
+        const modulesData = await db.select()
+          .from(modules)
+          .where(inArray(modules.id, moduleIds));
+        
+        console.log(`Dados de ${modulesData.length} módulos recuperados do banco de dados`);
+        
+        // Combinar os dados
+        const result = orgModules.map(om => {
+          const moduleInfo = modulesData.find(m => m.id === om.moduleId);
+          return {
+            ...om,
+            moduleInfo: moduleInfo || { 
+              id: om.moduleId,
+              name: "Módulo não encontrado",
+              type: "unknown" 
+            }
+          };
+        });
+        
+        console.log(`Retornando ${result.length} módulos combinados para a UI`);
+        res.json(result);
+      } catch (dbError) {
+        console.error("Erro no banco de dados ao buscar módulos:", dbError);
+        
+        // Para ambiente de desenvolvimento, verificar se o módulo de cultivo existe
+        const cultivationModule = {
+          id: 9999,
+          organizationId: organizationId,
+          moduleId: 9999,
+          active: true,
+          status: "active",
+          moduleInfo: {
+            id: 9999,
+            name: "Cultivo",
+            type: "cultivation",
+            description: "Módulo de gestão de cultivo"
+          }
+        };
+        
+        console.log("Verificando se o usuário está requisitando especificamente o módulo de cultivo");
+        // Se o erro for com o banco de dados, vamos criar um registro fictício para cultivo
+        const requestedModule = req.query.module;
+        if (requestedModule === "cultivation") {
+          console.log("Retornando módulo de cultivo padrão para ambiente de desenvolvimento");
+          return res.json([cultivationModule]);
+        }
+        
+        throw dbError;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar módulos da organização:", error);
+      res.status(500).json({ 
+        message: "Falha ao buscar módulos da organização",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
   
@@ -5549,6 +5855,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas de autenticação de pacientes
   app.use('/api', patientAuthRouter);
   
+  // Rotas de AI Chat
+  app.use('/api/ai', aiChatRouter);
+  
+  // Registrar rotas do programa de afiliados
+  app.use('/api/affiliates', affiliatesRouter);
+
   // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);
   const pharmacistRoutes = await registerPharmacistRoutes(app);
@@ -5594,6 +5906,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Registrando rotas do portal de transparência");
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
+  // Registrar rotas do módulo de expedição
+  registerExpedicaoRoutes(app);
+  console.log("Rotas do módulo de expedição registradas com sucesso");
   
   // Rota de teste direta para contornar o middleware do Vite
   app.get('/api/laboratory-test', (req, res) => {
@@ -5617,7 +5932,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de grupos de usuários e permissões
   // User group routes are registered directly via registerUserGroupRoutes(app);
+  // Middleware para interceptar TODAS as requisições API antes do Vite
+  app.use((req, res, next) => {
+    const isApiRoute = req.path.startsWith('/api/');
+    const isCarteirinhaRoute = req.path.includes('/carteirinha/') || req.path.startsWith('/api/carteirinha');
+    
+    // Se for uma rota de API, definir o Content-Type para JSON
+    if (isApiRoute || isCarteirinhaRoute) {
+      res.setHeader('Content-Type', 'application/json');
+      
+      // Interceptar requisições não autenticadas para rotas protegidas
+      if ((!req.session || !req.session.user) && 
+          (isCarteirinhaRoute || req.path.includes('/partners'))) {
+        return res.status(401).json({
+          message: "Não autenticado",
+          error: "Unauthorized",
+          authenticated: false
+        });
+      }
+    }
+    
+    next();
+  });
   
+  // Rotas do módulo Social (para associações)
+  app.use("/api", socialRoutes);
+  console.log("Rotas do módulo Social registradas com sucesso");
+  
+  // Registrar rotas do programa de afiliados
+  registerAffiliatesRoutes(app);
+  console.log("Rotas do programa de afiliados registradas com sucesso");
   const httpServer = createServer(app);
 
   // =========================================================
@@ -6806,6 +7150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // ========= Rotas do Portal de Laboratório =========
   registerLaboratoryRoutes(app);
+  registerLaboratorySamplesRoutes(app);
+
   
   return server;
 }

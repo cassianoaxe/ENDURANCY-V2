@@ -1,5 +1,5 @@
-import React from 'react';
-import OrganizationLayout from '@/components/layout/OrganizationLayout';
+import React, { useEffect, useState } from 'react';
+// Removendo import do OrganizationLayout para evitar a renderização duplicada
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -12,10 +12,52 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Organization } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 export default function OrganizationDashboard() {
+  console.log("Iniciando renderização do dashboard");
   const [activeTab, setActiveTab] = React.useState('visao-geral');
   const { user } = useAuth();
+  console.log("useAuth retornou user:", user);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  
+  // Verificação simplificada para evitar problemas de redirecionamento
+  useEffect(() => {
+    // Verificar se este é o redirecionamento de uma empresa importadora
+    const checkOrgType = localStorage.getItem('check_org_type');
+    
+    if (checkOrgType === 'true' && user?.organizationId) {
+      console.log("Dashboard: Verificando se esta organização é uma importadora...");
+      
+      fetch(`/api/organizations/${user.organizationId}`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(orgData => {
+        console.log("Dashboard: Tipo de organização detectado:", orgData.type);
+        
+        // Se é uma importadora, redirecionar imediatamente
+        if (orgData.type === 'import_company') {
+          console.log("Dashboard: REDIRECIONANDO para dashboard de importadora");
+          localStorage.removeItem('check_org_type');
+          window.location.href = '/organization/import-company/dashboard';
+          return;
+        } else {
+          // Limpar o flag se não é importadora
+          localStorage.removeItem('check_org_type');
+        }
+      })
+      .catch(error => {
+        console.error("Dashboard: Erro ao verificar tipo de organização:", error);
+        localStorage.removeItem('check_org_type');
+      });
+    }
+    
+    // Simplesmente marcar que a verificação de autenticação está concluída
+    // Não precisamos mais verificar a autenticação aqui porque o AuthProvider já faz isso
+    setIsCheckingAuth(false);
+  }, [user]);
   
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId
   const { data: organization, isLoading: isOrgLoading } = useQuery<Organization>({
@@ -23,8 +65,19 @@ export default function OrganizationDashboard() {
     enabled: !!user?.organizationId,
   });
 
+  // Mostrar um indicador de carregamento enquanto verificamos a autenticação
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-3">
+          <Loader2 className="h-10 w-10 animate-spin text-green-600" />
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <OrganizationLayout>
       <div className="container px-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -480,6 +533,5 @@ export default function OrganizationDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </OrganizationLayout>
   );
 }
