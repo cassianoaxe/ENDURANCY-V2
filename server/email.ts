@@ -137,7 +137,6 @@ function renderEmailTemplate<T extends EmailTemplate>(
           <p style="font-size: 0.8em; color: #666; margin-top: 30px;">Se você não esperava este convite ou tem dúvidas, por favor ignore este email ou entre em contato com o suporte.</p>
         </div>
       `;
-
     case EmailTemplate.SAMPLE_REQUEST_CONFIRMATION:
       const confirmationData = data as EmailTemplateData[EmailTemplate.SAMPLE_REQUEST_CONFIRMATION];
       return `
@@ -258,7 +257,6 @@ function renderEmailTemplate<T extends EmailTemplate>(
           </p>
         </div>
       `;
-
     // Adicione outros casos conforme necessário
     default:
       return `<p>Template não encontrado para ${template}</p>`;

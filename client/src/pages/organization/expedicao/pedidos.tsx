@@ -646,7 +646,6 @@ export default function PreparacaoPedidos() {
                   </div>
                 </div>
               </div>
-              
               <div>
                 <h3 className="text-lg font-medium mb-4">Informações do Cliente</h3>
                 <div className="space-y-3">

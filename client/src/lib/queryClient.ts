@@ -22,6 +22,7 @@ interface ApiRequestOptions {
 // Armazenar o token CSRF após obtê-lo
 let csrfToken = '';
 
+
 /**
  * Obter o token CSRF do servidor
  * Esta função será chamada automaticamente quando necessário
@@ -48,6 +49,7 @@ async function fetchCsrfToken(): Promise<string> {
     throw new Error('Token CSRF não encontrado na resposta');
   } catch (error) {
     console.error('Erro ao obter token CSRF:', error);
+
     throw new Error('Falha ao obter token CSRF');
   }
 }
@@ -101,6 +103,7 @@ export async function apiRequest(
   //     // Continua a requisição mesmo sem o token CSRF em caso de erro
   //   }
   // }
+
 
   // Configuração da requisição
   const requestOptions: RequestInit = {

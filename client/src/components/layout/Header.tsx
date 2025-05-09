@@ -146,7 +146,6 @@ export default function Header() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
           {/* Botão de atalho para Envio BI (MapaBI em tela cheia) */}
           <TooltipProvider>
             <Tooltip>

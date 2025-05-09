@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Organization } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 export default function OrganizationDashboard() {
   console.log("Iniciando renderização do dashboard");
   const [activeTab, setActiveTab] = React.useState('visao-geral');
@@ -58,7 +57,6 @@ export default function OrganizationDashboard() {
     // Simplesmente marcar que a verificação de autenticação está concluída
     // Não precisamos mais verificar a autenticação aqui porque o AuthProvider já faz isso
     setIsCheckingAuth(false);
-    
   }, [user]);
   
   // Carregar dados da organização se o usuário estiver autenticado e tiver um organizationId

@@ -292,6 +292,7 @@ export default function Etiquetas() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFormato, setSelectedFormato] = useState("all");
   const [selectedTransportadora, setSelectedTransportadora] = useState("all");
+
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<ShippingLabel | null>(null);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
@@ -382,7 +383,6 @@ export default function Etiquetas() {
       description: "Abrindo caixa de diálogo de impressão...",
       variant: "default",
     });
-    
     // Simulação de impressão
     setTimeout(() => {
       toast({
@@ -895,7 +895,6 @@ export default function Etiquetas() {
               </CardContent>
             </Card>
           </div>
-          
           <DialogFooter className="flex justify-between items-center">
             <div>
               {selectedTemplate && (

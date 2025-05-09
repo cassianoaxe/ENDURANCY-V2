@@ -4,10 +4,3 @@
 interface TourGuideProps {
   tourId?: string;
   steps?: any[];
-  isOpen?: boolean;
-  onClose?: () => void;
-}
-
-export default function TourGuide(_props: TourGuideProps) {
-  return null;
-}

@@ -473,7 +473,6 @@ export default function OrganizationProfile() {
     const { name, value } = e.target;
     setProfileForm(prev => ({ ...prev, [name]: value }));
   };
-
   // Função para obter CSRF token para requisições seguras
   const getCsrfToken = async (): Promise<string | null> => {
     try {
@@ -547,7 +546,6 @@ export default function OrganizationProfile() {
         description: "Os dados da organização foram atualizados.",
         variant: "default",
       });
-      
       // Fechar o modo de edição
       setIsEditing(false);
     } catch (error) {
@@ -659,7 +657,6 @@ export default function OrganizationProfile() {
         if (!oldData) return;
         return { ...oldData, logo: result.logoUrl };
       });
-      
       // Invalidar todas as consultas que podem conter dados da organização
       queryClient.invalidateQueries({ queryKey: ["/api/organizations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
@@ -672,7 +669,6 @@ export default function OrganizationProfile() {
         
         console.log("Forçando recarga de dados da organização após atualização de logo");
       }, 500);
-      
       toast({
         title: "Sucesso!",
         description: "Logo da organização atualizado.",

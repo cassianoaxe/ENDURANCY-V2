@@ -60,7 +60,6 @@ const getConfidenceColor = (confidence: number) => {
   if (confidence >= 0.5) return "bg-yellow-100 text-yellow-800";
   return "bg-gray-100 text-gray-800";
 };
-
 function TicketAiSuggestions({ suggestions, onApplySuggestion }: TicketAiSuggestionsProps) {
   const { toast } = useToast();
   

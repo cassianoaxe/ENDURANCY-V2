@@ -1,5 +1,6 @@
 import React from 'react';
 import { withModuleAccess, bypassModuleAccess } from '@/components/modules/withModuleAccess';
+
 import OrganizationLayout from '@/components/layout/OrganizationLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -154,7 +155,6 @@ const CultivationModule = () => {
     </OrganizationLayout>
   );
 };
-
 // Temporariamente usando o bypass para testes
 // Removendo a verificação de acesso ao módulo para diagnosticar o problema
 

@@ -729,7 +729,6 @@ export default function PatientDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-      
       {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );

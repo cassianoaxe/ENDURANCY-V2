@@ -33,7 +33,6 @@ import * as socialSchema from './schema-social';
 
 // Importando o schema de fornecedores
 import * as suppliersSchema from './schema-suppliers';
-
 // Temporariamente removido devido a erros
 // import * as financeiroSchema from './schema-financeiro';
 

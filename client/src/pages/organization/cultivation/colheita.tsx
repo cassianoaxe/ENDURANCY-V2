@@ -301,6 +301,7 @@ const ColheitaPage = () => {
                         </td>
                       </tr>
                       <tr className="bg-white">
+
                         <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">CLT-0093</th>
                         <td className="px-6 py-4">Cannabis Ruderalis</td>
                         <td className="px-6 py-4">15/03/2025</td>
@@ -343,9 +344,9 @@ const ColheitaPage = () => {
     </OrganizationLayout>
   );
 };
-
 // Temporariamente usando o bypass para testes
 export default bypassModuleAccess(ColheitaPage, {
+
   moduleType: "cultivation",
   moduleName: "Cultivo",
   moduleDescription: "Gerencie todo o processo de cultivo de plantas medicinais, desde a semeadura até a colheita.",

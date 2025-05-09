@@ -650,7 +650,6 @@ export default function OrgAdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-      
       {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );
