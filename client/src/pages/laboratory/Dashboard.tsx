@@ -364,4 +364,8 @@ export default function LaboratoryDashboard() {
                 </tbody>
               </table>
               </div>
-            }
+            </CardContent>
+          </Card>
+        </div>
+  );
+}
