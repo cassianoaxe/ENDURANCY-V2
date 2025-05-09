@@ -569,9 +569,6 @@ export default function OrganizationSettings() {
               </CardContent>
             </Card>
           </TabsContent>
-          
-
-          
           <TabsContent value="users">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

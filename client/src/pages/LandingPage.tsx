@@ -375,7 +375,6 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            
             {/* Plano Grow */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden relative transform scale-105 z-10">
               <div className="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold py-1 px-3 rounded-bl-lg">
@@ -420,7 +419,6 @@ const LandingPage = () => {
                 </Button>
               </div>
             </div>
-            
             {/* Plano Enterprise */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6 border-b border-green-100">
@@ -463,7 +461,6 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-          
           {/* Mensagem informativa sobre o período beta */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-blue-100">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4">

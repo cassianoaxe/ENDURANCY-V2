@@ -257,7 +257,6 @@ const PlantioPage = () => {
     </OrganizationLayout>
   );
 };
-
 // Temporariamente usando o bypass para testes
 export default bypassModuleAccess(PlantioPage, {
   moduleType: "cultivation",

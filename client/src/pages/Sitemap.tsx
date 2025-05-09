@@ -786,7 +786,6 @@ const Sitemap = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Seção do Portal do Laboratório */}
           <TabsContent value="laboratory" className="space-y-6">
             <Card className="shadow-md border-blue-100">
@@ -896,7 +895,6 @@ const Sitemap = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Seção de APIs e Integrações */}
           <TabsContent value="api" className="space-y-6">
             <Card className="shadow-md border-green-100">
@@ -1212,7 +1210,6 @@ const Sitemap = () => {
                   </li>
                 </ul>
               </div>
-
               {/* Seção do Laboratório */}
               <div className="space-y-3">
                 <h3 className="font-medium text-blue-700 border-b border-blue-100 pb-2">LabAnalytics Portal</h3>
@@ -1264,7 +1261,6 @@ const Sitemap = () => {
                   </li>
                 </ul>
               </div>
-
               {/* Outros Links */}
               <div className="space-y-3">
                 <h3 className="font-medium text-green-700 border-b border-green-100 pb-2">Outros Links</h3>

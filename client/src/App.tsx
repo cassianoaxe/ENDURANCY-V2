@@ -3,7 +3,9 @@ import { useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+
 import { Loader2, ArrowLeft, Beaker, ChevronRight, BarChart, Users, FilePlus, Building, Map } from "lucide-react";
+
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/layout/Layout";
 import OrganizationLayout from "@/components/layout/OrganizationLayout";
@@ -57,15 +59,18 @@ import {
   FinanceiroRelatorios,
   FinanceiroLinks
 } from "@/pages/laboratory/financeiro/FinanceiroModule";
+
 import SampleDetail from "@/pages/laboratory/SampleDetail";
 import TestDetail from "@/pages/laboratory/TestDetail";
 import LaboratoryReports from "@/pages/laboratory/Reports";
 import LaboratoryTeam from "@/pages/laboratory/Team";
 import LaboratorySettings from "@/pages/laboratory/Settings";
+
 import LaboratoryLogin from "@/pages/laboratory-login";
 import Clientes from "@/pages/laboratory/Clientes";
 import Equipamentos from "@/pages/laboratory/Equipamentos";
 import TestAnalysis from "@/pages/laboratory/TestAnalysis";
+
 import HplcDashboard from "@/pages/laboratory/hplc/Dashboard";
 import HplcEquipments from "@/pages/laboratory/hplc/Equipments";
 import HplcMaintenances from "@/pages/laboratory/hplc/Maintenances";
@@ -125,7 +130,9 @@ import PaymentTest from "@/pages/PaymentTest";
 // Importar novas páginas de pagamento por email
 import PaymentConfirmar from "@/pages/pagamento/confirmar";
 import PaymentConfirmacao from "@/pages/pagamento/confirmacao";
+
 import ConfirmacaoRegistro from "@/pages/ConfirmacaoRegistro";
+
 
 // Importar páginas do módulo Financeiro
 import DashboardFinanceiro from "@/pages/organization/financeiro/index";
@@ -148,10 +155,12 @@ import NotificacoesComunicacao from "@/pages/organization/comunicacao/notificaco
 import ArquivosComunicacao from "@/pages/organization/comunicacao/arquivos";
 import CredenciaisComunicacao from "@/pages/organization/comunicacao/credenciais";
 
+
 // Importar páginas do módulo de IA
 import AIModulePage from "@/pages/organization/ai/index";
 import AIAssistantPage from "@/pages/organization/ai/assistant";
 import AISettingsPage from "@/pages/organization/ai/settings";
+
 
 // Importar páginas do portal de laboratório
 // Importar páginas do portal do paciente
@@ -163,8 +172,10 @@ import PatientDashboardPage from "@/pages/patient/Dashboard";
 import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
+
 import NewLandingPage from "@/pages/NewLandingPage";
 import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
+
 // Importar páginas de transparência
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
@@ -197,6 +208,7 @@ import OrganizationSettings from "@/pages/organization/settings";
 import Cadastros from "@/pages/organization/Cadastros";
 import DataImport from "@/pages/DataImport";
 
+
 // Importar páginas do Portal do Fornecedor
 import SupplierLogin from "@/pages/supplier/SupplierLogin";
 import SupplierRegister from "@/pages/supplier/SupplierRegister";
@@ -208,11 +220,13 @@ import SupplierFinance from "@/pages/supplier/SupplierFinance";
 import SupplierAnalytics from "@/pages/supplier/SupplierAnalytics";
 import SupplierSettings from "@/pages/supplier/SupplierSettings";
 
+
 // Import module pages
 import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
 import ColheitaPage from "@/pages/organization/cultivation/colheita";
 import AnalysisModule from "@/pages/organization/cultivation/analises";
+
 import PlantasPage from "@/pages/organization/cultivation/plantas";
 import TransferenciasPage from "@/pages/organization/cultivation/transferencias";
 import EstoqueCultivoPage from "@/pages/organization/cultivation/estoque";
@@ -222,6 +236,7 @@ import ConfigTipos from "@/pages/organization/cultivation/configuracao/tipos";
 import MonitoramentoPage from "@/pages/organization/cultivation/monitoramento";
 import QualidadePage from "@/pages/organization/cultivation/qualidade";
 import GenericaPage from "@/pages/organization/cultivation/genetica";
+
 import ProductionModule from "@/pages/organization/production";
 import ProducaoIndustrialDashboard from "@/pages/organization/producao-industrial";
 import GarantiaQualidadePage from "@/pages/organization/producao-industrial/garantia-qualidade";
@@ -268,6 +283,7 @@ import QuadroKanban from "@/pages/organization/tarefas/quadro";
 import MinhasTarefas from "@/pages/organization/tarefas/minhas-tarefas";
 import ConfiguracoesTarefas from "@/pages/organization/tarefas/configuracoes";
 
+
 // Importações do Portal do Fornecedor (módulo de compras da organização)
 import SupplierPortalDashboard from "@/pages/organization/suppliers";
 import SupplierRegistration from "@/pages/organization/suppliers/register";
@@ -275,6 +291,7 @@ import OrgSupplierProducts from "@/pages/organization/suppliers/products";
 import OrgSupplierTenders from "@/pages/organization/suppliers/tenders";
 import OrgSupplierOrders from "@/pages/organization/suppliers/orders";
 import OrgSupplierCart from "@/pages/organization/suppliers/cart";
+
 
 // Importações do módulo Compras e Estoque
 import ComprasDashboard from "@/pages/organization/compras";
@@ -329,6 +346,7 @@ import GettingStarted from "@/pages/organization/onboarding/GettingStarted";
 import Cultivation from "@/pages/organization/onboarding/Cultivation";
 import Production from "@/pages/organization/onboarding/Production";
 
+
 // Import affiliate program pages
 import ProgramaAfiliados from "@/pages/organization/afiliados";
 import ConfiguracoesAfiliados from "@/pages/organization/afiliados/configuracoes";
@@ -358,6 +376,7 @@ import IntegracaoNFe from "@/pages/organization/integracoes/nfe";
 import PipefyIntegracao from "@/pages/organization/integracoes/pipefy";
 import IntegracaoShopify from "@/pages/organization/integracoes/shopify";
 import RDStationIntegracao from "@/pages/organization/integracoes/rdstation";
+
 
 // As importações para o módulo de Importação (RDC 660) já foram feitas anteriormente no arquivo
 
@@ -628,7 +647,7 @@ function AppContent() {
     if (loginRedirect === 'true') {
       // Restaurar a opacidade da página se necessário
       document.body.style.opacity = '1';
-      
+    
       // Limpar flag após uso
       sessionStorage.removeItem('loginRedirect');
       
@@ -698,7 +717,7 @@ function AppContent() {
       </Suspense>
     );
   }
-  
+
   // Verificar se é uma rota para confirmar pagamento por email
   const paymentConfirmarMatch = currentPath.match(/^\/pagamento\/confirmar\/([^\/]+)$/);
   if (paymentConfirmarMatch) {
@@ -786,13 +805,12 @@ function AppContent() {
           logout();
         }
       }, [isAuthenticated, logout]);
-      
       return <NewLandingPage />;
     };
     
     return <LandingPageWithLogout />;
   }
-  
+
   // Rotas específicas para o Portal do Laboratório de Análises
   if (currentPath === '/laboratorio' || currentPath === '/laboratory') {
     return <LaboratoryLandingPage />;
@@ -924,7 +942,6 @@ function AppContent() {
     if (currentPath === '/transparencia-test') {
       return <TransparenciaTest />;
     }
-    
     // Página de landing do programa de afiliados
     if (currentPath === '/landing/afiliados') {
       const LandingAfiliados = React.lazy(() => import('./pages/landing/afiliados'));
@@ -1005,7 +1022,6 @@ function AppContent() {
     }
     
     // Removed direct access to supplier dashboard for non-authenticated users
-    
     // Página esqueceu a senha (público)
     if (currentPath === '/forgot-password') {
       // Aqui você pode substituir isso pelo seu componente real de recuperação de senha
@@ -1190,7 +1206,6 @@ function AppContent() {
         <OrganizationDashboard key={Date.now()} />
       </OrganizationLayout>;
     }
-    
     // Permitir acesso público ao portal de transparência mesmo sem login
     const transparenciaMatch = currentPath.match(/^\/organization\/transparencia\/(\d+)(?:\/([a-z]+))?$/);
     if (transparenciaMatch) {
@@ -1254,7 +1269,6 @@ function AppContent() {
     if (currentPath === '/organization/meu-plano') {
       return <MeuPlano />;
     }
-    
     // Redirect settings to profile - consolidate functionality
     if (currentPath === '/organization/settings' || currentPath === '/organization/settings/integracoes') {
       // Redirect to profile page which now handles all organization settings
@@ -1407,7 +1421,6 @@ function AppContent() {
     if (currentPath === '/organization/ai/settings') {
       return <AISettingsPage />;
     }
-    
     // Módulo Jurídico
     if (currentPath === '/organization/juridico') {
       return <OrganizationLayout>
@@ -2047,7 +2060,7 @@ function AppContent() {
         </Suspense>
       </OrganizationLayout>;
     }
-    
+  
     if (currentPath === '/organization/complypay/afiliados') {
       const ComplyPayAfiliados = React.lazy(() => import('./pages/organization/complypay/afiliados'));
       return <OrganizationLayout>
@@ -2198,7 +2211,6 @@ function AppContent() {
         </Suspense>
       </OrganizationLayout>;
     }
-    
     // Rotas do módulo de Importação
     if (currentPath === '/organization/import-company' || currentPath === '/organization/import-company/dashboard') {
       return <OrganizationLayout>
@@ -2525,6 +2537,7 @@ function AppContent() {
               </p>
               <Button>
                 <a href="/pharmacist" className="flex items-center">Voltar para o Dashboard</a>
+
               </Button>
             </div>
           </PharmacistLayout>
@@ -2771,7 +2784,6 @@ function AppContent() {
         </Layout>
       );
     }
-    
     // NOTA: Todas as rotas do laboratório agora são gerenciadas na seção principal 
     // no início do arquivo para evitar problemas de duplicação de layouts.
     

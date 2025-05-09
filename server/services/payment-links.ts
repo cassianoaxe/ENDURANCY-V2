@@ -199,7 +199,6 @@ export async function processPaymentFromToken(token: string, paymentType: string
     
     // Gerar um ID de transação interno
     const transactionId = `TRANS-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    
     // Verificar o status atual da organização
     const currentStatus = organization.status;
     console.log(`Processando pagamento - Organização ${organization.id} - Status atual: ${currentStatus}`);

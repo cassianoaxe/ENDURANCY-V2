@@ -115,7 +115,6 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const isFrequentRoute = req.path === '/api/auth/me' || 
                            req.path === '/api/notifications' || 
                            req.path === '/api/organizations';
-    
     // Determinar se a rota é da API com base no path
     const isApiRoute = req.path.startsWith('/api/');
     
@@ -261,7 +260,6 @@ const logoUpload = multer({
     fileSize: 5 * 1024 * 1024 // limita a 5MB
   }
 });
-
 // Importar rotas de teste e autenticação simplificada
 import { addTestAuthRoutes } from './test-auth';
 import { registerAuthRoutes } from './auth-routes';
@@ -736,7 +734,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Erro ao salvar sessão:", error);
       }
-      
       // Determinar a rota correta com base no papel do usuário
       let redirectUrl = '/dashboard'; // Padrão
       
@@ -1471,7 +1468,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Mas usamos caminhos relativos para maximizar compatibilidade
         const accessLink = new URL('/login', baseUrl).toString();
         const passwordLink = new URL(`/reset-password?code=${orgCode}`, baseUrl).toString();
-        
         // Importar o serviço estruturado de links de pagamento
         const { createAndSendPaymentLink } = await import('./services/payment-links');
         
@@ -1723,7 +1719,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch plans" });
     }
   });
-  
   // Rota pública para planos (usado no cadastro de organização)
   app.get("/api/public/plans", async (req, res) => {
     try {
@@ -2951,13 +2946,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/organizations/current", authenticate, async (req, res) => {
     try {
       console.log("Acessando organização atual. Dados da sessão:", req.session?.user?.id, req.session?.user?.role);
-      
       if (!req.session || !req.session.user || !req.session.user.organizationId) {
         return res.status(401).json({ message: "Organização não disponível" });
       }
       
       const organizationId = req.session.user.organizationId;
-      
       // Verificar se o ID da organização é válido
       if (typeof organizationId !== 'number' || isNaN(organizationId)) {
         console.error(`ID de organização inválido: ${organizationId}, tipo: ${typeof organizationId}`);
@@ -2965,7 +2958,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`Buscando organização atual com ID: ${organizationId}`);
-      
       // Buscar organização
       const [organization] = await db.select()
         .from(organizations)
@@ -5868,7 +5860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Registrar rotas do programa de afiliados
   app.use('/api/affiliates', affiliatesRouter);
-  
+
   // Register doctor, pharmacist, patient prescription, and document routes
   const doctorRoutes = await registerDoctorRoutes(app);
   const pharmacistRoutes = await registerPharmacistRoutes(app);
@@ -5914,7 +5906,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log("Registrando rotas do portal de transparência");
   registerTransparenciaRoutes(app);
   console.log("Rotas do portal de transparência registradas");
-  
   // Registrar rotas do módulo de expedição
   registerExpedicaoRoutes(app);
   console.log("Rotas do módulo de expedição registradas com sucesso");
@@ -5941,7 +5932,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Rotas de grupos de usuários e permissões
   // User group routes are registered directly via registerUserGroupRoutes(app);
-  
   // Middleware para interceptar TODAS as requisições API antes do Vite
   app.use((req, res, next) => {
     const isApiRoute = req.path.startsWith('/api/');
@@ -5972,7 +5962,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas do programa de afiliados
   registerAffiliatesRoutes(app);
   console.log("Rotas do programa de afiliados registradas com sucesso");
-  
   const httpServer = createServer(app);
 
   // =========================================================
@@ -7162,6 +7151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========= Rotas do Portal de Laboratório =========
   registerLaboratoryRoutes(app);
   registerLaboratorySamplesRoutes(app);
+
   
   return server;
 }

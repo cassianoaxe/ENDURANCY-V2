@@ -133,7 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
     };
   }, []);
-
   const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier', orgCode?: string) => {
     setIsLoading(true);
     try {
@@ -142,7 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Verificar se a entrada parece um email
       const isEmail = username.includes('@');
-      
       // Verificar se estamos tentando login em uma empresa importadora
       const isImportCompany = localStorage.getItem('userType') === 'import_company' || 
         document.documentElement.classList.contains('importadora-theme') ||

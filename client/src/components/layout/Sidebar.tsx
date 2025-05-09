@@ -45,6 +45,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 
+
 // Interface para itens de menu e submenu
 interface MenuItem {
   icon: React.FC<any>;
@@ -104,7 +105,6 @@ export default function Sidebar() {
   // Obter contexto de autenticação
   const { user, logout } = useAuth();
   const { toast } = useToast();
-  
   // Get current path for active state
   const [currentPath, setCurrentPath] = React.useState(window.location.pathname);
   // Estado para controle dos menus expandidos
@@ -337,7 +337,6 @@ export default function Sidebar() {
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
-      
       <nav className={`flex flex-col p-2 gap-1 mt-2 sidebar-nav ${collapsed ? 'px-2' : 'px-4'} overflow-y-auto flex-grow`}>
         {menuItems.map((item) => renderMenuItem(item))}
       </nav>
@@ -379,6 +378,7 @@ export default function Sidebar() {
           )}
         </div>
       )}
+
     </div>
   );
 }

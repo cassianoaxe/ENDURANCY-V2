@@ -5,6 +5,7 @@ import Header from "./Header";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import CopilotProvider from "./CopilotProvider";
 
+
 interface OrganizationLayoutProps {
   children: React.ReactNode;
 }

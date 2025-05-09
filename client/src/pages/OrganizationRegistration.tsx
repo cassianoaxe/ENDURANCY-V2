@@ -142,7 +142,6 @@ export default function OrganizationRegistration() {
       planId: 0,
     }
   });
-
   // Mutação para criar organização
   const createOrganization = useMutation({
     mutationFn: async (data: InsertOrganization & { document: File, logo?: File }) => {
@@ -178,7 +177,6 @@ export default function OrganizationRegistration() {
       
       // Salvar o ID da organização recém-criada
       setOrganizationId(data.id);
-      
       // Exibir toast de sucesso na criação da organização
       toast({
         title: "Registro concluído com sucesso!",
@@ -223,8 +221,8 @@ export default function OrganizationRegistration() {
       });
     },
   });
-
   // Função para avançar para o próximo passo
+
   const nextStep = async () => {
     const fields = getFieldsForStep(step);
     const currentStepValid = await form.trigger(fields);
@@ -270,6 +268,7 @@ export default function OrganizationRegistration() {
         }
         
         console.log('Plano selecionado:', selectedPlanData);
+
         
         setFormDataSummary({
           ...formData,
@@ -285,7 +284,6 @@ export default function OrganizationRegistration() {
           logoName: logoFile?.name || null,
         });
       }
-      
       // Sempre prosseguir para o próximo passo
       console.log(`Avançando para o passo ${step + 1}`);
       setStep(prev => prev + 1);
@@ -305,7 +303,6 @@ export default function OrganizationRegistration() {
       setShowPlanSelection(false);
     }
   };
-
   // Função para selecionar um plano
   const handlePlanSelect = (plan: Plan) => {
     setSelectedPlan(plan);
@@ -831,7 +828,6 @@ export default function OrganizationRegistration() {
                             )}
                           </div>
                         </div>
-                        
                         <div className="space-y-2">
                           <h4 className="font-medium">Recursos do plano:</h4>
                           <ul className="space-y-1">

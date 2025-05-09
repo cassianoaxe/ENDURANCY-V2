@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
+
 // Tour Guide removido pois ficou tecnologicamente defasado
 import { Calendar, Clock, Users, FileText, Settings, UserCircle, Clipboard, HeartPulse } from 'lucide-react';
 
@@ -766,7 +767,6 @@ export default function DoctorDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-      
       {/* Tour Guide removido pois ficou tecnologicamente defasado */}
     </div>
   );

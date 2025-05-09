@@ -74,7 +74,6 @@ export const bypassModuleAccess = <P extends object>(
     return <WrappedComponent {...props} />;
   };
 };
-
 export const withModuleAccess = <P extends object>(
   WrappedComponent: ComponentType<P>,
   { moduleType, moduleName, moduleDescription, modulePrice }: WithModuleAccessProps
@@ -112,6 +111,7 @@ export const withModuleAccess = <P extends object>(
       refetch: refetchModules
     } = useQuery<OrganizationModule[]>({
       queryKey: ['/api/modules/organization', moduleType],
+
       queryFn: async () => {
         // Só busca os módulos se tiver a organização
         if (!organization?.id) {

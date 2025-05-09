@@ -28,7 +28,6 @@
   position: relative;
   z-index: 10;
 }
-
 /* Estilos para o ambiente de empresas importadoras */
 .import-company-theme {
   --primary: 210 100% 50%;  /* Azul */

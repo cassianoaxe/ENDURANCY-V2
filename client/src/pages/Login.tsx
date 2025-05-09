@@ -325,7 +325,6 @@ export default function Login() {
       
       // Mostrar estado de loading que já existe através do botão
       setIsLoading(true);
-      
       // Obter a URL de redirecionamento da sessão do usuário (localStorage)
       let user;
       try {
@@ -980,7 +979,6 @@ export default function Login() {
                     Cadastre-se aqui
                   </a>
                 </div>
-                
                 <Separator className="w-full my-2" />
                 
                 <div className="flex items-center">

@@ -14,6 +14,7 @@ import {
   
   // Ícones de compras, produtos e logística
   Package, PackageOpen, PackageCheck, PackagePlus, ShoppingCart, ShoppingBag, Truck,
+
   
   // Ícones de documentos
   Clipboard, ClipboardList, FileText, FileClock, FileSearch, FileBarChart, BookOpen, FilePlus,
@@ -26,10 +27,9 @@ import {
   
   // Ícones médicos
   Pill, HeartPulse, Stethoscope, TestTube, Microscope,
-  
   // Ícones para carteirinha
   UserSquare, Store,
-  
+
   // Ícones de indústria e negócios
   Factory, ShieldCheck, Building, Building2, Landmark, Scale, Briefcase,
   
@@ -38,7 +38,6 @@ import {
   
   // Ícones de UI
   Settings, LogOut, HelpCircle, Loader2, Check, Ban, X, Receipt,
-  
   // Ícones de tecnologia
   Cpu, 
   
@@ -1623,7 +1622,6 @@ export default function OrganizationSidebar() {
             )}
           </div>
         )}
-        
         <button 
           onClick={() => setCollapsed(!collapsed)} 
           className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
@@ -1700,7 +1698,6 @@ export default function OrganizationSidebar() {
               Módulos Premium
             </h3>
           )}
-          
           {/* Módulo de importação movido para módulos base */}
           
           {/* Módulos premium filtrados - remove módulos não relevantes para importadoras */}
@@ -1733,7 +1730,6 @@ export default function OrganizationSidebar() {
               Módulos Enterprise
             </h3>
           )}
-          
           {/* Módulos enterprise filtrados - remove módulos não relevantes para importadoras */}
           {enterpriseModules
             .filter(item => !isImportCompany || 

@@ -297,7 +297,6 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
             <img src="https://endurancy.app/logo.png" alt="Endurancy" style="max-width: 150px;">
           </div>
           <h2 style="color: #333; text-align: center;">Pagamento Pendente</h2>
-          
           <!-- Alerta SPAM bem visível no topo -->
           <div style="background-color: #FFF9C4; padding: 15px; border-radius: 4px; border-left: 4px solid #FBC02D; margin: 20px 0;">
             <p style="margin: 0; color: #5D4037; font-weight: bold; display: flex; align-items: center;">
@@ -305,7 +304,6 @@ function renderEmailTemplate(template: EmailTemplate, data: Record<string, any>)
               <span>IMPORTANTE: Verifique também sua pasta de SPAM ou Lixo Eletrônico!</span>
             </p>
           </div>
-          
           <p style="color: #555; line-height: 1.6;">Olá ${data.adminName || 'Administrador'},</p>
           <p style="color: #555; line-height: 1.6;">Agradecemos por se registrar na plataforma Endurancy!</p>
           <p style="color: #555; line-height: 1.6;">Para ativar sua conta e começar a usar todos os recursos do plano <strong>${data.planName}</strong>, é necessário finalizar o pagamento.</p>
