@@ -4,7 +4,6 @@ import App from "./App";
 import "./index.css";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
-import { BrowserRouter as Router } from 'react-router-dom';
 
 // Add error handling to identify where the error is happening
 window.onerror = function(message, source, lineno, colno, error) {
@@ -26,7 +25,7 @@ function applyInitialTheme() {
   // Verificar se há um tema salvo
   const savedTheme = localStorage.getItem('theme');
   const root = document.documentElement;
-
+  
   if (savedTheme === 'dark') {
     root.classList.add('dark');
   } else if (savedTheme === 'light') {
@@ -44,12 +43,10 @@ applyInitialTheme();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Router>
-      <ThemeProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>
 );
