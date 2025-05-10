@@ -78,7 +78,7 @@ const globalRateLimit = rateLimit({
 });
 
 // Aplicar limitação de taxa global
-app.use(globalRateLimit);
+// app.use(globalRateLimit);
 
 // Limitação de taxa mais restritiva para rotas sensíveis
 const authRateLimit = rateLimit({
@@ -91,9 +91,9 @@ const authRateLimit = rateLimit({
 });
 
 // Aplicar limitação para rotas específicas
-app.use("/api/auth/login", authRateLimit);
-app.use("/api/auth/forgot-password", authRateLimit);
-app.use("/api/auth/reset-password", authRateLimit);
+// app.use("/api/auth/login", authRateLimit);
+// app.use("/api/auth/forgot-password", authRateLimit);
+// app.use("/api/auth/reset-password", authRateLimit);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
