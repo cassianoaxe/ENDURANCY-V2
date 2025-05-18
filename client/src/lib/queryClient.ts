@@ -23,9 +23,10 @@ export const queryClient = new QueryClient({
       queryFn: defaultQueryFn,  // Set the default query function
       retry: 1,
       refetchOnWindowFocus: false, // Não recarregar automaticamente ao focar a janela
-      refetchOnMount: true, // Apenas recarregar ao montar o componente
-      staleTime: 30000, // 30 segundos para considerar os dados obsoletos
-      gcTime: 30 * 60 * 1000 // 30 minutos para garbage collection
+      refetchOnMount: false, // Não recarregar ao montar o componente para reduzir requisições
+      staleTime: 5 * 60 * 1000, // 5 minutos para considerar os dados obsoletos
+      gcTime: 30 * 60 * 1000, // 30 minutos para garbage collection
+      refetchInterval: false, // Desabilitar refetch automático por tempo
     },
   },
 });
