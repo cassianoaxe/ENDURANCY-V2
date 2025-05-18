@@ -6,6 +6,7 @@ import * as patrimonioSchema from './schema-patrimonio';
 import * as pesquisaSchema from './schema-pesquisa';
 import * as socialSchema from './schema-social';
 import * as suppliersSchema from './schema-suppliers';
+import * as preCadastroSchema from './schema-pre-cadastro';
 
 // Re-export dos schemas do fornecedor para garantir que as tabelas sejam criadas
 // Renomeamos as exports para evitar conflitos de nome
@@ -16,6 +17,12 @@ export const {
   productCategoryLinks, productVariants,
   tenders, tenderProposals
 } = suppliersSchema;
+
+// Exportando a tabela de pré-cadastros
+export const {
+  preCadastros, 
+  insertPreCadastroSchema
+} = preCadastroSchema;
 
 // Define a role enum para os diferentes tipos de usuário
 export const roleEnum = pgEnum('role_type', ['admin', 'org_admin', 'doctor', 'patient', 'manager', 'employee', 'pharmacist', 'laboratory', 'researcher', 'supplier']);

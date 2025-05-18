@@ -5892,6 +5892,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Registrar rotas de equipamentos de laboratório
   console.log("Registrando rotas de equipamentos de laboratório");
   app.use('/api/laboratory', equipmentRoutes);
+  
+  // Rota para o sistema de pré-cadastro
+  app.use('/api/pre-cadastro', preCadastroRouter);
   console.log("Rotas de equipamentos registradas");
   
   // Registrar rotas do módulo financeiro

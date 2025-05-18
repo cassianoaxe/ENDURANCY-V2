@@ -76,19 +76,30 @@ const PreCadastroPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Simular envio para API - será implementado posteriormente
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Pré-cadastro recebido!",
-        description: "Agradecemos seu interesse! Redirecionando para a página de confirmação...",
-        duration: 3000,
+      // Enviar os dados para a API de pré-cadastro
+      const response = await fetch('/api/pre-cadastro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formState)
       });
       
-      // Redirecionar para a página de sucesso após 1,5 segundos
-      setTimeout(() => {
-        window.location.href = "/pre-cadastro-sucesso";
-      }, 1500);
+      if (response.ok) {
+        toast({
+          title: "Pré-cadastro recebido!",
+          description: "Agradecemos seu interesse! Redirecionando para a página de confirmação...",
+          duration: 3000,
+        });
+        
+        // Redirecionar para a página de sucesso após 1,5 segundos
+        setTimeout(() => {
+          window.location.href = "/pre-cadastro-sucesso";
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao processar o pré-cadastro');
+      }
       
     } catch (error) {
       toast({
