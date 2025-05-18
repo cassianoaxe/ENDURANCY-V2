@@ -53,6 +53,7 @@ export default function PreCadastrosAdmin() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<'novo' | 'contatado' | 'convertido' | 'descartado'>('novo');
   const [observacoes, setObservacoes] = useState('');
+  const { toast } = useToast();
   
   // Estado para controle de carregamento manual
   const [manualLoading, setManualLoading] = useState(false);
@@ -140,13 +141,9 @@ export default function PreCadastrosAdmin() {
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       setManualError(true);
-      const { toast } = useToast();
-      // Use o hook useToast corretamente
-      const { toast } = useToast();
       toast({
         title: "Erro ao buscar dados",
-        description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido",
-        variant: "destructive"
+        description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido"
       });
     } finally {
       setManualLoading(false);
@@ -246,13 +243,13 @@ export default function PreCadastrosAdmin() {
       
       // Recarregar dados após atualização
       await refetch();
+      fetchDataManually();
       setIsUpdateDialogOpen(false);
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       toast({
         title: 'Erro',
-        description: error instanceof Error ? error.message : 'Não foi possível atualizar o status. Tente novamente.',
-        variant: 'destructive' as const,
+        description: error instanceof Error ? error.message : 'Não foi possível atualizar o status. Tente novamente.'
       });
     }
   };
@@ -422,7 +419,10 @@ export default function PreCadastrosAdmin() {
     },
   ];
 
-  // Função para renderizar tabs com dados corretos (manual ou query)
+  // Determinar qual conjunto de dados usar
+  const dataToUse = manualData.length > 0 ? manualData : (preCadastros || []);
+  
+  // Função para renderizar tabs com dados corretos
   const renderTab = (statusFilter: PreCadastro['status'] | 'todos') => {
     // Usar os dados definidos acima
     const filteredData = statusFilter === 'todos' 
@@ -471,28 +471,22 @@ export default function PreCadastrosAdmin() {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <h2 className="text-xl font-medium ml-4">Carregando pré-cadastros...</h2>
+        <h2 className="text-xl ml-4">Carregando pré-cadastros...</h2>
       </div>
     );
   }
-
-  // Se temos dados para exibir, não mostrar a tela de erro mesmo se houver erro
-  if (isDataError && manualData.length === 0 && (!preCadastros || preCadastros.length === 0)) {
+  
+  if (isDataError) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <XCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold">Erro ao carregar dados</h2>
-        <p>Não foi possível buscar os pré-cadastros. Tente novamente mais tarde.</p>
-        <Button onClick={reloadData} className="mt-4">Tentar novamente</Button>
+        <XCircle className="h-10 w-10 text-destructive mb-4" />
+        <h2 className="text-xl mb-4">Erro ao carregar pré-cadastros</h2>
+        <p className="text-muted-foreground mb-4">Não foi possível obter os dados do servidor.</p>
+        <Button onClick={reloadData}>Tentar novamente</Button>
       </div>
     );
   }
-
-  // Usar dados do carregamento manual ou React Query
-  const dataToUse = manualData.length > 0 ? manualData : (preCadastros || []);
   
-  // Removi a declaração duplicada de dataToUse aqui
-
   const counts = {
     todos: dataToUse.length || 0,
     novo: dataToUse.filter(item => item.status === 'novo').length || 0,
@@ -503,32 +497,33 @@ export default function PreCadastrosAdmin() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gestão de Pré-cadastros</h1>
-          <p className="text-muted-foreground">
-            Gerencie os pré-cadastros recebidos para o lançamento do sistema
-          </p>
-        </div>
-        <Button onClick={() => refetch()}>Atualizar dados</Button>
+      <h1 className="text-2xl font-bold mb-4">Pré-cadastros</h1>
+      
+      <div className="mb-4 flex justify-between items-center">
+        <p className="text-muted-foreground">
+          Gerencie os pré-cadastros realizados através do formulário de contato.
+        </p>
+        <Button onClick={reloadData} size="sm">
+          Atualizar dados
+        </Button>
       </div>
-
-      <Tabs defaultValue="todos">
+      
+      <Tabs defaultValue="todos" className="mt-6">
         <TabsList className="mb-4">
           <TabsTrigger value="todos">
-            Todos <Badge variant="outline" className="ml-2">{counts.todos}</Badge>
+            Todos ({counts.todos})
           </TabsTrigger>
           <TabsTrigger value="novo">
-            Novos <Badge variant="outline" className="ml-2">{counts.novo}</Badge>
+            Novos ({counts.novo})
           </TabsTrigger>
           <TabsTrigger value="contatado">
-            Contatados <Badge variant="secondary" className="ml-2">{counts.contatado}</Badge>
+            Contatados ({counts.contatado})
           </TabsTrigger>
           <TabsTrigger value="convertido">
-            Convertidos <Badge className="ml-2">{counts.convertido}</Badge>
+            Convertidos ({counts.convertido})
           </TabsTrigger>
           <TabsTrigger value="descartado">
-            Descartados <Badge variant="destructive" className="ml-2">{counts.descartado}</Badge>
+            Descartados ({counts.descartado})
           </TabsTrigger>
         </TabsList>
         
@@ -538,32 +533,28 @@ export default function PreCadastrosAdmin() {
         {renderTab('convertido')}
         {renderTab('descartado')}
       </Tabs>
-
-      {/* Dialog para atualizar status */}
+      
+      {/* Diálogo para atualizar status */}
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atualizar Status do Pré-cadastro</DialogTitle>
+            <DialogTitle>Atualizar Pré-cadastro</DialogTitle>
             <DialogDescription>
-              {selectedItem && (
-                <div className="mt-2">
-                  <div className="font-medium">{selectedItem.nome}</div>
-                  <div className="text-sm">{selectedItem.email}</div>
-                  <div className="text-sm">{selectedItem.organizacao}</div>
-                </div>
-              )}
+              Atualize o status do pré-cadastro de {selectedItem?.nome}.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
+            <div className="grid grid-cols-4 gap-4 items-center">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
               <Select 
                 value={newStatus} 
-                onValueChange={(value) => setNewStatus(value as PreCadastro['status'])}
+                onValueChange={(value) => setNewStatus(value as 'novo' | 'contatado' | 'convertido' | 'descartado')}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um status" />
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="novo">Novo</SelectItem>
@@ -574,13 +565,16 @@ export default function PreCadastrosAdmin() {
               </Select>
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="observacoes">Observações</Label>
+            <div className="grid grid-cols-4 gap-4 items-center">
+              <Label htmlFor="observacoes" className="text-right">
+                Observações
+              </Label>
               <Textarea
                 id="observacoes"
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
-                placeholder="Adicione observações sobre este pré-cadastro..."
+                className="col-span-3"
+                placeholder="Notas sobre o contato ou outras informações relevantes"
                 rows={4}
               />
             </div>
@@ -590,7 +584,9 @@ export default function PreCadastrosAdmin() {
             <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={updateStatus}>Salvar</Button>
+            <Button onClick={updateStatus}>
+              Salvar alterações
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

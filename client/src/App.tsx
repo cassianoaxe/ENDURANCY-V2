@@ -151,7 +151,7 @@ import ConfiguracaoFinanceira from "@/pages/organization/financeiro/configuracao
 import AnaliseIA from "@/pages/organization/financeiro/analise-ia";
 
 // Importar página de pré-cadastros
-import PreCadastrosAdmin from "@/pages/admin/pre-cadastros";
+import PreCadastrosAdmin from "@/pages/admin/pre-cadastros-fixed";
 import PreCadastrosAlt from "@/pages/admin/pre-cadastros-alt";
 
 // Importar páginas do módulo de Comunicação
