@@ -13,7 +13,7 @@ import {
   PersonStanding, FlaskConical, Boxes, Network,
   MessageSquare, ClipboardList, HardHat, BellRing,
   FileSearch, Import, ExternalLink, BrainCircuit,
-  Sparkles
+  Sparkles, Calendar, MapPin
 } from 'lucide-react';
 
 // Definição de tipos para módulos do sistema
@@ -643,6 +643,10 @@ const NewLandingPage = () => {
             <a href="#portais" className="text-green-700 hover:text-green-500 font-medium">Portais</a>
             <a href="#beneficios" className="text-green-700 hover:text-green-500 font-medium">Benefícios</a>
             <a href="#precos" className="text-green-700 hover:text-green-500 font-medium">Preços</a>
+            <a href="/roadmap" className="text-green-700 hover:text-green-500 font-medium flex items-center">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>Roadmap</span>
+            </a>
           </nav>
           <div className="flex items-center space-x-4">
             <Button 
@@ -1461,6 +1465,10 @@ const NewLandingPage = () => {
                 <li><a href="#modulos" className="text-green-300 hover:text-white">Módulos</a></li>
                 <li><a href="#portais" className="text-green-300 hover:text-white">Portais</a></li>
                 <li><a href="#precos" className="text-green-300 hover:text-white">Preços</a></li>
+                <li><a href="/roadmap" className="text-green-300 hover:text-white flex items-center">
+                  <Calendar className="h-3.5 w-3.5 mr-1" />
+                  <span>Roadmap 2025-2027</span>
+                </a></li>
                 <li><a href="/sitemap" className="text-green-300 hover:text-white">Mapa do Site</a></li>
               </ul>
             </div>
