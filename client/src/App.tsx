@@ -1330,7 +1330,7 @@ function AppContent() {
     
     // Rota para a administração de pré-cadastros
     // Não exigimos autenticação para esta página durante a fase de testes
-    if (currentPath === '/admin/pre-cadastros') {
+    if (currentPath === '/admin/pre-cadastros' || currentPath === '/precadastros-admin') {
       // Usar a versão alternativa que não depende do contexto de autenticação
       return <PreCadastrosAlt />;
     }

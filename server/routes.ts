@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -272,6 +272,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Adicionar rotas de autenticação simplificadas
   registerAuthRoutes(app);
+  
+  // Adicionar rota para visualização direta de pré-cadastros
+  app.use('/pre-cadastros-viewer', express.static(path.join(process.cwd(), 'server/public')));
+  
+  // Adicionar rota para dados dos pré-cadastros - sem autenticação para fase de testes
+  app.get('/pre-cadastros-viewer/data', async (req, res) => {
+    try {
+      // Consulta no banco de dados
+      const result = await db.execute(sql`SELECT COUNT(*) as total FROM pre_cadastros`);
+      
+      // Buscar todos os pré-cadastros para a administração
+      const entries = await db.execute(sql`
+        SELECT 
+          id, nome, email, organizacao, tipo_organizacao, telefone, cargo, 
+          interesse, comentarios, modulos, aceita_termos, status, observacoes, 
+          created_at, contatado_em, convertido_em
+        FROM pre_cadastros 
+        ORDER BY created_at DESC
+      `);
+
+      res.json({
+        success: true,
+        message: "Consulta de pré-cadastros bem-sucedida",
+        timestamp: new Date().toISOString(),
+        count: result,
+        entries: entries,
+      });
+    } catch (error) {
+      console.error('Erro ao consultar pré-cadastros:', error);
+      res.status(500).json({
+        success: false,
+        message: "Erro ao consultar pré-cadastros",
+        error: String(error)
+      });
+    }
+  });
+  
   const server = createServer(app);
   
   // A sessão já foi configurada em index.ts via setupSessionMiddleware
