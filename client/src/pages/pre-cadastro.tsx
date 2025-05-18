@@ -81,32 +81,15 @@ const PreCadastroPage = () => {
       
       toast({
         title: "Pré-cadastro recebido!",
-        description: "Agradecemos seu interesse! Entraremos em contato em breve com mais informações sobre o beta do Endurancy.",
-        duration: 5000,
+        description: "Agradecemos seu interesse! Redirecionando para a página de confirmação...",
+        duration: 3000,
       });
       
-      // Reset do formulário
-      setFormState({
-        nome: '',
-        email: '',
-        telefone: '',
-        organizacao: '',
-        cargo: '',
-        tipoOrganizacao: '',
-        modulos: {
-          cultivo: false,
-          financeiro: false,
-          transparencia: false,
-          pesquisa: false,
-          importacao: false,
-          vendas: false,
-          compras: false,
-          patrimonio: false
-        },
-        comentarios: '',
-        aceitaTermos: false,
-        interesse: ''
-      });
+      // Redirecionar para a página de sucesso após 1,5 segundos
+      setTimeout(() => {
+        window.location.href = "/pre-cadastro-sucesso";
+      }, 1500);
+      
     } catch (error) {
       toast({
         title: "Erro ao enviar",
