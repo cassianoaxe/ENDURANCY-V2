@@ -135,7 +135,7 @@ router.get('/supplier-check', async (req, res) => {
 
 // Rota para verificar pré-cadastros
 router.get('/pre-cadastros', async (req, res) => {
-  console.log('Verificando acesso à tabela de pré-cadastros');
+  console.log('Acessando a tabela de pré-cadastros');
   
   try {
     // Evitar qualquer intercepção pelo React Router
@@ -149,12 +149,15 @@ router.get('/pre-cadastros', async (req, res) => {
     
     // Buscar todos os pré-cadastros para a administração
     const recentEntries = await db.execute(sql`
-      SELECT id, nome, email, organizacao, tipo_organizacao, telefone, cargo, 
-             interesse, comentarios, modulos, aceita_termos, status, observacoes, 
-             ip, user_agent, created_at, contatado_em, convertido_em
+      SELECT 
+        id, nome, email, organizacao, tipo_organizacao, telefone, cargo, 
+        interesse, comentarios, modulos, aceita_termos, status, observacoes, 
+        ip, user_agent, created_at, contatado_em, convertido_em
       FROM pre_cadastros 
       ORDER BY created_at DESC
     `);
+    
+    console.log(`Encontrados ${recentEntries.rows.length} pré-cadastros`);
     
     res.json({
       success: true,
@@ -168,6 +171,78 @@ router.get('/pre-cadastros', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Erro ao acessar pré-cadastros',
+      message: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Rota para atualizar status de um pré-cadastro
+router.post('/pre-cadastros/:id/status', async (req, res) => {
+  console.log(`Atualizando status do pré-cadastro ${req.params.id}`);
+  
+  try {
+    const { id } = req.params;
+    const { status, observacoes } = req.body;
+    
+    // Validar status
+    if (!['novo', 'contatado', 'convertido', 'descartado'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Status inválido',
+        message: 'O status deve ser novo, contatado, convertido ou descartado'
+      });
+    }
+    
+    // Atualizar campos específicos dependendo do status
+    let updateResult;
+    
+    if (status === 'contatado') {
+      updateResult = await db.execute(sql`
+        UPDATE pre_cadastros
+        SET status = ${status}, 
+            observacoes = ${observacoes || ''}, 
+            contatado_em = CURRENT_TIMESTAMP
+        WHERE id = ${Number(id)}
+        RETURNING *
+      `);
+    } else if (status === 'convertido') {
+      updateResult = await db.execute(sql`
+        UPDATE pre_cadastros
+        SET status = ${status}, 
+            observacoes = ${observacoes || ''}, 
+            convertido_em = CURRENT_TIMESTAMP
+        WHERE id = ${Number(id)}
+        RETURNING *
+      `);
+    } else {
+      updateResult = await db.execute(sql`
+        UPDATE pre_cadastros
+        SET status = ${status}, 
+            observacoes = ${observacoes || ''}
+        WHERE id = ${Number(id)}
+        RETURNING *
+      `);
+    }
+    
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pré-cadastro não encontrado',
+        message: `Não foi encontrado um pré-cadastro com o ID ${id}`
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Status atualizado com sucesso',
+      data: updateResult.rows[0]
+    });
+    
+  } catch (error) {
+    console.error('Erro ao atualizar status do pré-cadastro:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao atualizar status',
       message: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }

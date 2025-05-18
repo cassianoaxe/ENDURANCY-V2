@@ -1315,11 +1315,12 @@ function AppContent() {
     }
     
     // Rota para a administração de pré-cadastros
+    // Não exigimos autenticação para esta página durante a fase de testes
     if (currentPath === '/admin/pre-cadastros') {
       return (
-        <Layout>
+        <React.Fragment>
           <PreCadastrosAdmin />
-        </Layout>
+        </React.Fragment>
       );
     }
 

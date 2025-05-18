@@ -77,7 +77,7 @@ export default function PreCadastrosAdmin() {
         // Se a resposta tem o formato esperado da nova rota
         if (data && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
           // Converter o formato da resposta para o esperado pela interface
-          return data.recentEntries.rows.map(item => ({
+          return data.recentEntries.rows.map((item: any) => ({
             id: item.id,
             nome: item.nome,
             email: item.email,
@@ -115,32 +115,39 @@ export default function PreCadastrosAdmin() {
     if (!selectedItem) return;
     
     try {
-      const response = await fetch(`/api/pre-cadastro/${selectedItem.id}`, {
-        method: 'PATCH',
+      // Usando a rota de diagnóstico para atualizar o status
+      const response = await fetch(`/api-diagnostic/pre-cadastros/${selectedItem.id}/status`, {
+        method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           status: newStatus,
-          observacoes: observacoes || undefined
+          observacoes: observacoes || ''
         }),
       });
       
-      if (response.ok) {
-        toast({
-          title: 'Status atualizado',
-          description: `Pré-cadastro de ${selectedItem.nome} atualizado com sucesso.`,
-        });
-        refetch();
-        setIsUpdateDialogOpen(false);
-      } else {
-        throw new Error('Erro ao atualizar status');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao atualizar status');
       }
+      
+      toast({
+        title: 'Status atualizado',
+        description: `Pré-cadastro de ${selectedItem.nome} atualizado com sucesso.`,
+      });
+      
+      // Recarregar dados após atualização
+      await refetch();
+      setIsUpdateDialogOpen(false);
     } catch (error) {
+      console.error('Erro ao atualizar status:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar o status. Tente novamente.',
-        variant: 'destructive',
+        description: error instanceof Error ? error.message : 'Não foi possível atualizar o status. Tente novamente.',
+        variant: 'destructive' as const,
       });
     }
   };
