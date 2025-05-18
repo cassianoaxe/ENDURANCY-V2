@@ -329,36 +329,7 @@ const PreCadastroPage = () => {
                 <div className="space-y-6 mt-6">
                   <Label className="text-base font-semibold text-green-700">Módulos de interesse (selecione todos que se aplicam)</Label>
                   
-                  {/* Módulos Administrativos */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos Administrativos</h4>
-                    <div className="grid md:grid-cols-3 gap-2">
-                      <div className="flex items-start space-x-2">
-                        <Checkbox 
-                          id="modulo-admin" 
-                          checked={formState.modulos.admin}
-                          onCheckedChange={(checked) => handleCheckboxChange('modulos.admin', !!checked)}
-                        />
-                        <Label htmlFor="modulo-admin" className="font-normal">Administração Central</Label>
-                      </div>
-                      <div className="flex items-start space-x-2">
-                        <Checkbox 
-                          id="modulo-usuarios" 
-                          checked={formState.modulos.usuarios}
-                          onCheckedChange={(checked) => handleCheckboxChange('modulos.usuarios', !!checked)}
-                        />
-                        <Label htmlFor="modulo-usuarios" className="font-normal">Gestão de Usuários</Label>
-                      </div>
-                      <div className="flex items-start space-x-2">
-                        <Checkbox 
-                          id="modulo-tickets" 
-                          checked={formState.modulos.tickets}
-                          onCheckedChange={(checked) => handleCheckboxChange('modulos.tickets', !!checked)}
-                        />
-                        <Label htmlFor="modulo-tickets" className="font-normal">Sistema de Tickets</Label>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Nota: Módulos Administrativos removidos pois são operacionais, não contratáveis */}
                   
                   {/* Módulos Financeiros */}
                   <div className="space-y-2">
