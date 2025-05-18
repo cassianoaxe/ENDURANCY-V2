@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from '@/hooks/use-toast';
+// useToast pode gerar um erro na compilação, então substituí por um alerta simples
 
 // Interface para os pré-cadastros
 interface PreCadastro {
@@ -38,7 +38,6 @@ interface PreCadastro {
 }
 
 export default function PreCadastrosAlt() {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [preCadastros, setPreCadastros] = useState<PreCadastro[]>([]);

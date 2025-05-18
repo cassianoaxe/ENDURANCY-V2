@@ -358,8 +358,243 @@ router.post('/pre-cadastros/:id/status', async (req, res) => {
   }
 });
 
+// Rota direta para visualizar pré-cadastros sem depender do client
+router.get('/pre-cadastros-view', async (req, res) => {
+  try {
+    console.log('Acessando a página direta de visualização de pré-cadastros');
+    
+    // Buscar todos os pré-cadastros para a visualização
+    const result = await db.execute(sql`
+      SELECT 
+        id, nome, email, organizacao, tipo_organizacao, telefone, cargo, 
+        interesse, comentarios, modulos, aceita_termos, status, observacoes, 
+        created_at, contatado_em, convertido_em
+      FROM pre_cadastros 
+      ORDER BY created_at DESC
+    `);
+    
+    const preCadastros = result.rows || [];
+    console.log(`Encontrados ${preCadastros.length} pré-cadastros para visualização direta`);
+    
+    // Criar a página HTML diretamente no servidor
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Visualização de Pré-Cadastros</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          padding: 20px;
+          background-color: #f8f9fa;
+        }
+        .card {
+          margin-bottom: 20px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          border: none;
+        }
+        .card-header {
+          background-color: #28a745;
+          color: white;
+          font-weight: bold;
+        }
+        .badge-novo {
+          background-color: #17a2b8;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 4px;
+        }
+        .badge-contatado {
+          background-color: #6c757d;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 4px;
+        }
+        .badge-convertido {
+          background-color: #28a745;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 4px;
+        }
+        .badge-descartado {
+          background-color: #dc3545;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 4px;
+        }
+        .tab-button {
+          margin-right: 10px;
+          margin-bottom: 10px;
+        }
+        .tab-button.active {
+          background-color: #0d6efd;
+          color: white;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1 class="my-4">Visualização de Pré-Cadastros</h1>
+        
+        <div class="row mb-4">
+          <div class="col">
+            <a href="/" class="btn btn-secondary">Voltar para o sistema</a>
+          </div>
+          <div class="col-auto">
+            <span id="total-count" class="badge bg-secondary fs-6">${preCadastros.length} registros encontrados</span>
+          </div>
+        </div>
+        
+        <div class="mb-4">
+          <button class="btn btn-outline-secondary tab-button active" onclick="filterItems('todos')">Todos</button>
+          <button class="btn btn-outline-info tab-button" onclick="filterItems('novo')">Novos</button>
+          <button class="btn btn-outline-secondary tab-button" onclick="filterItems('contatado')">Contatados</button>
+          <button class="btn btn-outline-success tab-button" onclick="filterItems('convertido')">Convertidos</button>
+          <button class="btn btn-outline-danger tab-button" onclick="filterItems('descartado')">Descartados</button>
+        </div>
+        
+        <div class="row row-cols-1 row-cols-md-2 g-4" id="pre-cadastros-container">
+          ${preCadastros.map(item => {
+            const statusBadge = (() => {
+              switch(item.status || 'novo') {
+                case 'novo': return '<span class="badge-novo">Novo</span>';
+                case 'contatado': return '<span class="badge-contatado">Contatado</span>';
+                case 'convertido': return '<span class="badge-convertido">Convertido</span>';
+                case 'descartado': return '<span class="badge-descartado">Descartado</span>';
+                default: return '<span class="badge bg-secondary">Desconhecido</span>';
+              }
+            })();
+            
+            const formatDate = (dateString) => {
+              if (!dateString) return 'N/A';
+              const date = new Date(dateString);
+              return date.toLocaleDateString('pt-BR');
+            };
+            
+            const modulesHtml = item.modulos && item.modulos.length > 0 
+              ? `<div class="mt-2">
+                  <strong>Módulos de interesse:</strong><br>
+                  ${item.modulos.map(m => `<span class="badge bg-secondary me-1">${m}</span>`).join('')}
+                 </div>`
+              : '';
+            
+            const observacoesHtml = item.observacoes 
+              ? `<div class="mt-2">
+                  <strong>Observações:</strong><br>
+                  ${item.observacoes}
+                 </div>`
+              : '';
+            
+            return `
+              <div class="col" data-status="${item.status || 'novo'}">
+                <div class="card h-100">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>${item.nome}</span>
+                    ${statusBadge}
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">${item.organizacao}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">${item.tipo_organizacao || 'Tipo não especificado'}</h6>
+                    
+                    <p class="card-text">
+                      <strong>Email:</strong> ${item.email}<br>
+                      <strong>Telefone:</strong> ${item.telefone || 'Não informado'}<br>
+                      <strong>Cargo:</strong> ${item.cargo || 'Não informado'}<br>
+                      <strong>Interesse:</strong> ${item.interesse || 'Não especificado'}
+                    </p>
+                    
+                    <p class="card-text">
+                      <strong>Comentários:</strong><br>
+                      ${item.comentarios || 'Nenhum comentário'}
+                    </p>
+                    
+                    ${modulesHtml}
+                    ${observacoesHtml}
+                    
+                    <div class="mt-3">
+                      <small class="text-muted">
+                        Cadastrado em: ${formatDate(item.created_at)}<br>
+                        ${item.contatado_em ? `Contatado em: ${formatDate(item.contatado_em)}<br>` : ''}
+                        ${item.convertido_em ? `Convertido em: ${formatDate(item.convertido_em)}` : ''}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <script>
+        function filterItems(status) {
+          // Destacar o botão ativo
+          document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          
+          document.querySelector(\`.tab-button[onclick="filterItems('\${status}')"]\`).classList.add('active');
+          
+          // Obter todos os cards
+          const cards = document.querySelectorAll('#pre-cadastros-container .col');
+          let visibleCount = 0;
+          
+          // Filtrar os cards
+          cards.forEach(card => {
+            if (status === 'todos' || card.dataset.status === status) {
+              card.style.display = '';
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+          
+          // Atualizar contagem
+          document.getElementById('total-count').textContent = 
+            visibleCount + ' ' + (visibleCount === 1 ? 'registro' : 'registros') + ' encontrados';
+        }
+      </script>
+    </body>
+    </html>
+    `);
+  } catch (error) {
+    console.error('Erro ao gerar página de visualização de pré-cadastros:', error);
+    res.status(500).send(`
+      <html>
+        <head>
+          <title>Erro</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="p-5">
+          <div class="alert alert-danger">
+            <h4>Erro ao carregar pré-cadastros</h4>
+            <p>${error instanceof Error ? error.message : 'Erro desconhecido'}</p>
+            <a href="/" class="btn btn-primary">Voltar para a página inicial</a>
+          </div>
+        </body>
+      </html>
+    `);
+  }
+});
+
 export function registerDiagnosticRoutes(app: express.Express) {
   // Montar as rotas em um prefixo especial que não será capturado pelo Vite
   app.use('/api-diagnostic', router);
+  
+  // Adicionar também a rota direta de visualização de pré-cadastros na raiz
+  app.get('/pre-cadastros-view', async (req, res) => {
+    try {
+      // Redirecionar para a versão dentro do router para manter o código DRY
+      res.redirect('/api-diagnostic/pre-cadastros-view');
+    } catch (error) {
+      console.error('Erro no redirecionamento para visualização de pré-cadastros:', error);
+      res.status(500).send('Erro ao acessar página de pré-cadastros');
+    }
+  });
+  
   console.log('Rotas de diagnóstico especiais registradas em /api-diagnostic');
+  console.log('Rota direta para visualização de pré-cadastros registrada em /pre-cadastros-view');
 }
