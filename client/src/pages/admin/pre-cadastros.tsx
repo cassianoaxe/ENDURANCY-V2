@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -140,10 +140,11 @@ export default function PreCadastrosAdmin() {
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       setManualError(true);
+      const { toast } = useToast();
       toast({
         title: "Erro ao buscar dados",
         description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido",
-        variant: "destructive" as const
+        variant: "destructive"
       });
     } finally {
       setManualLoading(false);

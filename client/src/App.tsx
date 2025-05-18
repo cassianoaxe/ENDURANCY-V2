@@ -149,6 +149,7 @@ import AnaliseIA from "@/pages/organization/financeiro/analise-ia";
 
 // Importar página de pré-cadastros
 import PreCadastrosAdmin from "@/pages/admin/pre-cadastros";
+import PreCadastrosAlt from "@/pages/admin/pre-cadastros-alt";
 
 // Importar páginas do módulo de Comunicação
 import ComunicacaoDashboard from "@/pages/organization/comunicacao/index";
@@ -1330,14 +1331,8 @@ function AppContent() {
     // Rota para a administração de pré-cadastros
     // Não exigimos autenticação para esta página durante a fase de testes
     if (currentPath === '/admin/pre-cadastros') {
-      // Envolver em um AuthProvider mínimo para evitar erros de contexto
-      return (
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <PreCadastrosAdmin />
-          </AuthProvider>
-        </QueryClientProvider>
-      );
+      // Usar a versão alternativa que não depende do contexto de autenticação
+      return <PreCadastrosAlt />;
     }
     
     // Rota alternativa para visualização de pré-cadastros sem autenticação
