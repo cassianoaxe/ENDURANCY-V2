@@ -1,7 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
-// Default query function for React Query
-const defaultQueryFn = async ({ queryKey }) => {
+// Default query function for React Query with improved typing
+const defaultQueryFn = async ({ queryKey }: { queryKey: unknown[] }) => {
   // The first item in the query key should be the endpoint URL
   const endpoint = Array.isArray(queryKey[0]) ? queryKey[0][0] : queryKey[0];
   
@@ -9,18 +9,35 @@ const defaultQueryFn = async ({ queryKey }) => {
     throw new Error('Query key must be a string URL');
   }
 
-  const response = await fetch(endpoint);
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.statusText}`);
-  }
+  // Check cache for frequently used endpoints
+  const cachedEndpoints = ['/api/plans', '/api/organizations', '/api/modules', '/api/notifications'];
+  const shouldUseCache = cachedEndpoints.includes(endpoint);
   
-  return response.json();
+  const cacheOptions: RequestInit = shouldUseCache 
+    ? { cache: 'force-cache' } 
+    : { cache: 'no-store' };
+
+  try {
+    const response = await fetch(endpoint, {
+      credentials: 'include',
+      ...cacheOptions
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error(`Error fetching ${endpoint}:`, error);
+    throw error;
+  }
 };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: defaultQueryFn,  // Set the default query function
+      queryFn: defaultQueryFn as any,  // Corrigir erro de tipagem com type assertion
       retry: 1,
       refetchOnWindowFocus: false, // Não recarregar automaticamente ao focar a janela
       refetchOnMount: false, // Não recarregar ao montar o componente para reduzir requisições
@@ -87,123 +104,105 @@ export async function apiRequest(
   methodOrOptions?: string | ApiRequestOptions, 
   data?: any
 ): Promise<any> {
+  // Configuração da requisição de forma simplificada
   let options: ApiRequestOptions;
   
-  // Verificar se o segundo parâmetro é uma string (método HTTP) ou objeto de opções
   if (typeof methodOrOptions === 'string') {
-    options = {
-      method: methodOrOptions as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-      data
-    };
+    options = { method: methodOrOptions as any, data };
   } else {
     options = methodOrOptions || { method: 'GET' };
   }
   
   const { method, data: requestData, headers = {}, includeCredentials = true } = options;
   
-  console.log(`Iniciando requisição API: ${method} ${url}`);
+  // Verificar se a URL é para API de autenticação ou logout
+  const isAuthRelated = url.includes('/api/auth/');
   
-  // Cabeçalhos padrão
-  const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    ...headers,
-  };
-
-  // Temporariamente desativando a verificação de CSRF devido a problemas no endpoint
-  // if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
-  //   try {
-  //     const token = await fetchCsrfToken();
-  //     if (token) {
-  //       requestHeaders['CSRF-Token'] = token;
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao obter token CSRF para requisição:', error);
-  //     // Continua a requisição mesmo sem o token CSRF em caso de erro
-  //   }
-  // }
-
-
-  // Configuração da requisição
+  // Para requisições não relacionadas a autenticação, verificar o cache em localStorage
+  if (method === 'GET' && !isAuthRelated) {
+    const cacheKey = `api_cache_${url}`;
+    const cachedData = localStorage.getItem(cacheKey);
+    const cacheTimestamp = localStorage.getItem(`${cacheKey}_time`);
+    const CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutos
+    
+    // Se temos um cache válido, retornar os dados sem fazer requisição
+    if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < CACHE_MAX_AGE) {
+      try {
+        return JSON.parse(cachedData);
+      } catch (e) {
+        console.warn('Erro ao parsear cache da API:', e);
+      }
+    }
+  }
+  
+  // Configuração base da requisição
   const requestOptions: RequestInit = {
     method,
-    headers: requestHeaders,
-    credentials: includeCredentials ? 'include' : 'same-origin',
-    cache: 'no-store', // Desabilitar cache para sempre obter dados atualizados
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...headers
+    },
+    credentials: includeCredentials ? 'include' : 'same-origin'
   };
 
-  // Incluir corpo da requisição se tiver dados
+  // Adicionar corpo da requisição se necessário
   if (data) {
     requestOptions.body = JSON.stringify(data);
   }
+  
+  // Adicionar um controle de timeout para evitar requisições que nunca respondem
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
+  requestOptions.signal = controller.signal;
 
   try {
-    // Fazer a requisição
     const response = await fetch(url, requestOptions);
+    clearTimeout(timeoutId);
     
-    // Verificar o tipo de conteúdo da resposta
     const contentType = response.headers.get('content-type');
-    console.log(`Resposta API: ${response.status} ${response.statusText}, Content-Type: ${contentType}`);
     
-    // Tratar resposta de erro
+    // Tratamento de erros simplificado
     if (!response.ok) {
-      // Verificar se a resposta contém HTML (comum em redirecionamentos de login)
-      if (contentType && contentType.includes('text/html')) {
-        // Verificar tipos específicos de erro
-        if (response.status === 401) {
-          // Sessão expirada ou não autenticado
-          console.error('Erro 401: Usuário não autenticado ou sessão expirada');
-          
-          // Verificar se estamos na página de login para evitar loop de redirecionamento
-          if (!window.location.pathname.includes('/login')) {
-            console.log('Redirecionando para página de login devido a erro 401');
-            window.location.href = '/login';
-          }
-          
-          throw new Error('Sessão expirada. Faça login novamente.');
-        } else if (response.status === 429) {
-          console.error('Erro 429: Rate limiting aplicado');
-          throw new Error('Muitas requisições. Por favor, aguarde um momento e tente novamente.');
-        } else {
-          console.error(`Erro ${response.status}: Resposta em HTML não esperada`);
-          throw new Error(`Erro na requisição (${response.status}): Resposta inesperada do servidor`);
-        }
+      // Tratamento especial para erros de autenticação
+      if (response.status === 401 && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+        throw new Error('Sessão expirada. Redirecionando para login...');
       }
       
-      // Tentar obter mensagem de erro detalhada da API para respostas JSON
-      let errorMessage = `API request failed: ${response.statusText}`;
+      // Extrair mensagem de erro
+      let errorMessage = `Erro ${response.status}: ${response.statusText}`;
       
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = errorData.message;
-          } else if (errorData.error && errorData.error.message) {
-            errorMessage = errorData.error.message;
-          }
-        } catch (jsonError) {
-          console.error('Erro ao parsear resposta JSON de erro:', jsonError);
-          // Se não conseguir parsear o JSON de erro, usa a mensagem padrão
-        }
+      if (contentType?.includes('application/json')) {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
       }
       
       throw new Error(errorMessage);
     }
     
-    // Verificar se há conteúdo para parsear como JSON
-    if (contentType && contentType.includes('application/json')) {
-      try {
-        return await response.json();
-      } catch (jsonError) {
-        console.error('Erro ao parsear resposta JSON:', jsonError);
-        throw new Error('Falha ao processar resposta do servidor');
+    // Processar resposta de sucesso
+    if (contentType?.includes('application/json')) {
+      const data = await response.json();
+      
+      // Armazenar em cache para requisições GET não relacionadas a autenticação
+      if (method === 'GET' && !isAuthRelated) {
+        const cacheKey = `api_cache_${url}`;
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+        localStorage.setItem(`${cacheKey}_time`, Date.now().toString());
       }
+      
+      return data;
     }
     
-    // Retorno vazio para respostas sem conteúdo JSON
-    return {}; 
-  } catch (error) {
-    console.error(`Erro na requisição API ${method} ${url}:`, error);
+    return {};
+  } catch (error: any) {
+    // Tratar erros de timeout
+    if (error.name === 'AbortError') {
+      throw new Error('Requisição cancelada por timeout. Verifique sua conexão.');
+    }
+    
+    // Repassar erro original
     throw error;
   }
 }

@@ -27,290 +27,179 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     
+    // Verificar no localStorage se já temos um cache recente da sessão 
+    // para evitar chamadas API desnecessárias
+    const cachedSession = localStorage.getItem('auth_session');
+    const sessionTimestamp = localStorage.getItem('auth_session_time');
+    const SESSION_MAX_AGE = 15 * 60 * 1000; // 15 minutos em ms
+    
+    const hasValidCache = cachedSession && sessionTimestamp && 
+      (Date.now() - parseInt(sessionTimestamp)) < SESSION_MAX_AGE;
+    
     const checkAuthStatus = async () => {
       try {
-        console.log("Verificando status de autenticação...");
-        
-        // Tentar apenas 1 vez para evitar rate limiting
-        let attempts = 0;
-        const maxAttempts = 1;
-        
-        while (attempts < maxAttempts) {
-          attempts++;
-          console.log(`Tentativa ${attempts}/${maxAttempts} de verificar autenticação`);
-          
+        // Se temos um cache válido da sessão, usamos para evitar uma chamada API
+        if (hasValidCache) {
           try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
-            
-            const response = await fetch('/api/auth/me', {
-              credentials: 'include', // Incluir cookies na requisição
-              headers: {
-                'Accept': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-              },
-              cache: 'no-cache', // Prevent browser caching
-              signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            // Verificar se a resposta contém HTML (possível redirecionamento)
-            const contentType = response.headers.get('content-type');
-            const isHtmlResponse = contentType && contentType.includes('text/html');
-            
-            if (isHtmlResponse) {
-              console.warn("Recebida resposta HTML ao invés de JSON. Possível redirecionamento ou erro de sessão");
-              
-              if (response.status === 429) {
-                // Rate limiting, aguardar e tentar novamente
-                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-                if (attempts < maxAttempts) {
-                  // Esperar tempo progressivo entre tentativas: 2s, 4s, 8s...
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                  continue;
-                }
+            const userData = JSON.parse(cachedSession);
+            if (userData?.id) {
+              if (isMounted) {
+                console.log("Usando sessão em cache para evitar rate limiting");
+                setUser(userData);
+                setIsLoading(false);
+                return;
               }
             }
-            
-            if (response.ok) {
-              const userData = await response.json();
-              console.log("Usuário autenticado:", userData);
-              if (isMounted) setUser(userData);
-              break; // Sair do loop em caso de sucesso
-            } else {
-              console.log("Usuário não autenticado. Status:", response.status);
-              
-              if (response.status === 429) {
-                // Rate limiting, aguardar e tentar novamente
-                console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-                if (attempts < maxAttempts) {
-                  // Esperar tempo progressivo entre tentativas
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                  continue;
-                }
-              }
-              
-              let errorText = '';
-              try {
-                errorText = await response.text();
-              } catch (e) {
-                errorText = 'Não foi possível obter detalhes do erro';
-              }
-              console.log("Erro de autenticação:", errorText);
-              break; // Sair do loop se o erro não for 429
-            }
-          } catch (innerError: any) {
-            if (innerError.name === 'AbortError') {
-              console.error('Requisição abortada por timeout');
-              if (attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                continue;
-              }
-            } else if (attempts < maxAttempts) {
-              console.warn(`Erro na tentativa ${attempts}, tentando novamente...`, innerError);
-              await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-              continue;
-            }
-            
-            console.error(`Todas as ${maxAttempts} tentativas falharam`, innerError);
-            throw innerError;
+          } catch (e) {
+            console.warn("Erro ao parsear cache da sessão:", e);
+            // Continua com a verificação normal se o cache for inválido
           }
         }
-      } catch (error) {
-        console.error('Failed to check authentication status', error);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-    
-    // Cleanup para evitar memory leaks
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier', orgCode?: string) => {
-    setIsLoading(true);
-    try {
-      // Construir o corpo da requisição com base nos parâmetros disponíveis
-      let requestBody: any = { password };
       
-      // Verificar se a entrada parece um email
-      const isEmail = username.includes('@');
-      // Verificar se estamos tentando login em uma empresa importadora
-      const isImportCompany = localStorage.getItem('userType') === 'import_company' || 
-        document.documentElement.classList.contains('importadora-theme') ||
-        username.toLowerCase().includes('importadora');
-
-      if (isImportCompany) {
-        console.log("Detectado tentativa de login como importadora");
-        // Definir flag diretamente para redirecionamento imediato
-        localStorage.setItem('userType', 'import_company');
-        // Definindo direct_import_company evita a passagem pelo dashboard geral
-        localStorage.setItem('direct_import_company', 'true');
-      }
-      
-      // Se parece um email, enviar como 'email', caso contrário como 'username'
-      if (isEmail) {
-        requestBody.email = username;
-      } else {
-        requestBody.username = username;
-      }
-      
-      // Adicionar tipo de usuário se disponível
-      if (userType) {
-        requestBody.userType = userType;
-      }
-      
-      // Adicionar código da organização se disponível
-      if (orgCode) {
-        requestBody.orgCode = orgCode;
-      }
-      
-      console.log("Tentando login com:", { 
-        ...(isEmail ? { email: username } : { username }),
-        userType, 
-        hasOrgCode: !!orgCode 
-      });
-      
-      // Implementar um mecanismo de timeout para a requisição
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
-      
-      // Reduzir para apenas 1 tentativa para evitar rate limiting
-      let attempts = 0;
-      const maxAttempts = 1;
-      
-      while (attempts < maxAttempts) {
-        attempts++;
-        console.log(`Tentativa de login ${attempts}/${maxAttempts}`);
+        console.log("Verificando status de autenticação...");
         
+        // Uma única tentativa para evitar rate limiting
         try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos de timeout
+          
+          const response = await fetch('/api/auth/me', {
+            credentials: 'include',
             headers: {
-              'Content-Type': 'application/json',
               'Accept': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
+              'Cache-Control': 'no-store'
             },
-            credentials: 'include', // Importante para salvar o cookie de sessão
-            cache: 'no-cache', // Prevent caching
-            body: JSON.stringify(requestBody),
             signal: controller.signal
           });
           
           clearTimeout(timeoutId);
           
-          // Verificar se a resposta contém HTML (possível redirecionamento)
-          const contentType = response.headers.get('content-type');
-          const isHtmlResponse = contentType && contentType.includes('text/html');
-          
-          if (isHtmlResponse) {
-            console.warn("Recebida resposta HTML ao invés de JSON. Possível redirecionamento ou erro de sessão");
+          if (response.ok) {
+            const userData = await response.json();
+            console.log("Usuário autenticado:", userData);
             
-            if (response.status === 429) {
-              // Rate limiting, aguardar e tentar novamente
-              console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-              if (attempts < maxAttempts) {
-                // Esperar tempo progressivo entre tentativas: 2s, 4s, 8s...
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                continue;
-              } else {
-                throw new Error("Muitas requisições. Por favor, aguarde alguns instantes e tente novamente.");
-              }
+            if (isMounted) {
+              setUser(userData);
+              
+              // Salvar sessão no localStorage para evitar chamadas futuras
+              localStorage.setItem('auth_session', JSON.stringify(userData));
+              localStorage.setItem('auth_session_time', Date.now().toString());
             }
-            
-            if (response.status === 401 || response.status === 403) {
-              throw new Error("Credenciais inválidas. Verifique seu e-mail e senha.");
-            }
-            
-            throw new Error(`Resposta inesperada do servidor (${response.status})`);
-          }
-          
-          if (!response.ok) {
-            // Tenta obter mensagem de erro do JSON
-            let errorMessage = `Erro ${response.status}: ${response.statusText}`;
-            try {
-              const errorData = await response.json();
-              if (errorData.message) {
-                errorMessage = errorData.message;
-              } else if (errorData.error) {
-                errorMessage = typeof errorData.error === 'string' 
-                  ? errorData.error 
-                  : errorData.error.message || errorMessage;
-              }
-            } catch {
-              // Não conseguiu parsear JSON, tenta obter texto simples
-              try {
-                const errorText = await response.text();
-                if (errorText && errorText.length < 200) { // Se for um texto curto
-                  errorMessage = errorText;
-                }
-              } catch {
-                // Ignora se não conseguir obter texto
-              }
-            }
-            
-            // Tratamento específico para rate limiting
-            if (response.status === 429) {
-              console.log("Rate limiting detectado (429). Aguardando para nova tentativa...");
-              if (attempts < maxAttempts) {
-                // Esperar tempo progressivo entre tentativas
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-                continue;
-              } else {
-                throw new Error("Muitas requisições. Por favor, aguarde alguns instantes e tente novamente.");
-              }
-            }
-            
-            throw new Error(errorMessage);
-          }
-
-          // Processa a resposta bem-sucedida
-          const userData = await response.json();
-          console.log("Login bem-sucedido. Dados do usuário:", userData);
-          
-          // Definir o estado do usuário
-          setUser(userData);
-          
-          // Adicionar um cookie local para ajudar a manter o estado após o redirecionamento
-          document.cookie = `auth_redirect=true; path=/; max-age=60; SameSite=Lax`;
-          
-          // Vamos dar um tempo curto para o estado ser atualizado e o cookie ser definido
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Redirecionar com base no papel do usuário
-          // Usando window.location.href para redirecionamento mais confiável
-          console.log(`Login bem-sucedido como ${userData.role}, preparando redirecionamento...`);
-          
-          // Retorna sem redirecionamento para permitir que a página de login faça isso
-          return;
-          
-        } catch (fetchError: any) {
-          if (fetchError.name === 'AbortError') {
-            console.error('Requisição de login abortada por timeout');
-            throw new Error('Tempo limite de conexão excedido. Verifique sua conexão com a internet.');
-          }
-          
-          if (attempts >= maxAttempts) {
-            console.error(`Todas as ${maxAttempts} tentativas de login falharam:`, fetchError);
-            throw fetchError;
           } else {
-            console.warn(`Tentativa ${attempts} falhou, tentando novamente...`, fetchError);
-            // Aumentar o tempo de espera entre tentativas: 1s, 2s, 4s...
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts - 1) * 1000));
+            console.log("Usuário não autenticado. Status:", response.status);
+            
+            // Limpar cache da sessão se não estiver autenticado
+            localStorage.removeItem('auth_session');
+            localStorage.removeItem('auth_session_time');
+          }
+        } catch (error: any) {
+          console.error('Erro ao verificar autenticação:', error);
+          
+          // Se o erro foi timeout e temos um cache, usamos o cache mesmo expirado
+          if (error.name === 'AbortError' && cachedSession) {
+            try {
+              console.warn("Usando cache expirado devido a timeout na verificação");
+              const userData = JSON.parse(cachedSession);
+              if (userData?.id && isMounted) {
+                setUser(userData);
+              }
+            } catch (e) {
+              console.error("Erro ao usar cache de fallback:", e);
+            }
           }
         }
+      } catch (error) {
+        console.error('Falha ao verificar autenticação:', error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    // Iniciar verificação com um pequeno atraso para permitir que
+    // outras partes da aplicação inicializem primeiro
+    const timerId = setTimeout(checkAuthStatus, 100);
+    
+    // Cleanup
+    return () => {
+      isMounted = false;
+      clearTimeout(timerId);
+    };
+  }, []);
+  // Função de login simplificada
+  const login = async (username: string, password: string, userType?: 'admin' | 'org_admin' | 'association_admin' | 'company_admin' | 'doctor' | 'dentist' | 'vet' | 'patient' | 'pharmacist' | 'laboratory' | 'researcher' | 'supplier', orgCode?: string) => {
+    setIsLoading(true);
+    try {
+      // Preparar dados de login
+      const isEmail = username.includes('@');
+      const isImportCompany = localStorage.getItem('userType') === 'import_company' || 
+        document.documentElement.classList.contains('importadora-theme') ||
+        username.toLowerCase().includes('importadora');
+
+      if (isImportCompany) {
+        console.log("Iniciando login como importadora");
+        localStorage.setItem('userType', 'import_company');
+        localStorage.setItem('direct_import_company', 'true');
       }
       
-      // Se chegou aqui, todas as tentativas falharam
-      throw new Error('Falha ao realizar login após múltiplas tentativas');
+      // Construir payload com dados mínimos necessários
+      const requestBody = {
+        password,
+        ...(isEmail ? { email: username } : { username }),
+        ...(userType ? { userType } : {}),
+        ...(orgCode ? { orgCode } : {})
+      };
+      
+      console.log(`Iniciando tentativa de login para usuário: ${username}, tipo: ${userType || 'admin'}`);
+      
+      // Usar AbortController para timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          let errorMsg = `Erro ${response.status}: ${response.statusText}`;
+          
+          // Tentar extrair mensagem de erro mais detalhada
+          if (response.headers.get('content-type')?.includes('application/json')) {
+            const errorData = await response.json();
+            errorMsg = errorData.message || errorData.error || errorMsg;
+          }
+          
+          throw new Error(errorMsg);
+        }
+
+        // Login bem-sucedido
+        const userData = await response.json();
+        console.log("Login bem-sucedido. Dados do usuário:", userData);
+        
+        // Atualizar estado e cache local
+        setUser(userData);
+        localStorage.setItem('auth_session', JSON.stringify(userData));
+        localStorage.setItem('auth_session_time', Date.now().toString());
+        
+        // Permitir tempo para o estado ser atualizado
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        return;
+      } catch (fetchError: any) {
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Tempo limite de conexão excedido. Verifique sua conexão.');
+        }
+        throw fetchError;
+      }
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -322,25 +211,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     console.log("Iniciando logout");
     
-    // Primeiro, definir o usuário como null para atualizar a UI imediatamente
+    // Limpar dados de autenticação no localStorage
+    localStorage.removeItem('auth_session');
+    localStorage.removeItem('auth_session_time');
+    
+    // Atualizar estado imediatamente
     setUser(null);
     
-    // Redirecionar para a página de login de forma simples e direta
-    window.location.href = '/login';
-    
-    // Fazer a chamada para logout no servidor após o redirecionamento já ter iniciado
-    // pois não precisamos esperar a resposta para fazer o redirecionamento
+    // Realizar logout no servidor
     fetch('/api/auth/logout', {
       method: 'POST',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      },
-      credentials: 'include', // Importante para acessar e limpar cookies
-      cache: 'no-cache'
+      credentials: 'include'
     }).catch(error => {
-      console.error('Logout error:', error);
+      console.error('Erro no logout:', error);
+    }).finally(() => {
+      // Verificar papel do usuário para redirecionamento correto
+      console.log("Redirecionando para /login");
+      window.location.href = '/login';
     });
   };
 

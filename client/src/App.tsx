@@ -596,52 +596,30 @@ function AppContent() {
         document.body.style.transition = 'opacity 0.3s';
         
         // Definir URL de redirecionamento com base no tipo de usuário
-        let redirectUrl = '/dashboard';
-        
-        if (user.role === 'org_admin') {
-          redirectUrl = '/organization/dashboard';
-        } else if (user.role === 'pharmacist') {
-          redirectUrl = '/pharmacist/dashboard';
-        } else if (user.role === 'laboratory') {
-          redirectUrl = '/laboratory/dashboard';
-        } else if (user.role === 'researcher') {
-          redirectUrl = '/researcher/dashboard';
-        } else if (user.role === 'doctor') {
-          redirectUrl = '/doctor/dashboard';
-        } else if (user.role === 'patient') {
-          redirectUrl = '/patient/dashboard';
-        } else if (user.role === 'supplier') {
-          redirectUrl = '/supplier/dashboard';
-        }
-        
-        console.log(`Redirecionando para ${redirectUrl}`);
-        
-        // Adicionar pequeno delay para dar tempo à animação de fade
-        setTimeout(() => {
-          try {
-            // Usar location.replace para evitar adicionar ao histórico
-            window.location.replace(redirectUrl);
-          } catch (error) {
-            console.error("Erro ao redirecionar:", error);
-            window.location.href = redirectUrl;
-          }
-        }, 150);
+        // Usar função utilitária para obter URL do dashboard baseado no papel
+        import('./utils/navigation').then(({ getDashboardUrl, redirect }) => {
+          const redirectUrl = getDashboardUrl(user.role);
+          console.log(`Redirecionando para ${redirectUrl}`);
+          
+          // Usar função utilitária para realizar o redirecionamento
+          redirect(redirectUrl, true);
+        });
       }
     }
   }, [isLoading, isAuthenticated, user]);
 
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
-    // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi', '/landing/afiliados', '/roadmap', '/pre-cadastro', '/pre-cadastro-sucesso'];
-    const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
-    
-    // Só redirecionamos se não estiver carregando, não estiver autenticado,
-    // não for uma página pública e não estiver já na página de login
-    if (!isLoading && !isAuthenticated && !isPublicPath && currentPath !== '/login') {
-      // Removido console.log para reduzir o processamento
-      setLocation('/login');
-    }
+    // Usar função utilitária para verificar se a rota é pública
+    import('./utils/navigation').then(({ isPublicPath }) => {
+      const publicPathCheck = isPublicPath(currentPath);
+      
+      // Só redirecionamos se não estiver carregando, não estiver autenticado,
+      // não for uma página pública e não estiver já na página de login
+      if (!isLoading && !isAuthenticated && !publicPathCheck && currentPath !== '/login') {
+        setLocation('/login');
+      }
+    });
   }, [isLoading, isAuthenticated, currentPath]);
   
   // Removido o redirecionamento automático para dashboard a partir da raiz
