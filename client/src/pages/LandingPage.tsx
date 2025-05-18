@@ -6,7 +6,8 @@ import { EcosystemGraphV2 } from "@/components/ecosystem-graph-v2";
 import { 
   Leaf, ShieldCheck, Users, BookOpen, Pill, 
   ArrowRight, CheckCircle, Medal, Globe, 
-  Building, Lock, HeartPulse, Info
+  Building, Lock, HeartPulse, Info,
+  Calendar, MapPin
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -557,6 +558,16 @@ const LandingPage = () => {
           </div>
           
           <div className="border-t border-green-800 mt-12 pt-6 text-center text-green-400">
+            <div className="mb-4 flex justify-center space-x-6">
+              <a href="/roadmap" className="text-green-300 hover:text-white flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span>Roadmap 2025-2027</span>
+              </a>
+              <a href="/sitemap" className="text-green-300 hover:text-white flex items-center">
+                <MapPin className="h-4 w-4 mr-1" />
+                <span>Mapa do Site</span>
+              </a>
+            </div>
             <p>&copy; {new Date().getFullYear()} Endurancy <span className="inline-block px-1 py-0.5 text-[0.6rem] font-medium bg-green-200 text-green-800 rounded">Beta</span>. Todos os direitos reservados.</p>
           </div>
         </div>

@@ -172,6 +172,7 @@ import PatientDashboardPage from "@/pages/patient/Dashboard";
 import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
+import RoadmapPage from "@/pages/roadmap";
 
 import NewLandingPage from "@/pages/NewLandingPage";
 import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
@@ -627,7 +628,7 @@ function AppContent() {
   // Check if user is authenticated - redirect to login if not
   useEffect(() => {
     // Permitir acesso a páginas públicas mesmo quando não autenticado
-    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi', '/landing/afiliados'];
+    const publicPaths = ['/', '/login', '/organization-registration', '/forgot-password', '/accept-invitation', '/payment', '/payment-test', '/pagamento/confirmar', '/pagamento/confirmacao', '/patient-login', '/patient/login', '/patient/dashboard', '/patient/produtos', '/patient/prescricoes/nova', '/patient/pedidos/rastreamento', '/patient/pagamentos', '/patient/checkout', '/cadastrodemedicos', '/sitemap', '/transparencia-test', '/organization/transparencia', '/supplier/login', '/supplier/register', '/supplier/register-success', '/expedicao/mapa-fullscreen', '/expedicao/mapa-bi', '/landing/afiliados', '/roadmap'];
     const isPublicPath = publicPaths.some(path => currentPath.startsWith(path));
     
     // Só redirecionamos se não estiver carregando, não estiver autenticado,
@@ -791,6 +792,11 @@ function AppContent() {
     return <SupplierRoute />;
   }
 
+  // Rota pública para o roadmap do sistema
+  if (currentPath === '/roadmap') {
+    return <RoadmapPage />;
+  }
+  
   // Landing page sempre na raiz independente da autenticação
   // Combinamos a lógica de logout com a renderização de LandingPage
   if (currentPath === '/') {
