@@ -76,7 +76,7 @@ const menuItems: MenuItem[] = [
     label: "Cadastro", 
     submenu: [
       { icon: Building2, label: "Cadastros", path: "/cadastro" },
-      { icon: UserRound, label: "Pré-cadastros", path: "/admin/pre-cadastros" }
+      { icon: UserRound, label: "Pré-cadastros", path: "/pre-cadastros" }
     ]
   },
   { 
