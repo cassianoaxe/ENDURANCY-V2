@@ -7,83 +7,78 @@ import { Badge } from '@/components/ui/badge';
 const RoadmapPage = () => {
   const roadmapData = [
     {
-      period: 'Q4 2025 (Atual)',
-      title: 'Lançamento do Portal do Fornecedor',
-      description: 'Lançamento do nosso marketplace B2B para fornecedores de equipamentos laboratoriais e insumos de cultivo.',
+      period: 'Maio 2025',
+      title: 'Fase 1 – Validação da Ideia e Planejamento',
+      description: 'Estabelecimento das bases do projeto com pesquisa, planejamento e estruturação legal.',
       features: [
-        'Marketplace B2B integrado',
-        'Gestão de produtos e estoque',
-        'Perfil personalizado para fornecedores',
-        'Dashboard de análise de vendas',
-        'Integração com sistema de pagamentos'
+        'Pesquisa com médicos e pacientes sobre necessidades e preferências',
+        'Definição do escopo mínimo viável (MVP)',
+        'Planejamento estratégico e técnico',
+        'Estruturação legal e jurídica da operação (LGPD, Termos)'
+      ],
+      status: 'completed',
+      highlight: false
+    },
+    {
+      period: 'Maio-Junho 2025',
+      title: 'Fase 2 – Design e Prototipagem',
+      description: 'Desenvolvimento da interface e experiência do usuário para todos os stakeholders do sistema.',
+      features: [
+        'Criação dos fluxos de usuário (ORGANIZAÇÕES, PACIENTE, MÉDICOS, FORNECEDORES)',
+        'Protótipo navegável (mobile-pwa) com principais telas para ambiente de paciente',
+        'Testes de usabilidade com gestores'
+      ],
+      status: 'completed',
+      highlight: false
+    },
+    {
+      period: 'Junho-Julho 2025',
+      title: 'Fase 3 – Desenvolvimento do MVP',
+      description: 'Implementação das funcionalidades essenciais e integrações com sistemas externos.',
+      features: [
+        'Cadastro e autenticação de gestores, médicos, fornecedores e pacientes',
+        'Sistema de Laboratório integrando com END',
+        'Módulo de agendamento de médicos integrado',
+        'Integração com prescrição via Memed',
+        'Integração com plataforma de pagamentos (Asaas/Zoop)'
       ],
       status: 'inProgress',
       highlight: true
     },
     {
-      period: 'Q1 2026',
-      title: 'Aprimoramento do Módulo de Cultivo',
-      description: 'Novas funcionalidades e melhorias no módulo de cultivo para atender as crescentes demandas do setor.',
+      period: 'Julho 2025',
+      title: 'Fase 4 – Segurança, Testes e Conformidade',
+      description: 'Garantia da segurança e conformidade com regulamentações aplicáveis ao setor médico.',
       features: [
-        'Monitoramento avançado de ciclos de cultivo',
-        'Alertas e notificações em tempo real',
-        'Controle de qualidade integrado',
-        'Rastreabilidade aprimorada',
-        'Análise preditiva de colheitas'
+        'Implementação de autenticação segura (2FA, criptografia)',
+        'Testes de stress, usabilidade e fluxo real',
+        'Ajustes para conformidade com LGPD e CFM',
+        'Política de privacidade, termos de uso e auditoria'
       ],
       status: 'planned'
     },
     {
-      period: 'Q2 2026',
-      title: 'Expansão do Sistema de Pesquisa Científica',
-      description: 'Investimento em recursos para pesquisadores com ferramentas especializadas para estudos clínicos.',
+      period: 'Agosto 2025',
+      title: 'Fase 5 – Lançamento Beta Controlado',
+      description: 'Abertura do sistema para um grupo seleto de usuários para testes e refinamentos.',
       features: [
-        'Banco de dados de literatura científica',
-        'Ferramentas de análise estatística',
-        'Colaboração entre pesquisadores',
-        'Gestão de protocolos de pesquisa',
-        'Integração com laboratórios parceiros'
+        'Abertura para os betatesters parceiros convidados',
+        'Monitoramento de KPIs, falhas e feedbacks em tempo real',
+        'Suporte técnico e onboarding personalizado'
       ],
       status: 'planned'
     },
     {
-      period: 'Q3 2026',
-      title: 'Lançamento do Portal Internacional',
-      description: 'Expansão da plataforma para atender mercados internacionais com suporte multilíngue.',
+      period: 'Setembro-Outubro 2025',
+      title: 'Fase 6 – Lançamento Oficial e Expansão',
+      description: 'Disponibilização do sistema para o mercado em geral com estratégia de marketing estruturada.',
       features: [
-        'Suporte para múltiplos idiomas',
-        'Conformidade com regulamentações internacionais',
-        'Adaptação para diferentes moedas',
-        'Logística internacional integrada',
-        'Parcerias com entidades globais'
+        'Abertura nacional com marketing estruturado',
+        'Parcerias com clínicas e associações',
+        'Lançamento do app na Expocannabis',
+        'Módulos avançados seguem sendo liberados'
       ],
       status: 'planned'
-    },
-    {
-      period: 'Q4 2026',
-      title: 'Ecossistema de Aplicativos de Terceiros',
-      description: 'Abertura da plataforma para integração com aplicativos de terceiros através de APIs públicas.',
-      features: [
-        'Marketplace de aplicativos',
-        'APIs públicas documentadas',
-        'SDK para desenvolvedores',
-        'Programas de parceria',
-        'Comunidade de desenvolvedores'
-      ],
-      status: 'planned'
-    },
-    {
-      period: '2027',
-      title: 'Inteligência Artificial Avançada',
-      description: 'Implementação de recursos avançados de IA para otimização de processos em toda a plataforma.',
-      features: [
-        'Assistente virtual para usuários',
-        'Previsão de demanda e tendências',
-        'Otimização automática de cultivo',
-        'Diagnóstico assistido por IA',
-        'Personalização avançada da experiência do usuário'
-      ],
-      status: 'future'
     }
   ];
 
@@ -132,8 +127,8 @@ const RoadmapPage = () => {
               O Futuro da Plataforma Endurancy
             </h1>
             <p className="text-lg text-green-100 max-w-3xl mx-auto mb-8">
-              Conheça nossa visão e planejamento para os próximos anos. Estamos construindo
-              a plataforma mais completa para o setor medicinal cannabidiol no Brasil.
+              Conheça nossa visão e planejamento para os próximos meses. Estamos construindo
+              a plataforma mais completa de gerenciamento logístico e de afiliados no Brasil.
             </p>
             <div className="inline-flex items-center px-4 py-2 bg-green-700 text-white rounded-full">
               <Sparkles className="h-5 w-5 mr-2 text-yellow-300" />
