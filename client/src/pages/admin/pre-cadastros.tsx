@@ -420,6 +420,9 @@ export default function PreCadastrosAdmin() {
     },
   ];
 
+  // Determinar qual conjunto de dados usar
+  const dataToUse = manualData.length > 0 ? manualData : (preCadastros || []);
+  
   // Função para renderizar tabs com dados corretos (manual ou query)
   const renderTab = (statusFilter: PreCadastro['status'] | 'todos') => {
     // Usar os dados definidos acima
