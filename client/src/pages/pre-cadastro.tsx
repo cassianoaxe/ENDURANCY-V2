@@ -21,14 +21,53 @@ const PreCadastroPage = () => {
     cargo: '',
     tipoOrganizacao: '',
     modulos: {
-      cultivo: false,
+      // Módulos Administrativos
+      admin: false,
+      usuarios: false,
+      tickets: false,
+      
+      // Módulos Financeiros
       financeiro: false,
-      transparencia: false,
+      complypay: false,
+      
+      // Módulos de Pesquisa e Laboratório
+      laboratorio: false,
+      hplc: false,
       pesquisa: false,
+      
+      // Módulos de Produção e Estoque
+      cultivo: false,
+      producao: false,
+      estoque: false,
+      
+      // Módulos Médicos e de Atendimento
+      medico: false,
+      farmacia: false,
+      paciente: false,
+      
+      // Módulos de Gestão Organizacional
+      patrimonio: false,
+      transparencia: false,
+      social: false,
+      juridico: false,
+      rh: false,
+      tarefas: false,
+      
+      // Módulos de Comunicação e Marketing
+      comunicacao: false,
+      carteirinha: false,
+      
+      // Módulos para Fornecedores e Importações
+      fornecedor: false,
       importacao: false,
-      vendas: false,
-      compras: false,
-      patrimonio: false
+      expedicao: false,
+      
+      // Módulos de Inteligência Artificial
+      ia: false,
+      mcp: false,
+      
+      // Módulos Regulatórios
+      regulatorio: false
     },
     comentarios: '',
     aceitaTermos: false,
@@ -287,72 +326,300 @@ const PreCadastroPage = () => {
                   </RadioGroup>
                 </div>
                 
-                <div className="space-y-3 mt-6">
-                  <Label>Módulos de interesse (selecione todos que se aplicam)</Label>
-                  <div className="grid md:grid-cols-2 gap-2">
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-cultivo" 
-                        checked={formState.modulos.cultivo}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.cultivo', !!checked)}
-                      />
-                      <Label htmlFor="modulo-cultivo" className="font-normal">Cultivo</Label>
+                <div className="space-y-6 mt-6">
+                  <Label className="text-base font-semibold text-green-700">Módulos de interesse (selecione todos que se aplicam)</Label>
+                  
+                  {/* Módulos Administrativos */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos Administrativos</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-admin" 
+                          checked={formState.modulos.admin}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.admin', !!checked)}
+                        />
+                        <Label htmlFor="modulo-admin" className="font-normal">Administração Central</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-usuarios" 
+                          checked={formState.modulos.usuarios}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.usuarios', !!checked)}
+                        />
+                        <Label htmlFor="modulo-usuarios" className="font-normal">Gestão de Usuários</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-tickets" 
+                          checked={formState.modulos.tickets}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.tickets', !!checked)}
+                        />
+                        <Label htmlFor="modulo-tickets" className="font-normal">Sistema de Tickets</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-financeiro" 
-                        checked={formState.modulos.financeiro}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.financeiro', !!checked)}
-                      />
-                      <Label htmlFor="modulo-financeiro" className="font-normal">Financeiro</Label>
+                  </div>
+                  
+                  {/* Módulos Financeiros */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos Financeiros</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-financeiro" 
+                          checked={formState.modulos.financeiro}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.financeiro', !!checked)}
+                        />
+                        <Label htmlFor="modulo-financeiro" className="font-normal">Gestão Financeira</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-complypay" 
+                          checked={formState.modulos.complypay}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.complypay', !!checked)}
+                        />
+                        <Label htmlFor="modulo-complypay" className="font-normal">ComplyPay</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-transparencia" 
-                        checked={formState.modulos.transparencia}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.transparencia', !!checked)}
-                      />
-                      <Label htmlFor="modulo-transparencia" className="font-normal">Transparência</Label>
+                  </div>
+                  
+                  {/* Módulos de Pesquisa e Laboratório */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos de Pesquisa e Laboratório</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-laboratorio" 
+                          checked={formState.modulos.laboratorio}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.laboratorio', !!checked)}
+                        />
+                        <Label htmlFor="modulo-laboratorio" className="font-normal">Gestão de Laboratório</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-hplc" 
+                          checked={formState.modulos.hplc}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.hplc', !!checked)}
+                        />
+                        <Label htmlFor="modulo-hplc" className="font-normal">HPLC</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-pesquisa" 
+                          checked={formState.modulos.pesquisa}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.pesquisa', !!checked)}
+                        />
+                        <Label htmlFor="modulo-pesquisa" className="font-normal">Pesquisa Científica</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-pesquisa" 
-                        checked={formState.modulos.pesquisa}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.pesquisa', !!checked)}
-                      />
-                      <Label htmlFor="modulo-pesquisa" className="font-normal">Pesquisa Científica</Label>
+                  </div>
+                  
+                  {/* Módulos de Produção e Estoque */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos de Produção e Estoque</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-cultivo" 
+                          checked={formState.modulos.cultivo}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.cultivo', !!checked)}
+                        />
+                        <Label htmlFor="modulo-cultivo" className="font-normal">Cultivo</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-producao" 
+                          checked={formState.modulos.producao}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.producao', !!checked)}
+                        />
+                        <Label htmlFor="modulo-producao" className="font-normal">Produção Industrial</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-estoque" 
+                          checked={formState.modulos.estoque}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.estoque', !!checked)}
+                        />
+                        <Label htmlFor="modulo-estoque" className="font-normal">Estoque</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-importacao" 
-                        checked={formState.modulos.importacao}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.importacao', !!checked)}
-                      />
-                      <Label htmlFor="modulo-importacao" className="font-normal">Importação (RDC 660)</Label>
+                  </div>
+                  
+                  {/* Módulos Médicos e de Atendimento */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos Médicos e de Atendimento</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-medico" 
+                          checked={formState.modulos.medico}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.medico', !!checked)}
+                        />
+                        <Label htmlFor="modulo-medico" className="font-normal">Módulo Médico</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-farmacia" 
+                          checked={formState.modulos.farmacia}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.farmacia', !!checked)}
+                        />
+                        <Label htmlFor="modulo-farmacia" className="font-normal">Farmácia</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-paciente" 
+                          checked={formState.modulos.paciente}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.paciente', !!checked)}
+                        />
+                        <Label htmlFor="modulo-paciente" className="font-normal">Portal do Paciente</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-vendas" 
-                        checked={formState.modulos.vendas}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.vendas', !!checked)}
-                      />
-                      <Label htmlFor="modulo-vendas" className="font-normal">Vendas</Label>
+                  </div>
+                  
+                  {/* Módulos de Gestão Organizacional */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos de Gestão Organizacional</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-patrimonio" 
+                          checked={formState.modulos.patrimonio}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.patrimonio', !!checked)}
+                        />
+                        <Label htmlFor="modulo-patrimonio" className="font-normal">Patrimônio</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-transparencia" 
+                          checked={formState.modulos.transparencia}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.transparencia', !!checked)}
+                        />
+                        <Label htmlFor="modulo-transparencia" className="font-normal">Transparência</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-social" 
+                          checked={formState.modulos.social}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.social', !!checked)}
+                        />
+                        <Label htmlFor="modulo-social" className="font-normal">Social</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-juridico" 
+                          checked={formState.modulos.juridico}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.juridico', !!checked)}
+                        />
+                        <Label htmlFor="modulo-juridico" className="font-normal">Jurídico</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-rh" 
+                          checked={formState.modulos.rh}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.rh', !!checked)}
+                        />
+                        <Label htmlFor="modulo-rh" className="font-normal">Recursos Humanos</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-tarefas" 
+                          checked={formState.modulos.tarefas}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.tarefas', !!checked)}
+                        />
+                        <Label htmlFor="modulo-tarefas" className="font-normal">Tarefas e Projetos</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-compras" 
-                        checked={formState.modulos.compras}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.compras', !!checked)}
-                      />
-                      <Label htmlFor="modulo-compras" className="font-normal">Compras e Estoque</Label>
+                  </div>
+                  
+                  {/* Módulos de Comunicação e Marketing */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos de Comunicação e Marketing</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-comunicacao" 
+                          checked={formState.modulos.comunicacao}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.comunicacao', !!checked)}
+                        />
+                        <Label htmlFor="modulo-comunicacao" className="font-normal">Comunicação</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-carteirinha" 
+                          checked={formState.modulos.carteirinha}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.carteirinha', !!checked)}
+                        />
+                        <Label htmlFor="modulo-carteirinha" className="font-normal">Carteirinha de Membro</Label>
+                      </div>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <Checkbox 
-                        id="modulo-patrimonio" 
-                        checked={formState.modulos.patrimonio}
-                        onCheckedChange={(checked) => handleCheckboxChange('modulos.patrimonio', !!checked)}
-                      />
-                      <Label htmlFor="modulo-patrimonio" className="font-normal">Patrimônio</Label>
+                  </div>
+                  
+                  {/* Módulos para Fornecedores e Importações */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos para Fornecedores e Importações</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-fornecedor" 
+                          checked={formState.modulos.fornecedor}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.fornecedor', !!checked)}
+                        />
+                        <Label htmlFor="modulo-fornecedor" className="font-normal">Portal do Fornecedor</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-importacao" 
+                          checked={formState.modulos.importacao}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.importacao', !!checked)}
+                        />
+                        <Label htmlFor="modulo-importacao" className="font-normal">Importação</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-expedicao" 
+                          checked={formState.modulos.expedicao}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.expedicao', !!checked)}
+                        />
+                        <Label htmlFor="modulo-expedicao" className="font-normal">Expedição</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Módulos de Inteligência Artificial */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos de Inteligência Artificial</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-ia" 
+                          checked={formState.modulos.ia}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.ia', !!checked)}
+                        />
+                        <Label htmlFor="modulo-ia" className="font-normal">Inteligência Artificial</Label>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-mcp" 
+                          checked={formState.modulos.mcp}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.mcp', !!checked)}
+                        />
+                        <Label htmlFor="modulo-mcp" className="font-normal">Multi-Context Processing</Label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Módulos Regulatórios */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 border-b pb-1">Módulos Regulatórios</h4>
+                    <div className="grid md:grid-cols-3 gap-2">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="modulo-regulatorio" 
+                          checked={formState.modulos.regulatorio}
+                          onCheckedChange={(checked) => handleCheckboxChange('modulos.regulatorio', !!checked)}
+                        />
+                        <Label htmlFor="modulo-regulatorio" className="font-normal">Conformidade Regulatória</Label>
+                      </div>
                     </div>
                   </div>
                 </div>
