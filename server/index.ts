@@ -77,8 +77,15 @@ const globalRateLimit = rateLimit({
     "Muitas requisições deste IP, por favor tente novamente após 15 minutos",
 });
 
-// Aplicar limitação de taxa global
-app.use(globalRateLimit);
+// Aplicar limitação de taxa global (exceto para rotas de diagnóstico)
+app.use((req, res, next) => {
+  // Não aplicar rate limit para rotas de diagnóstico
+  if (req.path.startsWith('/api-diagnostic')) {
+    return next();
+  }
+  // Aplicar rate limit para todas as outras rotas
+  globalRateLimit(req, res, next);
+});
 
 // Limitação de taxa mais restritiva para rotas sensíveis
 const authRateLimit = rateLimit({
