@@ -84,22 +84,23 @@ export default function PreCadastroSucesso() {
               </Button>
             </div>
             <div className="flex-shrink-0 flex justify-center">
-              <img
-                src="/complysoft-logo.png"
-                alt="ComplySoft"
-                className="h-12"
-                onError={(e) => {
-                  // Fallback para texto caso a imagem não carregue
-                  e.currentTarget.style.display = 'none';
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    const textNode = document.createElement('div');
-                    textNode.className = 'text-2xl font-bold';
-                    textNode.textContent = 'ComplySoft';
-                    parent.appendChild(textNode);
-                  }
-                }}
-              />
+              <div className="flex items-center">
+                {/* Logo gerado com componentes em vez de imagem */}
+                <div className="flex items-center">
+                  <div className="relative h-10 w-10 mr-2">
+                    <div className="absolute top-0 left-0 w-2 h-2 bg-black"></div>
+                    <div className="absolute top-0 left-3 w-2 h-2 bg-black"></div>
+                    <div className="absolute top-3 left-0 w-2 h-2 bg-black"></div>
+                    <div className="absolute top-3 left-3 w-2 h-2 bg-green-500"></div>
+                    <div className="absolute top-3 left-6 w-2 h-2 bg-black"></div>
+                    <div className="absolute top-6 left-3 w-2 h-2 bg-black"></div>
+                    <div className="absolute bottom-0 left-3 w-1 h-4 bg-green-500 rotate-[15deg]"></div>
+                    <div className="absolute bottom-0 left-5 w-1 h-4 bg-green-500 rotate-[-15deg]"></div>
+                  </div>
+                  <div className="text-2xl font-bold">ComplySoft</div>
+                </div>
+                <div className="text-xs ml-1 tracking-tight text-gray-600">SOLUÇÕES INTELIGENTES</div>
+              </div>
             </div>
           </div>
         </div>
