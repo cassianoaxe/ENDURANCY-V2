@@ -99,17 +99,10 @@ const RoadmapPage = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Button 
-              variant="outline" 
-              className="border-green-600 text-green-600 hover:bg-green-50"
-              onClick={() => window.location.href = "/login"}
-            >
-              Entrar
-            </Button>
-            <Button 
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => window.location.href = "/organization-registration"}
+              onClick={() => window.location.href = "/pre-cadastro"}
             >
-              Cadastre-se
+              Pré-cadastro
             </Button>
           </div>
         </div>
@@ -211,25 +204,17 @@ const RoadmapPage = () => {
             </div>
             <h2 className="text-3xl font-bold mb-4">Faça Parte desta Jornada</h2>
             <p className="text-lg text-green-100 max-w-3xl mx-auto mb-8">
-              Junte-se a nós no desenvolvimento da mais completa plataforma para o setor medicinal cannabidiol.
+              Junte-se a nós no desenvolvimento da mais completa plataforma de gerenciamento logístico e de afiliados no Brasil.
               Sua contribuição e feedback são essenciais para construirmos um produto que atenda às reais necessidades do mercado.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
                 size="lg"
                 className="bg-white text-green-900 hover:bg-green-100"
-                onClick={() => window.location.href = "/organization-registration"}
+                onClick={() => window.location.href = "/pre-cadastro"}
               >
-                Cadastre-se Agora
+                Faça seu Pré-cadastro
                 <ChevronRight className="ml-1 h-5 w-5" />
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-green-800"
-                onClick={() => window.location.href = "/login"}
-              >
-                Acesse a Plataforma
               </Button>
             </div>
           </div>
