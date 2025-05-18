@@ -55,11 +55,12 @@ export default function PreCadastrosAdmin() {
   
   // Buscar dados de pré-cadastros
   const { data: preCadastros, isLoading, isError, refetch } = useQuery<PreCadastro[]>({
-    queryKey: ['/api/pre-cadastro'],
+    queryKey: ['/api-diagnostic/pre-cadastros'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/pre-cadastro', {
-          credentials: 'include', // Importante para enviar cookies de autenticação
+        // Usando a rota de diagnóstico que sabemos que funciona
+        const response = await fetch('/api-diagnostic/pre-cadastros', {
+          credentials: 'include',
           headers: {
             'Accept': 'application/json'
           }
@@ -71,7 +72,36 @@ export default function PreCadastrosAdmin() {
           throw new Error(`Falha ao buscar pré-cadastros: ${response.status} ${errorText}`);
         }
         
-        return response.json();
+        const data = await response.json();
+        
+        // Se a resposta tem o formato esperado da nova rota
+        if (data && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
+          // Converter o formato da resposta para o esperado pela interface
+          return data.recentEntries.rows.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            email: item.email,
+            organizacao: item.organizacao,
+            tipoOrganizacao: item.tipo_organizacao || '',
+            telefone: item.telefone || '',
+            cargo: item.cargo || '',
+            interesse: item.interesse || '',
+            comentarios: item.comentarios || '',
+            modulos: item.modulos || [],
+            aceitaTermos: !!item.aceita_termos,
+            status: item.status || 'novo',
+            observacoes: item.observacoes || '',
+            ip: item.ip || '',
+            userAgent: item.user_agent || '',
+            createdAt: item.created_at || new Date().toISOString(),
+            contatadoEm: item.contatado_em,
+            convertidoEm: item.convertido_em
+          }));
+        }
+        
+        // Se chegou aqui, não temos o formato esperado
+        console.error('Resposta da API não tem o formato esperado:', data);
+        return [];
       } catch (error) {
         console.error('Exceção ao buscar pré-cadastros:', error);
         throw error;

@@ -133,6 +133,46 @@ router.get('/supplier-check', async (req, res) => {
   }
 });
 
+// Rota para verificar pré-cadastros
+router.get('/pre-cadastros', async (req, res) => {
+  console.log('Verificando acesso à tabela de pré-cadastros');
+  
+  try {
+    // Evitar qualquer intercepção pelo React Router
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    
+    // Executar uma consulta simples para contar pré-cadastros
+    const result = await db.execute(sql`SELECT COUNT(*) as total FROM pre_cadastros`);
+    
+    // Buscar todos os pré-cadastros para a administração
+    const recentEntries = await db.execute(sql`
+      SELECT id, nome, email, organizacao, tipo_organizacao, telefone, cargo, 
+             interesse, comentarios, modulos, aceita_termos, status, observacoes, 
+             ip, user_agent, created_at, contatado_em, convertido_em
+      FROM pre_cadastros 
+      ORDER BY created_at DESC
+    `);
+    
+    res.json({
+      success: true,
+      message: 'Consulta de pré-cadastros bem-sucedida',
+      timestamp: new Date().toISOString(),
+      count: result,
+      recentEntries: recentEntries
+    });
+  } catch (error) {
+    console.error('Erro ao acessar pré-cadastros:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao acessar pré-cadastros',
+      message: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
 export function registerDiagnosticRoutes(app: express.Express) {
   // Montar as rotas em um prefixo especial que não será capturado pelo Vite
   app.use('/api-diagnostic', router);
