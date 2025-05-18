@@ -1,0 +1,187 @@
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'JfsF4Al1p2zh4lIstvLu-KClLk5tU_8J',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão JfsF4Al1p2zh4lIstvLu-KClLk5tU_8J { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:52 PM [express] GET /api/auth/me 401 in 2ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'ZfTkCFR2Z-SN1OcM_PpGzQwD4erEQAoR',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão ZfTkCFR2Z-SN1OcM_PpGzQwD4erEQAoR { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'yvQavAWpIwZXb98Cph9Udvq8uxZL_4z1',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão yvQavAWpIwZXb98Cph9Udvq8uxZL_4z1 { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'f9CL8x_6xmgFZ4ufVElQWuLqRMJSvKPX',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão f9CL8x_6xmgFZ4ufVElQWuLqRMJSvKPX { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'oc1VfF7_x5MByh648QnItgdO0MIupChw',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão oc1VfF7_x5MByh648QnItgdO0MIupChw { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'UB5SMfRixZwzmsXWMw7v1LjouO-4kAUB',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão UB5SMfRixZwzmsXWMw7v1LjouO-4kAUB { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'b1NVS3f6UzvZhxP5tQ-d-WMnSFv0Z-Un',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão b1NVS3f6UzvZhxP5tQ-d-WMnSFv0Z-Un { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: '9PHDJj3TwjuGtNq2gao2g4m71X8YjbJp',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão 9PHDJj3TwjuGtNq2gao2g4m71X8YjbJp { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:41:53 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'MN5iD3HMjU7VPguMGD_dNY4vwYGnAjGg',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão MN5iD3HMjU7VPguMGD_dNY4vwYGnAjGg { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:42:27 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'gzHkQ9QfDXZNJLDbg8TA1nutI_o3df3_',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão gzHkQ9QfDXZNJLDbg8TA1nutI_o3df3_ { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:42:27 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'L0VHsDeXCk2qoKcODZ5qI-tqoFAf9NmV',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão L0VHsDeXCk2qoKcODZ5qI-tqoFAf9NmV { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:42:27 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 'BxsRgZaQi4ffHtGZ1qfvkOFLYSE_G6AY',
+  hasUser: false,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão BxsRgZaQi4ffHtGZ1qfvkOFLYSE_G6AY { hasSessionObject: true, hasUserObject: false, userRole: 'sem_role' }
+6:42:27 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Não autenticado"}
+[Session Debug] Rota: /api/auth/login, Método: POST {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: false,
+  headers: { cookie: true }
+}
+Login attempt: {
+  username: undefined,
+  email: 'admin@comply.com',
+  userType: 'admin',
+  hasOrgCode: false,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  headers: {
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+    'content-type': 'application/json',
+    cookie: true
+  }
+}
+Login successful, sessionID: t8BeiyVNxInTfZG_22MK2FJlJCcux-2i
+Login successful for: {
+  username: 'admin@comply.com',
+  email: 'admin@comply.com',
+  role: 'admin',
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  redirectUrl: '/admin/dashboard'
+}
+6:42:57 PM [express] POST /api/auth/login 200 in 59ms :: {"id":5,"username":"admin@comply.com","role…
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+6:43:17 PM [express] GET /api/auth/me 200 in 24ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:17 PM [express] GET /api/auth/me 200 in 27ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:17 PM [express] GET /api/auth/me 200 in 29ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:17 PM [express] GET /api/auth/me 200 in 26ms :: {"id":5,"username":"admin@comply.com","role":"a…
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+[Session Debug] Rota: /api/auth/me, Método: GET {
+  hasSession: true,
+  sessionID: 't8BeiyVNxInTfZG_22MK2FJlJCcux-2i',
+  hasUser: true,
+  headers: { cookie: true }
+}
+GET /api/auth/me: Verificando sessão t8BeiyVNxInTfZG_22MK2FJlJCcux-2i { hasSessionObject: true, hasUserObject: true, userRole: 'admin' }
+6:43:37 PM [express] GET /api/auth/me 200 in 30ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:37 PM [express] GET /api/auth/me 200 in 23ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:37 PM [express] GET /api/auth/me 200 in 24ms :: {"id":5,"username":"admin@comply.com","role":"a…
+6:43:37 PM [express] GET /api/auth/me 200 in 24ms :: {"id":5,"username":"admin@comply.com","role":"a…

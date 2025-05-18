@@ -3491,7 +3491,7 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/plans/create', '/plans/settings',
     '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
-    '/vendas', '/cadastro', '/admin/pre-cadastros', '/financial', '/email-templates', '/routes-list',
+    '/vendas', '/cadastro', '/pre-cadastros', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
     '/user-groups', '/user-invitations', '/module-subscription-sales',
     '/integracoes', '/integracoes/comunicacao/whatsapp', 
