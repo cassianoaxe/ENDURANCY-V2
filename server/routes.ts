@@ -23,6 +23,7 @@ import equipmentRoutes from './routes/equipment-routes';
 import aiChatRouter from './routes/ai-chat';
 import { registerPlanRoutes } from './routes/plans';
 import socialRoutes from './routes/social-routes';
+import carteirinhaRedirectRouter from './routes/carteirinha-redirect';
 import { registerFinanceiroRoutes } from './routes-financeiro';
 import { registerTransparenciaRoutes } from './routes-transparencia';
 import expedicaoRoutes from './routes/expedicao-routes';
@@ -6300,6 +6301,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rotas do módulo Social (para associações)
   app.use("/api", socialRoutes);
   console.log("Rotas do módulo Social registradas com sucesso");
+  
+  // Rota de redirecionamento para carteirinhas (compatibilidade)
+  app.use("/api/carteirinha", carteirinhaRedirectRouter);
+  console.log("Rotas de redirecionamento do módulo carteirinha registradas com sucesso");
   
   // Registrar rotas do programa de afiliados
   registerAffiliatesRoutes(app);
