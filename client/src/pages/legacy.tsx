@@ -73,11 +73,109 @@ const LegacyPage = () => {
           <div className="mb-16 transform perspective-1000">
             <div className="relative rounded-lg overflow-hidden shadow-2xl border border-green-200 transform transition-transform duration-700 hover:rotate-y-10 hover:scale-105">
               <div className="absolute inset-0 bg-gradient-to-tr from-green-900/70 via-transparent to-transparent pointer-events-none"></div>
-              <img 
-                src="/legacy-screenshot.jpg" 
-                alt="Dashboard do Sistema Legacy" 
-                className="w-full h-auto" 
-              />
+              
+              {/* Dashboard UI Mockup com cores que correspondem à imagem que você enviou */}
+              <div className="bg-gray-900 text-white p-4">
+                <div className="flex items-center mb-3">
+                  <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center mr-2">
+                    <Leaf className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="font-bold">Dashboard do Sistema</div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="bg-black rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-green-800 p-1 rounded mr-2">
+                        <Leaf className="h-4 w-4 text-green-300" />
+                      </div>
+                      <span className="text-xs text-gray-400">TOTAL DE PLANTAS</span>
+                    </div>
+                    <div className="font-bold text-xl">52184 TOTAL</div>
+                    <div className="text-xs text-gray-400 flex justify-between">
+                      <span>2765 VEGETATIVO</span>
+                      <span>2012 FLORAÇÃO</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-blue-800 p-1 rounded mr-2">
+                        <Database className="h-4 w-4 text-blue-300" />
+                      </div>
+                      <span className="text-xs text-gray-400">TOTAL DE CLONES</span>
+                    </div>
+                    <div className="font-bold text-xl">52155 TOTAL</div>
+                    <div className="text-xs text-gray-400 flex justify-between">
+                      <span>0 MÊS ATUAL</span>
+                      <span>85 MÊS PASSADO</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-black rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-green-800 p-1 rounded mr-2">
+                        <Heart className="h-4 w-4 text-green-300" />
+                      </div>
+                      <span className="text-xs text-gray-400">TOTAL DE COLHEITAS</span>
+                    </div>
+                    <div className="font-bold text-xl">50965 TOTAL</div>
+                    <div className="text-xs text-gray-400 flex justify-between">
+                      <span>185 MÊS ATUAL</span>
+                      <span>0 MÊS PASSADO</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-black rounded-lg p-3 mb-4">
+                  <div className="flex items-center mb-2">
+                    <div className="bg-green-800 p-1 rounded mr-2">
+                      <Leaf className="h-4 w-4 text-green-300" />
+                    </div>
+                    <span className="text-xs text-gray-400">TOTAL DE PLANTAS POR CATEGORIA</span>
+                  </div>
+                  <div className="font-bold text-xl">52184 TOTAL</div>
+                  <div className="flex justify-between mt-2">
+                    <div className="h-2 w-1/3 bg-orange-500 rounded-l"></div>
+                    <div className="h-2 w-1/3 bg-green-500"></div>
+                    <div className="h-2 w-1/3 bg-blue-500 rounded-r"></div>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span>16235 (LARANJA)</span>
+                    <span>33503 (VERDE)</span>
+                    <span>2446 (AZUL)</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-blue-400 rounded-lg p-2 text-xs">
+                    <div className="font-bold">TESTE</div>
+                    <div className="text-lg font-bold">64 TOTAL</div>
+                    <div className="flex justify-between text-xs">
+                      <span>9 VEGETATIVO</span>
+                      <span>0 FLORAÇÃO</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-500 rounded-lg p-2 text-xs">
+                    <div className="font-bold">CHARLOTTE ANGEL</div>
+                    <div className="text-lg font-bold">1281 TOTAL</div>
+                    <div className="flex justify-between text-xs">
+                      <span>26 VEGETATIVO</span>
+                      <span>0 FLORAÇÃO</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-green-500 rounded-lg p-2 text-xs">
+                    <div className="font-bold">CALYX</div>
+                    <div className="text-lg font-bold">1 TOTAL</div>
+                    <div className="flex justify-between text-xs">
+                      <span>0 VEGETATIVO</span>
+                      <span>0 FLORAÇÃO</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex justify-center mt-5">
               <div className="bg-green-100 text-green-900 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center">
