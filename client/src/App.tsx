@@ -630,14 +630,16 @@ function AppContent() {
     const loginRedirect = sessionStorage.getItem('loginRedirect');
     if (loginRedirect === 'true') {
       // Restaurar a opacidade da página se necessário
-      document.body.style.opacity = '1';
+      if (document.body) {
+        document.body.style.opacity = '1';
+      }
     
       // Limpar flag após uso
       sessionStorage.removeItem('loginRedirect');
       
       // Remover overlay de carregamento se existir
       const existingOverlay = document.querySelector('div[data-login-overlay="true"]');
-      if (existingOverlay) {
+      if (existingOverlay && existingOverlay instanceof HTMLElement) {
         existingOverlay.style.opacity = '0';
         setTimeout(() => {
           existingOverlay.remove();
@@ -2552,7 +2554,7 @@ function AppContent() {
     
     // Dashboard do farmacêutico (rota raiz)
     if (currentPath === '/pharmacist' || currentPath === '/pharmacist/dashboard') {
-      const PharmacistDashboard = React.lazy(() => import('./pages/pharmacist/dashboard'));
+      const PharmacistDashboard = React.lazy(() => import('./pages/pharmacist/Dashboard'));
       return (
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
