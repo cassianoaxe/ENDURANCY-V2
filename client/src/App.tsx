@@ -3558,6 +3558,7 @@ function AppContent() {
       case '/organization-registration': Component = OrganizationRegistration; break;
       case '/vendas': Component = VendasAdmin; break;
       case '/cadastro': Component = Cadastro; break;
+      case '/pre-cadastros': Component = PreCadastrosAdmin; break;
       case '/email-templates': Component = EmailTemplates; break;
       case '/routes-list': Component = RoutesList; break;
       case '/administrators': Component = Administrators; break;
