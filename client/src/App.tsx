@@ -393,8 +393,13 @@ import MapaBi from "@/pages/expedicao/MapaBi";
 import MapaFullscreen from "@/pages/expedicao/MapaFullscreen";
 import JornadaEnvio from "@/pages/expedicao/JornadaEnvio";
 
+// Importar o hook de otimização
+import { useFastPageLoading } from "./hooks/useFastPageLoading";
+
 // Simple AppContent component with no external routing library
 function AppContent() {
+  // Usar o hook de otimização para carregamento rápido entre páginas
+  useFastPageLoading();
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [, setLocation] = useLocation();
@@ -3616,6 +3621,10 @@ function App() {
         <AppContent />
         <Toaster />
         <TourGuide />
+        {/* Componente de otimização de carregamento de página */}
+        <Suspense fallback={null}>
+          <React.lazy(() => import('./components/ui/PageLoader')) />
+        </Suspense>
       </AuthProvider>
     </QueryClientProvider>
   );
