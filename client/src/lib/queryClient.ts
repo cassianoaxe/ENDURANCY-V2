@@ -10,7 +10,15 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: unknown[] }) => {
   }
 
   // Check cache for frequently used endpoints
-  const cachedEndpoints = ['/api/plans', '/api/organizations', '/api/modules', '/api/notifications'];
+  const cachedEndpoints = [
+    '/api/plans', 
+    '/api/organizations', 
+    '/api/modules', 
+    '/api/notifications',
+    '/api/dashboard/stats',
+    '/api/organization-modules',
+    '/api-diagnostic/pre-cadastros'
+  ];
   const shouldUseCache = cachedEndpoints.includes(endpoint);
   
   const cacheOptions: RequestInit = shouldUseCache 
@@ -39,10 +47,11 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: defaultQueryFn as any,  // Corrigir erro de tipagem com type assertion
       retry: 1,
+      retryDelay: attempt => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
       refetchOnWindowFocus: false, // Não recarregar automaticamente ao focar a janela
       refetchOnMount: false, // Não recarregar ao montar o componente para reduzir requisições
-      staleTime: 5 * 60 * 1000, // 5 minutos para considerar os dados obsoletos
-      gcTime: 30 * 60 * 1000, // 30 minutos para garbage collection
+      staleTime: 10 * 60 * 1000, // 10 minutos para considerar os dados obsoletos (aumentado)
+      gcTime: 60 * 60 * 1000, // 60 minutos para garbage collection (aumentado)
       refetchInterval: false, // Desabilitar refetch automático por tempo
     },
   },

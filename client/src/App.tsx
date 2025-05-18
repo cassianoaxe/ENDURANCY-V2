@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, useCallback } from "react";
+import OptimizedNavigation from "./components/ui/OptimizedNavigation";
 import { useLocation } from "wouter";
 import { prefetchRouteResources } from "./utils/prefetch";
 import { PageTransition } from "./components/common/PageTransition";
@@ -3621,10 +3622,7 @@ function App() {
         <AppContent />
         <Toaster />
         <TourGuide />
-        {/* Componente de otimização de carregamento de página */}
-        <Suspense fallback={null}>
-          <React.lazy(() => import('./components/ui/PageLoader')) />
-        </Suspense>
+        <OptimizedNavigation />
       </AuthProvider>
     </QueryClientProvider>
   );
