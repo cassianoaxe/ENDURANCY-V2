@@ -1310,6 +1310,20 @@ function AppContent() {
     if (currentPath === '/organization/cadastros') {
       return <Cadastros />;
     }
+    
+    // Rota para a administração de pré-cadastros
+    if (currentPath === '/admin/pre-cadastros') {
+      const PreCadastrosAdmin = React.lazy(() => import('./pages/admin/pre-cadastros'));
+      return (
+        <Layout>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>}>
+            <PreCadastrosAdmin />
+          </Suspense>
+        </Layout>
+      );
+    }
 
     // Módulos específicos da organização
     if (currentPath === '/organization/cultivation') {
@@ -3457,7 +3471,7 @@ function AppContent() {
     '/analytics', '/activity-log', '/backups', '/emergencies', 
     '/plans', '/plans/create', '/plans/settings',
     '/modules', '/modules-table', '/organization-modules', '/organizations', '/organization-registration', 
-    '/vendas', '/cadastro', '/financial', '/email-templates', '/routes-list',
+    '/vendas', '/cadastro', '/admin/pre-cadastros', '/financial', '/email-templates', '/routes-list',
     '/administrators', '/settings', '/support-dashboard', '/documentation', '/data-import',
     '/user-groups', '/user-invitations', '/module-subscription-sales',
     '/integracoes', '/integracoes/comunicacao/whatsapp', 

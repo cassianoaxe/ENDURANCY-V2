@@ -71,7 +71,14 @@ const menuItems: MenuItem[] = [
       { icon: BarChart, label: "Vendas e Assinaturas", path: "/module-subscription-sales" }
     ]
   },
-  { icon: Building2, label: "Cadastro", path: "/cadastro" },
+  { 
+    icon: Building2, 
+    label: "Cadastro", 
+    submenu: [
+      { icon: Building2, label: "Cadastros", path: "/cadastro" },
+      { icon: UserRound, label: "Pré-cadastros", path: "/admin/pre-cadastros" }
+    ]
+  },
   { 
     icon: TicketIcon, 
     label: "Tickets de Suporte", 
@@ -113,6 +120,7 @@ export default function Sidebar() {
     "Módulos": false, // Menu fechado por padrão
     "Planos": true,
     "Organizações": true,
+    "Cadastro": true, // Expandido para facilitar acesso aos pré-cadastros
     "Tickets de Suporte": false, // Menu fechado por padrão
     "Financeiro": false, // Menu fechado por padrão
     "Integrações": true,
