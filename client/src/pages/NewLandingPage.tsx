@@ -648,19 +648,12 @@ const NewLandingPage = () => {
               <span>Roadmap</span>
             </a>
           </nav>
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              className="border-green-600 text-green-600 hover:bg-green-50"
-              onClick={() => window.location.href = "/login"}
-            >
-              Entrar
-            </Button>
+          <div className="flex items-center">
             <Button 
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => window.location.href = "/organization-registration"}
+              onClick={() => window.location.href = "/pre-cadastro"}
             >
-              Cadastre-se
+              Pré-cadastro
             </Button>
           </div>
         </div>
