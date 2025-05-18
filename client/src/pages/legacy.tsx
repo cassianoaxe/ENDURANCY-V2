@@ -35,7 +35,7 @@ const LegacyPage = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <div className="flex items-center justify-center mb-4">
             <Leaf className="h-10 w-10 text-green-300 mr-3" />
-            <h1 className="text-5xl font-bold">ABRACE Legacy</h1>
+            <h1 className="text-5xl font-bold">Sistema Legacy</h1>
           </div>
           <p className="text-xl mb-8 leading-relaxed">
             O sistema que revolucionou a gestão de pacientes no Brasil (2018-2025)
@@ -74,8 +74,8 @@ const LegacyPage = () => {
             <div className="relative rounded-lg overflow-hidden shadow-2xl border border-green-200 transform transition-transform duration-700 hover:rotate-y-10 hover:scale-105">
               <div className="absolute inset-0 bg-gradient-to-tr from-green-900/70 via-transparent to-transparent pointer-events-none"></div>
               <img 
-                src="/dashboard-image.png" 
-                alt="Dashboard do sistema Legacy ABRACE" 
+                src="/legacy-screenshot.jpg" 
+                alt="Dashboard do Sistema Legacy" 
                 className="w-full h-auto" 
               />
             </div>
