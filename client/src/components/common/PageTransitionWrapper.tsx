@@ -9,8 +9,8 @@ interface PageTransitionWrapperProps {
 }
 
 /**
- * Componente que envolve conteúdo de página e aplica transições suaves
- * durante a navegação, melhorando a experiência de carregamento
+ * Wrapper component that applies smooth transitions between pages
+ * and improves loading experience with resource prefetching
  */
 const PageTransitionWrapper: React.FC<PageTransitionWrapperProps> = ({ 
   children, 
@@ -20,64 +20,64 @@ const PageTransitionWrapper: React.FC<PageTransitionWrapperProps> = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [content, setContent] = useState<ReactNode>(children);
 
-  // Referência para verificar se é a primeira renderização
+  // Reference to check if this is the first render
   const isFirstRender = useRef(true);
   
-  // Efeito para configurar pré-carregamento na primeira renderização
+  // Effect to set up prefetching on first render
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       
-      // Pré-carregar recursos para a rota inicial
+      // Prefetch resources for initial route
       prefetchResourcesForRoute(location).catch(() => {
-        // Silenciosamente ignorar erros de prefetch
+        // Silently ignore prefetch errors
       });
       
-      // Configurar observador para pré-carregar recursos de links visíveis
+      // Set up observer to prefetch resources for visible links
       setTimeout(() => {
         prefetchResourcesForVisibleLinks();
       }, 1000);
       
-      // Configurar limpeza periódica de cache não utilizado
+      // Set up periodic cache cleanup for unused resources
       const intervalId = setInterval(pruneUnusedCache, 5 * 60 * 1000);
       return () => clearInterval(intervalId);
     }
   }, [location]);
   
-  // Efeito para lidar com transições de página
+  // Effect to handle page transitions
   useEffect(() => {
-    // Quando a localização muda, inicia a transição
+    // When location changes, start transition
     setIsTransitioning(true);
     
-    // Pequeno delay para que a animação de fade seja perceptível
+    // Small delay to make fade animation perceptible
     const timer = setTimeout(() => {
-      // Atualiza o conteúdo com os novos elementos da página
+      // Update content with new page elements
       setContent(children);
       
-      // Finaliza a transição após um momento para que a renderização ocorra
+      // Complete transition after a moment to allow rendering
       requestAnimationFrame(() => {
         setIsTransitioning(false);
         
-        // Pré-carregar recursos para a nova localização após a transição
+        // Prefetch resources for the new location after transition
         prefetchResourcesForRoute(location).catch(() => {
-          // Silenciosamente ignorar erros de prefetch
+          // Silently ignore prefetch errors
         });
       });
-    }, 80); // Delay curto para não atrasar muito a navegação
+    }, 80); // Short delay to not significantly impact navigation
     
     return () => clearTimeout(timer);
   }, [location, children]);
 
-  // Scrollar para o topo suavemente ao navegar entre páginas
+  // Smoothly scroll to top when navigating between pages
   useEffect(() => {
     if (!isTransitioning) {
-      // Rolar suavemente para o topo
+      // Smooth scroll to top
       window.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
       
-      // Após a renderização da página, observar novos links para pré-carregamento
+      // After page rendering, observe new links for prefetching
       setTimeout(() => {
         prefetchResourcesForVisibleLinks();
       }, 500);
