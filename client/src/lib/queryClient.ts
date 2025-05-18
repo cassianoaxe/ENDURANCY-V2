@@ -1,8 +1,26 @@
 import { QueryClient } from "@tanstack/react-query";
 
+// Default query function for React Query
+const defaultQueryFn = async ({ queryKey }) => {
+  // The first item in the query key should be the endpoint URL
+  const endpoint = Array.isArray(queryKey[0]) ? queryKey[0][0] : queryKey[0];
+  
+  if (typeof endpoint !== 'string') {
+    throw new Error('Query key must be a string URL');
+  }
+
+  const response = await fetch(endpoint);
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+  
+  return response.json();
+};
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      queryFn: defaultQueryFn,  // Set the default query function
       retry: 1,
       refetchOnWindowFocus: false, // Não recarregar automaticamente ao focar a janela
       refetchOnMount: true, // Apenas recarregar ao montar o componente
