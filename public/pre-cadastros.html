@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualização de Pré-Cadastros</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .card {
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border: none;
+    }
+    .card-header {
+      background-color: #28a745;
+      color: white;
+      font-weight: bold;
+    }
+    .badge-novo {
+      background-color: #17a2b8;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .badge-contatado {
+      background-color: #6c757d;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .badge-convertido {
+      background-color: #28a745;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .badge-descartado {
+      background-color: #dc3545;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    .loading {
+      text-align: center;
+      padding: 50px;
+    }
+    .loading-spinner {
+      width: 3rem;
+      height: 3rem;
+    }
+    .alert {
+      margin-top: 20px;
+    }
+    .tab-button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    .tab-button.active {
+      background-color: #0d6efd;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="my-4">Visualização de Pré-Cadastros</h1>
+    
+    <div id="loading" class="loading">
+      <div class="spinner-border loading-spinner text-success" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-3">Carregando dados, por favor aguarde...</p>
+    </div>
+    
+    <div id="error" class="alert alert-danger d-none" role="alert">
+      <h4 class="alert-heading">Erro ao carregar dados!</h4>
+      <p id="error-message">Não foi possível buscar os pré-cadastros. Tente novamente mais tarde.</p>
+      <button class="btn btn-danger" onclick="fetchPreCadastros()">Tentar novamente</button>
+    </div>
+    
+    <div id="content" class="d-none">
+      <div class="row mb-4">
+        <div class="col">
+          <button class="btn btn-primary" onclick="fetchPreCadastros()">Atualizar dados</button>
+          <a href="/" class="btn btn-secondary ms-2">Voltar para o sistema</a>
+        </div>
+        <div class="col-auto">
+          <span id="total-count" class="badge bg-secondary fs-6"></span>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <button class="btn btn-outline-secondary tab-button active" onclick="filterItems('todos')">Todos</button>
+        <button class="btn btn-outline-info tab-button" onclick="filterItems('novo')">Novos</button>
+        <button class="btn btn-outline-secondary tab-button" onclick="filterItems('contatado')">Contatados</button>
+        <button class="btn btn-outline-success tab-button" onclick="filterItems('convertido')">Convertidos</button>
+        <button class="btn btn-outline-danger tab-button" onclick="filterItems('descartado')">Descartados</button>
+      </div>
+      
+      <div class="row row-cols-1 row-cols-md-2 g-4" id="pre-cadastros-container">
+        <!-- Os cards serão inseridos aqui pelo JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Armazenar os dados para filtragem
+    let allPreCadastros = [];
+    let currentFilter = 'todos';
+    
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR');
+    }
+    
+    function getStatusBadge(status) {
+      switch(status) {
+        case 'novo':
+          return '<span class="badge-novo">Novo</span>';
+        case 'contatado':
+          return '<span class="badge-contatado">Contatado</span>';
+        case 'convertido':
+          return '<span class="badge-convertido">Convertido</span>';
+        case 'descartado':
+          return '<span class="badge-descartado">Descartado</span>';
+        default:
+          return '<span class="badge bg-secondary">Desconhecido</span>';
+      }
+    }
+    
+    function createCard(item) {
+      const modulesHtml = item.modulos && item.modulos.length > 0 
+        ? `<div class="mt-2">
+            <strong>Módulos de interesse:</strong><br>
+            ${item.modulos.map(m => `<span class="badge bg-secondary me-1">${m}</span>`).join('')}
+           </div>`
+        : '';
+      
+      const observacoesHtml = item.observacoes 
+        ? `<div class="mt-2">
+            <strong>Observações:</strong><br>
+            ${item.observacoes}
+           </div>`
+        : '';
+      
+      return `
+        <div class="col" data-status="${item.status || 'novo'}">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span>${item.nome}</span>
+              ${getStatusBadge(item.status || 'novo')}
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">${item.organizacao}</h5>
+              <h6 class="card-subtitle mb-2 text-muted">${item.tipo_organizacao || 'Tipo não especificado'}</h6>
+              
+              <p class="card-text">
+                <strong>Email:</strong> ${item.email}<br>
+                <strong>Telefone:</strong> ${item.telefone || 'Não informado'}<br>
+                <strong>Cargo:</strong> ${item.cargo || 'Não informado'}<br>
+                <strong>Interesse:</strong> ${item.interesse || 'Não especificado'}
+              </p>
+              
+              <p class="card-text">
+                <strong>Comentários:</strong><br>
+                ${item.comentarios || 'Nenhum comentário'}
+              </p>
+              
+              ${modulesHtml}
+              ${observacoesHtml}
+              
+              <div class="mt-3">
+                <small class="text-muted">
+                  Cadastrado em: ${formatDate(item.created_at)}<br>
+                  ${item.contatado_em ? `Contatado em: ${formatDate(item.contatado_em)}<br>` : ''}
+                  ${item.convertido_em ? `Convertido em: ${formatDate(item.convertido_em)}` : ''}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function displayPreCadastros(items) {
+      const container = document.getElementById('pre-cadastros-container');
+      if (!items || items.length === 0) {
+        container.innerHTML = '<div class="col-12"><div class="alert alert-info">Nenhum pré-cadastro encontrado com os filtros atuais.</div></div>';
+        return;
+      }
+      
+      let html = '';
+      items.forEach(item => {
+        html += createCard(item);
+      });
+      
+      container.innerHTML = html;
+    }
+    
+    function filterItems(status) {
+      currentFilter = status;
+      
+      // Destacar o botão ativo
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      document.querySelector(`.tab-button[onclick="filterItems('${status}')"]`).classList.add('active');
+      
+      // Filtrar os itens
+      let filteredItems = allPreCadastros;
+      if (status !== 'todos') {
+        filteredItems = allPreCadastros.filter(item => (item.status || 'novo') === status);
+      }
+      
+      // Atualizar contagem
+      document.getElementById('total-count').textContent = 
+        `${filteredItems.length} ${filteredItems.length === 1 ? 'registro' : 'registros'} encontrados`;
+      
+      // Exibir os itens filtrados
+      displayPreCadastros(filteredItems);
+    }
+    
+    async function fetchPreCadastros() {
+      // Mostrar tela de carregamento
+      document.getElementById('loading').classList.remove('d-none');
+      document.getElementById('content').classList.add('d-none');
+      document.getElementById('error').classList.add('d-none');
+      
+      try {
+        console.log('Buscando pré-cadastros...');
+        const response = await fetch('/api-diagnostic/pre-cadastros');
+        
+        if (!response.ok) {
+          throw new Error(`Erro do servidor: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Dados recebidos:', data);
+        
+        // Extrair os pré-cadastros
+        if (data && data.success && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
+          allPreCadastros = data.recentEntries.rows.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            email: item.email,
+            organizacao: item.organizacao,
+            tipo_organizacao: item.tipo_organizacao,
+            telefone: item.telefone,
+            cargo: item.cargo,
+            interesse: item.interesse,
+            comentarios: item.comentarios,
+            modulos: item.modulos,
+            aceita_termos: item.aceita_termos,
+            status: item.status || 'novo',
+            observacoes: item.observacoes,
+            created_at: item.created_at,
+            contatado_em: item.contatado_em,
+            convertido_em: item.convertido_em
+          }));
+          
+          // Exibir os dados
+          document.getElementById('total-count').textContent = 
+            `${allPreCadastros.length} ${allPreCadastros.length === 1 ? 'registro' : 'registros'} encontrados`;
+          
+          // Aplicar o filtro atual
+          filterItems(currentFilter);
+          
+          // Mostrar o conteúdo
+          document.getElementById('content').classList.remove('d-none');
+        } else {
+          throw new Error('Formato de dados inválido');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar pré-cadastros:', error);
+        document.getElementById('error').classList.remove('d-none');
+        document.getElementById('error-message').textContent = error.message || 'Erro desconhecido ao buscar dados';
+      } finally {
+        document.getElementById('loading').classList.add('d-none');
+      }
+    }
+    
+    // Carregar os dados quando a página for aberta
+    document.addEventListener('DOMContentLoaded', fetchPreCadastros);
+  </script>
+</body>
+</html>
