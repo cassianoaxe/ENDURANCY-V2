@@ -1,5 +1,7 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import { useLocation } from "wouter";
+import { prefetchRouteResources } from "./utils/prefetch";
+import { PageTransition } from "./components/common/PageTransition";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
