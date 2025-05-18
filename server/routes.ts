@@ -68,6 +68,8 @@ import planChangesRouter from './routes/plan-changes';
 import modulesRouter from './routes/modules';
 import medicalPortalRouter from './routes/medical-portal';
 // Importar rotas do módulo de farmácia
+// Importar router de pré-cadastro
+import preCadastroRouter from './routes-pre-cadastro';
 import { dispensarioRouter } from './routes/dispensario-routes';
 // Importar rotas do programa de afiliados
 import { affiliatesRouter } from './routes/affiliates-routes';

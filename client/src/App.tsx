@@ -147,6 +147,9 @@ import AnaliseFinanceira from "@/pages/organization/financeiro/analise";
 import ConfiguracaoFinanceira from "@/pages/organization/financeiro/configuracao";
 import AnaliseIA from "@/pages/organization/financeiro/analise-ia";
 
+// Importar página de pré-cadastros
+import PreCadastrosAdmin from "@/pages/admin/pre-cadastros";
+
 // Importar páginas do módulo de Comunicação
 import ComunicacaoDashboard from "@/pages/organization/comunicacao/index";
 import CalendarioComunicacao from "@/pages/organization/comunicacao/calendario";
@@ -1313,14 +1316,9 @@ function AppContent() {
     
     // Rota para a administração de pré-cadastros
     if (currentPath === '/admin/pre-cadastros') {
-      const PreCadastrosAdmin = React.lazy(() => import('./pages/admin/pre-cadastros'));
       return (
         <Layout>
-          <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>}>
-            <PreCadastrosAdmin />
-          </Suspense>
+          <PreCadastrosAdmin />
         </Layout>
       );
     }

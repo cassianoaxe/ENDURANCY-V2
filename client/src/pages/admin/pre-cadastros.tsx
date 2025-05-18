@@ -57,12 +57,27 @@ export default function PreCadastrosAdmin() {
   const { data: preCadastros, isLoading, isError, refetch } = useQuery<PreCadastro[]>({
     queryKey: ['/api/pre-cadastro'],
     queryFn: async () => {
-      const response = await fetch('/api/pre-cadastro');
-      if (!response.ok) {
-        throw new Error('Falha ao buscar pré-cadastros');
+      try {
+        const response = await fetch('/api/pre-cadastro', {
+          credentials: 'include', // Importante para enviar cookies de autenticação
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erro ao buscar pré-cadastros:', response.status, errorText);
+          throw new Error(`Falha ao buscar pré-cadastros: ${response.status} ${errorText}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('Exceção ao buscar pré-cadastros:', error);
+        throw error;
       }
-      return response.json();
-    }
+    },
+    retry: 1 // Limitar a 1 tentativa
   });
 
   // Atualizar status do pré-cadastro
@@ -291,7 +306,7 @@ export default function PreCadastrosAdmin() {
             <DataTable 
               columns={columns} 
               data={filteredData}
-              searchColumn="nome"
+              searchField="nome"
               searchPlaceholder="Buscar por nome..."
             />
           </CardContent>
