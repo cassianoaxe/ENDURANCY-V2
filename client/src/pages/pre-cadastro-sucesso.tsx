@@ -12,11 +12,9 @@ export default function PreCadastroSucesso() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <img 
-            src="/logo-endurancy.png" 
-            alt="Endurancy" 
-            className="h-16 mx-auto mb-6"
-          />
+          <div className="text-3xl font-bold text-green-800 mb-6">
+            Endurancy
+          </div>
           
           <div className="bg-green-100 text-green-800 py-3 px-4 rounded-lg inline-flex items-center mb-8">
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
