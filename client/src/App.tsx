@@ -176,6 +176,7 @@ import Sitemap from "@/pages/Sitemap";
 // Importar landing page
 import LandingPage from "@/pages/LandingPage";
 import RoadmapPage from "@/pages/roadmap";
+import PreCadastrosTest from "@/pages/PreCadastrosTest";
 
 import NewLandingPage from "@/pages/NewLandingPage";
 import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
@@ -1322,6 +1323,11 @@ function AppContent() {
           <PreCadastrosAdmin />
         </React.Fragment>
       );
+    }
+    
+    // Rota alternativa para visualização de pré-cadastros sem autenticação
+    if (currentPath === '/pre-cadastros-test') {
+      return <PreCadastrosTest />;
     }
 
     // Módulos específicos da organização
