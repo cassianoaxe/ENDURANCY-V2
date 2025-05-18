@@ -1330,10 +1330,13 @@ function AppContent() {
     // Rota para a administração de pré-cadastros
     // Não exigimos autenticação para esta página durante a fase de testes
     if (currentPath === '/admin/pre-cadastros') {
+      // Envolver em um AuthProvider mínimo para evitar erros de contexto
       return (
-        <React.Fragment>
-          <PreCadastrosAdmin />
-        </React.Fragment>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <PreCadastrosAdmin />
+          </AuthProvider>
+        </QueryClientProvider>
       );
     }
     

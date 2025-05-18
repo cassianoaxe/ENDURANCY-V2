@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/data-table";
@@ -14,7 +14,8 @@ import {
   User, 
   Mail, 
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -53,7 +54,108 @@ export default function PreCadastrosAdmin() {
   const [newStatus, setNewStatus] = useState<'novo' | 'contatado' | 'convertido' | 'descartado'>('novo');
   const [observacoes, setObservacoes] = useState('');
   
-  // Buscar dados de pré-cadastros
+  // Estado para controle de carregamento manual
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualError, setManualError] = useState(false);
+  const [manualData, setManualData] = useState<PreCadastro[]>([]);
+
+  // Função para buscar dados manualmente
+  const fetchDataManually = async () => {
+    setManualLoading(true);
+    setManualError(false);
+    
+    try {
+      console.log('Buscando pré-cadastros manualmente...');
+      
+      // Usando a rota de diagnóstico
+      const response = await fetch('/api-diagnostic/pre-cadastros', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro ao buscar pré-cadastros:', response.status, errorText);
+        throw new Error(`Falha ao buscar pré-cadastros: ${response.status} ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Dados recebidos:', data);
+      
+      // Verificar o formato da resposta e ajustar conforme necessário
+      if (data && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
+        // Formato da rota de diagnóstico
+        const formattedData = data.recentEntries.rows.map((item: any) => ({
+          id: item.id,
+          nome: item.nome,
+          email: item.email,
+          organizacao: item.organizacao,
+          tipoOrganizacao: item.tipo_organizacao || '',
+          telefone: item.telefone || '',
+          cargo: item.cargo || '',
+          interesse: item.interesse || '',
+          comentarios: item.comentarios || '',
+          modulos: Array.isArray(item.modulos) ? item.modulos : [],
+          aceitaTermos: !!item.aceita_termos,
+          status: item.status || 'novo',
+          observacoes: item.observacoes || '',
+          ip: item.ip || '',
+          userAgent: item.user_agent || '',
+          createdAt: item.created_at || new Date().toISOString(),
+          contatadoEm: item.contatado_em,
+          convertidoEm: item.convertido_em
+        }));
+        
+        setManualData(formattedData);
+      } else if (Array.isArray(data)) {
+        // Formato direto de array
+        const formattedData = data.map((item: any) => ({
+          id: item.id,
+          nome: item.nome,
+          email: item.email,
+          organizacao: item.organizacao,
+          tipoOrganizacao: item.tipoOrganizacao || item.tipo_organizacao || '',
+          telefone: item.telefone || '',
+          cargo: item.cargo || '',
+          interesse: item.interesse || '',
+          comentarios: item.comentarios || '',
+          modulos: Array.isArray(item.modulos) ? item.modulos : [],
+          aceitaTermos: !!item.aceitaTermos || !!item.aceita_termos,
+          status: item.status || 'novo',
+          observacoes: item.observacoes || '',
+          ip: item.ip || '',
+          userAgent: item.userAgent || item.user_agent || '',
+          createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+          contatadoEm: item.contatadoEm || item.contatado_em,
+          convertidoEm: item.convertidoEm || item.convertido_em
+        }));
+        
+        setManualData(formattedData);
+      } else {
+        console.error('Formato de dados inesperado:', data);
+        throw new Error('Formato de dados inesperado');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      setManualError(true);
+      toast({
+        title: "Erro ao buscar dados",
+        description: error instanceof Error ? error.message : "Ocorreu um erro desconhecido",
+        variant: "destructive" as const
+      });
+    } finally {
+      setManualLoading(false);
+    }
+  };
+
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    fetchDataManually();
+  }, []);
+
+  // Também manter o React Query para compatibilidade
   const { data: preCadastros, isLoading, isError, refetch } = useQuery<PreCadastro[]>({
     queryKey: ['/api-diagnostic/pre-cadastros'],
     queryFn: async () => {
@@ -317,12 +419,12 @@ export default function PreCadastrosAdmin() {
     },
   ];
 
+  // Função para renderizar tabs com dados corretos (manual ou query)
   const renderTab = (statusFilter: PreCadastro['status'] | 'todos') => {
-    if (!preCadastros) return null;
-    
+    // Usar os dados definidos acima
     const filteredData = statusFilter === 'todos' 
-      ? preCadastros 
-      : preCadastros.filter(item => item.status === statusFilter);
+      ? dataToUse 
+      : dataToUse.filter(item => item.status === statusFilter);
     
     return (
       <TabsContent value={statusFilter}>
@@ -352,31 +454,46 @@ export default function PreCadastrosAdmin() {
     );
   };
 
-  if (isLoading) {
+  // Usar o estado de carregamento de qualquer uma das abordagens
+  const isDataLoading = manualLoading || isLoading;
+  const isDataError = (manualError || isError) && manualData.length === 0 && (!preCadastros || preCadastros.length === 0);
+  
+  // Função para recarregar dados
+  const reloadData = () => {
+    fetchDataManually();
+    refetch();
+  };
+  
+  if (isDataLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <h2 className="text-xl font-medium ml-4">Carregando pré-cadastros...</h2>
       </div>
     );
   }
 
-  if (isError) {
+  // Se temos dados para exibir, não mostrar a tela de erro mesmo se houver erro
+  if (isDataError && manualData.length === 0 && (!preCadastros || preCadastros.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <XCircle className="w-12 h-12 text-destructive mb-4" />
+        <XCircle className="w-12 h-12 text-red-500 mb-4" />
         <h2 className="text-2xl font-bold">Erro ao carregar dados</h2>
         <p>Não foi possível buscar os pré-cadastros. Tente novamente mais tarde.</p>
-        <Button onClick={() => refetch()} className="mt-4">Tentar novamente</Button>
+        <Button onClick={reloadData} className="mt-4">Tentar novamente</Button>
       </div>
     );
   }
 
+  // Usar dados do carregamento manual ou React Query
+  const dataToUse = manualData.length > 0 ? manualData : (preCadastros || []);
+  
   const counts = {
-    todos: preCadastros?.length || 0,
-    novo: preCadastros?.filter(item => item.status === 'novo').length || 0,
-    contatado: preCadastros?.filter(item => item.status === 'contatado').length || 0,
-    convertido: preCadastros?.filter(item => item.status === 'convertido').length || 0,
-    descartado: preCadastros?.filter(item => item.status === 'descartado').length || 0,
+    todos: dataToUse.length || 0,
+    novo: dataToUse.filter(item => item.status === 'novo').length || 0,
+    contatado: dataToUse.filter(item => item.status === 'contatado').length || 0,
+    convertido: dataToUse.filter(item => item.status === 'convertido').length || 0,
+    descartado: dataToUse.filter(item => item.status === 'descartado').length || 0,
   };
 
   return (
