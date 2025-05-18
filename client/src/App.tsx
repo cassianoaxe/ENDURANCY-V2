@@ -801,6 +801,18 @@ function AppContent() {
     return <RoadmapPage />;
   }
   
+  // Rota pública para a página de legacy
+  if (currentPath === '/legacy') {
+    const LegacyPage = React.lazy(() => import('./pages/legacy'));
+    return (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>}>
+        <LegacyPage />
+      </Suspense>
+    );
+  }
+  
   // Rota pública para a página de pré-cadastro
   if (currentPath === '/pre-cadastro') {
     const PreCadastroPage = React.lazy(() => import('./pages/pre-cadastro'));
