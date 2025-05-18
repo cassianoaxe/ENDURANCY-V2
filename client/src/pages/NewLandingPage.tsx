@@ -13,7 +13,7 @@ import {
   PersonStanding, FlaskConical, Boxes, Network,
   MessageSquare, ClipboardList, HardHat, BellRing,
   FileSearch, Import, ExternalLink, BrainCircuit,
-  Sparkles, Calendar, MapPin
+  Sparkles, Calendar, MapPin, Clock
 } from 'lucide-react';
 
 // Definição de tipos para módulos do sistema
@@ -1461,6 +1461,10 @@ const NewLandingPage = () => {
                 <li><a href="/roadmap" className="text-green-300 hover:text-white flex items-center">
                   <Calendar className="h-3.5 w-3.5 mr-1" />
                   <span>Roadmap 2025-2027</span>
+                </a></li>
+                <li><a href="/legacy" className="text-green-300 hover:text-white flex items-center">
+                  <Clock className="h-3.5 w-3.5 mr-1" />
+                  <span>Sistema Legacy</span>
                 </a></li>
                 <li><a href="/sitemap" className="text-green-300 hover:text-white">Mapa do Site</a></li>
               </ul>
