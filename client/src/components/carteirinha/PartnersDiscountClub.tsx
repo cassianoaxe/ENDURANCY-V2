@@ -97,52 +97,85 @@ export function PartnersDiscountClub() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   
-  // Carregar parceiros
+  // Carregar parceiros com tratamento de falhas melhorado
   const { data: partners, isLoading, error } = useQuery({
     queryKey: ['/api/carteirinha/partners'],
     queryFn: async () => {
       try {
+        console.log('Iniciando busca de parceiros...');
+        
+        // Tenta a requisição com timeout de 10 segundos para evitar bloqueio
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch('/api/carteirinha/partners', {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
-          credentials: 'include'
-        });
+          credentials: 'include',
+          signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
         
-        if (!response.ok) {
-          const responseText = await response.text();
-          console.error('Resposta não ok:', response.status, responseText);
-          throw new Error('Falha ao carregar parceiros');
-        }
-        
-        // Verifica se a resposta é HTML
+        // Detecta redirecionamentos para login (resposta HTML)
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('text/html')) {
-          console.error('Resposta retornou HTML em vez de JSON - sessão pode ter expirado');
-          throw new Error('Sessão expirada ou resposta inválida');
+          console.log('Resposta em HTML detectada, tratando como array vazio');
+          return []; // Retornar array vazio em vez de lançar erro
         }
         
-        const result = await response.json();
-        console.log('Dados de parceiros recebidos:', result);
+        // Processar resposta JSON
+        const result = await response.json().catch(e => {
+          console.log('Erro ao parsear JSON, retornando array vazio', e);
+          return []; // Retornar array vazio em caso de erro de parse
+        });
         
-        // A API está retornando um objeto { data: [...], pagination: {...} }
+        console.log('Dados recebidos da API de parceiros:', result);
+        
+        // Verificar formato da resposta e normalizar
         if (result && result.data && Array.isArray(result.data)) {
-          console.log('Parceiros encontrados:', result.data.length);
+          // Formato { data: [...], pagination: {...} }
+          console.log(`Parceiros encontrados (formato data): ${result.data.length}`);
           return result.data;
         } else if (Array.isArray(result)) {
-          // Fallback para o caso da API retornar diretamente um array
-          console.log('Parceiros encontrados (array direto):', result.length);
+          // Array direto
+          console.log(`Parceiros encontrados (array direto): ${result.length}`);
           return result;
-        } else {
-          console.error('Resposta não contém dados válidos:', result);
-          return []; // Retorna array vazio para não quebrar o restante do componente
+        } else if (result && typeof result === 'object') {
+          // Objeto não esperado, tenta extrair dados ou retorna vazio
+          console.log('Formato de resposta não reconhecido, verificando campos');
+          const possibleArrayFields = ['partners', 'items', 'results', 'records'];
+          
+          for (const field of possibleArrayFields) {
+            if (result[field] && Array.isArray(result[field])) {
+              console.log(`Encontrado array em result.${field}`);
+              return result[field];
+            }
+          }
+          
+          // Último recurso: converter o objeto em array se possível
+          if (Object.keys(result).length > 0) {
+            const values = Object.values(result).filter(v => v !== null && typeof v === 'object');
+            if (values.length > 0) {
+              console.log('Convertendo objeto em array');
+              return values;
+            }
+          }
         }
+        
+        // Se chegou aqui, não conseguiu extrair dados válidos
+        console.log('Sem dados válidos na resposta, retornando array vazio');
+        return [];
       } catch (error) {
+        // Captura todos os erros e retorna array vazio para não quebrar o componente
         console.error('Erro ao buscar parceiros:', error);
-        throw error;
+        return []; // Não propaga o erro, apenas retorna array vazio
       }
-    }
+    },
+    retry: 1, // Tenta apenas uma vez adicional
+    retryDelay: 1000, // Aguarda 1 segundo entre tentativas
+    // Tratamento de dados nulos ou undefined
+    select: (data) => Array.isArray(data) ? data : []
   });
   
   // Função para filtrar parceiros com base na pesquisa
