@@ -26,6 +26,17 @@ carteirinhaRedirectRouter.use('/membership-cards/settings/current', (req, res, n
   next('router');
 });
 
+// Redirecionar para parceiros do clube de benefícios
+carteirinhaRedirectRouter.use('/partners', (req, res, next) => {
+  console.log(`Redirecionando requisição de parceiros para /api/social/carteirinha/partners`);
+  
+  // Modificar o caminho da requisição
+  req.url = `/social/carteirinha${req.url}`;
+  
+  // Continuar para o próximo middleware
+  next('router');
+});
+
 // Qualquer outra rota relacionada a carteirinha
 carteirinhaRedirectRouter.use('/', (req, res, next) => {
   console.log(`Redirecionando requisição de /api/carteirinha para /api/social/carteirinha`);
