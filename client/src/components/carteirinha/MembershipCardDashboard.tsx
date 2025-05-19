@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import {
   Card,
   CardContent,
@@ -73,6 +73,7 @@ export function MembershipCardDashboard() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [, navigate] = useLocation();
   
   // Carregar carteirinhas
   const { data: cards, isLoading, error } = useQuery({
@@ -437,12 +438,10 @@ export function MembershipCardDashboard() {
                 <Settings className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/organization/carteirinha/membership-cards/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Carteirinha
-              </Button>
-            </Link>
+            <Button onClick={() => navigate("/organization/carteirinha/membership-cards/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Carteirinha
+            </Button>
           </div>
         </div>
         
@@ -481,12 +480,10 @@ export function MembershipCardDashboard() {
               <Settings className="h-4 w-4" />
             </Button>
           </Link>
-          <Link href="/organization/carteirinha/membership-cards/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Carteirinha
-            </Button>
-          </Link>
+          <Button onClick={() => navigate("/organization/carteirinha/membership-cards/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Carteirinha
+          </Button>
         </div>
       </div>
       
@@ -657,11 +654,12 @@ export function MembershipCardDashboard() {
                     : "Você ainda não emitiu nenhuma carteirinha para associados."}
                 </p>
                 {!searchTerm && (
-                  <Button className="mt-4" asChild>
-                    <Link href="/organization/carteirinha/membership-cards/new">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Emitir Nova Carteirinha
-                    </Link>
+                  <Button 
+                    className="mt-4"
+                    onClick={() => navigate("/organization/carteirinha/membership-cards/new")}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Emitir Nova Carteirinha
                   </Button>
                 )}
               </div>
