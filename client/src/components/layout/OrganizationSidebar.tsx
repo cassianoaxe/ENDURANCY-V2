@@ -136,27 +136,55 @@ export default function OrganizationSidebar() {
     queryFn: async () => {
       if (!user?.organizationId) return null;
       try {
-        console.log("Sidebar: carregando organização", user.organizationId, "com timestamp:", Date.now());
-        // Adicionar um parâmetro de consulta aleatório para evitar cache do navegador
-        const timestamp = Date.now();
-        const response = await fetch(`/api/organizations/${user.organizationId}?_=${timestamp}`, {
-          headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
-          cache: 'no-store'
+        // Verificar se já temos dados em cache no localStorage
+        const cacheKey = `org_data_${user.organizationId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        const cacheTimestamp = localStorage.getItem(`${cacheKey}_timestamp`);
+        
+        // Se temos dados em cache e eles não estão expirados (menos de 5 minutos)
+        const now = Date.now();
+        if (cachedData && cacheTimestamp) {
+          const cacheAge = now - parseInt(cacheTimestamp, 10);
+          // Cache válido por 5 minutos (300000ms)
+          if (cacheAge < 300000) {
+            // Usar dados em cache
+            return JSON.parse(cachedData);
+          }
+        }
+        
+        // Se não temos cache ou está expirado, buscar do servidor
+        console.log("Sidebar: carregando organização", user.organizationId, "com timestamp:", now);
+        const response = await fetch(`/api/organizations/${user.organizationId}`, {
+          headers: { 'Cache-Control': 'max-age=300' } // Cache por 5 minutos
         });
+        
         if (!response.ok) throw new Error('Falha ao carregar organização');
-        return await response.json();
+        const freshData = await response.json();
+        
+        // Atualizar o cache
+        localStorage.setItem(cacheKey, JSON.stringify(freshData));
+        localStorage.setItem(`${cacheKey}_timestamp`, now.toString());
+        
+        return freshData;
       } catch (error) {
         console.error('Erro ao buscar organização:', error);
+        // Verificar se temos dados antigos para usar como fallback
+        const cacheKey = `org_data_${user.organizationId}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          console.log("Usando dados em cache como fallback após erro de API");
+          return JSON.parse(cachedData);
+        }
         return null;
       }
     },
     enabled: !!user?.organizationId,
-    // Configurar para sempre buscar dados frescos
-    staleTime: 0, // Sempre considerar dados obsoletos
-    cacheTime: 0, // Não manter em cache
-    refetchInterval: 5000, // Recarregar a cada 5 segundos
-    refetchOnWindowFocus: true, // Recarregar quando o usuário voltar para a janela
-    refetchOnMount: true, // Recarregar sempre que o componente montar
+    // Configuração otimizada para reduzir chamadas à API
+    staleTime: 300000, // Dados considerados recentes por 5 minutos
+    cacheTime: 600000, // Manter em cache por 10 minutos
+    refetchInterval: 300000, // Recarregar a cada 5 minutos
+    refetchOnWindowFocus: false, // Não recarregar quando o usuário volta para a janela
+    refetchOnMount: true, // Recarregar apenas na primeira montagem
   });
   
   // Verifica se a organização é do tipo importadora
