@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visualização de Pré-Cadastros</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,20 +45,19 @@
       padding: 5px 10px;
       border-radius: 4px;
     }
-    .loading {
-      text-align: center;
-      padding: 50px;
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
     }
-    .loading-spinner {
+    .spinner-border {
       width: 3rem;
       height: 3rem;
     }
-    .alert {
-      margin-top: 20px;
-    }
     .tab-button {
-      margin-right: 10px;
-      margin-bottom: 10px;
+      margin-right: 5px;
+      margin-bottom: 5px;
     }
     .tab-button.active {
       background-color: #0d6efd;
@@ -67,20 +66,21 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="my-4">Visualização de Pré-Cadastros</h1>
+  <div class="container my-4">
+    <h1 class="mb-4">Pré-Cadastros do Sistema</h1>
+    <p class="lead">Visualize todos os pré-cadastros recebidos para o seu sistema.</p>
     
-    <div id="loading" class="loading">
-      <div class="spinner-border loading-spinner text-success" role="status">
+    <div id="loading" class="loading-container">
+      <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Carregando...</span>
       </div>
-      <p class="mt-3">Carregando dados, por favor aguarde...</p>
     </div>
     
     <div id="error" class="alert alert-danger d-none" role="alert">
-      <h4 class="alert-heading">Erro ao carregar dados!</h4>
-      <p id="error-message">Não foi possível buscar os pré-cadastros. Tente novamente mais tarde.</p>
-      <button class="btn btn-danger" onclick="fetchPreCadastros()">Tentar novamente</button>
+      <h4 class="alert-heading">Erro!</h4>
+      <p id="error-message">Ocorreu um erro ao carregar os pré-cadastros.</p>
+      <hr>
+      <button class="btn btn-outline-danger" onclick="fetchPreCadastros()">Tentar novamente</button>
     </div>
     
     <div id="content" class="d-none">
@@ -103,177 +103,206 @@
       </div>
       
       <div class="row row-cols-1 row-cols-md-2 g-4" id="pre-cadastros-container">
-        <!-- Os cards serão inseridos aqui pelo JavaScript -->
+        <!-- Os cards serão inseridos aqui via JavaScript -->
       </div>
     </div>
   </div>
 
   <script>
-    // Armazenar os dados para filtragem
-    let allPreCadastros = [];
-    let currentFilter = 'todos';
-    
+    // Função para formatar datas
     function formatDate(dateString) {
-      if (!dateString) return 'N/A';
+      if (!dateString) return '';
       const date = new Date(dateString);
-      return date.toLocaleDateString('pt-BR');
+      return date.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
     
-    function getStatusBadge(status) {
-      switch(status) {
-        case 'novo':
-          return '<span class="badge-novo">Novo</span>';
-        case 'contatado':
-          return '<span class="badge-contatado">Contatado</span>';
-        case 'convertido':
-          return '<span class="badge-convertido">Convertido</span>';
-        case 'descartado':
-          return '<span class="badge-descartado">Descartado</span>';
-        default:
-          return '<span class="badge bg-secondary">Desconhecido</span>';
+    // Função para criar o HTML de um card de pré-cadastro
+    function createPreCadastroCard(item) {
+      // Determinar a cor do cabeçalho com base no status
+      let headerClass = 'bg-info';
+      if (item.status === 'contatado') headerClass = 'bg-secondary';
+      if (item.status === 'convertido') headerClass = 'bg-success';
+      if (item.status === 'descartado') headerClass = 'bg-danger';
+      
+      // Criar o badge com base no status
+      let badgeHTML = '';
+      if (item.status === 'novo') badgeHTML = '<span class="badge-novo">Novo</span>';
+      if (item.status === 'contatado') badgeHTML = '<span class="badge-contatado">Contatado</span>';
+      if (item.status === 'convertido') badgeHTML = '<span class="badge-convertido">Convertido</span>';
+      if (item.status === 'descartado') badgeHTML = '<span class="badge-descartado">Descartado</span>';
+      
+      // Módulos selecionados
+      let modulosHTML = '';
+      if (item.modulos && Array.isArray(item.modulos) && item.modulos.length > 0) {
+        modulosHTML = `
+          <div class="mt-2">
+            <strong>Módulos de interesse:</strong>
+            <div class="d-flex flex-wrap gap-1 mt-1">
+              ${item.modulos.map(modulo => `<span class="badge bg-secondary">${modulo}</span>`).join(' ')}
+            </div>
+          </div>
+        `;
       }
-    }
-    
-    function createCard(item) {
-      const modulesHtml = item.modulos && item.modulos.length > 0 
-        ? `<div class="mt-2">
-            <strong>Módulos de interesse:</strong><br>
-            ${item.modulos.map(m => `<span class="badge bg-secondary me-1">${m}</span>`).join('')}
-           </div>`
-        : '';
       
-      const observacoesHtml = item.observacoes 
-        ? `<div class="mt-2">
-            <strong>Observações:</strong><br>
-            ${item.observacoes}
-           </div>`
-        : '';
+      // Observações
+      let observacoesHTML = '';
+      if (item.observacoes) {
+        observacoesHTML = `
+          <div class="mt-3 bg-light p-2 rounded">
+            <strong>Observações:</strong>
+            <p class="mb-0">${item.observacoes}</p>
+          </div>
+        `;
+      }
       
+      // Dados adicionais (detalhes técnicos)
+      const detalhesHTML = `
+        <div class="accordion mt-3" id="detalhes-${item.id}">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#detalhes-collapse-${item.id}" aria-expanded="false" aria-controls="detalhes-collapse-${item.id}">
+                Detalhes técnicos
+              </button>
+            </h2>
+            <div id="detalhes-collapse-${item.id}" class="accordion-collapse collapse" data-bs-parent="#detalhes-${item.id}">
+              <div class="accordion-body">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <small><strong>IP:</strong> ${item.ip || 'N/A'}</small>
+                  </div>
+                  <div class="col-12">
+                    <small><strong>User Agent:</strong> ${item.user_agent || 'N/A'}</small>
+                  </div>
+                  <div class="col-12">
+                    <small><strong>Data de registro:</strong> ${formatDate(item.created_at)}</small>
+                  </div>
+                  ${item.contatado_em ? `<div class="col-12"><small><strong>Contatado em:</strong> ${formatDate(item.contatado_em)}</small></div>` : ''}
+                  ${item.convertido_em ? `<div class="col-12"><small><strong>Convertido em:</strong> ${formatDate(item.convertido_em)}</small></div>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Criar o HTML completo do card
       return `
-        <div class="col" data-status="${item.status || 'novo'}">
+        <div class="col pre-cadastro-card" data-status="${item.status || 'novo'}">
           <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <span>${item.nome}</span>
-              ${getStatusBadge(item.status || 'novo')}
+            <div class="card-header ${headerClass} text-white d-flex justify-content-between align-items-center">
+              <div>${item.nome}</div>
+              <div>${badgeHTML}</div>
             </div>
             <div class="card-body">
-              <h5 class="card-title">${item.organizacao}</h5>
-              <h6 class="card-subtitle mb-2 text-muted">${item.tipo_organizacao || 'Tipo não especificado'}</h6>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>E-mail:</strong> ${item.email}
+                </div>
+                <div class="col-md-6">
+                  <strong>Telefone:</strong> ${item.telefone || 'N/A'}
+                </div>
+              </div>
               
-              <p class="card-text">
-                <strong>Email:</strong> ${item.email}<br>
-                <strong>Telefone:</strong> ${item.telefone || 'Não informado'}<br>
-                <strong>Cargo:</strong> ${item.cargo || 'Não informado'}<br>
-                <strong>Interesse:</strong> ${item.interesse || 'Não especificado'}
-              </p>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <strong>Organização:</strong> ${item.organizacao}
+                </div>
+                <div class="col-md-6">
+                  <strong>Tipo:</strong> ${item.tipo_organizacao || 'N/A'}
+                </div>
+              </div>
               
-              <p class="card-text">
-                <strong>Comentários:</strong><br>
-                ${item.comentarios || 'Nenhum comentário'}
-              </p>
-              
-              ${modulesHtml}
-              ${observacoesHtml}
+              <div>
+                <strong>Cargo:</strong> ${item.cargo || 'N/A'}
+              </div>
               
               <div class="mt-3">
-                <small class="text-muted">
-                  Cadastrado em: ${formatDate(item.created_at)}<br>
-                  ${item.contatado_em ? `Contatado em: ${formatDate(item.contatado_em)}<br>` : ''}
-                  ${item.convertido_em ? `Convertido em: ${formatDate(item.convertido_em)}` : ''}
-                </small>
+                <strong>Interesse:</strong> 
+                <p>${item.interesse || 'N/A'}</p>
               </div>
+              
+              <div class="mt-2">
+                <strong>Comentários:</strong> 
+                <p>${item.comentarios || 'N/A'}</p>
+              </div>
+              
+              ${modulosHTML}
+              ${observacoesHTML}
+              ${detalhesHTML}
             </div>
           </div>
         </div>
       `;
     }
     
-    function displayPreCadastros(items) {
-      const container = document.getElementById('pre-cadastros-container');
-      if (!items || items.length === 0) {
-        container.innerHTML = '<div class="col-12"><div class="alert alert-info">Nenhum pré-cadastro encontrado com os filtros atuais.</div></div>';
-        return;
-      }
-      
-      let html = '';
-      items.forEach(item => {
-        html += createCard(item);
-      });
-      
-      container.innerHTML = html;
-    }
-    
+    // Filtrar os itens por status
     function filterItems(status) {
-      currentFilter = status;
-      
-      // Destacar o botão ativo
-      document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
+      // Atualizar botões de filtro
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
       });
-      
       document.querySelector(`.tab-button[onclick="filterItems('${status}')"]`).classList.add('active');
       
-      // Filtrar os itens
-      let filteredItems = allPreCadastros;
-      if (status !== 'todos') {
-        filteredItems = allPreCadastros.filter(item => (item.status || 'novo') === status);
-      }
-      
-      // Atualizar contagem
-      document.getElementById('total-count').textContent = 
-        `${filteredItems.length} ${filteredItems.length === 1 ? 'registro' : 'registros'} encontrados`;
-      
-      // Exibir os itens filtrados
-      displayPreCadastros(filteredItems);
+      // Filtrar os cards
+      const cards = document.querySelectorAll('.pre-cadastro-card');
+      cards.forEach(card => {
+        if (status === 'todos' || card.dataset.status === status) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
     }
     
+    // Função para buscar pré-cadastros da API
     async function fetchPreCadastros() {
-      // Mostrar tela de carregamento
+      // Mostrar loader e esconder conteúdo
       document.getElementById('loading').classList.remove('d-none');
       document.getElementById('content').classList.add('d-none');
       document.getElementById('error').classList.add('d-none');
       
       try {
-        console.log('Buscando pré-cadastros...');
+        // Buscar dados da API de diagnóstico
         const response = await fetch('/api-diagnostic/pre-cadastros');
         
         if (!response.ok) {
-          throw new Error(`Erro do servidor: ${response.status}`);
+          throw new Error(`Falha ao buscar pré-cadastros: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Dados recebidos:', data);
         
-        // Extrair os pré-cadastros
-        if (data && data.success && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
-          allPreCadastros = data.recentEntries.rows.map(item => ({
-            id: item.id,
-            nome: item.nome,
-            email: item.email,
-            organizacao: item.organizacao,
-            tipo_organizacao: item.tipo_organizacao,
-            telefone: item.telefone,
-            cargo: item.cargo,
-            interesse: item.interesse,
-            comentarios: item.comentarios,
-            modulos: item.modulos,
-            aceita_termos: item.aceita_termos,
-            status: item.status || 'novo',
-            observacoes: item.observacoes,
-            created_at: item.created_at,
-            contatado_em: item.contatado_em,
-            convertido_em: item.convertido_em
-          }));
+        // Verificar se os dados retornados estão no formato esperado
+        if (data && data.recentEntries && Array.isArray(data.recentEntries.rows)) {
+          // Atualizar contador total
+          const totalCount = data.result.rows[0].total || data.recentEntries.rows.length;
+          document.getElementById('total-count').textContent = `Total: ${totalCount} pré-cadastros`;
           
-          // Exibir os dados
-          document.getElementById('total-count').textContent = 
-            `${allPreCadastros.length} ${allPreCadastros.length === 1 ? 'registro' : 'registros'} encontrados`;
+          // Limpar e preencher o container
+          const container = document.getElementById('pre-cadastros-container');
+          container.innerHTML = '';
           
-          // Aplicar o filtro atual
-          filterItems(currentFilter);
+          if (data.recentEntries.rows.length === 0) {
+            container.innerHTML = `
+              <div class="col-12 text-center py-5">
+                <p class="text-muted">Nenhum pré-cadastro encontrado.</p>
+              </div>
+            `;
+          } else {
+            // Criar cards para cada pré-cadastro
+            data.recentEntries.rows.forEach(item => {
+              container.innerHTML += createPreCadastroCard(item);
+            });
+          }
           
-          // Mostrar o conteúdo
+          // Mostrar conteúdo e esconder loader
           document.getElementById('content').classList.remove('d-none');
+          document.getElementById('loading').classList.add('d-none');
         } else {
           throw new Error('Formato de dados inválido');
         }
@@ -281,7 +310,6 @@
         console.error('Erro ao buscar pré-cadastros:', error);
         document.getElementById('error').classList.remove('d-none');
         document.getElementById('error-message').textContent = error.message || 'Erro desconhecido ao buscar dados';
-      } finally {
         document.getElementById('loading').classList.add('d-none');
       }
     }
@@ -289,5 +317,7 @@
     // Carregar os dados quando a página for aberta
     document.addEventListener('DOMContentLoaded', fetchPreCadastros);
   </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
