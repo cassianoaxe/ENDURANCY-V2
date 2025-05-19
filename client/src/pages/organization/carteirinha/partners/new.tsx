@@ -55,7 +55,7 @@ const partnerFormSchema = z.object({
 
 type PartnerFormValues = z.infer<typeof partnerFormSchema>;
 
-export default function PartnerNewPage() {
+export default function NewPartnerPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
