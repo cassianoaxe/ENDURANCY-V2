@@ -235,6 +235,7 @@ import CultivationModule from "@/pages/organization/cultivation";
 import PlantioPage from "@/pages/organization/cultivation/plantio";
 import ColheitaPage from "@/pages/organization/cultivation/colheita";
 import AnalysisModule from "@/pages/organization/cultivation/analises";
+import AuditLogPage from "@/pages/organization/cultivation/auditlog";
 
 import PlantasPage from "@/pages/organization/cultivation/plantas";
 import TransferenciasPage from "@/pages/organization/cultivation/transferencias";
@@ -1376,6 +1377,10 @@ function AppContent() {
     
     if (currentPath === '/organization/cultivation/genetica') {
       return <GenericaPage />;
+    }
+    
+    if (currentPath === '/organization/cultivation/auditlog') {
+      return <AuditLogPage />;
     }
     
     if (currentPath === '/organization/cultivation/configuracao/strains') {
