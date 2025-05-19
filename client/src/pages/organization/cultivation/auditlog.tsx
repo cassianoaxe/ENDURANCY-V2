@@ -124,6 +124,260 @@ const AuditLogPage: React.FC = () => {
   });
   const [currentTab, setCurrentTab] = useState('todos');
 
+  // Função para gerar dados de exemplo para o log de auditoria
+  function getMockAuditLogs(): AuditLogEvent[] {
+    // Usuários de exemplo
+    const users = [
+      { 
+        id: 1, 
+        name: 'João Silva', 
+        role: 'Gerente de Cultivo',
+        photo: 'https://randomuser.me/api/portraits/men/1.jpg'
+      },
+      { 
+        id: 2, 
+        name: 'Maria Oliveira', 
+        role: 'Técnica Agrícola',
+        photo: 'https://randomuser.me/api/portraits/women/2.jpg'
+      },
+      { 
+        id: 3, 
+        name: 'Pedro Santos', 
+        role: 'Analista de Qualidade',
+        photo: 'https://randomuser.me/api/portraits/men/3.jpg'
+      },
+      { 
+        id: 4, 
+        name: 'Ana Costa', 
+        role: 'Supervisora de Colheita',
+        photo: 'https://randomuser.me/api/portraits/women/4.jpg'
+      },
+      { 
+        id: 5, 
+        name: 'Roberto Almeida', 
+        role: 'Administrador',
+        photo: 'https://randomuser.me/api/portraits/men/5.jpg'
+      }
+    ];
+    
+    // Ações de exemplo para cada área
+    const actions = {
+      plantio: [
+        { 
+          message: 'Iniciou um novo ciclo de plantio', 
+          details: 'Iniciou plantio de 200 mudas da linhagem CBD-5 no setor A3.',
+          type: 'info'
+        },
+        { 
+          message: 'Registrou problema no sistema de irrigação', 
+          details: 'Sensor de umidade do solo apresentou falha no setor B2. Manutenção solicitada.',
+          type: 'warning'
+        },
+        { 
+          message: 'Atualizou parâmetros de fotoperíodo', 
+          details: 'Alterou ciclo de luz para 18/6 em todos os setores de vegetação.',
+          type: 'info'
+        },
+        { 
+          message: 'Adicionou novas mudas ao sistema', 
+          details: 'Inclusão de 150 clones da variedade Harlequin.',
+          type: 'success'
+        },
+        { 
+          message: 'Reportou contaminação no meio de cultivo', 
+          details: 'Identificado fungo em 15% das bandejas de germinação no setor C1. Procedimento de quarentena iniciado.',
+          type: 'critical'
+        }
+      ],
+      colheita: [
+        { 
+          message: 'Iniciou colheita programada', 
+          details: 'Colheita de plantas da linhagem CBD-5 do lote #22A3.',
+          type: 'info'
+        },
+        { 
+          message: 'Registrou rendimento acima da média', 
+          details: 'Colheita do lote #23B1 resultou em 15% acima da estimativa inicial.',
+          type: 'success'
+        },
+        { 
+          message: 'Adiou colheita por condições climáticas', 
+          details: 'Colheita do setor externo E2 adiada por previsão de chuvas intensas.',
+          type: 'warning'
+        },
+        { 
+          message: 'Finalizou ciclo de colheita', 
+          details: 'Concluído o ciclo de colheita do trimestre com 98% das metas atingidas.',
+          type: 'success'
+        },
+        { 
+          message: 'Descartou plantas com sinais de pragas', 
+          details: 'Identificado ácaros em 30 plantas do lote #24C2. Plantas removidas para evitar contaminação.',
+          type: 'warning'
+        }
+      ],
+      estoque: [
+        { 
+          message: 'Atualizou inventário de material vegetal', 
+          details: 'Adicionado 25kg de flores secas da variedade Charlotte\'s Web ao estoque.',
+          type: 'info'
+        },
+        { 
+          message: 'Transferiu material para processamento', 
+          details: 'Transferência de 15kg de biomassa da linhagem CBD-5 para o departamento de extração.',
+          type: 'info'
+        },
+        { 
+          message: 'Detectou discrepância no inventário', 
+          details: 'Diferença de 2.3kg entre estoque físico e registro no sistema. Auditoria iniciada.',
+          type: 'warning'
+        },
+        { 
+          message: 'Realizou controle de qualidade em amostras armazenadas', 
+          details: 'Amostras do lote #21B7 aprovadas em teste de estabilidade após 6 meses.',
+          type: 'success'
+        },
+        { 
+          message: 'Registrou perda de material por degradação', 
+          details: 'Descarte de 3.5kg de material vegetal por exposição acidental à umidade.',
+          type: 'critical'
+        }
+      ],
+      transferencia: [
+        { 
+          message: 'Transferiu plantas entre setores', 
+          details: '120 plantas transferidas do setor de vegetação V2 para o setor de floração F1.',
+          type: 'info'
+        },
+        { 
+          message: 'Recebeu material genético de parceiro', 
+          details: 'Recebimento de 50 sementes certificadas da variedade Cannatonic.',
+          type: 'success'
+        },
+        { 
+          message: 'Enviou amostras para análise laboratorial externa', 
+          details: 'Envio de 10 amostras do lote #22C3 para testes de potência e contaminantes.',
+          type: 'info'
+        },
+        { 
+          message: 'Cancelou transferência agendada', 
+          details: 'Cancelamento da transferência de clones para o parceiro devido a problemas documentais.',
+          type: 'warning'
+        },
+        { 
+          message: 'Documentou transferência de tecnologia', 
+          details: 'Compartilhamento de protocolo de cultivo in vitro com instituição de pesquisa parceira.',
+          type: 'success'
+        }
+      ],
+      configuracao: [
+        { 
+          message: 'Atualizou parâmetros do sistema', 
+          details: 'Modificou limites de alerta para condições ambientais em todos os setores.',
+          type: 'info'
+        },
+        { 
+          message: 'Adicionou nova variedade ao catálogo', 
+          details: 'Cadastro da nova linhagem THC-1:CBD-20 com perfil completo de canabinoides.',
+          type: 'success'
+        },
+        { 
+          message: 'Modificou permissões de usuários', 
+          details: 'Atribuição de direitos de supervisão ao usuário Maria Oliveira.',
+          type: 'info'
+        },
+        { 
+          message: 'Alterou protocolo de rastreabilidade', 
+          details: 'Implementação de QR codes para rastreio individual de plantas matrizes.',
+          type: 'info'
+        },
+        { 
+          message: 'Restaurou configuração de backup', 
+          details: 'Restauração dos parâmetros do sistema após falha na atualização.',
+          type: 'warning'
+        }
+      ],
+      system: [
+        { 
+          message: 'Sistema realizou backup automático', 
+          details: 'Backup completo dos dados de cultivo realizado com sucesso.',
+          type: 'info'
+        },
+        { 
+          message: 'Detectou tentativa de acesso não autorizado', 
+          details: 'Múltiplas tentativas de login malsucedidas para a conta de administrador.',
+          type: 'critical'
+        },
+        { 
+          message: 'Iniciou manutenção programada', 
+          details: 'Início da janela de manutenção para atualização do sistema.',
+          type: 'info'
+        },
+        { 
+          message: 'Sincronizou dados com sistemas externos', 
+          details: 'Sincronização de dados de rastreabilidade com o sistema regulatório governamental.',
+          type: 'success'
+        },
+        { 
+          message: 'Registrou falha de comunicação com sensores', 
+          details: 'Perda temporária de conectividade com sensores de temperatura e umidade do setor D1.',
+          type: 'warning'
+        }
+      ]
+    };
+    
+    // Criar registros de auditoria de exemplo
+    const mockLogs: AuditLogEvent[] = [];
+    const areas: EventArea[] = ['plantio', 'colheita', 'estoque', 'transferencia', 'configuracao', 'system'];
+    const types: EventType[] = ['info', 'warning', 'critical', 'success'];
+    
+    // Data atual para referência
+    const now = new Date();
+    
+    // Gerar 50 registros aleatórios
+    for (let i = 1; i <= 50; i++) {
+      // Selecionar área e tipo aleatórios
+      const area = areas[Math.floor(Math.random() * areas.length)] as EventArea;
+      
+      // Selecionar ação aleatória da área específica
+      const actionIndex = Math.floor(Math.random() * actions[area].length);
+      const action = actions[area][actionIndex];
+      
+      // Selecionar usuário aleatório
+      const user = users[Math.floor(Math.random() * users.length)];
+      
+      // Gerar timestamp aleatório nos últimos 30 dias
+      const timestamp = new Date(now);
+      timestamp.setDate(now.getDate() - Math.floor(Math.random() * 30));
+      timestamp.setHours(Math.floor(Math.random() * 24));
+      timestamp.setMinutes(Math.floor(Math.random() * 60));
+      
+      // Criar o registro
+      mockLogs.push({
+        id: i,
+        timestamp: timestamp.toISOString(),
+        userId: user.id,
+        userName: user.name,
+        userRole: user.role,
+        userPhoto: user.photo,
+        eventType: action.type as EventType,
+        eventArea: area,
+        message: action.message,
+        details: action.details,
+        relatedEntityId: Math.floor(Math.random() * 1000) + 1,
+        relatedEntityType: area === 'plantio' ? 'planta' : 
+                          area === 'colheita' ? 'lote' : 
+                          area === 'estoque' ? 'inventario' : 
+                          area === 'transferencia' ? 'transferencia' : 'configuracao'
+      });
+    }
+    
+    // Ordenar por timestamp (mais recente primeiro)
+    mockLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return mockLogs;
+  }
+
   // Consulta para buscar os logs de auditoria
   const { data: auditLogs, isLoading, error } = useQuery({
     queryKey: ['auditLogs', eventTypeFilter, eventAreaFilter, dateRange],
@@ -140,7 +394,7 @@ const AuditLogPage: React.FC = () => {
         
         // Se não temos a API implementada ainda, retornar dados de exemplo
         if (!response.ok) {
-          // Temporário: Dados de exemplo para demonstração da UI
+          // Dados de exemplo para demonstração da UI
           return getMockAuditLogs();
         }
         
@@ -152,7 +406,8 @@ const AuditLogPage: React.FC = () => {
           description: "Não foi possível carregar os logs de auditoria. Tente novamente mais tarde.",
           variant: "default"
         });
-        return [];
+        // Retornar dados de exemplo para garantir que a UI tenha algo para mostrar
+        return getMockAuditLogs();
       }
     }
   });
