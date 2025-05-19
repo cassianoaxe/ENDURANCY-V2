@@ -900,6 +900,12 @@ export default function OrganizationSidebar() {
           icon: <Package size={16} />
         },
         {
+          title: "AuditLog",
+          path: "/organization/cultivation/auditlog",
+          active: currentPath === "/organization/cultivation/auditlog",
+          icon: <FileText size={16} />
+        },
+        {
           title: "Testes",
           path: "/organization/cultivation/testes",
           active: currentPath === "/organization/cultivation/testes",
