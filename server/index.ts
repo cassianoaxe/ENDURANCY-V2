@@ -106,6 +106,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+// Servir arquivos estáticos da pasta public para acesso direto
+app.use(express.static(path.join(process.cwd(), "public")));
+
+// Rota específica para pré-cadastros (garantir que redireciona para o HTML)
+app.get('/pre-cadastros', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public/pre-cadastros.html'));
+});
+
 // Configurar cookie-parser para processamento de cookies
 app.use(
   cookieParser(process.env.COOKIE_SECRET || "endurancy-app-secret-key-2025"),
