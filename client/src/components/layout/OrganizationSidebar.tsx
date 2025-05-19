@@ -181,7 +181,7 @@ export default function OrganizationSidebar() {
     enabled: !!user?.organizationId,
     // Configuração otimizada para reduzir chamadas à API
     staleTime: 300000, // Dados considerados recentes por 5 minutos
-    cacheTime: 600000, // Manter em cache por 10 minutos
+    gcTime: 600000, // Manter em cache por 10 minutos (substitui cacheTime na v5)
     refetchInterval: 300000, // Recarregar a cada 5 minutos
     refetchOnWindowFocus: false, // Não recarregar quando o usuário volta para a janela
     refetchOnMount: true, // Recarregar apenas na primeira montagem

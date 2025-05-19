@@ -189,6 +189,7 @@ import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
 import TransparenciaPublica from "@/pages/organization/transparencia";
 import GerenciarTransparencia from "@/pages/organization/transparencia/gerenciar";
 import PatrimonioIndex from "@/pages/organization/patrimonio/index";
+import PatrimonioAuditLogPage from "@/pages/organization/patrimonio/auditlog";
 import DepreciacaoCalculadora from "@/pages/organization/patrimonio/depreciacao/calculadora";
 // Importar página de teste para transparência
 import TransparenciaTest from "@/pages/TransparenciaTest";
@@ -2518,6 +2519,10 @@ function AppContent() {
       return <OrganizationLayout>
         <DepreciacaoPage />
       </OrganizationLayout>;
+    }
+    
+    if (currentPath === '/organization/patrimonio/auditlog') {
+      return <PatrimonioAuditLogPage />;
     }
     
     if (currentPath === '/organization/patrimonio/depreciacao/calculadora') {
