@@ -1381,6 +1381,12 @@ export default function OrganizationSidebar() {
           path: "/organization/patrimonio/depreciacao",
           active: currentPath === "/organization/patrimonio/depreciacao",
           icon: <Calculator size={16} />
+        },
+        {
+          title: "Log de Auditoria",
+          path: "/organization/patrimonio/auditlog",
+          active: currentPath === "/organization/patrimonio/auditlog",
+          icon: <FileText size={16} />
         }
       ]
     },
