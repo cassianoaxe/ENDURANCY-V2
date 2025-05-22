@@ -230,52 +230,53 @@ api.webhooks.subscribe('ticket.created', {
               <div className="grid lg:grid-cols-2 gap-8">
                 <div>
                   <h3 className="text-xl font-semibold mb-4 text-white">Primeiros Passos</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
-                    <div>
-                      <p className="font-medium">1. Obtenha sua API Key</p>
-                      <p className="text-sm text-gray-600">Registre-se e gere suas credenciais de acesso</p>
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-emerald-300 mr-3 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-white">1. Obtenha sua API Key</p>
+                        <p className="text-sm text-emerald-100">Registre-se e gere suas credenciais de acesso</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-emerald-300 mr-3 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-white">2. Instale o SDK</p>
+                        <p className="text-sm text-emerald-100">npm install @endurancy/sdk</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle className="h-5 w-5 text-emerald-300 mr-3 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-white">3. Faça sua primeira chamada</p>
+                        <p className="text-sm text-emerald-100">Configure e teste a integração</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
-                    <div>
-                      <p className="font-medium">2. Instale o SDK</p>
-                      <p className="text-sm text-gray-600">npm install @endurancy/sdk</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
-                    <div>
-                      <p className="font-medium">3. Faça sua primeira chamada</p>
-                      <p className="text-sm text-gray-600">Configure e teste a integração</p>
-                    </div>
+                  
+                  <div className="mt-6 space-y-3">
+                    <Button className="w-full bg-white text-teal-600 hover:bg-gray-100" variant="outline">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ver Documentação Completa
+                    </Button>
+                    <Button className="w-full bg-white text-teal-600 hover:bg-gray-100" variant="outline">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Playground de API
+                    </Button>
                   </div>
                 </div>
                 
-                <div className="mt-6 space-y-3">
-                  <Button className="w-full" variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Ver Documentação Completa
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Playground de API
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-gray-900 rounded-lg p-6">
+                <div className="bg-gray-900 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-white font-medium">Exemplo de Código</h4>
                   <Button size="sm" variant="ghost" className="text-white hover:bg-gray-800">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <pre className="text-green-400 text-sm overflow-x-auto">
-                  <code>{quickStartCode}</code>
-                </pre>
+                  <pre className="text-green-400 text-sm overflow-x-auto">
+                    <code>{quickStartCode}</code>
+                  </pre>
+                </div>
               </div>
             </div>
           </div>
