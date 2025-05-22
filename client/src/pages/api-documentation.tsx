@@ -84,32 +84,38 @@ const ApiDocumentationPage = () => {
     {
       title: "RESTful API",
       description: "API REST completa com padrões modernos",
-      icon: <Globe className="h-8 w-8 text-blue-500" />
+      icon: <Globe className="h-8 w-8 text-white" />,
+      gradient: "from-blue-500 to-cyan-500"
     },
     {
       title: "Autenticação Segura",
       description: "OAuth 2.0, JWT e API Keys",
-      icon: <Lock className="h-8 w-8 text-green-500" />
+      icon: <Lock className="h-8 w-8 text-white" />,
+      gradient: "from-green-500 to-emerald-500"
     },
     {
       title: "Rate Limiting",
       description: "Controle de taxa e throttling inteligente",
-      icon: <Zap className="h-8 w-8 text-yellow-500" />
+      icon: <Zap className="h-8 w-8 text-white" />,
+      gradient: "from-yellow-500 to-orange-500"
     },
     {
       title: "Webhooks",
       description: "Notificações em tempo real para eventos",
-      icon: <Network className="h-8 w-8 text-purple-500" />
+      icon: <Network className="h-8 w-8 text-white" />,
+      gradient: "from-purple-500 to-pink-500"
     },
     {
       title: "SDKs Múltiplos",
       description: "JavaScript, Python, PHP, .NET e mais",
-      icon: <Code className="h-8 w-8 text-red-500" />
+      icon: <Code className="h-8 w-8 text-white" />,
+      gradient: "from-red-500 to-rose-500"
     },
     {
       title: "Monitoramento",
       description: "Analytics e métricas em tempo real",
-      icon: <Cpu className="h-8 w-8 text-indigo-500" />
+      icon: <Cpu className="h-8 w-8 text-white" />,
+      gradient: "from-indigo-500 to-purple-500"
     }
   ];
 
@@ -139,30 +145,34 @@ api.webhooks.subscribe('ticket.created', {
 });`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 border-b border-gray-200 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-purple-600/90 to-pink-600/90"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-12">
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <Code className="h-12 w-12 text-blue-600" />
+            <div className="text-center relative z-10">
+              <div className="flex justify-center mb-6">
+                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-4 rounded-full shadow-xl animate-pulse">
+                  <Code className="h-16 w-16 text-white" />
                 </div>
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
                 API Endurancy
               </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-2">
                 Conecte seu sistema ao ecossistema Endurancy com nossa API robusta e flexível. 
+              </p>
+              <p className="text-lg text-purple-200 max-w-2xl mx-auto">
                 Integre facilmente módulos de gestão, laboratório, patrimônio e muito mais.
               </p>
-              <div className="mt-8 flex justify-center space-x-4">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <div className="mt-10 flex justify-center space-x-6">
+                <Button size="lg" className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white border-0 shadow-xl transform hover:scale-105 transition-all duration-200">
                   <Book className="h-5 w-5 mr-2" />
                   Começar Agora
                 </Button>
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-purple-600 shadow-xl transform hover:scale-105 transition-all duration-200">
                   <Download className="h-5 w-5 mr-2" />
                   Download SDK
                 </Button>
@@ -186,14 +196,18 @@ api.webhooks.subscribe('ticket.created', {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {apiFeatures.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="flex justify-center mb-4">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <Card key={index} className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
+                <div className={`bg-gradient-to-br ${feature.gradient} p-6`}>
+                  <CardHeader className="text-center p-0">
+                    <div className="flex justify-center mb-4">
+                      <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                        {feature.icon}
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl text-white">{feature.title}</CardTitle>
+                  </CardHeader>
+                </div>
+                <CardContent className="p-6 bg-white">
                   <p className="text-gray-600 text-center">{feature.description}</p>
                 </CardContent>
               </Card>
@@ -203,15 +217,19 @@ api.webhooks.subscribe('ticket.created', {
 
         {/* Quick Start */}
         <section className="mb-16">
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <div className="flex items-center mb-6">
-              <Zap className="h-8 w-8 text-yellow-500 mr-3" />
-              <h2 className="text-3xl font-bold text-gray-900">Quick Start</h2>
-            </div>
-            
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Primeiros Passos</h3>
+          <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-xl shadow-2xl p-8 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-cyan-600/20"></div>
+            <div className="relative z-10">
+              <div className="flex items-center mb-6">
+                <div className="bg-white/20 p-3 rounded-full mr-4">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">Quick Start</h2>
+              </div>
+              
+              <div className="grid lg:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 text-white">Primeiros Passos</h3>
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
