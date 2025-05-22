@@ -181,6 +181,7 @@ import Sitemap from "@/pages/Sitemap";
 import LandingPage from "@/pages/LandingPage";
 import RoadmapPage from "@/pages/roadmap";
 import PreCadastrosTest from "@/pages/PreCadastrosTest";
+import ApiDocumentationPage from "@/pages/api-documentation";
 
 import NewLandingPage from "@/pages/NewLandingPage";
 import LaboratoryLandingPage from "@/pages/LaboratoryLandingPage";
@@ -790,6 +791,11 @@ function AppContent() {
   // Rota pública para o roadmap do sistema
   if (currentPath === '/roadmap') {
     return <RoadmapPage />;
+  }
+  
+  // Rota pública para a documentação da API
+  if (currentPath === '/api' || currentPath === '/api-documentation') {
+    return <ApiDocumentationPage />;
   }
   
   // Rota pública para a página de legacy

@@ -32,6 +32,10 @@ const LandingPage = () => {
               <Calendar className="h-4 w-4 mr-1" />
               <span>Roadmap</span>
             </a>
+            <a href="/api" className="text-green-700 hover:text-green-500 font-medium flex items-center">
+              <Code className="h-4 w-4 mr-1" />
+              <span>API</span>
+            </a>
           </nav>
           <div className="flex items-center space-x-4">
             <Button 
