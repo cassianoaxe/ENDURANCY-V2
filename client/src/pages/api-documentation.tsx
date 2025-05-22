@@ -151,6 +151,18 @@ api.webhooks.subscribe('ticket.created', {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-purple-600/90 to-pink-600/90"></div>
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Navigation Bar */}
+          <div className="flex items-center justify-between py-4 relative z-10">
+            <Link href="/" className="flex items-center text-white hover:text-yellow-300 transition-colors">
+              <ArrowRight className="h-5 w-5 mr-2 transform rotate-180" />
+              <span className="font-medium">Voltar para Home</span>
+            </Link>
+            <div className="flex items-center space-x-4">
+              <a href="#documentation" className="text-white/80 hover:text-white transition-colors">Documentação</a>
+              <a href="#integration" className="text-white/80 hover:text-white transition-colors">Integração</a>
+              <a href="#support" className="text-white/80 hover:text-white transition-colors">Suporte</a>
+            </div>
+          </div>
           <div className="py-12">
             <div className="text-center relative z-10">
               <div className="flex justify-center mb-6">
