@@ -58,6 +58,10 @@ export default function Documentation() {
               <Database className="h-4 w-4 mr-2" />
               Banco de dados
             </TabsTrigger>
+            <TabsTrigger value="api" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Code className="h-4 w-4 mr-2" />
+              API
+            </TabsTrigger>
             <TabsTrigger value="auth" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Lock className="h-4 w-4 mr-2" />
               Autenticação
@@ -741,6 +745,261 @@ const newUser = await db
   .returning();
                       `}
                     </pre>
+                  </div>
+                </section>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="api" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Code className="h-5 w-5 mr-2" />
+                  API do Endurancy
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Visão Geral da API</h3>
+                  <p className="text-gray-700 mb-4">
+                    A API do Endurancy é uma API RESTful robusta que permite integração completa com o ecossistema 
+                    de gestão empresarial. Oferece endpoints para todos os módulos principais e funcionalidades avançadas.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">🔗 Base URL</h4>
+                      <code className="text-sm bg-white px-2 py-1 rounded">https://api.endurancy.com/api</code>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">📋 Versão Atual</h4>
+                      <code className="text-sm bg-white px-2 py-1 rounded">v1.0</code>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Autenticação</h3>
+                  <p className="text-gray-700 mb-4">
+                    A API suporta múltiplos métodos de autenticação para diferentes casos de uso:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-2 mb-4">
+                    <li><strong>API Keys:</strong> Para integrações server-to-server</li>
+                    <li><strong>OAuth 2.0:</strong> Para aplicações third-party</li>
+                    <li><strong>JWT Tokens:</strong> Para aplicações móveis e SPAs</li>
+                    <li><strong>Session Cookies:</strong> Para aplicações web tradicionais</li>
+                  </ul>
+                  
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-medium mb-2">Exemplo de autenticação com API Key:</h4>
+                    <pre className="whitespace-pre-wrap text-sm">
+{`curl -H "Authorization: Bearer YOUR_API_KEY" \\
+     -H "Content-Type: application/json" \\
+     https://api.endurancy.com/api/organizations`}
+                    </pre>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Principais Endpoints</h3>
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">🏢 Organizações</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li><code>GET /api/organizations</code> - Listar organizações</li>
+                        <li><code>GET /api/organizations/:id</code> - Obter organização específica</li>
+                        <li><code>POST /api/organizations</code> - Criar nova organização</li>
+                        <li><code>PUT /api/organizations/:id</code> - Atualizar organização</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">👥 Usuários</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li><code>GET /api/users</code> - Listar usuários</li>
+                        <li><code>GET /api/users/:id</code> - Obter usuário específico</li>
+                        <li><code>POST /api/users</code> - Criar novo usuário</li>
+                        <li><code>PUT /api/users/:id</code> - Atualizar usuário</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">🎫 Tickets de Suporte</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li><code>GET /api/tickets</code> - Listar tickets</li>
+                        <li><code>POST /api/tickets</code> - Criar ticket</li>
+                        <li><code>PUT /api/tickets/:id</code> - Atualizar ticket</li>
+                        <li><code>POST /api/tickets/:id/comments</code> - Adicionar comentário</li>
+                      </ul>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">🔔 Notificações</h4>
+                      <ul className="text-sm space-y-1 text-gray-600">
+                        <li><code>GET /api/notifications</code> - Listar notificações</li>
+                        <li><code>POST /api/notifications</code> - Criar notificação</li>
+                        <li><code>PUT /api/notifications/:id/read</code> - Marcar como lida</li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Webhooks</h3>
+                  <p className="text-gray-700 mb-4">
+                    Configure webhooks para receber notificações em tempo real sobre eventos importantes:
+                  </p>
+                  <div className="space-y-3">
+                    <div className="bg-yellow-50 p-3 rounded-lg">
+                      <strong>Eventos disponíveis:</strong> ticket.created, ticket.updated, user.created, organization.updated, payment.completed
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-medium mb-2">Configurar webhook:</h4>
+                      <pre className="whitespace-pre-wrap text-sm">
+{`POST /api/webhooks
+{
+  "url": "https://sua-app.com/webhook",
+  "events": ["ticket.created", "ticket.updated"],
+  "secret": "seu_secret_opcional"
+}`}
+                      </pre>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Rate Limiting</h3>
+                  <p className="text-gray-700 mb-4">
+                    A API implementa rate limiting para garantir performance e disponibilidade:
+                  </p>
+                  <ul className="list-disc pl-6 space-y-1 mb-4">
+                    <li>Usuários autenticados: 1000 requisições por hora</li>
+                    <li>Endpoints públicos: 100 requisições por hora</li>
+                    <li>Webhook endpoints: 500 requisições por hora</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">SDKs Disponíveis</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">JavaScript/Node.js</h4>
+                      <pre className="text-xs bg-gray-100 p-2 rounded">npm install @endurancy/sdk</pre>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Python</h4>
+                      <pre className="text-xs bg-gray-100 p-2 rounded">pip install endurancy-python</pre>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">PHP</h4>
+                      <pre className="text-xs bg-gray-100 p-2 rounded">composer require endurancy/php-sdk</pre>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-2">.NET</h4>
+                      <pre className="text-xs bg-gray-100 p-2 rounded">Install-Package Endurancy.SDK</pre>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Apps Integrados</h3>
+                  <p className="text-gray-700 mb-4">
+                    Aplicações que já se integram com o ecossistema Endurancy:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-green-600 mb-2">✅ WhatsApp Business</h4>
+                      <p className="text-sm text-gray-600">Notificações e comunicação automatizada</p>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">3 endpoints</span>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-green-600 mb-2">✅ Sistema Financeiro</h4>
+                      <p className="text-sm text-gray-600">Integração com ERPs e sistemas contábeis</p>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">12 endpoints</span>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-green-600 mb-2">✅ Portal de Laboratórios</h4>
+                      <p className="text-sm text-gray-600">Equipamentos e sistemas LIMS</p>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">8 endpoints</span>
+                    </div>
+                    <div className="border rounded-lg p-4">
+                      <h4 className="font-medium text-yellow-600 mb-2">⚠️ ANVISA Connect</h4>
+                      <p className="text-sm text-gray-600">Sistemas regulatórios (Beta)</p>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">5 endpoints</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Códigos de Resposta</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-green-600">200 OK</code>
+                      <span className="text-sm text-gray-600">Sucesso</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-green-600">201 Created</code>
+                      <span className="text-sm text-gray-600">Recurso criado</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">400 Bad Request</code>
+                      <span className="text-sm text-gray-600">Dados inválidos</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">401 Unauthorized</code>
+                      <span className="text-sm text-gray-600">Não autenticado</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">403 Forbidden</code>
+                      <span className="text-sm text-gray-600">Sem permissão</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">404 Not Found</code>
+                      <span className="text-sm text-gray-600">Recurso não encontrado</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">429 Too Many Requests</code>
+                      <span className="text-sm text-gray-600">Rate limit excedido</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 border rounded">
+                      <code className="text-red-600">500 Internal Server Error</code>
+                      <span className="text-sm text-gray-600">Erro interno</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-lg font-medium mb-2">Links Úteis</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <a href="/api" className="flex items-center text-blue-600 hover:underline">
+                        <Code className="h-4 w-4 mr-2" />
+                        Página Pública da API
+                      </a>
+                      <a href="#" className="flex items-center text-blue-600 hover:underline">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Documentação Interativa
+                      </a>
+                      <a href="#" className="flex items-center text-blue-600 hover:underline">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        Guias de Integração
+                      </a>
+                    </div>
+                    <div className="space-y-2">
+                      <a href="#" className="flex items-center text-blue-600 hover:underline">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Fórum de Desenvolvedores
+                      </a>
+                      <a href="#" className="flex items-center text-blue-600 hover:underline">
+                        <Activity className="h-4 w-4 mr-2" />
+                        Status da API
+                      </a>
+                      <a href="#" className="flex items-center text-blue-600 hover:underline">
+                        <Headphones className="h-4 w-4 mr-2" />
+                        Suporte Técnico
+                      </a>
+                    </div>
                   </div>
                 </section>
               </CardContent>
