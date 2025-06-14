@@ -33,6 +33,7 @@ import SocialDespesas from "@/pages/organization/social/despesas/index";
 import SocialCampanhas from "@/pages/organization/social/campanhas/index";
 import SocialVoluntarios from "@/pages/organization/social/voluntarios/index";
 import SocialConfiguracoes from "@/pages/organization/social/configuracoes/index";
+import ExemptionsPage from "@/pages/organization/social/exemptions";
 
 // Novos imports do módulo de Carteirinha
 import MembershipCardsPage from "@/pages/organization/carteirinha/membership-cards";
@@ -1708,6 +1709,12 @@ function AppContent() {
     if (currentPath === '/organization/social/beneficiarios/novo') {
       return <OrganizationLayout>
         <NovoBeneficiario />
+      </OrganizationLayout>;
+    }
+
+    if (currentPath === '/organization/social/exemptions') {
+      return <OrganizationLayout>
+        <ExemptionsPage />
       </OrganizationLayout>;
     }
 

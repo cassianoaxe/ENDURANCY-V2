@@ -22,6 +22,7 @@ import { registerLaboratoryAuthRoutes } from "./routes/laboratory-auth-routes";
 import { registerSupplierRoutes } from "./routes-suppliers";
 import { registerSupplierTestRoutes } from "./routes-supplier-test";
 import expedicaoRoutes from "./routes/expedicao-routes";
+import socialExemptionsRoutes from "./routes-social-exemptions";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
@@ -1361,6 +1362,7 @@ app.use((req, res, next) => {
 
   // Registrar rotas de expedição
   app.use("/api/expedicao", expedicaoRoutes);
+  app.use(socialExemptionsRoutes);
   console.log("Rotas do módulo de expedição registradas com sucesso");
 
   console.log(

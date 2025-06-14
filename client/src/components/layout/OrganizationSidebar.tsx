@@ -471,6 +471,12 @@ export default function OrganizationSidebar() {
           icon: <Users2 size={16} className="text-red-500" />
         },
         {
+          title: "Sistema de Isenções",
+          path: "/organization/social/exemptions",
+          active: currentPath === "/organization/social/exemptions",
+          icon: <Calculator size={16} className="text-red-500" />
+        },
+        {
           title: "Doações",
           path: "/organization/social/doacoes",
           active: currentPath === "/organization/social/doacoes",

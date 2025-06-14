@@ -8,7 +8,13 @@ import { z } from "zod";
 export const beneficiaryStatusEnum = pgEnum('beneficiary_status', ['active', 'inactive', 'pending', 'rejected']);
 
 // Enum para os tipos de isenção
-export const exemptionTypeEnum = pgEnum('exemption_type', ['exemption_25', 'exemption_50', 'exemption_75', 'exemption_100']);
+export const exemptionTypeEnum = pgEnum('exemption_type', ['exemption_25', 'exemption_50', 'exemption_100', 'anuidade_only']);
+
+// Enum para tipos de doação
+export const donationTypeEnum = pgEnum('donation_type', ['money', 'goods', 'real_estate', 'services', 'other']);
+
+// Enum para status de compra de isenção
+export const exemptionPurchaseStatusEnum = pgEnum('exemption_purchase_status', ['pending', 'approved', 'used', 'expired', 'cancelled']);
 
 // Enum para o tipo de associado
 export const membershipTypeEnum = pgEnum('membership_type', ['regular', 'premium', 'lifetime', 'temporary']);
@@ -48,6 +54,12 @@ export const socialBeneficiaries = pgTable("social_beneficiaries", {
   membershipType: membershipTypeEnum("membership_type"),
   membershipStartDate: date("membership_start_date"),
   membershipEndDate: date("membership_end_date"),
+  // Campos para programa de isenção
+  exemptionType: exemptionTypeEnum("exemption_type"),
+  monthlyUsageLimit: integer("monthly_usage_limit").default(0), // Quantas vezes pode usar por mês
+  criteriaRank: decimal("criteria_rank", { precision: 10, scale: 2 }).default("0"), // Rank de critério
+  exemptionValue: decimal("exemption_value", { precision: 10, scale: 2 }).default("0"), // Valor de isenção gerado
+  isImportedFromOrganization: boolean("is_imported_from_organization").default(false),
   membershipCode: text("membership_code"), // Código único para o associado (usado no QR)
   membershipRules: json("membership_rules"), // Regras, direitos e deveres específicos
   documentFront: text("document_front"), // URL da foto do documento (frente)
@@ -55,8 +67,6 @@ export const socialBeneficiaries = pgTable("social_beneficiaries", {
   proofOfIncome: text("proof_of_income"), // URL do comprovante de renda
   proofOfResidence: text("proof_of_residence"), // URL do comprovante de residência
   medicalReport: text("medical_report"), // URL do laudo médico
-  exemptionType: exemptionTypeEnum("exemption_type").notNull().default("exemption_25"),
-  exemptionValue: decimal("exemption_value", { precision: 10, scale: 2 }).notNull().default("25"),
   monthlyIncome: decimal("monthly_income", { precision: 10, scale: 2 }),
   familyMembers: integer("family_members"),
   notes: text("notes"),
@@ -338,6 +348,64 @@ export const socialBenefitUsage = pgTable("social_benefit_usage", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Tabela de Compras de Isenção
+export const exemptionPurchases = pgTable("exemption_purchases", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  beneficiaryId: integer("beneficiary_id").notNull(),
+  purchaseDate: timestamp("purchase_date").defaultNow(),
+  exemptionType: exemptionTypeEnum("exemption_type").notNull(),
+  originalValue: decimal("original_value", { precision: 10, scale: 2 }).notNull(),
+  exemptionValue: decimal("exemption_value", { precision: 10, scale: 2 }).notNull(),
+  finalValue: decimal("final_value", { precision: 10, scale: 2 }).notNull(),
+  status: exemptionPurchaseStatusEnum("status").default("pending"),
+  usageCount: integer("usage_count").default(0),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Tabela de Doações Expandida
+export const organizationDonations = pgTable("organization_donations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  donorName: text("donor_name").notNull(),
+  donorCpfCnpj: text("donor_cpf_cnpj"),
+  donorEmail: text("donor_email"),
+  donorPhone: text("donor_phone"),
+  donationType: donationTypeEnum("donation_type").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  description: text("description").notNull(),
+  donationDate: timestamp("donation_date").defaultNow(),
+  location: text("location"), // Para imóveis
+  estimatedValue: decimal("estimated_value", { precision: 10, scale: 2 }), // Para bens
+  receiptNumber: text("receipt_number"),
+  isAnonymous: boolean("is_anonymous").default(false),
+  attachments: json("attachments"), // URLs de documentos/fotos
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Tabela de Índices de Transparência (Agregados mensais)
+export const transparencyIndexes = pgTable("transparency_indexes", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull(),
+  month: integer("month").notNull(),
+  year: integer("year").notNull(),
+  totalExemptions: decimal("total_exemptions", { precision: 12, scale: 2 }).default("0"),
+  exemptions25Count: integer("exemptions_25_count").default(0),
+  exemptions50Count: integer("exemptions_50_count").default(0),
+  exemptions100Count: integer("exemptions_100_count").default(0),
+  totalDonations: decimal("total_donations", { precision: 12, scale: 2 }).default("0"),
+  moneyDonations: decimal("money_donations", { precision: 12, scale: 2 }).default("0"),
+  goodsDonations: decimal("goods_donations", { precision: 12, scale: 2 }).default("0"),
+  realEstateDonations: decimal("real_estate_donations", { precision: 12, scale: 2 }).default("0"),
+  servicesDonations: decimal("services_donations", { precision: 12, scale: 2 }).default("0"),
+  activeBeneficiariesCount: integer("active_beneficiaries_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // ==================== SCHEMAS ====================
 // Schemas para inserção de dados com validação Zod
 export const insertSocialBeneficiarySchema = createInsertSchema(socialBeneficiaries);
@@ -350,6 +418,11 @@ export const insertSocialPortalSettingsSchema = createInsertSchema(socialPortalS
 export const insertSocialBeneficiaryHistorySchema = createInsertSchema(socialBeneficiaryHistory);
 export const insertSocialBeneficioSchema = createInsertSchema(socialBeneficios);
 export const insertSocialBeneficio_BeneficiarioSchema = createInsertSchema(socialBeneficios_Beneficiarios);
+
+// Schemas para módulo de isenções e doações
+export const insertExemptionPurchaseSchema = createInsertSchema(exemptionPurchases);
+export const insertOrganizationDonationSchema = createInsertSchema(organizationDonations);
+export const insertTransparencyIndexSchema = createInsertSchema(transparencyIndexes);
 
 // Schemas para módulo de carteirinha
 export const insertSocialMembershipCardSchema = createInsertSchema(socialMembershipCards);
