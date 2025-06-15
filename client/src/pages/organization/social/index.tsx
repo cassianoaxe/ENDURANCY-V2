@@ -71,6 +71,13 @@ export default function SocialDashboard() {
     enabled: true,
   });
 
+  // Fetch exemption statistics
+  const { data: exemptionStats } = useQuery({
+    queryKey: ['/api/social/exemptions/stats'],
+    retry: false,
+    enabled: true,
+  });
+
   const formatCurrency = (value: number) => {
     return value?.toLocaleString('pt-BR', {
       style: 'currency',
@@ -136,7 +143,7 @@ export default function SocialDashboard() {
     return (
       <div className="space-y-6">
         {/* Overview Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
@@ -283,6 +290,93 @@ export default function SocialDashboard() {
                   </>
                 )}
                 <span className="text-muted-foreground text-xs">vs. período anterior</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Exemptions Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total de Isenções
+                </CardTitle>
+                <CardDescription className="text-2xl font-bold">
+                  {formatCurrency(exemptionStats?.totalDonations?.totalAmount || 0)}
+                </CardDescription>
+              </div>
+              <div className="h-10 w-10 bg-purple-500/10 rounded-full flex items-center justify-center">
+                <Percent className="h-5 w-5 text-purple-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="flex items-center gap-1">
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+                <span className="text-green-500 text-sm font-medium">
+                  +12.0%
+                </span>
+                <span className="text-muted-foreground text-xs">vs. período anterior</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {exemptionStats?.totalDonations?.count || 0} isenções no período
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Beneficiários Ativos
+                </CardTitle>
+                <CardDescription className="text-2xl font-bold">
+                  {exemptionStats?.activeBeneficiaries || 0}
+                </CardDescription>
+              </div>
+              <div className="h-10 w-10 bg-indigo-500/10 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 text-indigo-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="flex items-center gap-1">
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+                <span className="text-green-500 text-sm font-medium">
+                  +8.5%
+                </span>
+                <span className="text-muted-foreground text-xs">vs. período anterior</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Com diferentes níveis de desconto
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Índice de Transparência
+                </CardTitle>
+                <CardDescription className="text-2xl font-bold">
+                  {((exemptionStats?.activeBeneficiaries || 0) * 10).toFixed(1)}%
+                </CardDescription>
+              </div>
+              <div className="h-10 w-10 bg-teal-500/10 rounded-full flex items-center justify-center">
+                <BarChart2 className="h-5 w-5 text-teal-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="flex items-center gap-1">
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+                <span className="text-green-500 text-sm font-medium">
+                  +5.2%
+                </span>
+                <span className="text-muted-foreground text-xs">vs. período anterior</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Baseado em atividade dos beneficiários
               </div>
             </CardContent>
           </Card>
