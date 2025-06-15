@@ -85,8 +85,11 @@ export default function DonationsList() {
     enabled: true,
   });
 
+  // Extract donations array from API response
+  const donationsArray = donations?.donations || [];
+  
   // Filter and sort donations based on search term and filters
-  const filteredDonations = donations?.filter(donation => 
+  const filteredDonations = donationsArray.filter(donation => 
     (donation.isAnonymous ? "Doação anônima".includes(searchTerm.toLowerCase()) : donation.donorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (donation.donorEmail && donation.donorEmail.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (donation.donorPhone && donation.donorPhone.includes(searchTerm)) ||
@@ -95,7 +98,7 @@ export default function DonationsList() {
     (filterMethod === 'all' || donation.method === filterMethod) &&
     (filterCampaign === 'all' || (filterCampaign === 'none' && !donation.campaignId) || 
      (donation.campaignId?.toString() === filterCampaign))
-  ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) || [];
+  ).sort((a, b) => new Date(b.donationDate || b.date).getTime() - new Date(a.donationDate || a.date).getTime());
 
   // Pagination logic
   const itemsPerPage = 10;
