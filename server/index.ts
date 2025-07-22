@@ -23,6 +23,7 @@ import { registerSupplierRoutes } from "./routes-suppliers";
 import { registerSupplierTestRoutes } from "./routes-supplier-test";
 import expedicaoRoutes from "./routes/expedicao-routes";
 import socialExemptionsRoutes from "./routes-social-exemptions";
+import { registerHplcRoutes } from "./routes/hplc-routes";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
@@ -1352,6 +1353,7 @@ app.use((req, res, next) => {
   registerLaboratoryPortalRoutes(app);
   registerLaboratoryRoutes(app);
   registerLaboratoryAuthRoutes(app);
+  registerHplcRoutes(app);
 
   // Registrar rotas do Portal de Fornecedores
   registerSupplierRoutes(app);
